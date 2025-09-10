@@ -81,25 +81,35 @@ const EAMarketplace = () => {
   const mockEAs = [
     {
       id: 1,
-      name: 'Gold Scalper EA',
-      description: 'Advanced scalping EA specifically designed for gold trading with high frequency trades',
+      name: 'Gold Scalper Pro v2.0',
+      description: 'Institutional-grade Expert Advisor for XAUUSD trading with 89.84% win rate and 0.19% max drawdown',
       category: 'scalping',
-      creator: 'GoldMaster',
-      rating: 4.8,
-      reviews: 156,
-      price: 99,
+      creator: 'Smart Algos',
+      rating: 4.9,
+      reviews: 324,
+      price: 299,
       currency: 'USD',
       period: 'monthly',
-      winRate: 78,
-      totalTrades: 1245,
-      profitFactor: 1.85,
-      maxDrawdown: 8.2,
-      monthlyReturn: 12.5,
+      winRate: 89.84,
+      totalTrades: 256,
+      profitFactor: 1.42,
+      maxDrawdown: 0.19,
+      monthlyReturn: 1.96,
       isLive: true,
       isFeatured: true,
       status: 'working',
-      tags: ['Gold', 'Scalping', 'High Frequency'],
+      tags: ['Gold', 'XAUUSD', 'Institutional', 'High Win Rate', 'Low Drawdown'],
       image: '/api/placeholder/300/200',
+      documentation: 'GoldScalperPro_Documentation.md',
+      verified: true,
+      performance: {
+        totalProfit: 196.44,
+        sharpeRatio: 2.34,
+        recoveryFactor: 1.00,
+        averageTradeDuration: 45,
+        longestWinStreak: 47,
+        longestLossStreak: 3
+      }
     },
     {
       id: 2,
@@ -447,6 +457,16 @@ const EAMarketplace = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
+                      {ea.documentation && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => window.open(`/src/pages/EAMarketplace/${ea.documentation}`, '_blank')}
+                          title="View Documentation"
+                        >
+                          📄
+                        </Button>
+                      )}
                     </div>
                   </Card.Body>
                 </Card>
@@ -483,7 +503,7 @@ const EAMarketplace = () => {
                       {ea.category}
                     </span>
                   </div>
-                  <div className="absolute top-4 right-4">
+                  <div className="absolute top-4 right-4 flex flex-col space-y-1">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       ea.status === 'working' 
                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
@@ -491,6 +511,11 @@ const EAMarketplace = () => {
                     }`}>
                       {ea.status === 'working' ? 'Working' : 'Upcoming'}
                     </span>
+                    {ea.verified && (
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        ✓ Verified
+                      </span>
+                    )}
                   </div>
                 </div>
                 

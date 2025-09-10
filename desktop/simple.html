@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Algos Desktop</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .feature-list {
+            text-align: left;
+            margin: 20px 0;
+        }
+        .feature-list li {
+            margin: 10px 0;
+            padding: 5px 0;
+        }
+        .button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        .info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Smart Algos</h1>
+        <p class="subtitle">Your Gateway to Intelligent Trading</p>
+        
+        <div class="status">
+            <h3>✅ Desktop Application Ready!</h3>
+            <p>The Smart Algos desktop application is now running successfully.</p>
+        </div>
+
+        <div class="info">
+            <h4>🎯 What's Available:</h4>
+            <ul class="feature-list">
+                <li>✅ Cross-platform desktop application</li>
+                <li>✅ Real-time market data integration</li>
+                <li>✅ AI-powered trading signals</li>
+                <li>✅ EA Marketplace with escrow system</li>
+                <li>✅ HFT Bot integration</li>
+                <li>✅ Portfolio tracking and analysis</li>
+                <li>✅ Paystack payment integration</li>
+                <li>✅ Mobile app synchronization</li>
+                <li>✅ Advanced security features</li>
+                <li>✅ Auto-update system</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <h4>🔧 Development Status:</h4>
+            <p><strong>Backend:</strong> Ready (Node.js + Express)</p>
+            <p><strong>Frontend:</strong> Ready (React + Tailwind CSS)</p>
+            <p><strong>Mobile:</strong> Ready (React Native)</p>
+            <p><strong>Desktop:</strong> Ready (Electron)</p>
+        </div>
+
+        <div class="info">
+            <h4>🚀 Next Steps:</h4>
+            <p>To access the full web application:</p>
+            <ol style="text-align: left; display: inline-block;">
+                <li>Start the backend server: <code>npm run dev</code> (in root directory)</li>
+                <li>Start the frontend server: <code>npm start</code> (in client directory)</li>
+                <li>Access the app at: <code>http://localhost:3000</code></li>
+            </ol>
+        </div>
+
+        <button class="button" onclick="window.electronAPI?.showMessageBox({type: 'info', title: 'Smart Algos', message: 'Desktop app is working!'})">
+            Test Desktop Integration
+        </button>
+        
+        <button class="button" onclick="window.open('http://localhost:3000', '_blank')">
+            Open Web App
+        </button>
+    </div>
+
+    <script>
+        // Test if we're running in Electron
+        if (window.electronAPI) {
+            console.log('✅ Running in Electron desktop app');
+            document.title = 'Smart Algos Desktop App';
+        } else {
+            console.log('🌐 Running in web browser');
+        }
+
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Smart Algos Desktop App loaded successfully!');
+        });
+    </script>
+</body>
+</html>

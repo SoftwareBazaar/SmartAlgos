@@ -1,0 +1,555 @@
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const { body, validationResult } = require('express-validator');
+const databaseService = require('../services/databaseService');
+const { auth, createActionRateLimit } = require('../middleware/auth');
+const router = express.Router();
+
+// Generate JWT token
+const generateToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE || '7d'
+  });
+};
+
+// Rate limiting for auth actions (more lenient for development)
+const loginRateLimit = createActionRateLimit(10, 5 * 60 * 1000, 'login'); // 10 attempts per 5 minutes
+const registerRateLimit = createActionRateLimit(5, 10 * 60 * 1000, 'register'); // 5 attempts per 10 minutes
+const passwordResetRateLimit = createActionRateLimit(5, 10 * 60 * 1000, 'password-reset'); // 5 attempts per 10 minutes
+
+// @route   POST /api/auth/register
+// @desc    Register a new user
+// @access  Public
+router.post('/register', [
+  registerRateLimit,
+  body('firstName')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('First name must be between 2 and 50 characters'),
+  body('lastName')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Last name must be between 2 and 50 characters'),
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
+  body('confirmPassword')
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Password confirmation does not match password');
+      }
+      return true;
+    })
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { firstName, lastName, email, password, phone, country, tradingExperience } = req.body;
+
+    // Check if user already exists
+    const existingUser = await databaseService.getUserByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with this email'
+      });
+    }
+
+    // Hash password
+    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Create new user
+    const userData = {
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      password_hash: passwordHash,
+      phone,
+      country,
+      trading_experience: tradingExperience || 'beginner',
+      is_active: true,
+      is_email_verified: false,
+      role: 'user',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const user = await databaseService.createUser(userData);
+
+    // Generate token
+    const token = generateToken(user.id);
+
+    // Remove password from response
+    const userResponse = { ...user };
+    delete userResponse.password_hash;
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      token,
+      user: userResponse
+    });
+
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during registration'
+    });
+  }
+});
+
+// @route   POST /api/auth/login
+// @desc    Login user
+// @access  Public
+router.post('/login', [
+  loginRateLimit,
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { email, password } = req.body;
+
+    // Find user by email
+    const user = await databaseService.getUserByEmail(email);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Check if account is locked
+    if (user.lock_until && new Date() < new Date(user.lock_until)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account is temporarily locked due to multiple failed login attempts'
+      });
+    }
+
+    // Check if account is active
+    if (!user.is_active) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account is deactivated'
+      });
+    }
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      // Increment login attempts
+      const loginAttempts = (user.login_attempts || 0) + 1;
+      const lockUntil = loginAttempts >= 5 ? new Date(Date.now() + 2 * 60 * 60 * 1000) : null; // Lock for 2 hours after 5 attempts
+      
+      await databaseService.updateUser(user.id, {
+        login_attempts: loginAttempts,
+        lock_until: lockUntil
+      });
+      
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Reset login attempts on successful login
+    if (user.login_attempts > 0) {
+      await databaseService.updateUser(user.id, {
+        login_attempts: 0,
+        lock_until: null
+      });
+    }
+
+    // Update last login and activity
+    await databaseService.updateUser(user.id, {
+      last_login: new Date().toISOString(),
+      last_activity: new Date().toISOString()
+    });
+
+    // Generate token
+    const token = generateToken(user.id);
+
+    // Remove password from response
+    const userResponse = { ...user };
+    delete userResponse.password_hash;
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      token,
+      user: userResponse
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during login'
+    });
+  }
+});
+
+// @route   GET /api/auth/me
+// @desc    Get current user
+// @access  Private
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await databaseService.getUserById(req.user.userId);
+    res.json({
+      success: true,
+      user
+    });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/auth/forgot-password
+// @desc    Send password reset email
+// @access  Public
+router.post('/forgot-password', [
+  passwordResetRateLimit,
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { email } = req.body;
+
+    const user = await databaseService.getUserByEmail(email);
+    if (!user) {
+      // Don't reveal if email exists or not
+      return res.json({
+        success: true,
+        message: 'If an account with that email exists, a password reset link has been sent'
+      });
+    }
+
+    // Generate reset token (in a real app, you'd send this via email)
+    const resetToken = jwt.sign(
+      { userId: user.id, type: 'password-reset' },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    await databaseService.updateUser(user.id, {
+      password_reset_token: resetToken,
+      password_reset_expires: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+    });
+
+    // In a real application, you would send an email here
+    // For now, we'll just return the token (remove this in production)
+    res.json({
+      success: true,
+      message: 'Password reset link sent to your email',
+      resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined
+    });
+
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/auth/reset-password
+// @desc    Reset password with token
+// @access  Public
+router.post('/reset-password', [
+  body('token')
+    .notEmpty()
+    .withMessage('Reset token is required'),
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { token, password } = req.body;
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.type !== 'password-reset') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid reset token'
+      });
+    }
+
+    const user = await databaseService.getUserById(decoded.userId);
+    
+    if (!user || user.password_reset_token !== token || new Date(user.password_reset_expires) < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired reset token'
+      });
+    }
+
+    // Hash new password
+    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Update password
+    await databaseService.updateUser(user.id, {
+      password_hash: passwordHash,
+      password_reset_token: null,
+      password_reset_expires: null
+    });
+
+    res.json({
+      success: true,
+      message: 'Password reset successful'
+    });
+
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired reset token'
+      });
+    }
+
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/auth/change-password
+// @desc    Change password for authenticated user
+// @access  Private
+router.post('/change-password', [
+  auth,
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 8 })
+    .withMessage('New password must be at least 8 characters long')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+    .withMessage('New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    // Get user with password
+    const user = await databaseService.getUserById(req.user.userId);
+    
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password
+    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
+    const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password
+    await databaseService.updateUser(user.id, {
+      password_hash: passwordHash
+    });
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/auth/verify-email
+// @desc    Verify email address
+// @access  Public
+router.post('/verify-email', [
+  body('token')
+    .notEmpty()
+    .withMessage('Verification token is required')
+], async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.type !== 'email-verification') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification token'
+      });
+    }
+
+    const user = await databaseService.getUserById(decoded.userId);
+
+    if (!user || user.email_verification_token !== token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification token'
+      });
+    }
+
+    await databaseService.updateUser(user.id, {
+      is_email_verified: true,
+      email_verification_token: null
+    });
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully'
+    });
+
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification token'
+      });
+    }
+
+    console.error('Email verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/auth/resend-verification
+// @desc    Resend email verification
+// @access  Private
+router.post('/resend-verification', auth, async (req, res) => {
+  try {
+    if (req.user.is_email_verified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is already verified'
+      });
+    }
+
+    // Generate verification token
+    const verificationToken = jwt.sign(
+      { userId: req.user.userId, type: 'email-verification' },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    await databaseService.updateUser(req.user.userId, {
+      email_verification_token: verificationToken
+    });
+
+    // In a real application, you would send an email here
+    res.json({
+      success: true,
+      message: 'Verification email sent',
+      verificationToken: process.env.NODE_ENV === 'development' ? verificationToken : undefined
+    });
+
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/auth/logout
+// @desc    Logout user (client-side token removal)
+// @access  Private
+router.post('/logout', auth, async (req, res) => {
+  try {
+    // Update last activity
+    await databaseService.updateUser(req.user.userId, {
+      last_activity: new Date().toISOString()
+    });
+
+    res.json({
+      success: true,
+      message: 'Logout successful'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+module.exports = router;

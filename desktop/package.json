@@ -1,0 +1,191 @@
+{
+  "name": "smart-algos-desktop",
+  "version": "1.0.0",
+  "description": "Smart Algos Trading Platform - Desktop Application",
+  "main": "main.js",
+  "homepage": "./",
+  "scripts": {
+    "electron": "electron .",
+    "electron-dev": "cross-env ELECTRON_IS_DEV=1 electron .",
+    "electron-pack": "electron-builder",
+    "preelectron-pack": "npm run build",
+    "build": "npm run build:react && npm run build:electron",
+    "build:react": "cd ../client && npm run build",
+    "build:electron": "electron-builder",
+    "dist": "npm run build && electron-builder --publish=never",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "postinstall": "electron-builder install-app-deps",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"wait-on http://localhost:3000 && npm run electron-dev\"",
+    "start:backend": "cd .. && node server.js",
+    "start:frontend": "cd ../client && npm start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "trading",
+    "forex",
+    "crypto",
+    "algorithmic-trading",
+    "investment",
+    "desktop-app",
+    "electron"
+  ],
+  "author": {
+    "name": "Smart Algos Team",
+    "email": "support@smartalgos.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^27.1.3",
+    "electron-builder": "^24.6.4",
+    "electron-devtools-installer": "^3.2.0",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "electron-context-menu": "^3.6.1",
+    "electron-dl": "^3.3.0",
+    "electron-localshortcut": "^3.2.1",
+    "electron-log": "^4.4.8",
+    "electron-squirrel-startup": "^1.0.0",
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.4",
+    "electron-window-state": "^5.0.3"
+  },
+  "build": {
+    "appId": "com.smartalgos.desktop",
+    "productName": "Smart Algos",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "node_modules/**/*",
+      "../client/build/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../client/build",
+        "to": "app",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
+      "requestedExecutionLevel": "asInvoker",
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "publisherName": "Smart Algos",
+      "verifyUpdateCodeSignature": false
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.finance",
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "gatekeeperAssess": false,
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "Office",
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "desktop": {
+        "Name": "Smart Algos",
+        "Comment": "Smart Algos Trading Platform",
+        "Keywords": "trading;forex;crypto;investment;",
+        "StartupWMClass": "smart-algos"
+      }
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Smart Algos"
+    },
+    "dmg": {
+      "title": "Smart Algos ${version}",
+      "icon": "build/icon.icns",
+      "background": "build/dmg-background.png",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "smartalgos",
+      "repo": "smart-algos-desktop"
+    }
+  }
+}

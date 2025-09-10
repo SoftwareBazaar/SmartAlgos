@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Algos - Desktop Features</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin: 10px 0;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .feature-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .feature-card li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-card li:last-child {
+            border-bottom: none;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+        
+        .status h3 {
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .status-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .status-item.active {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+        
+        .status-item.inactive {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
+        
+        .actions {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: rgba(33, 150, 243, 0.8);
+            border-color: rgba(33, 150, 243, 0.9);
+        }
+        
+        .btn-primary:hover {
+            background: rgba(33, 150, 243, 1);
+        }
+        
+        .shortcuts {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .shortcuts h3 {
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+        
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .shortcut-group h4 {
+            margin: 0 0 15px 0;
+            color: #ffd700;
+        }
+        
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .shortcut-item:last-child {
+            border-bottom: none;
+        }
+        
+        kbd {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .emoji {
+            font-size: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                display: block;
+                margin: 10px auto;
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Smart Algos Desktop</h1>
+            <p>Your Gateway to Intelligent Trading</p>
+            <p>Enhanced Desktop Features Ready!</p>
+        </div>
+        
+        <div class="status">
+            <h3>🔧 Desktop Features Status</h3>
+            <div class="status-grid">
+                <div class="status-item active">
+                    <div class="emoji">🔔</div>
+                    <div><strong>Notifications</strong></div>
+                    <div>Active</div>
+                </div>
+                <div class="status-item active">
+                    <div class="emoji">📱</div>
+                    <div><strong>System Tray</strong></div>
+                    <div>Active</div>
+                </div>
+                <div class="status-item active">
+                    <div class="emoji">⌨️</div>
+                    <div><strong>Keyboard Shortcuts</strong></div>
+                    <div>Active</div>
+                </div>
+                <div class="status-item active">
+                    <div class="emoji">🔄</div>
+                    <div><strong>Auto-Updater</strong></div>
+                    <div>Active</div>
+                </div>
+                <div class="status-item active">
+                    <div class="emoji">🪟</div>
+                    <div><strong>Window Management</strong></div>
+                    <div>Active</div>
+                </div>
+                <div class="status-item active">
+                    <div class="emoji">⚙️</div>
+                    <div><strong>Desktop Settings</strong></div>
+                    <div>Active</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <a href="http://localhost:3000" class="btn btn-primary">Open Main Application</a>
+            <button onclick="testNotification()" class="btn">Test Notification</button>
+            <button onclick="showWidget()" class="btn">Show Desktop Widget</button>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3><span class="emoji">🔔</span> Desktop Notifications</h3>
+                <ul>
+                    <li>✅ Price alerts for target prices</li>
+                    <li>✅ Trading signals from AI analysis</li>
+                    <li>✅ EA and bot status updates</li>
+                    <li>✅ Portfolio change notifications</li>
+                    <li>✅ System update alerts</li>
+                    <li>✅ Customizable notification settings</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span class="emoji">📱</span> System Tray Integration</h3>
+                <ul>
+                    <li>✅ Minimize to system tray</li>
+                    <li>✅ Quick access context menu</li>
+                    <li>✅ Portfolio status display</li>
+                    <li>✅ Active EA/Bot indicators</li>
+                    <li>✅ One-click navigation</li>
+                    <li>✅ Always accessible controls</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span class="emoji">⌨️</span> Keyboard Shortcuts</h3>
+                <ul>
+                    <li>✅ Global shortcuts (work anywhere)</li>
+                    <li>✅ Quick navigation (Ctrl+1-8)</li>
+                    <li>✅ App control shortcuts</li>
+                    <li>✅ Trading shortcuts</li>
+                    <li>✅ Customizable shortcuts</li>
+                    <li>✅ Help system integration</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span class="emoji">🪟</span> Window Management</h3>
+                <ul>
+                    <li>✅ Always on top mode</li>
+                    <li>✅ Minimize to tray</li>
+                    <li>✅ Start minimized option</li>
+                    <li>✅ Auto-start with Windows</li>
+                    <li>✅ Window state memory</li>
+                    <li>✅ Fullscreen support</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span class="emoji">🔄</span> Auto-Updater</h3>
+                <ul>
+                    <li>✅ Automatic update checks</li>
+                    <li>✅ Background downloads</li>
+                    <li>✅ Progress indicators</li>
+                    <li>✅ Update notifications</li>
+                    <li>✅ Rollback capability</li>
+                    <li>✅ Beta update options</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span class="emoji">⚙️</span> Desktop Settings</h3>
+                <ul>
+                    <li>✅ Notification preferences</li>
+                    <li>✅ Window behavior settings</li>
+                    <li>✅ Update configuration</li>
+                    <li>✅ Performance options</li>
+                    <li>✅ Theme customization</li>
+                    <li>✅ Export/import settings</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="shortcuts">
+            <h3>⌨️ Keyboard Shortcuts Reference</h3>
+            <div class="shortcuts-grid">
+                <div class="shortcut-group">
+                    <h4>Navigation</h4>
+                    <div class="shortcut-item">
+                        <span>Dashboard</span>
+                        <kbd>Ctrl+1</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>Markets</span>
+                        <kbd>Ctrl+2</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>News & Analysis</span>
+                        <kbd>Ctrl+3</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>Portfolio</span>
+                        <kbd>Ctrl+4</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>EA Marketplace</span>
+                        <kbd>Ctrl+5</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>HFT Bots</span>
+                        <kbd>Ctrl+6</kbd>
+                    </div>
+                </div>
+                
+                <div class="shortcut-group">
+                    <h4>App Control</h4>
+                    <div class="shortcut-item">
+                        <span>Reload</span>
+                        <kbd>Ctrl+R</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>Toggle Fullscreen</span>
+                        <kbd>F11</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>Dev Tools</span>
+                        <kbd>Ctrl+Shift+I</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>Close Window</span>
+                        <kbd>Ctrl+W</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>Minimize</span>
+                        <kbd>Ctrl+M</kbd>
+                    </div>
+                </div>
+                
+                <div class="shortcut-group">
+                    <h4>Global Shortcuts</h4>
+                    <div class="shortcut-item">
+                        <span>Show Window</span>
+                        <kbd>Ctrl+Shift+A</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>Toggle Notifications</span>
+                        <kbd>Ctrl+Shift+N</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>Toggle Dark Mode</span>
+                        <kbd>Ctrl+Shift+D</kbd>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>Check Updates</span>
+                        <kbd>Ctrl+Shift+U</kbd>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Load desktop features
+        function loadDesktopFeatures() {
+            // Load notification manager
+            const notificationScript = document.createElement('script');
+            notificationScript.src = './renderer/NotificationManager.js';
+            document.head.appendChild(notificationScript);
+            
+            // Load system tray manager
+            const trayScript = document.createElement('script');
+            trayScript.src = './renderer/SystemTrayManager.js';
+            document.head.appendChild(trayScript);
+            
+            // Load keyboard shortcuts manager
+            const shortcutsScript = document.createElement('script');
+            shortcutsScript.src = './renderer/KeyboardShortcutsManager.js';
+            document.head.appendChild(shortcutsScript);
+        }
+        
+        // Test notification function
+        function testNotification() {
+            if (window.NotificationManager) {
+                window.NotificationManager.testNotification();
+            } else {
+                alert('Desktop features are loading... Please wait a moment and try again.');
+            }
+        }
+        
+        // Show widget function
+        function showWidget() {
+            alert('Desktop widget will be available in the main application!');
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDesktopFeatures();
+            
+            // Check if running in Electron
+            if (window.electronAPI) {
+                console.log('Running in Electron - Desktop features available');
+            } else {
+                console.log('Running in browser - Desktop features limited');
+            }
+        });
+    </script>
+</body>
+</html>

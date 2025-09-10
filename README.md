@@ -19,10 +19,11 @@ A comprehensive algorithmic trading and investment platform that combines cuttin
   - Stock, Forex, Crypto, and Commodity Analysis
 
 - **Global Market Center**
-  - US Stock Market Integration (NYSE, NASDAQ, AMEX)
-  - Kenyan Securities Exchange (NSE) Data
+  - US Stock Market Integration (NYSE, NASDAQ, AMEX) via Alpha Vantage API
+  - Kenyan Securities Exchange (NSE) Data Integration
   - Real-time Market Data and Quotes
   - Advanced Charting and Technical Analysis
+  - Custom EA Creation with Advanced Preferences
 
 - **Investment Research Suite**
   - Company Financial Analysis
@@ -49,12 +50,21 @@ A comprehensive algorithmic trading and investment platform that combines cuttin
 
 ### Frontend
 - **React 18** with modern hooks
-- **Tailwind CSS** for styling
+- **Tailwind CSS** with institutional design system
 - **Framer Motion** for animations
 - **React Query** for data fetching
 - **React Hook Form** for form management
 - **Chart.js** for data visualization
 - **Socket.io Client** for real-time updates
+- **Lucide React** for consistent iconography
+
+### Desktop Application
+- **Electron** for cross-platform desktop app
+- **Advanced Desktop Features** (notifications, system tray, shortcuts)
+- **Auto-updater** for seamless updates
+- **Native Integration** with operating system
+- **Desktop Widgets** for quick access
+- **Keyboard Shortcuts** for power users
 
 ### AI/ML
 - **TensorFlow/PyTorch** for signal generation
@@ -73,8 +83,8 @@ A comprehensive algorithmic trading and investment platform that combines cuttin
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/smart-algos-trading-platform.git
-cd smart-algos-trading-platform
+git clone https://github.com/SoftwareBazaar/SmartAlgos.git
+cd SmartAlgos
 ```
 
 ### 2. Install Dependencies

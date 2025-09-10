@@ -30,6 +30,8 @@ import Settings from './pages/Settings/Settings';
 import Subscription from './pages/Subscription/Subscription';
 import Payments from './pages/Payments/Payments';
 import DesktopFeatures from './pages/DesktopFeatures/DesktopFeatures';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
 
 // Loading component
 import LoadingSpinner from './components/UI/LoadingSpinner';
@@ -83,11 +85,12 @@ function App() {
           <Route path="hft-bots/:id" element={<HFTBotDetail />} />
           <Route path="portfolio" element={<Portfolio />} />
           <Route path="portfolio/:id" element={<PortfolioDetail />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="subscription" element={<Subscription />} />
-          <Route path="payments" element={<Payments />} />
+          <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+          <Route path="payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
           <Route path="desktop-features" element={<DesktopFeatures />} />
+          <Route path="admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>

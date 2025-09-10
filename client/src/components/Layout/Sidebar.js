@@ -14,8 +14,8 @@ import {
   Monitor,
   X
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
+import { motion } from 'framer-motion';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
@@ -37,6 +37,10 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Create Custom EA', href: '/create-ea', icon: Bot },
     { name: 'Subscription', href: '/subscription', icon: CreditCard },
     { name: 'Payments', href: '/payments', icon: DollarSign },
+  ];
+
+  const adminNavigation = [
+    { name: 'Admin Dashboard', href: '/admin', icon: Settings },
   ];
 
   const isActive = (href) => {
@@ -163,6 +167,34 @@ const Sidebar = ({ isOpen, onClose }) => {
                 })}
               </div>
             </div>
+
+            {/* Admin Section */}
+            {user?.role === 'admin' && (
+              <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+                <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Admin
+                </p>
+                <div className="mt-2 space-y-1">
+                  {adminNavigation.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.name}
+                        to={item.href}
+                        className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                          isActive(item.href)
+                            ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
+                            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-secondary-700'
+                        }`}
+                      >
+                        <Icon className="mr-3 h-5 w-5" />
+                        {item.name}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </nav>
 
           {/* User info */}

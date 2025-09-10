@@ -44,12 +44,6 @@ export const AuthProvider = ({ children }) => {
   // Check if user is authenticated on app load
   useEffect(() => {
     const checkAuth = async () => {
-      // In development mode, skip authentication check
-      if (process.env.NODE_ENV === 'development') {
-        dispatch({ type: 'SET_LOADING', payload: false });
-        return;
-      }
-
       const token = localStorage.getItem('token');
       if (token) {
         try {

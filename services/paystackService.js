@@ -26,6 +26,62 @@ class PaystackService {
 
   // ==================== TRANSACTION MANAGEMENT ====================
 
+  async chargeAuthorization(chargeData) {
+    try {
+      const {
+        authorization_code,
+        email,
+        amount,
+        currency = 'NGN',
+        reference = null,
+        callback_url = null,
+        metadata = {}
+      } = chargeData;
+
+      // Validate required fields
+      if (!authorization_code || !email || !amount) {
+        throw new Error('Authorization code, email, and amount are required');
+      }
+
+      // Convert amount to kobo (smallest currency unit)
+      const amountInKobo = Math.round(amount * 100);
+
+      const payload = {
+        authorization_code,
+        email,
+        amount: amountInKobo,
+        currency,
+        reference: reference || this.generateReference('CHG'),
+        callback_url,
+        metadata: {
+          ...metadata,
+          platform: 'smart-algos',
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      if (this.secretKey) {
+        const response = await axios.post(
+          `${this.baseURL}/transaction/charge_authorization`,
+          payload,
+          { headers: this.getHeaders() }
+        );
+
+        return {
+          success: true,
+          data: response.data.data,
+          message: response.data.message
+        };
+      } else {
+        // Mock response for development
+        return this.getMockChargeResponse(payload);
+      }
+    } catch (error) {
+      console.error('Charge authorization error:', error);
+      throw new Error(`Failed to charge authorization: ${error.message}`);
+    }
+  }
+
   async initializeTransaction(transactionData) {
     try {
       const {
@@ -79,6 +135,66 @@ class PaystackService {
     } catch (error) {
       console.error('Initialize transaction error:', error);
       throw new Error(`Failed to initialize transaction: ${error.message}`);
+    }
+  }
+
+  async initializeTransactionWithPause(transactionData) {
+    try {
+      const {
+        email,
+        amount,
+        currency = 'NGN',
+        reference,
+        callback_url,
+        metadata = {},
+        channels = ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']
+      } = transactionData;
+
+      // Validate required fields
+      if (!email || !amount || !reference) {
+        throw new Error('Email, amount, and reference are required');
+      }
+
+      // Convert amount to kobo (smallest currency unit)
+      const amountInKobo = Math.round(amount * 100);
+
+      const payload = {
+        email,
+        amount: amountInKobo,
+        currency,
+        reference,
+        callback_url,
+        metadata: {
+          ...metadata,
+          platform: 'smart-algos',
+          timestamp: new Date().toISOString()
+        },
+        channels
+      };
+
+      if (this.secretKey) {
+        const response = await axios.post(
+          `${this.baseURL}/transaction/initialize`,
+          payload,
+          { headers: this.getHeaders() }
+        );
+
+        // Add paused state to response (as shown in your example)
+        const responseData = response.data.data;
+        responseData.paused = true;
+
+        return {
+          success: true,
+          data: responseData,
+          message: response.data.message
+        };
+      } else {
+        // Mock response for development with paused state
+        return this.getMockInitializeWithPauseResponse(payload);
+      }
+    } catch (error) {
+      console.error('Initialize transaction with pause error:', error);
+      throw new Error(`Failed to initialize transaction with pause: ${error.message}`);
     }
   }
 
@@ -604,6 +720,77 @@ class PaystackService {
   }
 
   // ==================== MOCK RESPONSES (Development) ====================
+
+  getMockChargeResponse(payload) {
+    return {
+      success: true,
+      data: {
+        id: Math.floor(Math.random() * 1000000),
+        domain: 'test',
+        status: 'success',
+        reference: payload.reference,
+        amount: payload.amount,
+        message: 'Charge successful',
+        gateway_response: 'Successful',
+        paid_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        channel: 'card',
+        currency: payload.currency,
+        ip_address: '127.0.0.1',
+        metadata: payload.metadata,
+        log: null,
+        fees: Math.round(payload.amount * 0.03), // 3% fee
+        fees_split: null,
+        authorization: {
+          authorization_code: payload.authorization_code,
+          bin: '408408',
+          last4: '4081',
+          exp_month: '12',
+          exp_year: '2025',
+          channel: 'card',
+          card_type: 'visa',
+          bank: 'TEST BANK',
+          country_code: 'NG',
+          brand: 'visa',
+          reusable: true,
+          signature: `SIG_${Date.now()}`
+        },
+        customer: {
+          id: Math.floor(Math.random() * 1000000),
+          first_name: 'John',
+          last_name: 'Doe',
+          email: payload.email,
+          customer_code: `CUS_${Date.now()}`,
+          phone: '+2348012345678',
+          metadata: null,
+          risk_action: 'default'
+        },
+        plan: null,
+        split: {},
+        order_id: null,
+        paidAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        requested_amount: payload.amount
+      },
+      message: 'Charge successful'
+    };
+  }
+
+  getMockInitializeWithPauseResponse(payload) {
+    const reference = payload.reference || this.generateReference();
+    const accessCode = `access_code_${Date.now()}`;
+    
+    return {
+      success: true,
+      data: {
+        authorization_url: `https://checkout.paystack.com/resume/${accessCode}`,
+        reference: reference,
+        access_code: accessCode,
+        paused: true
+      },
+      message: 'Please, redirect your customer to the authorization url provided'
+    };
+  }
 
   getMockInitializeResponse(payload) {
     const reference = payload.reference || this.generateReference();

@@ -20,7 +20,7 @@ class DatabaseService {
   // User operations
   async createUser(userData) {
     const { data, error } = await this.supabase
-      .from('users')
+      .from('users_accounts')
       .insert([userData])
       .select()
       .single();
@@ -31,7 +31,7 @@ class DatabaseService {
 
   async getUserByEmail(email) {
     const { data, error } = await this.supabase
-      .from('users')
+      .from('users_accounts')
       .select('*')
       .eq('email', email)
       .single();
@@ -42,7 +42,7 @@ class DatabaseService {
 
   async getUserById(id) {
     const { data, error } = await this.supabase
-      .from('users')
+      .from('users_accounts')
       .select('*')
       .eq('id', id)
       .single();
@@ -53,7 +53,7 @@ class DatabaseService {
 
   async updateUser(id, updates) {
     const { data, error } = await this.supabase
-      .from('users')
+      .from('users_accounts')
       .update(updates)
       .eq('id', id)
       .select()
@@ -65,7 +65,7 @@ class DatabaseService {
 
   async deleteUser(id) {
     const { error } = await this.supabase
-      .from('users')
+      .from('users_accounts')
       .delete()
       .eq('id', id);
     

@@ -12,9 +12,7 @@ import {
   Download,
   RefreshCw,
   Plus,
-  Trash2,
-  Eye,
-  EyeOff
+  ArrowLeft
 } from 'lucide-react';
 import Button from '../../components/UI/Button';
 import Card from '../../components/UI/Card';
@@ -26,8 +24,114 @@ const Payments = () => {
   const socket = null; // Temporary fallback
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
-  const [subscriptions, setSubscriptions] = useState([]);
-  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [subscriptions, setSubscriptions] = useState([
+    // Sample subscriptions for testing
+    {
+      id: 'SUB_001',
+      name: 'Gold Scalper Pro EA',
+      type: 'EA Subscription',
+      subscriptionType: 'monthly',
+      price: 299,
+      currency: 'USD',
+      status: 'active',
+      startDate: new Date(Date.now() - 86400000).toISOString(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      autoRenew: true,
+      productId: 'EA_001',
+      productType: 'ea'
+    },
+    {
+      id: 'SUB_002',
+      name: 'Multi Indicator EA',
+      type: 'EA Subscription',
+      subscriptionType: 'quarterly',
+      price: 237,
+      currency: 'USD',
+      status: 'active',
+      startDate: new Date(Date.now() - 172800000).toISOString(),
+      endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      autoRenew: true,
+      productId: 'EA_002',
+      productType: 'ea'
+    },
+    {
+      id: 'SUB_003',
+      name: 'HFT Bot Rental',
+      type: 'HFT Bot Rental',
+      subscriptionType: 'monthly',
+      price: 199,
+      currency: 'USD',
+      status: 'active',
+      startDate: new Date(Date.now() - 432000000).toISOString(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      autoRenew: false,
+      productId: 'HFT_001',
+      productType: 'hft'
+    }
+  ]);
+  const [paymentHistory, setPaymentHistory] = useState([
+    // Sample transactions for testing
+    {
+      id: 'TXN_001',
+      description: 'Gold Scalper Pro EA - Monthly Subscription',
+      amount: 299,
+      currency: 'USD',
+      status: 'success',
+      method: 'card',
+      reference: 'PAY_001_1234567890_abc123',
+      date: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+      fees: 8.97,
+      netAmount: 290.03
+    },
+    {
+      id: 'TXN_002',
+      description: 'Multi Indicator EA - Quarterly Subscription',
+      amount: 237,
+      currency: 'USD',
+      status: 'success',
+      method: 'bank_transfer',
+      reference: 'PAY_002_1234567890_def456',
+      date: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+      fees: 7.11,
+      netAmount: 229.89
+    },
+    {
+      id: 'TXN_003',
+      description: 'Trend Master EA - Yearly Subscription',
+      amount: 490,
+      currency: 'USD',
+      status: 'pending',
+      method: 'mobile_money',
+      reference: 'PAY_003_1234567890_ghi789',
+      date: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
+      fees: 14.70,
+      netAmount: 475.30
+    },
+    {
+      id: 'TXN_004',
+      description: 'News Trader Bot - Weekly Subscription',
+      amount: 25,
+      currency: 'USD',
+      status: 'failed',
+      method: 'crypto',
+      reference: 'PAY_004_1234567890_jkl012',
+      date: new Date(Date.now() - 345600000).toISOString(), // 4 days ago
+      fees: 0,
+      netAmount: 0
+    },
+    {
+      id: 'TXN_005',
+      description: 'HFT Bot Rental - Monthly',
+      amount: 199,
+      currency: 'USD',
+      status: 'success',
+      method: 'card',
+      reference: 'PAY_005_1234567890_mno345',
+      date: new Date(Date.now() - 432000000).toISOString(), // 5 days ago
+      fees: 5.97,
+      netAmount: 193.03
+    }
+  ]);
   const [invoices, setInvoices] = useState([]);
   const [plans, setPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -36,12 +140,72 @@ const Payments = () => {
     amount: 0,
     currency: 'NGN',
     email: user?.email || '',
-    description: ''
+    description: '',
+    authorization_code: '',
+    paymentMethod: 'initialize' // 'initialize', 'charge_authorization', 'initialize_paused'
   });
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: 'success' });
+    }, 5000);
+  };
 
   useEffect(() => {
     fetchData();
+    
+    // Check for payment callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const reference = urlParams.get('reference');
+    const status = urlParams.get('status');
+    
+    if (reference && status) {
+      handlePaymentCallback(reference, status);
+    }
   }, []);
+
+  const handlePaymentCallback = async (reference, status) => {
+    if (status === 'success') {
+      try {
+        // Verify the payment
+        const verifyResponse = await axios.post('/api/payments/verify', {
+          reference: reference
+        });
+
+        if (verifyResponse.data.success) {
+          // Check if there's a pending subscription
+          const pendingSubscription = localStorage.getItem('pendingSubscription');
+          if (pendingSubscription) {
+            const subscriptionData = JSON.parse(pendingSubscription);
+            
+            // Create the subscription
+            const subscriptionResponse = await axios.post('/api/payments/subscriptions/create', subscriptionData);
+            
+            if (subscriptionResponse.data.success) {
+              showNotification('Payment successful! Your subscription has been activated.', 'success');
+              localStorage.removeItem('pendingSubscription');
+              await fetchData();
+            }
+          } else {
+            showNotification('Payment successful!', 'success');
+            await fetchData();
+          }
+        } else {
+          showNotification('Payment verification failed. Please contact support.', 'error');
+        }
+      } catch (error) {
+        console.error('Payment callback error:', error);
+        showNotification('Error processing payment. Please contact support.', 'error');
+      }
+    } else {
+      showNotification('Payment was not successful. Please try again.', 'error');
+    }
+    
+    // Clean up URL parameters
+    window.history.replaceState({}, document.title, window.location.pathname);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -67,7 +231,8 @@ const Payments = () => {
   const handleInitializePayment = async () => {
     setLoading(true);
     try {
-      const response = await axios.post('/api/payments/initialize', {
+      let endpoint = '/api/payments/initialize';
+      let payload = {
         amount: paymentData.amount,
         currency: paymentData.currency,
         email: paymentData.email,
@@ -76,14 +241,36 @@ const Payments = () => {
           userId: user._id,
           subscriptionType: selectedPlan?.type
         }
-      });
+      };
+
+      // Handle different payment methods
+      if (paymentData.paymentMethod === 'charge_authorization') {
+        endpoint = '/api/payments/charge-authorization';
+        payload = {
+          ...payload,
+          authorization_code: paymentData.authorization_code
+        };
+      } else if (paymentData.paymentMethod === 'initialize_paused') {
+        endpoint = '/api/payments/initialize-paused';
+      }
+
+      const response = await axios.post(endpoint, payload);
 
       if (response.data.success) {
-        // Redirect to Paystack payment page
-        window.location.href = response.data.data.authorization_url;
+        if (paymentData.paymentMethod === 'charge_authorization') {
+          // For charge authorization, show success message
+          showNotification('Payment charged successfully!', 'success');
+          setShowPaymentModal(false);
+          await fetchData();
+        } else {
+          // For initialize and initialize_paused, redirect to Paystack payment page
+          showNotification('Redirecting to payment page...', 'info');
+          window.location.href = response.data.data.authorization_url;
+        }
       }
     } catch (error) {
-      console.error('Error initializing payment:', error);
+      console.error('Error processing payment:', error);
+      showNotification('Payment failed. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -92,28 +279,48 @@ const Payments = () => {
   const handleCreateSubscription = async (planType, productId, productType) => {
     setLoading(true);
     try {
-      const response = await axios.post('/api/payments/subscriptions/create', {
-        subscriptionType: planType,
-        productId,
-        productType,
-        interval: 'monthly',
-        paymentMethod: 'paystack'
+      // First, initialize the payment with Paystack
+      const paymentResponse = await axios.post('/api/payments/initialize', {
+        amount: getPlanPrice(planType),
+        currency: 'NGN',
+        email: user?.email || '',
+        description: `${planType} Plan Subscription`,
+        metadata: {
+          userId: user._id,
+          subscriptionType: planType,
+          productId: productId,
+          productType: productType
+        }
       });
 
-      if (response.data.success) {
-        setShowPaymentModal(true);
-        setSelectedPlan({ type: planType, subscriptionId: response.data.data._id });
-        setPaymentData(prev => ({
-          ...prev,
-          amount: response.data.data.price,
-          description: `${planType} Plan Subscription`
+      if (paymentResponse.data.success) {
+        // Store subscription data for after payment
+        localStorage.setItem('pendingSubscription', JSON.stringify({
+          subscriptionType: planType,
+          productId,
+          productType,
+          interval: 'monthly',
+          paymentMethod: 'paystack'
         }));
+
+        // Redirect to Paystack payment page
+        window.location.href = paymentResponse.data.data.authorization_url;
       }
     } catch (error) {
       console.error('Error creating subscription:', error);
+      showNotification('Failed to initialize payment. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
+  };
+
+  const getPlanPrice = (planType) => {
+    const prices = {
+      'BASIC': 2900,    // 29 NGN
+      'PROFESSIONAL': 7900,  // 79 NGN
+      'ENTERPRISE': 15000    // 150 NGN
+    };
+    return prices[planType] || 2900;
   };
 
   const handleCancelSubscription = async (subscriptionId) => {
@@ -189,21 +396,95 @@ const Payments = () => {
 
   return (
     <div className="space-y-6">
+      {/* Notification */}
+      {notification.show && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+          notification.type === 'success' ? 'bg-green-500 text-white' :
+          notification.type === 'error' ? 'bg-red-500 text-white' :
+          'bg-blue-500 text-white'
+        }`}>
+          <div className="flex items-center space-x-2">
+            <span>{notification.message}</span>
+            <button
+              onClick={() => setNotification({ show: false, message: '', type: 'success' })}
+              className="ml-2 text-white hover:text-gray-200"
+            >
+              <XCircle className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments & Billing</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage your subscriptions and payment methods</p>
+        <div className="flex items-center space-x-4">
+          <Button
+            onClick={() => window.history.back()}
+            variant="outline"
+            size="sm"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payments & Billing</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage your subscriptions and payment methods</p>
+          </div>
         </div>
-        <Button
-          onClick={fetchData}
-          variant="outline"
-          size="sm"
-          disabled={loading}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex space-x-2">
+          <Button
+            onClick={() => {
+              setPaymentData(prev => ({ ...prev, amount: 299, description: 'Gold Scalper Pro EA - Monthly Subscription' }));
+              setShowPaymentModal(true);
+            }}
+            size="sm"
+            variant="outline"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Test Payment
+          </Button>
+          <Button
+            onClick={async () => {
+              try {
+                showNotification('Testing Paystack integration...', 'info');
+                const response = await axios.post('/api/payments/initialize', {
+                  amount: 299,
+                  currency: 'USD',
+                  email: user?.email || 'test@example.com',
+                  description: 'Test EA Subscription',
+                  metadata: {
+                    test: true,
+                    productType: 'ea',
+                    productId: 'EA_TEST_001'
+                  }
+                });
+                
+                if (response.data.success) {
+                  showNotification('Paystack integration working! Check console for details.', 'success');
+                  console.log('Paystack Test Response:', response.data);
+                } else {
+                  showNotification('Paystack test failed. Check console for details.', 'error');
+                }
+              } catch (error) {
+                console.error('Paystack test error:', error);
+                showNotification('Paystack test failed: ' + (error.response?.data?.message || error.message), 'error');
+              }
+            }}
+            size="sm"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Test Paystack
+          </Button>
+          <Button
+            onClick={fetchData}
+            variant="outline"
+            size="sm"
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -594,13 +875,51 @@ const Payments = () => {
 
       {/* Payment Modal */}
       {showPaymentModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Complete Payment
-            </h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Complete Payment
+              </h3>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
             
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Payment Method
+                </label>
+                <select
+                  value={paymentData.paymentMethod}
+                  onChange={(e) => setPaymentData(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="initialize">Initialize Payment</option>
+                  <option value="charge_authorization">Charge Authorization</option>
+                  <option value="initialize_paused">Initialize with Pause</option>
+                </select>
+              </div>
+
+              {paymentData.paymentMethod === 'charge_authorization' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Authorization Code
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentData.authorization_code}
+                    onChange={(e) => setPaymentData(prev => ({ ...prev, authorization_code: e.target.value }))}
+                    placeholder="AUTH_xxxxxxxxx"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+              )}
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Amount
@@ -610,8 +929,25 @@ const Payments = () => {
                   value={paymentData.amount}
                   onChange={(e) => setPaymentData(prev => ({ ...prev, amount: parseFloat(e.target.value) }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
-                  disabled
+                  disabled={paymentData.paymentMethod === 'charge_authorization'}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Currency
+                </label>
+                <select
+                  value={paymentData.currency}
+                  onChange={(e) => setPaymentData(prev => ({ ...prev, currency: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="NGN">NGN</option>
+                  <option value="USD">USD</option>
+                  <option value="GHS">GHS</option>
+                  <option value="ZAR">ZAR</option>
+                  <option value="KES">KES</option>
+                </select>
               </div>
               
               <div>
@@ -643,9 +979,10 @@ const Payments = () => {
               <Button
                 onClick={handleInitializePayment}
                 className="flex-1"
-                disabled={loading}
+                disabled={loading || (paymentData.paymentMethod === 'charge_authorization' && !paymentData.authorization_code)}
               >
-                {loading ? <LoadingSpinner size="sm" /> : 'Pay Now'}
+                {loading ? <LoadingSpinner size="sm" /> : 
+                  paymentData.paymentMethod === 'charge_authorization' ? 'Charge Now' : 'Pay Now'}
               </Button>
               <Button
                 onClick={() => setShowPaymentModal(false)}

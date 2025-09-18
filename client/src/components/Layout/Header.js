@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Menu, 
   Bell, 
@@ -8,7 +9,8 @@ import {
   LogOut, 
   Moon, 
   Sun,
-  ChevronDown
+  ChevronDown,
+  ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -17,6 +19,7 @@ import Button from '../UI/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = ({ onMenuClick }) => {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   // Fallback user object for development
   const displayUser = user || {
@@ -30,6 +33,14 @@ const Header = ({ onMenuClick }) => {
   const connected = true; // Temporary fallback
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate('/dashboard');
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -48,6 +59,17 @@ const Header = ({ onMenuClick }) => {
             >
               <Menu className="h-6 w-6" />
             </button>
+
+            {/* Back button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<ArrowLeft className="h-4 w-4" />}
+              onClick={handleBack}
+              className="ml-2 p-2"
+            >
+              <span className="hidden sm:inline">Back</span>
+            </Button>
 
             {/* Search */}
             <div className="hidden md:block ml-4">

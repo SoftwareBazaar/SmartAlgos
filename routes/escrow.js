@@ -1,20 +1,63 @@
 const express = require('express');
 const { body, query, validationResult } = require('express-validator');
-const databaseService = require('../services/databaseService');
-const { auth, requireSubscription, updateActivity } = require('../middleware/auth');
+const { auth, updateActivity } = require('../middleware/auth');
+const escrowService = require('../services/escrowService');
+const securityService = require('../services/securityService');
+const { auditLog } = require('../middleware/security');
 const router = express.Router();
 
-// @route   GET /api/escrow
-// @desc    Get user's escrow transactions
+// ==================== TRANSACTION MANAGEMENT ====================
+
+// @route   POST /api/escrow/transactions
+// @desc    Create escrow transaction
 // @access  Private
-router.get('/', [
+router.post('/transactions', [
   auth,
   updateActivity,
-  query('status').optional().isIn(['pending', 'funded', 'active', 'disputed', 'released', 'refunded', 'expired']),
-  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-  query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50')
+  auditLog('escrow_transaction_created'),
+  body('buyerEmail')
+    .isEmail()
+    .withMessage('Valid buyer email is required'),
+  body('sellerEmail')
+    .isEmail()
+    .withMessage('Valid seller email is required'),
+  body('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+  body('currency')
+    .isIn(['USD', 'EUR', 'GBP', 'NGN'])
+    .withMessage('Invalid currency'),
+  body('description')
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Description must be between 1 and 500 characters'),
+  body('productType')
+    .optional()
+    .isIn(['ea_subscription', 'hft_rental', 'trading_signal', 'consultation', 'training', 'software'])
+    .withMessage('Invalid product type'),
+  body('inspectionPeriod')
+    .optional()
+    .isInt({ min: 86400, max: 1209600 }) // 1 day to 14 days
+    .withMessage('Inspection period must be between 1 and 14 days')
 ], async (req, res) => {
   try {
+    // Debug logging for escrow transaction creation
+    console.log('Escrow transaction creation request:', {
+      method: req.method,
+      url: req.url,
+      body: req.body,
+      user: req.user ? req.user._id : 'No user',
+      contentType: req.headers['content-type']
+    });
+
+    // Check if request body is null or empty
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Request body is required',
+        error: 'No data provided in request body'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -24,115 +67,104 @@ router.get('/', [
       });
     }
 
-    const { status, page = 1, limit = 20 } = req.query;
-    
-    // Build filter - user can see escrows where they are either user or creator
-    const filter = {
-      $or: [
-        { user: req.user._id },
-        { creator: req.user._id }
-      ]
+    const {
+      buyerEmail,
+      sellerEmail,
+      amount,
+      currency,
+      description,
+      productType,
+      inspectionPeriod,
+      metadata = {}
+    } = req.body;
+
+    const transactionData = {
+      buyerEmail,
+      sellerEmail,
+      amount,
+      currency,
+      description,
+      productType,
+      inspectionPeriod,
+      metadata: {
+        ...metadata,
+        userId: req.user._id.toString(),
+        userEmail: req.user.email,
+        platform: 'smart-algos'
+      }
     };
-    
-    if (status) {
-      filter.status = status;
-    }
 
-    // Calculate pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const result = await escrowService.createTransaction(transactionData);
 
-    // Execute query
-    const escrows = await Escrow.find(filter)
-      .populate('subscription', 'subscriptionType price currency')
-      .populate('ea', 'name description')
-      .populate('user', 'firstName lastName avatar')
-      .populate('creator', 'firstName lastName avatar')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-
-    const total = await Escrow.countDocuments(filter);
+    // Log escrow transaction creation
+    securityService.logSecurityEvent('escrow_transaction_created', {
+      userId: req.user._id,
+      transactionId: result.data.id,
+      amount,
+      currency,
+      buyerEmail,
+      sellerEmail,
+      ip: securityService.getClientIP(req)
+    });
 
     res.json({
       success: true,
-      data: escrows,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / parseInt(limit)),
-        totalItems: total,
-        itemsPerPage: parseInt(limit)
-      }
+      data: result.data,
+      message: result.message
     });
 
   } catch (error) {
-    console.error('Get escrows error:', error);
+    console.error('Create escrow transaction error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Failed to create escrow transaction'
     });
   }
 });
 
-// @route   GET /api/escrow/:id
-// @desc    Get single escrow transaction
+// @route   GET /api/escrow/transactions/:id
+// @desc    Get escrow transaction details
 // @access  Private
-router.get('/:id', [auth, updateActivity], async (req, res) => {
-  try {
-    const escrow = await Escrow.findById(req.params.id)
-      .populate('subscription', 'subscriptionType price currency startDate endDate')
-      .populate('ea', 'name description pricing')
-      .populate('user', 'firstName lastName email avatar')
-      .populate('creator', 'firstName lastName email avatar');
-
-    if (!escrow) {
-      return res.status(404).json({
-        success: false,
-        message: 'Escrow transaction not found'
-      });
-    }
-
-    // Check if user has access to this escrow
-    if (escrow.user._id.toString() !== req.user._id.toString() && 
-        escrow.creator._id.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: escrow
-    });
-
-  } catch (error) {
-    console.error('Get escrow error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-});
-
-// @route   POST /api/escrow/:id/fund
-// @desc    Fund escrow transaction
-// @access  Private
-router.post('/:id/fund', [
+router.get('/transactions/:id', [
   auth,
-  body('transactionHash')
-    .notEmpty()
-    .withMessage('Transaction hash is required'),
-  body('blockNumber')
-    .isInt({ min: 0 })
-    .withMessage('Block number must be a positive integer'),
-  body('gasUsed')
+  updateActivity,
+  auditLog('escrow_transaction_viewed')
+], async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await escrowService.getTransaction(id);
+
+    res.json({
+      success: true,
+      data: result.data,
+      message: result.message
+    });
+
+  } catch (error) {
+    console.error('Get escrow transaction error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get escrow transaction'
+    });
+  }
+});
+
+// @route   PATCH /api/escrow/transactions/:id
+// @desc    Update escrow transaction
+// @access  Private
+router.patch('/transactions/:id', [
+  auth,
+  updateActivity,
+  auditLog('escrow_transaction_updated'),
+  body('description')
     .optional()
-    .isInt({ min: 0 })
-    .withMessage('Gas used must be a positive integer'),
-  body('gasPrice')
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Description must be between 1 and 500 characters'),
+  body('inspectionPeriod')
     .optional()
-    .isInt({ min: 0 })
-    .withMessage('Gas price must be a positive integer')
+    .isInt({ min: 86400, max: 1209600 })
+    .withMessage('Inspection period must be between 1 and 14 days')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -144,244 +176,186 @@ router.post('/:id/fund', [
       });
     }
 
-    const escrow = await Escrow.findById(req.params.id);
-    if (!escrow) {
-      return res.status(404).json({
-        success: false,
-        message: 'Escrow transaction not found'
-      });
-    }
+    const { id } = req.params;
+    const updateData = req.body;
 
-    // Check if user owns this escrow
-    if (escrow.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
-      });
-    }
-
-    // Check if escrow can be funded
-    if (escrow.status !== 'pending') {
-      return res.status(400).json({
-        success: false,
-        message: 'Escrow cannot be funded in current state'
-      });
-    }
-
-    const { transactionHash, blockNumber, gasUsed, gasPrice } = req.body;
-    await escrow.fundEscrow(transactionHash, blockNumber, gasUsed, gasPrice);
+    const result = await escrowService.updateTransaction(id, updateData);
 
     res.json({
       success: true,
-      message: 'Escrow funded successfully',
-      data: escrow
+      data: result.data,
+      message: result.message
     });
 
   } catch (error) {
-    console.error('Fund escrow error:', error);
+    console.error('Update escrow transaction error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Failed to update escrow transaction'
     });
   }
 });
 
-// @route   POST /api/escrow/:id/lock
-// @desc    Lock escrow transaction
-// @access  Private (Creator)
-router.post('/:id/lock', [auth, updateActivity], async (req, res) => {
-  try {
-    const escrow = await Escrow.findById(req.params.id);
-    if (!escrow) {
-      return res.status(404).json({
-        success: false,
-        message: 'Escrow transaction not found'
-      });
-    }
-
-    // Check if user is the creator
-    if (escrow.creator.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Only the creator can lock the escrow'
-      });
-    }
-
-    // Check if escrow can be locked
-    if (escrow.status !== 'funded') {
-      return res.status(400).json({
-        success: false,
-        message: 'Escrow must be funded before it can be locked'
-      });
-    }
-
-    await escrow.lockEscrow();
-
-    res.json({
-      success: true,
-      message: 'Escrow locked successfully',
-      data: escrow
-    });
-
-  } catch (error) {
-    console.error('Lock escrow error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-});
-
-// @route   POST /api/escrow/:id/sign
-// @desc    Add signature to escrow
+// @route   DELETE /api/escrow/transactions/:id
+// @desc    Cancel escrow transaction
 // @access  Private
-router.post('/:id/sign', [
+router.delete('/transactions/:id', [
   auth,
-  body('signature')
-    .notEmpty()
-    .withMessage('Signature is required')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const escrow = await Escrow.findById(req.params.id);
-    if (!escrow) {
-      return res.status(404).json({
-        success: false,
-        message: 'Escrow transaction not found'
-      });
-    }
-
-    // Check if user has permission to sign
-    if (escrow.user.toString() !== req.user._id.toString() && 
-        escrow.creator.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
-      });
-    }
-
-    // Check if escrow can be signed
-    if (escrow.status !== 'active') {
-      return res.status(400).json({
-        success: false,
-        message: 'Escrow must be active to add signatures'
-      });
-    }
-
-    const { signature } = req.body;
-    const signer = req.user._id.toString();
-    
-    await escrow.addSignature(signer, signature);
-
-    res.json({
-      success: true,
-      message: 'Signature added successfully',
-      data: {
-        totalSignatures: escrow.totalSignatures,
-        requiredSignatures: escrow.requiredSignatures,
-        canRelease: escrow.canRelease
-      }
-    });
-
-  } catch (error) {
-    console.error('Add signature error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-});
-
-// @route   POST /api/escrow/:id/release
-// @desc    Release escrow funds
-// @access  Private
-router.post('/:id/release', [
-  auth,
-  body('releaseTransactionHash')
-    .optional()
-    .notEmpty()
-    .withMessage('Release transaction hash is required')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const escrow = await Escrow.findById(req.params.id);
-    if (!escrow) {
-      return res.status(404).json({
-        success: false,
-        message: 'Escrow transaction not found'
-      });
-    }
-
-    // Check if user has permission to release
-    if (escrow.user.toString() !== req.user._id.toString() && 
-        escrow.creator.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
-      });
-    }
-
-    // Check if escrow can be released
-    if (!escrow.canRelease) {
-      return res.status(400).json({
-        success: false,
-        message: 'Escrow cannot be released yet. Check signature requirements and time conditions.'
-      });
-    }
-
-    const { releaseTransactionHash } = req.body;
-    await escrow.releaseEscrow(releaseTransactionHash);
-
-    // Update subscription status
-    const subscription = await Subscription.findById(escrow.subscription);
-    if (subscription) {
-      subscription.escrowStatus = 'released';
-      await subscription.save();
-    }
-
-    res.json({
-      success: true,
-      message: 'Escrow released successfully',
-      data: escrow
-    });
-
-  } catch (error) {
-    console.error('Release escrow error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-});
-
-// @route   POST /api/escrow/:id/dispute
-// @desc    Initiate escrow dispute
-// @access  Private
-router.post('/:id/dispute', [
-  auth,
+  updateActivity,
+  auditLog('escrow_transaction_cancelled'),
   body('reason')
-    .isIn(['performance_issue', 'technical_problem', 'billing_dispute', 'service_quality', 'other'])
+    .optional()
+    .isLength({ min: 1, max: 500 })
+    .withMessage('Reason must be between 1 and 500 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { reason = 'User request' } = req.body;
+
+    const result = await escrowService.cancelTransaction(id, reason);
+
+    res.json({
+      success: true,
+      data: result.data,
+      message: result.message
+    });
+
+  } catch (error) {
+    console.error('Cancel escrow transaction error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to cancel escrow transaction'
+    });
+  }
+});
+
+// ==================== PAYMENT MANAGEMENT ====================
+
+// @route   POST /api/escrow/transactions/:id/payments
+// @desc    Initiate escrow payment
+// @access  Private
+router.post('/transactions/:id/payments', [
+  auth,
+  updateActivity,
+  auditLog('escrow_payment_initiated'),
+  body('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+  body('currency')
+    .isIn(['USD', 'EUR', 'GBP', 'NGN'])
+    .withMessage('Invalid currency'),
+  body('paymentMethod')
+    .isIn(['card', 'bank_transfer', 'paypal', 'crypto'])
+    .withMessage('Invalid payment method')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { amount, currency, paymentMethod, metadata = {} } = req.body;
+
+    const paymentData = {
+      amount,
+      currency,
+      paymentMethod,
+      metadata: {
+        ...metadata,
+        userId: req.user._id.toString(),
+        userEmail: req.user.email,
+        platform: 'smart-algos'
+      }
+    };
+
+    const result = await escrowService.initiatePayment(id, paymentData);
+
+    // Log payment initiation
+    securityService.logSecurityEvent('escrow_payment_initiated', {
+      userId: req.user._id,
+      transactionId: id,
+      amount,
+      currency,
+      paymentMethod,
+      ip: securityService.getClientIP(req)
+    });
+
+    res.json({
+      success: true,
+      data: result.data,
+      message: result.message
+    });
+
+  } catch (error) {
+    console.error('Initiate escrow payment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to initiate escrow payment'
+    });
+  }
+});
+
+// @route   GET /api/escrow/transactions/:id/payments/:paymentId
+// @desc    Get escrow payment status
+// @access  Private
+router.get('/transactions/:id/payments/:paymentId', [
+  auth,
+  updateActivity,
+  auditLog('escrow_payment_status_viewed')
+], async (req, res) => {
+  try {
+    const { id, paymentId } = req.params;
+
+    const result = await escrowService.getPaymentStatus(id, paymentId);
+
+    res.json({
+      success: true,
+      data: result.data,
+      message: result.message
+    });
+
+  } catch (error) {
+    console.error('Get escrow payment status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get escrow payment status'
+    });
+  }
+});
+
+// ==================== DISPUTE MANAGEMENT ====================
+
+// @route   POST /api/escrow/transactions/:id/disputes
+// @desc    Create escrow dispute
+// @access  Private
+router.post('/transactions/:id/disputes', [
+  auth,
+  updateActivity,
+  auditLog('escrow_dispute_created'),
+  body('reason')
+    .isIn(['product_not_as_described', 'product_not_delivered', 'product_defective', 'seller_unresponsive', 'other'])
     .withMessage('Invalid dispute reason'),
   body('description')
-    .trim()
     .isLength({ min: 10, max: 1000 })
-    .withMessage('Description must be between 10 and 1000 characters')
+    .withMessage('Description must be between 10 and 1000 characters'),
+  body('evidence')
+    .optional()
+    .isArray()
+    .withMessage('Evidence must be an array')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -393,149 +367,59 @@ router.post('/:id/dispute', [
       });
     }
 
-    const escrow = await Escrow.findById(req.params.id);
-    if (!escrow) {
-      return res.status(404).json({
-        success: false,
-        message: 'Escrow transaction not found'
-      });
-    }
+    const { id } = req.params;
+    const { reason, description, evidence = [], metadata = {} } = req.body;
 
-    // Check if user has permission to dispute
-    if (escrow.user.toString() !== req.user._id.toString() && 
-        escrow.creator.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
-      });
-    }
-
-    // Check if escrow can be disputed
-    if (!escrow.canDispute) {
-      return res.status(400).json({
-        success: false,
-        message: 'Escrow cannot be disputed in current state'
-      });
-    }
-
-    const { reason, description } = req.body;
-    await escrow.initiateDispute(req.user._id, reason, description);
-
-    // Update subscription status
-    const subscription = await Subscription.findById(escrow.subscription);
-    if (subscription) {
-      subscription.escrowStatus = 'disputed';
-      await subscription.save();
-    }
-
-    res.json({
-      success: true,
-      message: 'Dispute initiated successfully',
-      data: escrow
-    });
-
-  } catch (error) {
-    console.error('Initiate dispute error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-});
-
-// @route   POST /api/escrow/:id/resolve
-// @desc    Resolve escrow dispute
-// @access  Private (Admin/Creator)
-router.post('/:id/resolve', [
-  auth,
-  body('resolution')
-    .isIn(['refund_full', 'refund_partial', 'no_refund', 'service_credit'])
-    .withMessage('Invalid resolution type'),
-  body('resolutionNotes')
-    .trim()
-    .isLength({ min: 10, max: 500 })
-    .withMessage('Resolution notes must be between 10 and 500 characters')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const escrow = await Escrow.findById(req.params.id);
-    if (!escrow) {
-      return res.status(404).json({
-        success: false,
-        message: 'Escrow transaction not found'
-      });
-    }
-
-    // Check if user has permission to resolve (creator or admin)
-    if (escrow.creator.toString() !== req.user._id.toString() && 
-        req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
-      });
-    }
-
-    // Check if escrow has an active dispute
-    if (escrow.status !== 'disputed') {
-      return res.status(400).json({
-        success: false,
-        message: 'No active dispute to resolve'
-      });
-    }
-
-    const { resolution, resolutionNotes } = req.body;
-    await escrow.resolveDispute(req.user._id, resolution, resolutionNotes);
-
-    // Update subscription status based on resolution
-    const subscription = await Subscription.findById(escrow.subscription);
-    if (subscription) {
-      if (resolution === 'refund_full' || resolution === 'refund_partial') {
-        subscription.escrowStatus = 'refunded';
-        subscription.status = 'refunded';
-      } else {
-        subscription.escrowStatus = 'released';
+    const disputeData = {
+      reason,
+      description,
+      evidence,
+      metadata: {
+        ...metadata,
+        userId: req.user._id.toString(),
+        userEmail: req.user.email,
+        platform: 'smart-algos'
       }
-      await subscription.save();
-    }
+    };
+
+    const result = await escrowService.createDispute(id, disputeData);
+
+    // Log dispute creation
+    securityService.logSecurityEvent('escrow_dispute_created', {
+      userId: req.user._id,
+      transactionId: id,
+      reason,
+      ip: securityService.getClientIP(req)
+    });
 
     res.json({
       success: true,
-      message: 'Dispute resolved successfully',
-      data: escrow
+      data: result.data,
+      message: result.message
     });
 
   } catch (error) {
-    console.error('Resolve dispute error:', error);
+    console.error('Create escrow dispute error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Failed to create escrow dispute'
     });
   }
 });
 
-// @route   POST /api/escrow/:id/evidence
-// @desc    Add evidence to dispute
+// ==================== UTILITY ENDPOINTS ====================
+
+// @route   GET /api/escrow/fee-calculator
+// @desc    Calculate escrow fees
 // @access  Private
-router.post('/:id/evidence', [
+router.get('/fee-calculator', [
   auth,
-  body('type')
-    .isIn(['screenshot', 'document', 'video', 'log_file', 'other'])
-    .withMessage('Invalid evidence type'),
-  body('url')
-    .isURL()
-    .withMessage('Valid URL is required'),
-  body('description')
-    .trim()
-    .isLength({ min: 5, max: 200 })
-    .withMessage('Description must be between 5 and 200 characters')
+  query('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+  query('currency')
+    .isIn(['USD', 'EUR', 'GBP', 'NGN'])
+    .withMessage('Invalid currency')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -547,142 +431,71 @@ router.post('/:id/evidence', [
       });
     }
 
-    const escrow = await Escrow.findById(req.params.id);
-    if (!escrow) {
-      return res.status(404).json({
-        success: false,
-        message: 'Escrow transaction not found'
-      });
-    }
-
-    // Check if user has permission to add evidence
-    if (escrow.user.toString() !== req.user._id.toString() && 
-        escrow.creator.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
-      });
-    }
-
-    // Check if escrow has an active dispute
-    if (escrow.status !== 'disputed') {
-      return res.status(400).json({
-        success: false,
-        message: 'No active dispute to add evidence to'
-      });
-    }
-
-    const { type, url, description } = req.body;
-    await escrow.addDisputeEvidence(type, url, description);
-
-    res.json({
-      success: true,
-      message: 'Evidence added successfully',
-      data: escrow.dispute.evidence
-    });
-
-  } catch (error) {
-    console.error('Add evidence error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-});
-
-// @route   GET /api/escrow/:id/performance
-// @desc    Get escrow performance data
-// @access  Private
-router.get('/:id/performance', [auth, updateActivity], async (req, res) => {
-  try {
-    const escrow = await Escrow.findById(req.params.id);
-    if (!escrow) {
-      return res.status(404).json({
-        success: false,
-        message: 'Escrow transaction not found'
-      });
-    }
-
-    // Check if user has access to this escrow
-    if (escrow.user.toString() !== req.user._id.toString() && 
-        escrow.creator.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
-      });
-    }
+    const { amount, currency } = req.query;
+    const fee = escrowService.calculateEscrowFee(parseFloat(amount), currency);
 
     res.json({
       success: true,
       data: {
-        performance: escrow.performance,
-        timeRemaining: escrow.timeRemaining,
-        canRelease: escrow.canRelease,
-        canDispute: escrow.canDispute
-      }
+        amount: parseFloat(amount),
+        currency: currency.toUpperCase(),
+        escrowFee: fee,
+        totalAmount: parseFloat(amount) + fee,
+        feePercentage: ((fee / parseFloat(amount)) * 100).toFixed(2)
+      },
+      message: 'Escrow fee calculated successfully'
     });
 
   } catch (error) {
-    console.error('Get escrow performance error:', error);
+    console.error('Calculate escrow fee error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Failed to calculate escrow fee'
     });
   }
 });
 
-// @route   PUT /api/escrow/:id/performance
-// @desc    Update escrow performance
-// @access  Private (Creator)
-router.put('/:id/performance', [
+// @route   GET /api/escrow/status
+// @desc    Get escrow service status
+// @access  Private
+router.get('/status', [
   auth,
-  body('tradeData')
-    .isObject()
-    .withMessage('Trade data is required'),
-  body('tradeData.profit')
-    .isNumeric()
-    .withMessage('Trade profit is required')
+  updateActivity
 ], async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const escrow = await Escrow.findById(req.params.id);
-    if (!escrow) {
-      return res.status(404).json({
-        success: false,
-        message: 'Escrow transaction not found'
-      });
-    }
-
-    // Check if user is the creator
-    if (escrow.creator.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Only the creator can update performance'
-      });
-    }
-
-    const { tradeData } = req.body;
-    await escrow.updatePerformance(tradeData);
-
+    const isConfigured = !!(process.env.ESCROW_EMAIL && process.env.ESCROW_PASSWORD);
+    
     res.json({
       success: true,
-      message: 'Performance updated successfully',
-      data: escrow.performance
+      data: {
+        service: 'escrow.com',
+        configured: isConfigured,
+        mode: isConfigured ? 'live' : 'mock',
+        supportedCurrencies: ['USD', 'EUR', 'GBP', 'NGN'],
+        supportedProductTypes: [
+          'ea_subscription',
+          'hft_rental', 
+          'trading_signal',
+          'consultation',
+          'training',
+          'software'
+        ],
+        features: [
+          'transaction_management',
+          'payment_processing',
+          'dispute_resolution',
+          'inspection_periods',
+          'fee_calculation'
+        ]
+      },
+      message: 'Escrow service status retrieved successfully'
     });
 
   } catch (error) {
-    console.error('Update escrow performance error:', error);
+    console.error('Get escrow status error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Failed to get escrow service status'
     });
   }
 });

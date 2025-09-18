@@ -10,9 +10,11 @@ import {
   Eye,
   Users,
   Bot,
-  Zap
+  Zap,
+  ArrowLeft
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
+import Button from '../../components/UI/Button';
 // import { useAuth } from '../../contexts/AuthContext';
 // import { useWebSocket } from '../../contexts/WebSocketContext';
 
@@ -166,15 +168,29 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header with Back Button */}
+      <div className="flex items-center space-x-4">
+        <Button
+          onClick={() => window.history.back()}
+          variant="outline"
+          size="sm"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Welcome back, Trader! 👋
+          </h1>
+        </div>
+      </div>
+
       {/* Welcome Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Welcome back, Trader! 👋
-        </h1>
         <p className="mt-2 text-gray-600 dark:text-gray-400">
           Here's what's happening with your trading today.
         </p>

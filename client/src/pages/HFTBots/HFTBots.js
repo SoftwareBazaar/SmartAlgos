@@ -33,6 +33,7 @@ import {
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
+import EscrowIntegration from '../../components/EscrowIntegration';
 // import { useAuth } from '../../contexts/AuthContext';
 // import axios from 'axios';
 
@@ -50,6 +51,8 @@ const HFTBots = () => {
   const [rentalType, setRentalType] = useState('professional');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [renting, setRenting] = useState(false);
+  const [useEscrow, setUseEscrow] = useState(true);
+  const [escrowTransaction, setEscrowTransaction] = useState(null);
 
   // Use mock data for now
   useEffect(() => {
@@ -775,7 +778,7 @@ const HFTBots = () => {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md"
+            className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-sm sm:max-w-lg mx-auto max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -881,15 +884,82 @@ const HFTBots = () => {
                 </div>
               </div>
 
+              {/* Escrow Protection Toggle */}
+              <div className="bg-green-50 dark:bg-green-900 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <span className="font-medium text-green-900 dark:text-green-100">
+                      Escrow Protection
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={useEscrow}
+                      onChange={(e) => setUseEscrow(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+                  </label>
+                </div>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  {useEscrow 
+                    ? "Your payment is held in escrow until you confirm the HFT bot is working as expected."
+                    : "Direct payment - no escrow protection. Payment goes directly to the provider."
+                  }
+                </p>
+              </div>
+
+              {/* Escrow Integration */}
+              {useEscrow && selectedBot && (
+                <EscrowIntegration
+                  productType="hft_rental"
+                  productId={selectedBot.id}
+                  productName={`${selectedBot.name} - ${rentalType.charAt(0).toUpperCase() + rentalType.slice(1)} Plan`}
+                  productPrice={selectedBot.pricing[rentalType]}
+                  sellerEmail="hft-provider@smartalgos.com"
+                  onTransactionCreated={(transaction) => {
+                    setEscrowTransaction(transaction);
+                    setRenting(false);
+                  }}
+                  onError={(error) => {
+                    console.error('Escrow error:', error);
+                    setRenting(false);
+                  }}
+                />
+              )}
+
               {/* Total */}
               <div className="border-t dark:border-gray-600 pt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    Monthly Cost
-                  </span>
-                  <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                    ${selectedBot.pricing[rentalType]}
-                  </span>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">Bot Rental</span>
+                    <span className="text-gray-900 dark:text-gray-100">
+                      ${selectedBot.pricing[rentalType]}
+                    </span>
+                  </div>
+                  {useEscrow && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">Escrow Fee</span>
+                      <span className="text-gray-900 dark:text-gray-100">
+                        ${(selectedBot.pricing[rentalType] * 0.0089).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="border-t dark:border-gray-600 pt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                        Total
+                      </span>
+                      <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                        ${useEscrow 
+                          ? (selectedBot.pricing[rentalType] * 1.0089).toFixed(2)
+                          : selectedBot.pricing[rentalType]
+                        }
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -898,18 +968,32 @@ const HFTBots = () => {
                 <Button
                   variant="outline"
                   fullWidth
-                  onClick={() => setShowRentalModal(false)}
+                  onClick={() => {
+                    setShowRentalModal(false);
+                    setEscrowTransaction(null);
+                    setUseEscrow(true);
+                  }}
                 >
                   Cancel
                 </Button>
-                <Button
-                  variant="primary"
-                  fullWidth
-                  onClick={handleRentalSubmit}
-                  disabled={renting}
-                >
-                  {renting ? 'Processing...' : 'Rent Now'}
-                </Button>
+                {useEscrow && escrowTransaction ? (
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    onClick={() => window.open(`/api/escrow/transactions/${escrowTransaction.id}`, '_blank')}
+                  >
+                    View Escrow Transaction
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    onClick={useEscrow ? () => {} : handleRentalSubmit}
+                    disabled={renting || (useEscrow && !escrowTransaction)}
+                  >
+                    {renting ? 'Processing...' : useEscrow ? 'Create Escrow Transaction' : 'Rent Now'}
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>

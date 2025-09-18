@@ -8,15 +8,16 @@ const router = express.Router();
 
 // Generate JWT token
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+  const secret = process.env.JWT_SECRET || 'smart-algos-fallback-secret-key-2024';
+  return jwt.sign({ userId }, secret, {
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
 };
 
-// Rate limiting for auth actions (more lenient for development)
-const loginRateLimit = createActionRateLimit(10, 5 * 60 * 1000, 'login'); // 10 attempts per 5 minutes
-const registerRateLimit = createActionRateLimit(5, 10 * 60 * 1000, 'register'); // 5 attempts per 10 minutes
-const passwordResetRateLimit = createActionRateLimit(5, 10 * 60 * 1000, 'password-reset'); // 5 attempts per 10 minutes
+// Rate limiting for auth actions (very lenient for development)
+const loginRateLimit = createActionRateLimit(1000, 5 * 60 * 1000, 'login'); // 1000 attempts per 5 minutes (development)
+const registerRateLimit = createActionRateLimit(500, 10 * 60 * 1000, 'register'); // 500 attempts per 10 minutes (development)
+const passwordResetRateLimit = createActionRateLimit(200, 10 * 60 * 1000, 'password-reset'); // 200 attempts per 10 minutes
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -548,6 +549,259 @@ router.post('/logout', auth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/auth/admin/login
+// @desc    Admin login
+// @access  Public
+router.post('/admin/login', [
+  loginRateLimit,
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { email, password } = req.body;
+
+    // Find user by email
+    const user = await databaseService.getUserByEmail(email);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Check if user is admin
+    if (user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    // Check if account is locked
+    if (user.lock_until && new Date() < new Date(user.lock_until)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account is temporarily locked due to multiple failed login attempts'
+      });
+    }
+
+    // Check if account is active
+    if (!user.is_active) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account is deactivated'
+      });
+    }
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      // Increment login attempts
+      const loginAttempts = (user.login_attempts || 0) + 1;
+      const lockUntil = loginAttempts >= 5 ? new Date(Date.now() + 2 * 60 * 60 * 1000) : null;
+      
+      await databaseService.updateUser(user.id, {
+        login_attempts: loginAttempts,
+        lock_until: lockUntil
+      });
+      
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Reset login attempts on successful login
+    if (user.login_attempts > 0) {
+      await databaseService.updateUser(user.id, {
+        login_attempts: 0,
+        lock_until: null
+      });
+    }
+
+    // Update last login and activity
+    await databaseService.updateUser(user.id, {
+      last_login: new Date().toISOString(),
+      last_activity: new Date().toISOString()
+    });
+
+    // Generate token with admin role
+    const token = generateToken(user.id);
+
+    // Remove password from response
+    const userResponse = { ...user };
+    delete userResponse.password_hash;
+
+    res.json({
+      success: true,
+      message: 'Admin login successful',
+      token,
+      user: userResponse
+    });
+
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during admin login'
+    });
+  }
+});
+
+// @route   POST /api/auth/admin/register
+// @desc    Register a new admin user
+// @access  Public (but requires admin code)
+router.post('/admin/register', [
+  registerRateLimit,
+  body('firstName')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('First name must be between 2 and 50 characters'),
+  body('lastName')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Last name must be between 2 and 50 characters'),
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
+  body('confirmPassword')
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Password confirmation does not match password');
+      }
+      return true;
+    }),
+  body('adminCode')
+    .notEmpty()
+    .withMessage('Admin registration code is required')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { firstName, lastName, email, password, phone, country, adminCode } = req.body;
+
+    // Validate admin code (you should set this in your environment variables)
+    const validAdminCode = process.env.ADMIN_REGISTRATION_CODE || 'ADMIN_SMART_ALGOS_2024';
+    if (adminCode !== validAdminCode) {
+      return res.status(403).json({
+        success: false,
+        message: 'Invalid admin registration code'
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await databaseService.getUserByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with this email'
+      });
+    }
+
+    // Hash password
+    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Create new admin user
+    const userData = {
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      password_hash: passwordHash,
+      phone,
+      country,
+      trading_experience: 'expert',
+      is_active: true,
+      is_email_verified: true, // Auto-verify admin emails
+      role: 'admin',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const user = await databaseService.createUser(userData);
+
+    // Generate token
+    const token = generateToken(user.id);
+
+    // Remove password from response
+    const userResponse = { ...user };
+    delete userResponse.password_hash;
+
+    res.status(201).json({
+      success: true,
+      message: 'Admin user registered successfully',
+      token,
+      user: userResponse
+    });
+
+  } catch (error) {
+    console.error('Admin registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during admin registration'
+    });
+  }
+});
+
+// @route   POST /api/auth/setup
+// @desc    Setup initial admin user (development only)
+// @access  Public
+router.post('/setup', async (req, res) => {
+  try {
+    // Only allow in development mode
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({
+        success: false,
+        message: 'Setup endpoint is only available in development mode'
+      });
+    }
+
+    const { setupAuth } = require('../setup-auth');
+    await setupAuth();
+
+    res.json({
+      success: true,
+      message: 'Authentication setup completed successfully'
+    });
+
+  } catch (error) {
+    console.error('Setup error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Setup failed: ' + error.message
     });
   }
 });

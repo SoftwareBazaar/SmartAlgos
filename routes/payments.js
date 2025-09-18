@@ -52,7 +52,7 @@ router.post('/initialize', [
       amount,
       currency,
       reference,
-      callback_url,
+      callback_url: callback_url || `${process.env.CLIENT_URL || 'http://localhost:3000'}/payments?reference=${reference}`,
       metadata: {
         ...metadata,
         userId: req.user._id.toString(),
@@ -83,6 +83,173 @@ router.post('/initialize', [
     res.status(500).json({
       success: false,
       message: 'Failed to initialize payment'
+    });
+  }
+});
+
+// @route   POST /api/payments/charge-authorization
+// @desc    Charge authorization code
+// @access  Private
+router.post('/charge-authorization', [
+  auth,
+  updateActivity,
+  auditLog('payment_charged'),
+  body('authorization_code')
+    .notEmpty()
+    .withMessage('Authorization code is required'),
+  body('email')
+    .isEmail()
+    .withMessage('Valid email is required'),
+  body('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+  body('currency')
+    .optional()
+    .isIn(['NGN', 'USD', 'GHS', 'ZAR', 'KES'])
+    .withMessage('Invalid currency'),
+  body('reference')
+    .optional()
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Reference must be between 1 and 100 characters'),
+  body('callback_url')
+    .optional()
+    .isURL()
+    .withMessage('Invalid callback URL'),
+  body('metadata')
+    .optional()
+    .isObject()
+    .withMessage('Metadata must be an object')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { authorization_code, email, amount, currency, reference, callback_url, metadata = {} } = req.body;
+
+    const chargeData = {
+      authorization_code,
+      email,
+      amount,
+      currency,
+      reference,
+      callback_url,
+      metadata: {
+        ...metadata,
+        userId: req.user._id.toString(),
+        userEmail: req.user.email,
+        platform: 'smart-algos'
+      }
+    };
+
+    const result = await paystackService.chargeAuthorization(chargeData);
+
+    // Log charge authorization
+    securityService.logSecurityEvent('payment_charged', {
+      userId: req.user._id,
+      authorization_code,
+      amount,
+      currency,
+      reference: result.data.reference,
+      ip: securityService.getClientIP(req)
+    });
+
+    res.json({
+      success: true,
+      data: result.data,
+      message: result.message
+    });
+
+  } catch (error) {
+    console.error('Charge authorization error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to charge authorization'
+    });
+  }
+});
+
+// @route   POST /api/payments/initialize-paused
+// @desc    Initialize Paystack payment with paused state
+// @access  Private
+router.post('/initialize-paused', [
+  auth,
+  updateActivity,
+  auditLog('payment_initialized_paused'),
+  body('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+  body('currency')
+    .isIn(['NGN', 'USD', 'GHS', 'ZAR', 'KES'])
+    .withMessage('Invalid currency'),
+  body('email')
+    .isEmail()
+    .withMessage('Valid email is required'),
+  body('callback_url')
+    .optional()
+    .isURL()
+    .withMessage('Invalid callback URL'),
+  body('metadata')
+    .optional()
+    .isObject()
+    .withMessage('Metadata must be an object')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { amount, currency, email, callback_url, metadata = {} } = req.body;
+
+    // Generate unique reference
+    const reference = paystackService.generateReference('PAY_PAUSED');
+
+    const transactionData = {
+      email,
+      amount,
+      currency,
+      reference,
+      callback_url: callback_url || `${process.env.CLIENT_URL || 'http://localhost:3000'}/payments?reference=${reference}`,
+      metadata: {
+        ...metadata,
+        userId: req.user._id.toString(),
+        userEmail: req.user.email,
+        platform: 'smart-algos'
+      }
+    };
+
+    const result = await paystackService.initializeTransactionWithPause(transactionData);
+
+    // Log payment initialization with pause
+    securityService.logSecurityEvent('payment_initialized_paused', {
+      userId: req.user._id,
+      amount,
+      currency,
+      reference,
+      ip: securityService.getClientIP(req)
+    });
+
+    res.json({
+      success: true,
+      data: result.data,
+      message: result.message
+    });
+
+  } catch (error) {
+    console.error('Initialize paused payment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to initialize paused payment'
     });
   }
 });

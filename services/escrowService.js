@@ -1,587 +1,494 @@
-const databaseService = require('./databaseService');
-const blockchainService = require('./blockchainService');
-const securityService = require('./securityService');
-const { sendNotification } = require('../websocket/handlers');
+const axios = require('axios');
+const crypto = require('crypto');
 
 class EscrowService {
   constructor() {
-    this.autoReleaseInterval = null;
-    this.startAutoReleaseMonitor();
+    this.baseURL = 'https://api.escrow.com/2017-09-01';
+    this.email = process.env.ESCROW_EMAIL;
+    this.password = process.env.ESCROW_PASSWORD;
+    this.apiKey = process.env.ESCROW_API_KEY;
+    
+    if (!this.email || !this.password) {
+      console.warn('Escrow credentials not configured. Using mock mode.');
+    }
   }
 
-  // ==================== ESCROW CREATION ====================
+  // ==================== AUTHENTICATION ====================
 
-  async createEscrow(subscriptionId, userData, creatorData) {
+  getAuthHeaders() {
+    if (this.email && this.password) {
+      const credentials = Buffer.from(`${this.email}:${this.password}`).toString('base64');
+      return {
+        'Authorization': `Basic ${credentials}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'Smart-Algos-Platform/1.0.0'
+      };
+    }
+    return {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Smart-Algos-Platform/1.0.0'
+    };
+  }
+
+  // ==================== TRANSACTION MANAGEMENT ====================
+
+  async createTransaction(transactionData) {
     try {
-      const subscription = await Subscription.findById(subscriptionId)
-        .populate('product')
-        .populate('user');
+      const {
+        buyerEmail,
+        sellerEmail,
+        amount,
+        currency = 'USD',
+        description,
+        productType = 'ea_subscription',
+        inspectionPeriod = 259200, // 3 days in seconds
+        metadata = {}
+      } = transactionData;
 
-      if (!subscription) {
-        throw new Error('Subscription not found');
+      // Validate required fields
+      if (!buyerEmail || !sellerEmail || !amount || !description) {
+        throw new Error('Buyer email, seller email, amount, and description are required');
       }
 
-      // Create multisig wallet
-      const owners = [userData.walletAddress, creatorData.walletAddress];
-      const threshold = 2; // Require 2 signatures for release
-
-      const multisigWallet = await blockchainService.createMultisigWallet(
-        owners,
-        threshold,
-        'ethereum', // Default network
-        'mainnet'
-      );
-
-      // Create escrow contract
-      const escrowContract = await blockchainService.createEscrowContract({
-        buyer: userData.walletAddress,
-        seller: creatorData.walletAddress,
-        amount: subscription.price,
-        currency: subscription.currency,
-        network: 'ethereum',
-        chain: 'mainnet',
-        releaseConditions: {
-          type: 'time_based',
-          timeDelay: 24, // 24 hours
-          performanceThreshold: 0
-        },
-        expirationTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
-      });
-
-      // Create escrow record
-      const escrowData = {
-        subscription: subscriptionId,
-        user: subscription.user._id,
-        ea: subscription.product._id,
-        creator: subscription.product.creator,
-        amount: subscription.price,
-        currency: subscription.currency,
-        blockchain: 'ethereum',
-        network: 'mainnet',
-        multisigAddress: multisigWallet.address,
-        transactionHash: '', // Will be set when funded
-        requiredSignatures: threshold,
-        totalSignatures: 0,
-        status: 'pending',
-        state: 'created',
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-        releaseConditions: {
-          type: 'time_based',
-          timeDelay: 24,
-          performanceThreshold: 0,
-          autoRelease: true
-        },
-        fees: {
-          platformFee: subscription.price * 0.05, // 5% platform fee
-          creatorFee: subscription.price * 0.90, // 90% to creator
-          networkFee: 0, // Will be calculated during funding
-          totalFees: subscription.price * 0.05
-        },
+      const payload = {
+        parties: [
+          {
+            role: 'buyer',
+            customer: buyerEmail
+          },
+          {
+            role: 'seller',
+            customer: sellerEmail
+          }
+        ],
+        currency: currency.toLowerCase(),
+        description: description,
+        items: [
+          {
+            title: description,
+            description: `Smart Algos ${productType} - ${description}`,
+            type: this.getEscrowItemType(productType),
+            inspection_period: inspectionPeriod,
+            quantity: 1,
+            schedule: [
+              {
+                amount: parseFloat(amount),
+                payer_customer: buyerEmail,
+                beneficiary_customer: sellerEmail
+              }
+            ]
+          }
+        ],
         metadata: {
-          userAgent: userData.userAgent,
-          ipAddress: userData.ipAddress,
-          version: '1.0.0'
+          ...metadata,
+          platform: 'smart-algos',
+          product_type: productType,
+          created_at: new Date().toISOString()
         }
       };
 
-      const escrow = new Escrow(escrowData);
-      await escrow.save();
+      if (this.email && this.password) {
+        const response = await axios.post(
+          `${this.baseURL}/transaction`,
+          payload,
+          { headers: this.getAuthHeaders() }
+        );
 
-      // Update subscription with escrow reference
-      subscription.escrow = escrow._id;
-      subscription.escrowStatus = 'pending';
-      await subscription.save();
-
-      // Send notifications
-      await this.sendEscrowNotifications(escrow, 'created');
-
-      return escrow;
+        return {
+          success: true,
+          data: response.data,
+          message: 'Escrow transaction created successfully'
+        };
+      } else {
+        // Mock response for development
+        return this.getMockTransactionResponse(payload);
+      }
     } catch (error) {
-      console.error('Create escrow error:', error);
-      throw new Error('Failed to create escrow');
+      console.error('Create escrow transaction error:', error);
+      throw new Error(`Failed to create escrow transaction: ${error.message}`);
     }
   }
 
-  // ==================== ESCROW FUNDING ====================
-
-  async fundEscrow(escrowId, fundingData) {
+  async getTransaction(transactionId) {
     try {
-      const escrow = await databaseService.getEscrowTransactionById(escrowId)
-        .populate('user')
-        .populate('creator');
-
-      if (!escrow) {
-        throw new Error('Escrow not found');
+      if (!transactionId) {
+        throw new Error('Transaction ID is required');
       }
 
-      if (escrow.status !== 'pending') {
-        throw new Error('Escrow cannot be funded in current state');
+      if (this.email && this.password) {
+        const response = await axios.get(
+          `${this.baseURL}/transaction/${transactionId}`,
+          { headers: this.getAuthHeaders() }
+        );
+
+        return {
+          success: true,
+          data: response.data,
+          message: 'Transaction retrieved successfully'
+        };
+      } else {
+        // Mock transaction data for development
+        return this.getMockTransactionResponse({ id: transactionId });
       }
-
-      // Fund the escrow contract
-      const fundingResult = await blockchainService.fundEscrow(
-        escrow.multisigAddress,
-        escrow.amount,
-        fundingData.fromAddress,
-        fundingData.privateKey,
-        escrow.blockchain,
-        escrow.network
-      );
-
-      // Update escrow with funding information
-      await escrow.fundEscrow(
-        fundingResult.transactionHash,
-        fundingResult.blockNumber,
-        fundingResult.gasUsed,
-        fundingResult.gasPrice
-      );
-
-      // Update subscription status
-      const subscription = await Subscription.findById(escrow.subscription);
-      if (subscription) {
-        subscription.escrowStatus = 'funded';
-        subscription.paymentStatus = 'paid';
-        await subscription.save();
-      }
-
-      // Send notifications
-      await this.sendEscrowNotifications(escrow, 'funded');
-
-      return escrow;
     } catch (error) {
-      console.error('Fund escrow error:', error);
-      throw new Error('Failed to fund escrow');
+      console.error('Get escrow transaction error:', error);
+      throw new Error(`Failed to get escrow transaction: ${error.message}`);
     }
   }
 
-  // ==================== ESCROW LOCKING ====================
-
-  async lockEscrow(escrowId, creatorId) {
+  async updateTransaction(transactionId, updateData) {
     try {
-      const escrow = await databaseService.getEscrowTransactionById(escrowId);
-
-      if (!escrow) {
-        throw new Error('Escrow not found');
+      if (!transactionId) {
+        throw new Error('Transaction ID is required');
       }
 
-      if (escrow.creator.toString() !== creatorId.toString()) {
-        throw new Error('Only the creator can lock the escrow');
+      const payload = {
+        ...updateData,
+        metadata: {
+          ...updateData.metadata,
+          platform: 'smart-algos',
+          updated_at: new Date().toISOString()
+        }
+      };
+
+      if (this.email && this.password) {
+        const response = await axios.patch(
+          `${this.baseURL}/transaction/${transactionId}`,
+          payload,
+          { headers: this.getAuthHeaders() }
+        );
+
+        return {
+          success: true,
+          data: response.data,
+          message: 'Transaction updated successfully'
+        };
+      } else {
+        // Mock update response for development
+        return this.getMockTransactionResponse({ id: transactionId, ...payload });
       }
-
-      if (escrow.status !== 'funded') {
-        throw new Error('Escrow must be funded before locking');
-      }
-
-      await escrow.lockEscrow();
-
-      // Send notifications
-      await this.sendEscrowNotifications(escrow, 'locked');
-
-      return escrow;
     } catch (error) {
-      console.error('Lock escrow error:', error);
-      throw new Error('Failed to lock escrow');
+      console.error('Update escrow transaction error:', error);
+      throw new Error(`Failed to update escrow transaction: ${error.message}`);
     }
   }
 
-  // ==================== SIGNATURE MANAGEMENT ====================
-
-  async addSignature(escrowId, signerId, signature) {
+  async cancelTransaction(transactionId, reason = 'User request') {
     try {
-      const escrow = await databaseService.getEscrowTransactionById(escrowId);
-
-      if (!escrow) {
-        throw new Error('Escrow not found');
+      if (!transactionId) {
+        throw new Error('Transaction ID is required');
       }
 
-      // Verify signer has permission
-      if (escrow.user.toString() !== signerId.toString() && 
-          escrow.creator.toString() !== signerId.toString()) {
-        throw new Error('Unauthorized to sign this escrow');
+      const payload = {
+        action: 'cancel',
+        reason: reason,
+        metadata: {
+          platform: 'smart-algos',
+          cancelled_at: new Date().toISOString()
+        }
+      };
+
+      if (this.email && this.password) {
+        const response = await axios.patch(
+          `${this.baseURL}/transaction/${transactionId}`,
+          payload,
+          { headers: this.getAuthHeaders() }
+        );
+
+        return {
+          success: true,
+          data: response.data,
+          message: 'Transaction cancelled successfully'
+        };
+      } else {
+        // Mock cancellation response for development
+        return this.getMockTransactionResponse({ 
+          id: transactionId, 
+          status: 'cancelled',
+          cancellation_reason: reason
+        });
       }
-
-      if (escrow.status !== 'active') {
-        throw new Error('Escrow must be active to add signatures');
-      }
-
-      await escrow.addSignature(signerId, signature);
-
-      // Check if enough signatures for release
-      if (escrow.canRelease) {
-        await this.unlockEscrow(escrowId);
-      }
-
-      // Send notifications
-      await this.sendEscrowNotifications(escrow, 'signed');
-
-      return escrow;
     } catch (error) {
-      console.error('Add signature error:', error);
-      throw new Error('Failed to add signature');
+      console.error('Cancel escrow transaction error:', error);
+      throw new Error(`Failed to cancel escrow transaction: ${error.message}`);
     }
   }
 
-  // ==================== ESCROW RELEASE ====================
+  // ==================== PAYMENT MANAGEMENT ====================
 
-  async releaseEscrow(escrowId, releaseData) {
+  async initiatePayment(transactionId, paymentData) {
     try {
-      const escrow = await databaseService.getEscrowTransactionById(escrowId)
-        .populate('user')
-        .populate('creator');
+      const {
+        amount,
+        currency = 'USD',
+        paymentMethod = 'card',
+        metadata = {}
+      } = paymentData;
 
-      if (!escrow) {
-        throw new Error('Escrow not found');
+      const payload = {
+        transaction_id: transactionId,
+        amount: parseFloat(amount),
+        currency: currency.toLowerCase(),
+        payment_method: paymentMethod,
+        metadata: {
+          ...metadata,
+          platform: 'smart-algos',
+          initiated_at: new Date().toISOString()
+        }
+      };
+
+      if (this.email && this.password) {
+        const response = await axios.post(
+          `${this.baseURL}/transaction/${transactionId}/payment`,
+          payload,
+          { headers: this.getAuthHeaders() }
+        );
+
+        return {
+          success: true,
+          data: response.data,
+          message: 'Payment initiated successfully'
+        };
+      } else {
+        // Mock payment initiation response for development
+        return this.getMockPaymentResponse(transactionId, payload);
       }
-
-      if (!escrow.canRelease) {
-        throw new Error('Escrow cannot be released yet');
-      }
-
-      // Get signatures for release
-      const signatures = escrow.signatures.filter(sig => sig.approved);
-
-      // Release funds from blockchain
-      const releaseResult = await blockchainService.releaseEscrow(
-        escrow.multisigAddress,
-        escrow.creator.walletAddress,
-        escrow.amount,
-        signatures,
-        escrow.blockchain,
-        escrow.network
-      );
-
-      // Update escrow status
-      await escrow.releaseEscrow(releaseResult.transactionHash);
-
-      // Update subscription status
-      const subscription = await Subscription.findById(escrow.subscription);
-      if (subscription) {
-        subscription.escrowStatus = 'released';
-        subscription.status = 'active';
-        await subscription.save();
-      }
-
-      // Send notifications
-      await this.sendEscrowNotifications(escrow, 'released');
-
-      return escrow;
     } catch (error) {
-      console.error('Release escrow error:', error);
-      throw new Error('Failed to release escrow');
+      console.error('Initiate escrow payment error:', error);
+      throw new Error(`Failed to initiate escrow payment: ${error.message}`);
     }
   }
 
-  // ==================== ESCROW REFUND ====================
-
-  async refundEscrow(escrowId, refundData) {
+  async getPaymentStatus(transactionId, paymentId) {
     try {
-      const escrow = await databaseService.getEscrowTransactionById(escrowId)
-        .populate('user')
-        .populate('creator');
-
-      if (!escrow) {
-        throw new Error('Escrow not found');
+      if (!transactionId || !paymentId) {
+        throw new Error('Transaction ID and Payment ID are required');
       }
 
-      // Get signatures for refund
-      const signatures = escrow.signatures.filter(sig => sig.approved);
+      if (this.email && this.password) {
+        const response = await axios.get(
+          `${this.baseURL}/transaction/${transactionId}/payment/${paymentId}`,
+          { headers: this.getAuthHeaders() }
+        );
 
-      // Refund funds from blockchain
-      const refundResult = await blockchainService.refundEscrow(
-        escrow.multisigAddress,
-        escrow.user.walletAddress,
-        escrow.amount,
-        signatures,
-        escrow.blockchain,
-        escrow.network
-      );
-
-      // Update escrow status
-      escrow.status = 'refunded';
-      escrow.state = 'refunded';
-      escrow.refundedAt = new Date();
-      escrow.transactionHash = refundResult.transactionHash;
-      await escrow.save();
-
-      // Update subscription status
-      const subscription = await Subscription.findById(escrow.subscription);
-      if (subscription) {
-        subscription.escrowStatus = 'refunded';
-        subscription.status = 'refunded';
-        await subscription.save();
+        return {
+          success: true,
+          data: response.data,
+          message: 'Payment status retrieved successfully'
+        };
+      } else {
+        // Mock payment status response for development
+        return this.getMockPaymentStatusResponse(transactionId, paymentId);
       }
-
-      // Send notifications
-      await this.sendEscrowNotifications(escrow, 'refunded');
-
-      return escrow;
     } catch (error) {
-      console.error('Refund escrow error:', error);
-      throw new Error('Failed to refund escrow');
+      console.error('Get escrow payment status error:', error);
+      throw new Error(`Failed to get escrow payment status: ${error.message}`);
     }
   }
 
   // ==================== DISPUTE MANAGEMENT ====================
 
-  async initiateDispute(escrowId, disputeData) {
+  async createDispute(transactionId, disputeData) {
     try {
-      const escrow = await databaseService.getEscrowTransactionById(escrowId);
+      const {
+        reason,
+        description,
+        evidence = [],
+        metadata = {}
+      } = disputeData;
 
-      if (!escrow) {
-        throw new Error('Escrow not found');
-      }
-
-      if (!escrow.canDispute) {
-        throw new Error('Escrow cannot be disputed in current state');
-      }
-
-      await escrow.initiateDispute(
-        disputeData.initiatedBy,
-        disputeData.reason,
-        disputeData.description
-      );
-
-      // Update subscription status
-      const subscription = await Subscription.findById(escrow.subscription);
-      if (subscription) {
-        subscription.escrowStatus = 'disputed';
-        await subscription.save();
-      }
-
-      // Send notifications
-      await this.sendEscrowNotifications(escrow, 'disputed');
-
-      return escrow;
-    } catch (error) {
-      console.error('Initiate dispute error:', error);
-      throw new Error('Failed to initiate dispute');
-    }
-  }
-
-  async resolveDispute(escrowId, resolutionData) {
-    try {
-      const escrow = await databaseService.getEscrowTransactionById(escrowId);
-
-      if (!escrow) {
-        throw new Error('Escrow not found');
-      }
-
-      if (escrow.status !== 'disputed') {
-        throw new Error('No active dispute to resolve');
-      }
-
-      await escrow.resolveDispute(
-        resolutionData.resolvedBy,
-        resolutionData.resolution,
-        resolutionData.resolutionNotes
-      );
-
-      // Execute resolution
-      if (resolutionData.resolution === 'refund_full' || resolutionData.resolution === 'refund_partial') {
-        await this.refundEscrow(escrowId, {});
-      } else if (resolutionData.resolution === 'no_refund') {
-        await this.releaseEscrow(escrowId, {});
-      }
-
-      // Send notifications
-      await this.sendEscrowNotifications(escrow, 'resolved');
-
-      return escrow;
-    } catch (error) {
-      console.error('Resolve dispute error:', error);
-      throw new Error('Failed to resolve dispute');
-    }
-  }
-
-  // ==================== PERFORMANCE TRACKING ====================
-
-  async updatePerformance(escrowId, tradeData) {
-    try {
-      const escrow = await databaseService.getEscrowTransactionById(escrowId);
-
-      if (!escrow) {
-        throw new Error('Escrow not found');
-      }
-
-      await escrow.updatePerformance(tradeData);
-
-      // Check if performance meets release conditions
-      if (escrow.releaseConditions.type === 'performance_based' && escrow.canRelease) {
-        await this.unlockEscrow(escrowId);
-      }
-
-      return escrow;
-    } catch (error) {
-      console.error('Update performance error:', error);
-      throw new Error('Failed to update performance');
-    }
-  }
-
-  // ==================== AUTO-RELEASE MONITORING ====================
-
-  startAutoReleaseMonitor() {
-    // Check for escrows that can be auto-released every hour
-    this.autoReleaseInterval = setInterval(async () => {
-      try {
-        await this.checkAutoRelease();
-      } catch (error) {
-        console.error('Auto-release monitor error:', error);
-      }
-    }, 60 * 60 * 1000); // 1 hour
-  }
-
-  async checkAutoRelease() {
-    try {
-      const escrows = await databaseService.getEscrowTransactions({
-        status: 'active',
-        state: 'locked',
-        'releaseConditions.autoRelease': true
-      });
-
-      for (const escrow of escrows) {
-        if (escrow.canRelease) {
-          try {
-            await this.releaseEscrow(escrow._id, {});
-            console.log(`Auto-released escrow ${escrow._id}`);
-          } catch (error) {
-            console.error(`Failed to auto-release escrow ${escrow._id}:`, error);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Check auto-release error:', error);
-    }
-  }
-
-  // ==================== NOTIFICATION SYSTEM ====================
-
-  async sendEscrowNotifications(escrow, event) {
-    try {
-      const notifications = {
-        created: {
-          title: 'Escrow Created',
-          message: 'Your escrow has been created and is ready for funding.',
-          type: 'info'
-        },
-        funded: {
-          title: 'Escrow Funded',
-          message: 'Your escrow has been funded and is ready for activation.',
-          type: 'success'
-        },
-        locked: {
-          title: 'Escrow Locked',
-          message: 'Your escrow has been locked and is now active.',
-          type: 'info'
-        },
-        signed: {
-          title: 'Escrow Signed',
-          message: 'A signature has been added to your escrow.',
-          type: 'info'
-        },
-        released: {
-          title: 'Escrow Released',
-          message: 'Your escrow has been released successfully.',
-          type: 'success'
-        },
-        refunded: {
-          title: 'Escrow Refunded',
-          message: 'Your escrow has been refunded.',
-          type: 'warning'
-        },
-        disputed: {
-          title: 'Escrow Disputed',
-          message: 'A dispute has been initiated for your escrow.',
-          type: 'warning'
-        },
-        resolved: {
-          title: 'Dispute Resolved',
-          message: 'The dispute for your escrow has been resolved.',
-          type: 'info'
+      const payload = {
+        transaction_id: transactionId,
+        reason: reason,
+        description: description,
+        evidence: evidence,
+        metadata: {
+          ...metadata,
+          platform: 'smart-algos',
+          created_at: new Date().toISOString()
         }
       };
 
-      const notification = notifications[event];
-      if (!notification) return;
+      if (this.email && this.password) {
+        const response = await axios.post(
+          `${this.baseURL}/transaction/${transactionId}/dispute`,
+          payload,
+          { headers: this.getAuthHeaders() }
+        );
 
-      // Send to user
-      await sendNotification(escrow.user, {
-        ...notification,
-        escrowId: escrow._id,
-        amount: escrow.amount,
-        currency: escrow.currency
-      });
-
-      // Send to creator
-      await sendNotification(escrow.creator, {
-        ...notification,
-        escrowId: escrow._id,
-        amount: escrow.amount,
-        currency: escrow.currency
-      });
+        return {
+          success: true,
+          data: response.data,
+          message: 'Dispute created successfully'
+        };
+      } else {
+        // Mock dispute creation response for development
+        return this.getMockDisputeResponse(transactionId, payload);
+      }
     } catch (error) {
-      console.error('Send escrow notifications error:', error);
+      console.error('Create escrow dispute error:', error);
+      throw new Error(`Failed to create escrow dispute: ${error.message}`);
     }
   }
 
   // ==================== UTILITY METHODS ====================
 
-  async getEscrowStatus(escrowId) {
-    try {
-      const escrow = await databaseService.getEscrowTransactionById(escrowId)
-        .populate('user', 'firstName lastName email')
-        .populate('creator', 'firstName lastName email')
-        .populate('subscription', 'subscriptionType price currency');
-
-      if (!escrow) {
-        throw new Error('Escrow not found');
-      }
-
-      return {
-        escrow,
-        canRelease: escrow.canRelease,
-        canDispute: escrow.canDispute,
-        timeRemaining: escrow.timeRemaining,
-        signatures: {
-          total: escrow.totalSignatures,
-          required: escrow.requiredSignatures,
-          remaining: escrow.requiredSignatures - escrow.totalSignatures
-        }
-      };
-    } catch (error) {
-      console.error('Get escrow status error:', error);
-      throw new Error('Failed to get escrow status');
-    }
+  getEscrowItemType(productType) {
+    const typeMap = {
+      'ea_subscription': 'digital_goods',
+      'hft_rental': 'digital_goods',
+      'trading_signal': 'digital_goods',
+      'consultation': 'services',
+      'training': 'services',
+      'software': 'digital_goods'
+    };
+    return typeMap[productType] || 'general_merchandise';
   }
 
-  async getExpiringEscrows(days = 7) {
-    try {
-      return await databaseService.getEscrowTransactions({
-        expires_at: { $lte: new Date(Date.now() + days * 24 * 60 * 60 * 1000) }
-      });
-    } catch (error) {
-      console.error('Get expiring escrows error:', error);
-      throw new Error('Failed to get expiring escrows');
-    }
+  calculateEscrowFee(amount, currency = 'USD') {
+    // Escrow.com fee structure (approximate)
+    const feeRates = {
+      'USD': 0.0089, // 0.89%
+      'EUR': 0.0089,
+      'GBP': 0.0089,
+      'NGN': 0.0089
+    };
+    
+    const rate = feeRates[currency.toUpperCase()] || 0.0089;
+    return Math.round(amount * rate * 100) / 100; // Round to 2 decimal places
   }
 
-  async getDisputedEscrows() {
-    try {
-      return await databaseService.getEscrowTransactions({
-        dispute_initiated: true
-      });
-    } catch (error) {
-      console.error('Get disputed escrows error:', error);
-      throw new Error('Failed to get disputed escrows');
-    }
+  generateTransactionReference(prefix = 'ESC') {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 9);
+    return `${prefix}_${timestamp}_${random}`.toUpperCase();
   }
 
-  // ==================== CLEANUP ====================
+  // ==================== MOCK RESPONSES (Development) ====================
 
-  stopAutoReleaseMonitor() {
-    if (this.autoReleaseInterval) {
-      clearInterval(this.autoReleaseInterval);
-      this.autoReleaseInterval = null;
-    }
+  getMockTransactionResponse(payload) {
+    const transactionId = payload.id || Math.floor(Math.random() * 1000000) + 3000000;
+    
+    return {
+      success: true,
+      data: {
+        id: transactionId,
+        description: payload.description || 'Smart Algos EA Subscription',
+        items: [
+          {
+            status: {
+              received: false,
+              rejected_returned: false,
+              rejected: false,
+              received_returned: false,
+              shipped: false,
+              accepted: false,
+              shipped_returned: false,
+              accepted_returned: false
+            },
+            description: payload.items?.[0]?.description || 'EA Subscription with escrow protection',
+            schedule: [
+              {
+                amount: payload.items?.[0]?.schedule?.[0]?.amount?.toString() || '299.00',
+                payer_customer: payload.parties?.[0]?.customer || 'buyer@example.com',
+                beneficiary_customer: payload.parties?.[1]?.customer || 'seller@example.com',
+                status: {
+                  secured: false
+                }
+              }
+            ],
+            title: payload.items?.[0]?.title || 'EA Subscription',
+            inspection_period: payload.items?.[0]?.inspection_period || 259200,
+            fees: [
+              {
+                payer_customer: payload.parties?.[0]?.customer || 'buyer@example.com',
+                amount: this.calculateEscrowFee(
+                  parseFloat(payload.items?.[0]?.schedule?.[0]?.amount || 299),
+                  payload.currency || 'USD'
+                ).toString(),
+                type: 'escrow'
+              }
+            ],
+            type: payload.items?.[0]?.type || 'digital_goods',
+            id: Math.floor(Math.random() * 1000000) + 3000000,
+            quantity: 1
+          }
+        ],
+        creation_date: new Date().toISOString(),
+        currency: payload.currency || 'usd',
+        parties: [
+          {
+            customer: payload.parties?.[0]?.customer || 'buyer@example.com',
+            agreed: true,
+            role: 'buyer',
+            initiator: true
+          },
+          {
+            customer: payload.parties?.[1]?.customer || 'seller@example.com',
+            agreed: false,
+            role: 'seller',
+            initiator: false
+          }
+        ],
+        status: 'pending_agreement',
+        escrow_fee: this.calculateEscrowFee(
+          parseFloat(payload.items?.[0]?.schedule?.[0]?.amount || 299),
+          payload.currency || 'USD'
+        )
+      },
+      message: 'Escrow transaction created successfully (Mock)'
+    };
+  }
+
+  getMockPaymentResponse(transactionId, payload) {
+    return {
+      success: true,
+      data: {
+        id: Math.floor(Math.random() * 1000000) + 4000000,
+        transaction_id: transactionId,
+        amount: payload.amount,
+        currency: payload.currency,
+        payment_method: payload.payment_method,
+        status: 'pending',
+        payment_url: `https://pay.escrow.com/mock/${transactionId}`,
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+      },
+      message: 'Payment initiated successfully (Mock)'
+    };
+  }
+
+  getMockPaymentStatusResponse(transactionId, paymentId) {
+    return {
+      success: true,
+      data: {
+        id: paymentId,
+        transaction_id: transactionId,
+        status: 'completed',
+        amount: '299.00',
+        currency: 'usd',
+        payment_method: 'card',
+        completed_at: new Date().toISOString(),
+        reference: `PAY_${Date.now()}`
+      },
+      message: 'Payment status retrieved successfully (Mock)'
+    };
+  }
+
+  getMockDisputeResponse(transactionId, payload) {
+    return {
+      success: true,
+      data: {
+        id: Math.floor(Math.random() * 1000000) + 5000000,
+        transaction_id: transactionId,
+        reason: payload.reason,
+        description: payload.description,
+        status: 'open',
+        created_at: new Date().toISOString(),
+        evidence: payload.evidence || []
+      },
+      message: 'Dispute created successfully (Mock)'
+    };
   }
 }
 

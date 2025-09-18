@@ -35,6 +35,11 @@ export const AuthProvider = ({ children }) => {
 
   // Set up axios defaults
   useEffect(() => {
+    // Configure axios base URL for development
+    if (process.env.NODE_ENV === 'development') {
+      axios.defaults.baseURL = 'http://localhost:5000';
+    }
+    
     const token = localStorage.getItem('token');
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -84,21 +89,58 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register function
-  const register = async (userData) => {
+  // Admin login function
+  const adminLogin = async (email, password) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await axios.post('/api/auth/admin/login', { email, password });
       
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       dispatch({ type: 'SET_USER', payload: user });
-      toast.success('Registration successful!');
+      toast.success('Admin login successful!');
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
+      const message = error.response?.data?.message || 'Admin login failed';
+      dispatch({ type: 'SET_ERROR', payload: message });
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  };
+
+  // Register function
+  const register = async (userData) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      // Determine if this is an admin registration
+      const isAdminRegistration = userData.role === 'admin';
+      const endpoint = isAdminRegistration ? '/api/auth/admin/register' : '/api/auth/register';
+      
+      const response = await axios.post(endpoint, userData);
+      
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      dispatch({ type: 'SET_USER', payload: user });
+      const successMessage = isAdminRegistration ? 'Admin registration successful!' : 'Registration successful!';
+      toast.success(successMessage);
+      return { success: true };
+    } catch (error) {
+      let message = error.response?.data?.message || 'Registration failed';
+      
+      // Provide more helpful error messages
+      if (message.includes('already exists')) {
+        message = 'An account with this email already exists. Please try logging in instead.';
+      } else if (error.response?.status === 400) {
+        message = error.response?.data?.errors?.[0]?.msg || message;
+      } else if (error.response?.status === 500) {
+        message = 'Server error. Please try again later.';
+      }
+      
       dispatch({ type: 'SET_ERROR', payload: message });
       toast.error(message);
       return { success: false, error: message };
@@ -204,6 +246,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     ...state,
     login,
+    adminLogin,
     register,
     logout,
     updateProfile,

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../../components/UI/Button';
@@ -22,7 +23,18 @@ const Register = () => {
   const password = watch('password');
 
   const onSubmit = async (data) => {
-    const result = await registerUser(data);
+    const userData = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      password: data.password,
+      confirmPassword: data.confirmPassword,
+      phone: data.phone,
+      country: data.country,
+      tradingExperience: data.tradingExperience
+    };
+
+    const result = await registerUser(userData);
     if (result.success) {
       navigate('/dashboard');
     }
@@ -35,14 +47,14 @@ const Register = () => {
           Create your account
         </h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Join thousands of traders using Smart Algos
+          Join Smart Algos and start trading with AI-powered strategies.
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="First name"
+            label="First Name"
             type="text"
             leftIcon={<User className="h-4 w-4" />}
             error={errors.firstName?.message}
@@ -52,11 +64,15 @@ const Register = () => {
                 value: 2,
                 message: 'First name must be at least 2 characters',
               },
+              maxLength: {
+                value: 50,
+                message: 'First name must not exceed 50 characters',
+              },
             })}
           />
 
           <Input
-            label="Last name"
+            label="Last Name"
             type="text"
             leftIcon={<User className="h-4 w-4" />}
             error={errors.lastName?.message}
@@ -65,6 +81,10 @@ const Register = () => {
               minLength: {
                 value: 2,
                 message: 'Last name must be at least 2 characters',
+              },
+              maxLength: {
+                value: 50,
+                message: 'Last name must not exceed 50 characters',
               },
             })}
           />
@@ -84,31 +104,56 @@ const Register = () => {
           })}
         />
 
-        <Input
-          label="Phone number (optional)"
-          type="tel"
-          leftIcon={<Phone className="h-4 w-4" />}
-          error={errors.phone?.message}
-          {...register('phone', {
-            pattern: {
-              value: /^\+?[\d\s\-\(\)]+$/,
-              message: 'Invalid phone number',
-            },
-          })}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Phone (Optional)"
+            type="tel"
+            leftIcon={<Phone className="h-4 w-4" />}
+            error={errors.phone?.message}
+            {...register('phone', {
+              pattern: {
+                value: /^[\+]?[1-9][\d]{0,15}$/,
+                message: 'Invalid phone number format',
+              },
+            })}
+          />
 
-        <Input
-          label="Country"
-          type="text"
-          leftIcon={<MapPin className="h-4 w-4" />}
-          error={errors.country?.message}
-          {...register('country', {
-            minLength: {
-              value: 2,
-              message: 'Country must be at least 2 characters',
-            },
-          })}
-        />
+          <Input
+            label="Country (Optional)"
+            type="text"
+            leftIcon={<MapPin className="h-4 w-4" />}
+            error={errors.country?.message}
+            {...register('country', {
+              maxLength: {
+                value: 100,
+                message: 'Country must not exceed 100 characters',
+              },
+            })}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Trading Experience
+          </label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            {...register('tradingExperience', {
+              required: 'Please select your trading experience',
+            })}
+          >
+            <option value="">Select your experience level</option>
+            <option value="beginner">Beginner (0-1 years)</option>
+            <option value="intermediate">Intermediate (1-3 years)</option>
+            <option value="advanced">Advanced (3-5 years)</option>
+            <option value="expert">Expert (5+ years)</option>
+          </select>
+          {errors.tradingExperience && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {errors.tradingExperience.message}
+            </p>
+          )}
+        </div>
 
         <Input
           label="Password"
@@ -124,7 +169,6 @@ const Register = () => {
             </button>
           }
           error={errors.password?.message}
-          helperText="Must be at least 8 characters with uppercase, lowercase, number, and special character"
           {...register('password', {
             required: 'Password is required',
             minLength: {
@@ -133,13 +177,13 @@ const Register = () => {
             },
             pattern: {
               value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-              message: 'Password must contain uppercase, lowercase, number, and special character',
+              message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
             },
           })}
         />
 
         <Input
-          label="Confirm password"
+          label="Confirm Password"
           type={showConfirmPassword ? 'text' : 'password'}
           leftIcon={<Lock className="h-4 w-4" />}
           rightIcon={
@@ -175,7 +219,7 @@ const Register = () => {
               to="/terms"
               className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
             >
-              Terms and Conditions
+              Terms of Service
             </Link>{' '}
             and{' '}
             <Link
@@ -187,7 +231,7 @@ const Register = () => {
           </label>
         </div>
         {errors.terms && (
-          <p className="text-sm text-danger-600 dark:text-danger-400">
+          <p className="text-sm text-red-600 dark:text-red-400">
             {errors.terms.message}
           </p>
         )}
@@ -199,7 +243,7 @@ const Register = () => {
           fullWidth
           loading={loading}
         >
-          Create account
+          Create Account
         </Button>
       </form>
 
@@ -210,7 +254,7 @@ const Register = () => {
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-              Or continue with
+              Or sign up with
             </span>
           </div>
         </div>

@@ -19,9 +19,11 @@ const marketRoutes = require('./routes/markets');
 const newsRoutes = require('./routes/news');
 const subscriptionRoutes = require('./routes/subscriptions');
 const escrowRoutes = require('./routes/escrow');
+const escrowWebhookRoutes = require('./routes/escrowWebhooks');
 const paymentRoutes = require('./routes/payments');
 const analysisRoutes = require('./routes/analysis');
 const securityRoutes = require('./routes/security');
+const adminRoutes = require('./admin-panel');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -73,8 +75,48 @@ app.use(cors({
   credentials: true
 }));
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
+// Body parsing middleware with better error handling
+app.use(express.json({ 
+  limit: '10mb',
+  strict: false,
+  type: 'application/json',
+  verify: (req, res, buf, encoding) => {
+    // Log the raw body for debugging
+    const body = buf.toString();
+    console.log('Raw request body:', body);
+    
+    // Handle null/empty bodies
+    if (body === 'null' || body === '' || body === 'undefined') {
+      console.log('Null/empty body detected, setting to empty object');
+      req.body = {};
+      return;
+    }
+  }
+}));
+
+// Custom JSON error handler
+app.use((error, req, res, next) => {
+  if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
+    console.error('JSON parsing error:', error.message);
+    console.error('Request URL:', req.url);
+    console.error('Request method:', req.method);
+    console.error('Request headers:', req.headers);
+    
+    // Don't send response if headers already sent
+    if (res.headersSent) {
+      return next(error);
+    }
+    
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid JSON in request body',
+      error: error.message,
+      url: req.url,
+      method: req.method
+    });
+  }
+  next(error);
+});
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Compression and logging
@@ -100,9 +142,11 @@ app.use('/api/markets', auth, marketRoutes);
 app.use('/api/news', auth, newsRoutes);
 app.use('/api/subscriptions', auth, subscriptionRoutes);
 app.use('/api/escrow', auth, escrowRoutes);
+app.use('/api/escrow', escrowWebhookRoutes); // Webhooks don't require auth
 app.use('/api/payments', auth, paymentRoutes);
 app.use('/api/analysis', auth, analysisRoutes);
 app.use('/api/security', auth, securityRoutes);
+app.use('/api/admin', adminRoutes); // Admin routes have their own auth middleware
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

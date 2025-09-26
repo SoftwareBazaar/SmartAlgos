@@ -30,7 +30,7 @@ const ResetPassword = () => {
     const result = await resetPassword(token, data.password);
     if (result.success) {
       // Redirect to login page
-      window.location.href = '/auth/login';
+      window.location.href = '/login';
     }
   };
 
@@ -134,7 +134,7 @@ const ResetPassword = () => {
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Remember your password?{' '}
           <Link
-            to="/auth/login"
+            to="/login"
             className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
           >
             Sign in

@@ -1,5 +1,23 @@
 const { createClient } = require('@supabase/supabase-js');
 
+// Ignore obvious placeholder Supabase keys so local setup doesn't break
+const sanitizeSupabaseKey = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const lower = trimmed.toLowerCase();
+  const placeholderHints = ['your-', 'your_', 'change', 'replace', 'example', 'dummy'];
+  const isLikelyPlaceholder = trimmed.length < 40 || placeholderHints.some((hint) => lower.includes(hint));
+
+  return isLikelyPlaceholder ? null : trimmed;
+};
+
 class DatabaseService {
   constructor() {
     this.supabase = null;
@@ -7,10 +25,41 @@ class DatabaseService {
   }
 
   initialize() {
-    const supabaseUrl = process.env.SUPABASE_URL || 'https://ncikobfahncdgwvkfivz.supabase.co';
-    const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jaWtvYmZhaG5jZGd3dmtmaXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MDY2NDQsImV4cCI6MjA3Mjk4MjY0NH0.TKIwIpXr9c92Xi0AgoioeC2db3tonPtM1wHHMo5-7mk';
-    
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const rawServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const rawAnonKey = process.env.SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl) {
+      throw new Error('SUPABASE_URL environment variable is required');
+    }
+
+    const serviceRoleKey = sanitizeSupabaseKey(rawServiceRoleKey);
+    const anonKey = sanitizeSupabaseKey(rawAnonKey);
+
+    if (!serviceRoleKey && !anonKey) {
+      throw new Error('Supabase credentials missing. Set SUPABASE_SERVICE_ROLE_KEY (preferred) or SUPABASE_ANON_KEY.');
+    }
+
+    if (rawServiceRoleKey && !serviceRoleKey) {
+      console.warn('[database] Ignoring SUPABASE_SERVICE_ROLE_KEY because it looks like a placeholder value. Falling back to anon key.');
+    }
+
+    if (!serviceRoleKey && process.env.NODE_ENV === 'production') {
+      console.warn('[database] Using SUPABASE_ANON_KEY in production is not recommended. Provide SUPABASE_SERVICE_ROLE_KEY.');
+    }
+
+    const supabaseKey = serviceRoleKey || anonKey;
+
+    this.supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        persistSession: false
+      },
+      global: {
+        headers: {
+          'X-Client-Info': 'smart-algos-backend'
+        }
+      }
+    });
   }
 
   getClient() {
@@ -198,6 +247,241 @@ class DatabaseService {
       .select()
       .single();
     
+    if (error) throw error;
+    return data;
+  }
+
+  async getFeaturedEAs(options = {}) {
+    const { limit = 10, includeCreator = false } = options;
+    
+    let query = this.supabase
+      .from('expert_advisors')
+      .select('*')
+      .eq('is_active', true)
+      .eq('status', 'approved')
+      .eq('is_featured', true)
+      .order('average_rating', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+
+  async getEACategories() {
+    const { data, error } = await this.supabase
+      .from('expert_advisors')
+      .select('category, win_rate, average_rating')
+      .eq('is_active', true)
+      .eq('status', 'approved');
+    
+    if (error) throw error;
+    
+    // Group by category and calculate statistics
+    const categories = {};
+    data.forEach(ea => {
+      if (!categories[ea.category]) {
+        categories[ea.category] = {
+          _id: ea.category,
+          count: 0,
+          averageRating: 0,
+          averageWinRate: 0,
+          totalRating: 0,
+          totalWinRate: 0
+        };
+      }
+      
+      categories[ea.category].count++;
+      categories[ea.category].totalRating += ea.average_rating || 0;
+      categories[ea.category].totalWinRate += ea.win_rate || 0;
+    });
+    
+    // Calculate averages
+    Object.values(categories).forEach(category => {
+      category.averageRating = category.totalRating / category.count;
+      category.averageWinRate = category.totalWinRate / category.count;
+      delete category.totalRating;
+      delete category.totalWinRate;
+    });
+    
+    return Object.values(categories).sort((a, b) => b.count - a.count);
+  }
+
+  async getUserEASubscriptions(userId) {
+    const { data, error } = await this.supabase
+      .from('subscriptions')
+      .select(`
+        *,
+        expert_advisors (
+          id,
+          name,
+          description,
+          category,
+          creator_name,
+          price_monthly,
+          win_rate,
+          average_rating
+        )
+      `)
+      .eq('user_id', userId)
+      .eq('product_type', 'expert_advisor')
+      .eq('status', 'active');
+    
+    if (error) throw error;
+    return data;
+  }
+
+  async getCreatorEAs(creatorId) {
+    const { data, error } = await this.supabase
+      .from('expert_advisors')
+      .select('*')
+      .eq('creator_id', creatorId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  }
+
+  // News watchlist operations
+  async createNewsWatchlist(watchlistData) {
+    const { data, error } = await this.supabase
+      .from('news_watchlists')
+      .insert([watchlistData])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  async getUserNewsWatchlists(userId) {
+    const { data, error } = await this.supabase
+      .from('news_watchlists')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  }
+
+  async getNewsAlerts(filters = {}) {
+    let query = this.supabase
+      .from('news_alerts')
+      .select('*');
+    
+    if (filters.user_id) {
+      query = query.eq('user_id', filters.user_id);
+    }
+    
+    if (filters.unread_only) {
+      query = query.eq('is_read', false);
+    }
+    
+    if (filters.limit) {
+      query = query.limit(filters.limit);
+    }
+    
+    query = query.order('created_at', { ascending: false });
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+
+  async markNewsAlertAsRead(alertId, userId) {
+    const { error } = await this.supabase
+      .from('news_alerts')
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq('id', alertId)
+      .eq('user_id', userId);
+    
+    if (error) throw error;
+    return true;
+  }
+
+  // Portfolio operations
+  async createPortfolioHolding(holdingData) {
+    const { data, error } = await this.supabase
+      .from('portfolio_holdings')
+      .insert([holdingData])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  async getUserPortfolioHoldings(userId) {
+    const { data, error } = await this.supabase
+      .from('portfolio_holdings')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  }
+
+  async updatePortfolioHolding(id, updates) {
+    const { data, error } = await this.supabase
+      .from('portfolio_holdings')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  // Performance tracking operations
+  async createPerformanceRecord(performanceData) {
+    const { data, error } = await this.supabase
+      .from('performance_records')
+      .insert([performanceData])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  async getPerformanceRecords(filters = {}) {
+    let query = this.supabase
+      .from('performance_records')
+      .select('*');
+    
+    if (filters.user_id) {
+      query = query.eq('user_id', filters.user_id);
+    }
+    
+    if (filters.ea_id) {
+      query = query.eq('ea_id', filters.ea_id);
+    }
+    
+    if (filters.symbol) {
+      query = query.eq('symbol', filters.symbol);
+    }
+    
+    if (filters.from_date) {
+      query = query.gte('created_at', filters.from_date);
+    }
+    
+    if (filters.to_date) {
+      query = query.lte('created_at', filters.to_date);
+    }
+    
+    query = query.order('created_at', { ascending: false });
+    
+    if (filters.limit) {
+      query = query.limit(filters.limit);
+    }
+    
+    const { data, error } = await query;
     if (error) throw error;
     return data;
   }

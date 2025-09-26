@@ -23,7 +23,7 @@ import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import apiClient from '../../lib/apiClient';
 
 const EscrowDashboard = () => {
   const { user } = useAuth();

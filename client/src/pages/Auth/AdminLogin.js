@@ -137,7 +137,7 @@ const AdminLogin = () => {
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Regular user?{' '}
           <Link
-            to="/auth/login"
+            to="/login"
             className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
           >
             User Sign In

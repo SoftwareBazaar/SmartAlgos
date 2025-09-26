@@ -90,7 +90,7 @@ const AdminPanel = () => {
                                 <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-900">{activity.details}</p>
                                     <p className="text-xs text-gray-500">
-                                        by {activity.user?.name} • {new Date(activity.createdAt).toLocaleDateString()}
+                                        by {activity.user?.name} - {new Date(activity.createdAt).toLocaleDateString()}
                                     </p>
                                 </div>
                             </div>
@@ -254,17 +254,58 @@ const AdminPanel = () => {
 
     // Content Management component
     const ContentManagement = () => {
-        const [content, setContent] = useState([]);
+        const [contentItems, setContentItems] = useState([]);
         const [showContentModal, setShowContentModal] = useState(false);
-        const [selectedContent, setSelectedContent] = useState(null);
+        const [isSubmitting, setIsSubmitting] = useState(false);
+        const [formError, setFormError] = useState('');
+        const [imagePreview, setImagePreview] = useState(null);
 
-        const handleCreateContent = async (contentData) => {
+        useEffect(() => {
+            if (Array.isArray(data.content)) {
+                setContentItems(data.content);
+            }
+        }, [data.content]);
+
+        useEffect(() => {
+            return () => {
+                if (imagePreview) {
+                    URL.revokeObjectURL(imagePreview);
+                }
+            };
+        }, [imagePreview]);
+
+        const handleFilePreview = (event) => {
+            const file = event.target.files?.[0];
+
+            if (imagePreview) {
+                URL.revokeObjectURL(imagePreview);
+            }
+
+            if (file) {
+                setImagePreview(URL.createObjectURL(file));
+            } else {
+                setImagePreview(null);
+            }
+        };
+
+        const closeModal = () => {
+            setShowContentModal(false);
+            setFormError('');
+            if (imagePreview) {
+                URL.revokeObjectURL(imagePreview);
+                setImagePreview(null);
+            }
+        };
+
+        const handleCreateContent = async (event) => {
+            event.preventDefault();
+            setFormError('');
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            setIsSubmitting(true);
             try {
-                const formData = new FormData();
-                Object.keys(contentData).forEach(key => {
-                    formData.append(key, contentData[key]);
-                });
-
                 const response = await fetch('/api/admin/content', {
                     method: 'POST',
                     headers: {
@@ -273,12 +314,20 @@ const AdminPanel = () => {
                     body: formData
                 });
 
-                if (response.ok) {
-                    fetchAdminData();
-                    setShowContentModal(false);
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || 'Failed to create content.');
                 }
+
+                form.reset();
+                closeModal();
+                await fetchAdminData();
             } catch (error) {
                 console.error('Error creating content:', error);
+                setFormError(error.message || 'Failed to create content.');
+            } finally {
+                setIsSubmitting(false);
             }
         };
 
@@ -286,7 +335,7 @@ const AdminPanel = () => {
             <div className="space-y-6">
                 <div className="flex justify-between items-center">
                     <h2 className="text-2xl font-bold text-gray-900">Content Management</h2>
-                    <button 
+                    <button
                         onClick={() => setShowContentModal(true)}
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
                     >
@@ -295,62 +344,178 @@ const AdminPanel = () => {
                     </button>
                 </div>
 
-                {/* Content Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {data.content?.map((item) => (
-                        <div key={item._id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            {item.image && (
-                                <img 
-                                    src={`/uploads/admin/${item.image}`} 
-                                    alt={item.title}
-                                    className="w-full h-48 object-cover"
-                                />
-                            )}
-                            <div className="p-4">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                        item.type === 'news' ? 'bg-blue-100 text-blue-800' :
-                                        item.type === 'blog' ? 'bg-green-100 text-green-800' :
-                                        item.type === 'guide' ? 'bg-purple-100 text-purple-800' :
-                                        'bg-gray-100 text-gray-800'
-                                    }`}>
-                                        {item.type}
-                                    </span>
-                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                        item.status === 'published' ? 'bg-green-100 text-green-800' :
-                                        item.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                                        'bg-gray-100 text-gray-800'
-                                    }`}>
-                                        {item.status}
-                                    </span>
-                                </div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
-                                <p className="text-sm text-gray-600 mb-4 line-clamp-3">{item.content}</p>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-500">
-                                        {new Date(item.createdAt).toLocaleDateString()}
-                                    </span>
-                                    <div className="flex space-x-2">
-                                        <button className="text-blue-600 hover:text-blue-900">
-                                            <Eye className="w-4 h-4" />
-                                        </button>
-                                        <button className="text-green-600 hover:text-green-900">
-                                            <Edit className="w-4 h-4" />
-                                        </button>
-                                        <button className="text-red-600 hover:text-red-900">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                {contentItems.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 bg-white py-16 text-center">
+                        <FileText className="w-10 h-10 text-gray-400" />
+                        <p className="text-sm text-gray-500">No content has been published yet. Create your first article to populate this space.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {contentItems.map((item) => (
+                            <div key={item._id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                                {item.image && (
+                                    <img
+                                        src={`/uploads/admin/${item.image}`}
+                                        alt={item.title}
+                                        className="w-full h-48 object-cover"
+                                    />
+                                )}
+                                <div className="p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                            item.type === 'news' ? 'bg-blue-100 text-blue-800' :
+                                            item.type === 'blog' ? 'bg-green-100 text-green-800' :
+                                            item.type === 'guide' ? 'bg-purple-100 text-purple-800' :
+                                            'bg-gray-100 text-gray-800'
+                                        }`}>
+                                            {item.type}
+                                        </span>
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                            item.status === 'published' ? 'bg-green-100 text-green-800' :
+                                            item.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                                            'bg-gray-100 text-gray-800'
+                                        }`}>
+                                            {item.status}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+                                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">{item.content}</p>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-500">
+                                            {new Date(item.createdAt).toLocaleDateString()}
+                                        </span>
+                                        <div className="flex space-x-2">
+                                            <button className="text-blue-600 hover:text-blue-900">
+                                                <Eye className="w-4 h-4" />
+                                            </button>
+                                            <button className="text-green-600 hover:text-green-900">
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button className="text-red-600 hover:text-red-900">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        ))}
+                    </div>
+                )}
+
+                {showContentModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+                        <div className="w-full max-w-2xl rounded-xl bg-white shadow-xl">
+                            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                                <h3 className="text-lg font-semibold text-gray-900">Create content</h3>
+                                <button
+                                    type="button"
+                                    onClick={closeModal}
+                                    className="text-sm text-gray-500 hover:text-gray-700"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                            <form onSubmit={handleCreateContent} className="space-y-4 px-6 py-5" encType="multipart/form-data">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Title<span className="text-red-500">*</span></label>
+                                    <input
+                                        name="title"
+                                        type="text"
+                                        required
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                        placeholder="Enter headline"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                        <select
+                                            name="type"
+                                            defaultValue="news"
+                                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                        >
+                                            <option value="news">News</option>
+                                            <option value="blog">Blog</option>
+                                            <option value="guide">Guide</option>
+                                            <option value="announcement">Announcement</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                        <select
+                                            name="status"
+                                            defaultValue="draft"
+                                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                        >
+                                            <option value="draft">Draft</option>
+                                            <option value="published">Published</option>
+                                            <option value="archived">Archived</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                                    <input
+                                        name="tags"
+                                        type="text"
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                        placeholder="finance, forex, updates"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">Separate tags with commas.</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                                    <textarea
+                                        name="content"
+                                        rows="5"
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                        placeholder="Write the main body for this update..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Cover image</label>
+                                    <input
+                                        name="image"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFilePreview}
+                                        className="block w-full text-sm text-gray-500 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-blue-700 hover:file:bg-blue-100"
+                                    />
+                                    {imagePreview && (
+                                        <img src={imagePreview} alt="Preview" className="mt-3 h-32 w-full rounded-lg object-cover" />
+                                    )}
+                                </div>
+                                {formError && (
+                                    <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+                                        {formError}
+                                    </div>
+                                )}
+                                <div className="flex justify-end space-x-3 border-t border-gray-200 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={closeModal}
+                                        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                                        disabled={isSubmitting}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60"
+                                        disabled={isSubmitting}
+                                    >
+                                        {isSubmitting ? 'Saving...' : 'Save content'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                    ))}
-                </div>
+                    </div>
+                )}
             </div>
         );
     };
 
-    // System Settings component
+// System Settings component
     const SystemSettings = () => (
         <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">System Settings</h2>

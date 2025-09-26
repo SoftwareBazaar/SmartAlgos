@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 // import { useWebSocket } from '../../contexts/WebSocketContext';
-import axios from 'axios';
+import apiClient from '../../lib/apiClient';
 import {
   CreditCard,
   DollarSign,
@@ -170,7 +170,7 @@ const Payments = () => {
     if (status === 'success') {
       try {
         // Verify the payment
-        const verifyResponse = await axios.post('/api/payments/verify', {
+        const verifyResponse = await apiClient.post('/api/payments/verify', {
           reference: reference
         });
 
@@ -181,7 +181,7 @@ const Payments = () => {
             const subscriptionData = JSON.parse(pendingSubscription);
             
             // Create the subscription
-            const subscriptionResponse = await axios.post('/api/payments/subscriptions/create', subscriptionData);
+            const subscriptionResponse = await apiClient.post('/api/payments/subscriptions/create', subscriptionData);
             
             if (subscriptionResponse.data.success) {
               showNotification('Payment successful! Your subscription has been activated.', 'success');
@@ -211,10 +211,10 @@ const Payments = () => {
     setLoading(true);
     try {
       const [subscriptionsRes, paymentHistoryRes, invoicesRes, plansRes] = await Promise.all([
-        axios.get('/api/payments/subscriptions'),
-        axios.get('/api/payments/history'),
-        axios.get('/api/payments/invoices'),
-        axios.get('/api/payments/plans')
+        apiClient.get('/api/payments/subscriptions'),
+        apiClient.get('/api/payments/history'),
+        apiClient.get('/api/payments/invoices'),
+        apiClient.get('/api/payments/plans')
       ]);
 
       setSubscriptions(subscriptionsRes.data.data || []);
@@ -254,7 +254,7 @@ const Payments = () => {
         endpoint = '/api/payments/initialize-paused';
       }
 
-      const response = await axios.post(endpoint, payload);
+      const response = await apiClient.post(endpoint, payload);
 
       if (response.data.success) {
         if (paymentData.paymentMethod === 'charge_authorization') {
@@ -280,7 +280,7 @@ const Payments = () => {
     setLoading(true);
     try {
       // First, initialize the payment with Paystack
-      const paymentResponse = await axios.post('/api/payments/initialize', {
+      const paymentResponse = await apiClient.post('/api/payments/initialize', {
         amount: getPlanPrice(planType),
         currency: 'NGN',
         email: user?.email || '',
@@ -328,7 +328,7 @@ const Payments = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post(`/api/payments/subscriptions/${subscriptionId}/cancel`, {
+      const response = await apiClient.post(`/api/payments/subscriptions/${subscriptionId}/cancel`, {
         reason: 'User request'
       });
 
@@ -344,7 +344,7 @@ const Payments = () => {
 
   const handleDownloadInvoice = async (invoiceId) => {
     try {
-      const response = await axios.get(`/api/payments/invoices/${invoiceId}/download`);
+      const response = await apiClient.get(`/api/payments/invoices/${invoiceId}/download`);
       if (response.data.success) {
         window.open(response.data.data.downloadUrl, '_blank');
       }
@@ -447,7 +447,7 @@ const Payments = () => {
             onClick={async () => {
               try {
                 showNotification('Testing Paystack integration...', 'info');
-                const response = await axios.post('/api/payments/initialize', {
+                const response = await apiClient.post('/api/payments/initialize', {
                   amount: 299,
                   currency: 'USD',
                   email: user?.email || 'test@example.com',

@@ -369,3 +369,15 @@ For support, email support@smartalgos.com or join our Discord community.
 ---
 
 **Smart Algos Trading Platform** - Revolutionizing algorithmic trading and investment solutions worldwide.
+
+## Deployment (Vercel)
+
+The repository includes a ercel.json configuration for a dual deployment (React static build + serverless API). To deploy:
+
+1. Define production environment variables inside Vercel: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, JWT_SECRET, ENCRYPTION_KEY, PAYSTACK_SECRET_KEY, PAYSTACK_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, ESCROW_EMAIL, ESCROW_PASSWORD, ESCROW_API_KEY, and REACT_APP_API_URL.
+2. Push the latest code to the branch connected to Vercel.
+3. Vercel will run the React static build for client/ and expose the Express API via /api/* routes.
+4. You can run ercel --prod locally to trigger a production deployment.
+
+When running on Vercel the Express instance is exported without binding to a port, allowing the serverless runtime to handle requests.
+

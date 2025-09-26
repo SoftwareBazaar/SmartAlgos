@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
+import PNLCalendar from '../../components/Analysis/PNLCalendar';
 // import { useAuth } from '../../contexts/AuthContext';
 // import { useWebSocket } from '../../contexts/WebSocketContext';
 
@@ -433,6 +434,14 @@ const Dashboard = () => {
             </div>
           </Card.Body>
         </Card>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.45 }}
+      >
+        <PNLCalendar />
       </motion.div>
 
       {/* Connection Status */}

@@ -1,5 +1,15 @@
-const jwt = require('jsonwebtoken');
 const databaseService = require('../services/databaseService');
+const securityService = require('../services/securityService');
+const userService = require('../services/userService');
+
+const parseDate = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
 
 // Middleware to verify JWT token
 const auth = async (req, res, next) => {
@@ -8,13 +18,18 @@ const auth = async (req, res, next) => {
     
     // Allow test token in development mode
     if (token === 'test_token' && (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV)) {
-      req.user = {
-        _id: 'test_user_123',
+      req.user = userService.normalizeUser({
         id: 'test_user_123',
         email: 'test@example.com',
+        role: 'user',
         is_active: true,
-        role: 'user'
-      };
+        is_email_verified: true,
+        subscription_type: 'basic',
+        subscription_status: 'active',
+        subscription_start_date: new Date().toISOString(),
+        subscription_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        preferences: {}
+      });
       return next();
     }
     
@@ -25,32 +40,41 @@ const auth = async (req, res, next) => {
       });
     }
 
-    const secret = process.env.JWT_SECRET || 'smart-algos-fallback-secret-key-2024';
-    const decoded = jwt.verify(token, secret);
-    const user = await databaseService.getUserById(decoded.userId);
-    
-    if (!user) {
+    const decoded = securityService.verifyToken(token);
+    const rawUser = await databaseService.getUserById(decoded.userId);
+
+    if (!rawUser) {
       return res.status(401).json({
         success: false,
         message: 'Invalid token. User not found.'
       });
     }
 
-    if (!user.is_active) {
+    if (rawUser.is_active === false) {
       return res.status(401).json({
         success: false,
         message: 'Account is deactivated.'
       });
     }
 
-    if (user.lock_until && new Date() < new Date(user.lock_until)) {
+    if (rawUser.lock_until && new Date() < new Date(rawUser.lock_until)) {
       return res.status(401).json({
         success: false,
         message: 'Account is temporarily locked due to multiple failed login attempts.'
       });
     }
 
-    req.user = { ...user, userId: user.id };
+    const normalizedUser = userService.normalizeUser(rawUser);
+
+    if (!normalizedUser) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to hydrate user profile.'
+      });
+    }
+
+    req.user = normalizedUser;
+    req.userRaw = rawUser;
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
@@ -85,7 +109,15 @@ const requireSubscription = (requiredTier) => {
   };
 
   return (req, res, next) => {
-    const userTier = req.user.subscription.type;
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required.'
+      });
+    }
+
+    const subscription = req.user.subscription || userService.DEFAULT_SUBSCRIPTION;
+    const userTier = subscription.type;
     const userTierLevel = tierLevels[userTier] || 0;
     const requiredTierLevel = tierLevels[requiredTier] || 0;
 
@@ -98,13 +130,15 @@ const requireSubscription = (requiredTier) => {
       });
     }
 
-    // Check if subscription is active
-    if (!req.user.subscription.isActive || 
-        (req.user.subscription.endDate && req.user.subscription.endDate < new Date())) {
+    const subscriptionEndDate = parseDate(subscription.endDate || subscription.end_date);
+    const isExpired = Boolean(subscriptionEndDate) && subscriptionEndDate < new Date();
+
+    if (!subscription.isActive || isExpired) {
       return res.status(403).json({
         success: false,
         message: 'Your subscription has expired. Please renew to access this feature.',
-        subscriptionExpired: true
+        subscriptionExpired: true,
+        subscriptionEndDate: subscriptionEndDate ? subscriptionEndDate.toISOString() : null
       });
     }
 
@@ -206,8 +240,11 @@ const requireOwnership = (tableName, paramName = 'id') => {
 // Middleware to update user activity
 const updateActivity = async (req, res, next) => {
   try {
-    if (req.user) {
-      await req.user.updateActivity();
+    if (req.user && req.user.userId) {
+      await userService.updateLastActivity(req.user.userId, {
+        ip: securityService.getClientIP(req),
+        userAgent: req.headers['user-agent']
+      });
     }
     next();
   } catch (error) {
@@ -268,3 +305,6 @@ module.exports = {
   updateActivity,
   createActionRateLimit
 };
+
+
+

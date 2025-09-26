@@ -22,7 +22,7 @@ import {
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import apiClient from '../../lib/apiClient';
 
 const Subscription = () => {
   const { user } = useAuth();
@@ -37,7 +37,7 @@ const Subscription = () => {
   const fetchSubscriptions = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/subscriptions');
+      const response = await apiClient.get('/api/subscriptions');
       setSubscriptions(response.data.data || []);
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
@@ -50,7 +50,7 @@ const Subscription = () => {
     if (!window.confirm('Are you sure you want to cancel this subscription?')) return;
     
     try {
-      await axios.put(`/api/subscriptions/${subscriptionId}/cancel`);
+      await apiClient.put(`/api/subscriptions/${subscriptionId}/cancel`);
       alert('Subscription cancelled successfully');
       fetchSubscriptions();
     } catch (error) {
@@ -61,7 +61,7 @@ const Subscription = () => {
 
   const handleDownloadFile = async (subscriptionId, fileType) => {
     try {
-      await axios.post(`/api/subscriptions/${subscriptionId}/download`, {
+      await apiClient.post(`/api/subscriptions/${subscriptionId}/download`, {
         fileType
       });
       alert('Download recorded successfully');

@@ -7,9 +7,9 @@ const validator = require('validator');
 
 class SecurityService {
   constructor() {
-    this.encryptionKey = process.env.ENCRYPTION_KEY || crypto.randomBytes(32);
     this.algorithm = 'aes-256-gcm';
-    this.jwtSecret = process.env.JWT_SECRET;
+    this.encryptionKey = this.loadEncryptionKey();
+    this.jwtSecret = this.loadJwtSecret();
     this.jwtExpire = process.env.JWT_EXPIRE || '7d';
   }
 
@@ -17,20 +17,32 @@ class SecurityService {
 
   encrypt(text) {
     try {
-      const iv = crypto.randomBytes(16);
-      const cipher = crypto.createCipher(this.algorithm, this.encryptionKey);
+      if (!text && text !== '') {
+        throw new Error('No plaintext provided to encrypt');
+      }
+
+      const iv = crypto.randomBytes(12);
+      const cipher = crypto.createCipheriv(this.algorithm, this.encryptionKey, iv, {
+        authTagLength: 16
+      });
       cipher.setAAD(Buffer.from('smart-algos', 'utf8'));
-      
-      let encrypted = cipher.update(text, 'utf8', 'hex');
-      encrypted += cipher.final('hex');
-      
+
+      const encryptedBuffer = Buffer.concat([
+        cipher.update(text, 'utf8'),
+        cipher.final()
+      ]);
+
       const authTag = cipher.getAuthTag();
-      
-      return {
-        encrypted,
-        iv: iv.toString('hex'),
-        authTag: authTag.toString('hex')
+
+      const payload = {
+        encrypted: encryptedBuffer.toString('base64'),
+        ciphertext: encryptedBuffer.toString('base64'),
+        iv: iv.toString('base64'),
+        authTag: authTag.toString('base64'),
+        encoding: 'base64'
       };
+
+      return payload;
     } catch (error) {
       console.error('Encryption error:', error);
       throw new Error('Encryption failed');
@@ -39,19 +51,90 @@ class SecurityService {
 
   decrypt(encryptedData) {
     try {
-      const { encrypted, iv, authTag } = encryptedData;
-      const decipher = crypto.createDecipher(this.algorithm, this.encryptionKey);
+      if (!encryptedData) {
+        throw new Error('No encrypted payload supplied');
+      }
+
+      const payloadEncoding = encryptedData.encoding === 'hex' ? 'hex' : 'base64';
+      const cipherText = encryptedData.encrypted || encryptedData.ciphertext;
+
+      if (!cipherText || !encryptedData.iv || !encryptedData.authTag) {
+        throw new Error('Encrypted payload missing required properties');
+      }
+
+      const iv = Buffer.from(encryptedData.iv, payloadEncoding);
+      const authTag = Buffer.from(encryptedData.authTag, payloadEncoding);
+      const cipherBuffer = Buffer.from(cipherText, payloadEncoding);
+
+      const decipher = crypto.createDecipheriv(this.algorithm, this.encryptionKey, iv, {
+        authTagLength: 16
+      });
       decipher.setAAD(Buffer.from('smart-algos', 'utf8'));
-      decipher.setAuthTag(Buffer.from(authTag, 'hex'));
-      
-      let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-      decrypted += decipher.final('utf8');
-      
-      return decrypted;
+      decipher.setAuthTag(authTag);
+
+      const decryptedBuffer = Buffer.concat([
+        decipher.update(cipherBuffer),
+        decipher.final()
+      ]);
+
+      return decryptedBuffer.toString('utf8');
     } catch (error) {
       console.error('Decryption error:', error);
       throw new Error('Decryption failed');
     }
+  }
+
+  loadEncryptionKey() {
+    const rawKey = process.env.ENCRYPTION_KEY;
+
+    if (!rawKey || rawKey.trim().length === 0) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('ENCRYPTION_KEY environment variable is required in production');
+      }
+
+      console.warn('[security] ENCRYPTION_KEY not set. Using ephemeral key (development only).');
+      return crypto.randomBytes(32);
+    }
+
+    const key = rawKey.trim();
+
+    if (/^[0-9a-fA-F]{64}$/.test(key)) {
+      return Buffer.from(key, 'hex');
+    }
+
+    try {
+      const base64Buffer = Buffer.from(key, 'base64');
+      if (base64Buffer.length === 32) {
+        return base64Buffer;
+      }
+    } catch (error) {
+      // fall through to plaintext handling
+    }
+
+    const buffer = Buffer.from(key, 'utf8');
+    if (buffer.length === 32) {
+      return buffer;
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[security] ENCRYPTION_KEY not 32 bytes. Deriving development key via SHA-256 hash.');
+      return crypto.createHash('sha256').update(key, 'utf8').digest();
+    }
+
+    throw new Error('ENCRYPTION_KEY must be 32 bytes (provide 64 char hex, base64, or 32 byte string).');
+  }
+
+  loadJwtSecret() {
+    if (process.env.JWT_SECRET && process.env.JWT_SECRET.trim().length > 0) {
+      return process.env.JWT_SECRET.trim();
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET environment variable is required in production');
+    }
+
+    console.warn('[security] JWT_SECRET not set. Using ephemeral secret (development only).');
+    return crypto.randomBytes(32).toString('hex');
   }
 
   // ==================== PASSWORD SECURITY ====================
@@ -103,6 +186,9 @@ class SecurityService {
 
   generateToken(payload, expiresIn = this.jwtExpire) {
     try {
+      if (!this.jwtSecret) {
+        throw new Error('JWT secret not configured');
+      }
       return jwt.sign(payload, this.jwtSecret, { expiresIn });
     } catch (error) {
       console.error('Token generation error:', error);
@@ -115,7 +201,7 @@ class SecurityService {
       return jwt.verify(token, this.jwtSecret);
     } catch (error) {
       console.error('Token verification error:', error);
-      throw new Error('Invalid token');
+      throw error;
     }
   }
 
@@ -130,10 +216,10 @@ class SecurityService {
 
   generateAccessToken(user) {
     const payload = {
-      userId: user._id,
+      userId: user.id || user._id,
       email: user.email,
       role: user.role,
-      subscription: user.subscription.type,
+      subscription: user.subscription_type || (user.subscription && user.subscription.type),
       permissions: this.getUserPermissions(user)
     };
     return this.generateToken(payload, '1h');
@@ -143,8 +229,9 @@ class SecurityService {
 
   getUserPermissions(user) {
     const basePermissions = ['read:profile', 'update:profile'];
+    const userRole = user.role || 'user';
     
-    switch (user.role) {
+    switch (userRole) {
       case 'admin':
         return [
           ...basePermissions,
@@ -236,16 +323,18 @@ class SecurityService {
   }
 
   createAuthRateLimit() {
+    const windowMs = parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS, 10);
+    const maxRequests = parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS, 10);
+
     return this.createRateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 5,
+      windowMs: Number.isFinite(windowMs) && windowMs > 0 ? windowMs : 15 * 60 * 1000,
+      max: Number.isFinite(maxRequests) && maxRequests > 0 ? maxRequests : 100,
       message: {
         success: false,
         message: 'Too many authentication attempts, please try again later.'
       }
     });
   }
-
   // ==================== SECURITY HEADERS ====================
 
   getSecurityHeaders() {
@@ -444,3 +533,8 @@ class SecurityService {
 const securityService = new SecurityService();
 
 module.exports = securityService;
+
+
+
+
+

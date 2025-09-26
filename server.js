@@ -1,5 +1,4 @@
 const express = require('express');
-const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
@@ -23,6 +22,8 @@ const escrowWebhookRoutes = require('./routes/escrowWebhooks');
 const paymentRoutes = require('./routes/payments');
 const analysisRoutes = require('./routes/analysis');
 const securityRoutes = require('./routes/security');
+const mt5Routes = require('./routes/mt5');
+const testRoutes = require('./routes/test');
 const adminRoutes = require('./admin-panel');
 
 // Import middleware
@@ -36,6 +37,7 @@ const {
   createAuthRateLimit 
 } = require('./middleware/security');
 const securityService = require('./services/securityService');
+const databaseService = require('./services/databaseService');
 
 // Import WebSocket handlers
 const { setupWebSocketHandlers } = require('./websocket/handlers');
@@ -48,6 +50,83 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
+
+const isProduction = process.env.NODE_ENV === "production";
+const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null;
+const baseOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173"
+];
+const mergedOrigins = [
+  process.env.CLIENT_URL,
+  vercelUrl,
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : []),
+  ...baseOrigins
+]
+  .filter(Boolean)
+  .map((origin) => origin.trim())
+  .filter((origin) => origin.length > 0);
+
+const allowedOrigins = Array.from(new Set(mergedOrigins));
+
+if (!isProduction && !process.env.VERCEL) {
+  console.log('[startup] CORS allowed origins:', allowedOrigins);
+}
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const normalizedOrigin = origin.endsWith('/') ? origin.slice(0, -1) : origin;
+
+    const matchesAllowed = allowedOrigins.some((allowed) => {
+      if (!allowed) {
+        return false;
+      }
+
+      if (allowed === '*') {
+        return true;
+      }
+
+      const normalizedAllowed = allowed.endsWith('/') ? allowed.slice(0, -1) : allowed;
+
+      if (!normalizedAllowed.includes('://')) {
+        try {
+          const originHost = new URL(normalizedOrigin).host;
+          return originHost === normalizedAllowed;
+        } catch (error) {
+          return normalizedOrigin === normalizedAllowed;
+        }
+      }
+
+      return normalizedOrigin === normalizedAllowed;
+    });
+
+    if (matchesAllowed) {
+      return callback(null, true);
+    }
+
+    if (!isProduction && origin.startsWith("http://localhost")) {
+      return callback(null, true);
+    }
+
+    if (vercelUrl && origin === vercelUrl) {
+      return callback(null, true);
+    }
+
+    console.warn(`[cors] Blocked request from origin ${origin}`);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true
+};
+
+const shouldLogRequestBodies = process.env.LOG_REQUEST_BODIES === "true" && !isProduction;
+
+app.set("trust proxy", 1);
 
 // Enhanced Security middleware
 app.use(securityService.getSecurityHeaders());
@@ -69,27 +148,33 @@ app.use(sanitizeInput);
 // Threat detection
 app.use(detectThreats);
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:3000",
-  credentials: true
+// Baseline security headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
+// CORS configuration
+app.use(cors(corsOptions));
+
 // Body parsing middleware with better error handling
-app.use(express.json({ 
+app.use(express.json({
   limit: '10mb',
   strict: false,
   type: 'application/json',
-  verify: (req, res, buf, encoding) => {
-    // Log the raw body for debugging
-    const body = buf.toString();
-    console.log('Raw request body:', body);
-    
-    // Handle null/empty bodies
-    if (body === 'null' || body === '' || body === 'undefined') {
-      console.log('Null/empty body detected, setting to empty object');
+  verify: (req, res, buf) => {
+    if (!buf || buf.length === 0) {
       req.body = {};
       return;
+    }
+
+    const bodyText = buf.toString();
+
+    if (shouldLogRequestBodies) {
+      console.debug('[request] raw body:', bodyText);
+    }
+
+    if (bodyText === 'null' || bodyText.trim() === '' || bodyText === 'undefined') {
+      req.body = {};
     }
   }
 }));
@@ -121,7 +206,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Compression and logging
 app.use(compression());
-app.use(morgan('combined'));
+
+const requestLogger = isProduction
+  ? morgan('combined', { skip: (req, res) => res.statusCode < 400 })
+  : morgan('dev');
+
+app.use(requestLogger);
 
 // Static files
 app.use('/uploads', express.static('uploads'));
@@ -146,6 +236,8 @@ app.use('/api/escrow', escrowWebhookRoutes); // Webhooks don't require auth
 app.use('/api/payments', auth, paymentRoutes);
 app.use('/api/analysis', auth, analysisRoutes);
 app.use('/api/security', auth, securityRoutes);
+app.use('/api/mt5', mt5Routes);
+app.use('/api/test', testRoutes); // Test routes for debugging
 app.use('/api/admin', adminRoutes); // Admin routes have their own auth middleware
 
 // Health check endpoint
@@ -178,27 +270,33 @@ app.use('*', (req, res) => {
   });
 });
 
-// Supabase connection
-const supabaseUrl = process.env.SUPABASE_URL || 'https://ncikobfahncdgwvkfivz.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jaWtvYmZhaG5jZGd3dmtmaXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MDY2NDQsImV4cCI6MjA3Mjk4MjY0NH0.TKIwIpXr9c92Xi0AgoioeC2db3tonPtM1wHHMo5-7mk';
+// Supabase connection health-check
+try {
+  const supabaseClient = databaseService.getClient();
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+  if (!supabaseClient) {
+    throw new Error('Supabase client unavailable');
+  }
 
-// Test Supabase connection
-supabase.from('users').select('count').limit(1)
-  .then(() => {
-    console.log('✅ Connected to Supabase');
-  })
-  .catch((error) => {
-    console.error('❌ Supabase connection error:', error.message);
-    console.log('⚠️  Server will continue running without database connection');
-    console.log('💡 To fix this:');
-    console.log('   1. Check your SUPABASE_URL and SUPABASE_ANON_KEY in .env file');
-    console.log('   2. Make sure your Supabase project is active');
-  });
+  supabaseClient
+    .from('users_accounts')
+    .select('id', { count: 'exact', head: true })
+    .limit(1)
+    .then(() => {
+      console.log('? Connected to Supabase');
+    })
+    .catch((error) => {
+      console.error('??  Supabase connection error:', error.message);
+      console.warn('Database operations may be degraded until connectivity is restored.');
+    });
 
-// Make supabase available globally
-global.supabase = supabase;
+  global.supabase = supabaseClient;
+} catch (error) {
+  console.error('? Supabase initialization failed:', error.message);
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+}
 
 // Setup WebSocket handlers
 setupWebSocketHandlers(io);
@@ -207,12 +305,17 @@ setupWebSocketHandlers(io);
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || 'localhost';
 
-server.listen(PORT, HOST, () => {
-  console.log(`🚀 Smart Algos Trading Platform Server running on http://${HOST}:${PORT}`);
-  console.log(`📊 WebSocket server running on ws://${HOST}:${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+if (!process.env.VERCEL) {
+  server.listen(PORT, HOST, () => {
+    console.log(`[startup] Smart Algos API running on http://${HOST}:${PORT}`);
+    console.log(`[startup] WebSocket server ready on ws://${HOST}:${PORT}`);
+    console.log(`[startup] Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
 
+// Graceful shutdown
+// Graceful shutdown
+// Graceful shutdown
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
@@ -229,3 +332,7 @@ process.on('SIGINT', () => {
 });
 
 module.exports = app;
+
+
+
+

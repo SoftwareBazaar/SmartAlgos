@@ -9,6 +9,7 @@ import AuthLayout from './components/Layout/AuthLayout';
 
 // Auth pages
 import Login from './pages/Auth/Login';
+import AnimatedLogin from './pages/Auth/AnimatedLogin';
 import Register from './pages/Auth/Register';
 import AdminLogin from './pages/Auth/AdminLogin';
 import AdminRegister from './pages/Auth/AdminRegister';
@@ -35,6 +36,11 @@ import DesktopFeatures from './pages/DesktopFeatures/DesktopFeatures';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminPanel from './pages/Admin/AdminPanel';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+
+// Demo pages
+import VismeDemo from './pages/Demo/VismeDemo';
+import TestPage from './pages/Test/TestPage';
+import LoginTest from './pages/Test/LoginTest';
 
 // Loading component
 import LoadingSpinner from './components/UI/LoadingSpinner';
@@ -66,9 +72,18 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Routes>
+        {/* Animated login route (standalone) */}
+        <Route path="/login" element={<AnimatedLogin />} />
+        
+        {/* Demo routes */}
+        <Route path="/demo/visme" element={<VismeDemo />} />
+        <Route path="/test" element={<TestPage />} />
+        <Route path="/test/login" element={<LoginTest />} />
+        
         {/* Public routes */}
         <Route path="/auth" element={<AuthLayout />}>
-          <Route path="login" element={<Login />} />
+          <Route path="login" element={<Navigate to="/login" replace />} />
+          <Route path="secure-login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="admin-login" element={<AdminLogin />} />
           <Route path="admin-register" element={<AdminRegister />} />

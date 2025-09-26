@@ -1,11 +1,43 @@
 const jwt = require('jsonwebtoken');
 const databaseService = require('../services/databaseService');
+const marketDataService = require('../services/marketDataService');
+const aiSignalService = require('../services/aiSignalService');
+const realtimeMarketService = require('../services/realtimeMarketService');
 
 // Store active connections
 const activeConnections = new Map();
 
 // Setup WebSocket handlers
 const setupWebSocketHandlers = (io) => {
+  // Set up real-time market data event listeners
+  realtimeMarketService.on('price_update', (data) => {
+    const { symbol, subscriberId, data: priceData } = data;
+    
+    // Send to specific subscriber
+    const socket = io.sockets.sockets.get(subscriberId);
+    if (socket) {
+      socket.emit('price_update', priceData);
+    }
+    
+    // Also broadcast to symbol room
+    io.to(`market_${symbol}`).emit('market_data_update', priceData);
+  });
+
+  realtimeMarketService.on('error', (error) => {
+    console.error('Real-time market service error:', error);
+    
+    // Broadcast error to relevant subscribers
+    io.to(`market_${error.symbol}`).emit('market_data_error', {
+      symbol: error.symbol,
+      message: error.error,
+      timestamp: error.timestamp
+    });
+  });
+
+  realtimeMarketService.on('service_status', (status) => {
+    // Broadcast service status to admin users (if needed)
+    io.to('subscription_institutional').emit('market_service_status', status);
+  });
   // Authentication middleware for WebSocket
   io.use(async (socket, next) => {
     try {
@@ -16,13 +48,13 @@ const setupWebSocketHandlers = (io) => {
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId).select('-password');
+      const user = await databaseService.getUserById(decoded.userId);
       
-      if (!user || !user.isActive) {
+      if (!user || !user.is_active) {
         return next(new Error('Authentication error: Invalid user'));
       }
 
-      socket.userId = user._id.toString();
+      socket.userId = user.id;
       socket.user = user;
       next();
     } catch (error) {
@@ -41,12 +73,12 @@ const setupWebSocketHandlers = (io) => {
     socket.join(`user_${socket.userId}`);
     
     // Join user to subscription-based rooms
-    const subscriptionType = socket.user.subscription.type;
+    const subscriptionType = socket.user.subscription_type || 'free';
     socket.join(`subscription_${subscriptionType}`);
     
     // Join user to asset-specific rooms based on preferences
-    if (socket.user.preferredAssets && socket.user.preferredAssets.length > 0) {
-      socket.user.preferredAssets.forEach(asset => {
+    if (socket.user.preferred_assets && socket.user.preferred_assets.length > 0) {
+      socket.user.preferred_assets.forEach(asset => {
         socket.join(`asset_${asset}`);
       });
     }
@@ -59,6 +91,8 @@ const setupWebSocketHandlers = (io) => {
         if (symbols && Array.isArray(symbols)) {
           symbols.forEach(symbol => {
             socket.join(`market_${symbol}`);
+            // Subscribe to real-time data for this symbol
+            realtimeMarketService.subscribe(symbol, socket.id);
           });
         }
         
@@ -77,6 +111,32 @@ const setupWebSocketHandlers = (io) => {
       } catch (error) {
         socket.emit('error', {
           message: 'Failed to subscribe to market data',
+          error: error.message
+        });
+      }
+    });
+
+    // Handle market data unsubscription
+    socket.on('unsubscribe_market_data', async (data) => {
+      try {
+        const { symbols } = data;
+        
+        if (symbols && Array.isArray(symbols)) {
+          symbols.forEach(symbol => {
+            socket.leave(`market_${symbol}`);
+            // Unsubscribe from real-time data for this symbol
+            realtimeMarketService.unsubscribe(symbol, socket.id);
+          });
+        }
+        
+        socket.emit('market_data_unsubscribed', {
+          success: true,
+          message: 'Successfully unsubscribed from market data',
+          symbols: symbols || []
+        });
+      } catch (error) {
+        socket.emit('error', {
+          message: 'Failed to unsubscribe from market data',
           error: error.message
         });
       }
@@ -279,6 +339,9 @@ const setupWebSocketHandlers = (io) => {
     socket.on('disconnect', (reason) => {
       console.log(`User ${socket.userId} disconnected: ${reason}`);
       activeConnections.delete(socket.userId);
+      
+      // Unsubscribe from all real-time market data
+      realtimeMarketService.unsubscribeAll(socket.id);
     });
 
     // Send welcome message
@@ -286,7 +349,7 @@ const setupWebSocketHandlers = (io) => {
       success: true,
       message: 'Connected to Smart Algos WebSocket',
       userId: socket.userId,
-      subscription: socket.user.subscription.type,
+      subscription: socket.user.subscription_type || 'free',
       timestamp: new Date()
     });
   });

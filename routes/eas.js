@@ -118,15 +118,10 @@ router.get('/', [
 // @access  Private
 router.get('/featured', [auth, updateActivity], async (req, res) => {
   try {
-    const eas = await EA.find({
-      isActive: true,
-      status: 'approved',
-      isFeatured: true
-    })
-    .populate('creator', 'firstName lastName avatar')
-    .sort({ 'subscriptionStats.averageRating': -1, createdAt: -1 })
-    .limit(10)
-    .select('-files.eaFile -files.setFile');
+    const eas = await databaseService.getFeaturedEAs({
+      limit: 10,
+      includeCreator: true
+    });
 
     res.json({
       success: true,
@@ -147,25 +142,7 @@ router.get('/featured', [auth, updateActivity], async (req, res) => {
 // @access  Private
 router.get('/categories', [auth, updateActivity], async (req, res) => {
   try {
-    const categories = await EA.aggregate([
-      {
-        $match: {
-          isActive: true,
-          status: 'approved'
-        }
-      },
-      {
-        $group: {
-          _id: '$category',
-          count: { $sum: 1 },
-          averageRating: { $avg: '$subscriptionStats.averageRating' },
-          averageWinRate: { $avg: '$performance.winRate' }
-        }
-      },
-      {
-        $sort: { count: -1 }
-      }
-    ]);
+    const categories = await databaseService.getEACategories();
 
     res.json({
       success: true,

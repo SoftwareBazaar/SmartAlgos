@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -33,16 +33,11 @@ const initialState = {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Set up axios defaults
+  // Apply persisted authorization header
   useEffect(() => {
-    // Configure axios base URL for development
-    if (process.env.NODE_ENV === 'development') {
-      axios.defaults.baseURL = 'http://localhost:5000';
-    }
-    
     const token = localStorage.getItem('token');
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
     }
   }, []);
 
@@ -52,12 +47,12 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.get('/api/auth/me');
+          const response = await apiClient.get('/api/auth/me');
           dispatch({ type: 'SET_USER', payload: response.data.user });
         } catch (error) {
           console.error('Auth check failed:', error);
           localStorage.removeItem('token');
-          delete axios.defaults.headers.common['Authorization'];
+          delete apiClient.defaults.headers.common.Authorization;
           dispatch({ type: 'SET_ERROR', payload: error.response?.data?.message || 'Authentication failed' });
         }
       } else {
@@ -72,20 +67,26 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await apiClient.post('/api/auth/login', { email, password });
       
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      dispatch({ type: 'SET_USER', payload: user });
-      toast.success('Login successful!');
-      return { success: true };
+      if (response.data.success) {
+        const { token, user } = response.data;
+        localStorage.setItem('token', token);
+        apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+        
+        dispatch({ type: 'SET_USER', payload: user });
+        toast.success('Login successful!');
+        return { success: true, message: 'Login successful!' };
+      } else {
+        const message = response.data.message || 'Login failed';
+        dispatch({ type: 'SET_ERROR', payload: message });
+        return { success: false, message };
+      }
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed';
       dispatch({ type: 'SET_ERROR', payload: message });
       toast.error(message);
-      return { success: false, error: message };
+      return { success: false, message };
     }
   };
 
@@ -93,11 +94,11 @@ export const AuthProvider = ({ children }) => {
   const adminLogin = async (email, password) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const response = await axios.post('/api/auth/admin/login', { email, password });
+      const response = await apiClient.post('/api/auth/admin/login', { email, password });
       
       const { token, user } = response.data;
       localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
       
       dispatch({ type: 'SET_USER', payload: user });
       toast.success('Admin login successful!');
@@ -119,11 +120,11 @@ export const AuthProvider = ({ children }) => {
       const isAdminRegistration = userData.role === 'admin';
       const endpoint = isAdminRegistration ? '/api/auth/admin/register' : '/api/auth/register';
       
-      const response = await axios.post(endpoint, userData);
+      const response = await apiClient.post(endpoint, userData);
       
       const { token, user } = response.data;
       localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
       
       dispatch({ type: 'SET_USER', payload: user });
       const successMessage = isAdminRegistration ? 'Admin registration successful!' : 'Registration successful!';
@@ -150,12 +151,12 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = async () => {
     try {
-      await axios.post('/api/auth/logout');
+      await apiClient.post('/api/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
+      delete apiClient.defaults.headers.common.Authorization;
       dispatch({ type: 'LOGOUT' });
       toast.success('Logged out successfully');
     }
@@ -164,7 +165,7 @@ export const AuthProvider = ({ children }) => {
   // Update user profile
   const updateProfile = async (profileData) => {
     try {
-      const response = await axios.put('/api/users/profile', profileData);
+      const response = await apiClient.put('/api/users/profile', profileData);
       dispatch({ type: 'UPDATE_USER', payload: response.data.data });
       toast.success('Profile updated successfully');
       return { success: true };
@@ -178,7 +179,7 @@ export const AuthProvider = ({ children }) => {
   // Change password
   const changePassword = async (currentPassword, newPassword) => {
     try {
-      await axios.post('/api/auth/change-password', {
+      await apiClient.post('/api/auth/change-password', {
         currentPassword,
         newPassword
       });
@@ -194,7 +195,7 @@ export const AuthProvider = ({ children }) => {
   // Forgot password
   const forgotPassword = async (email) => {
     try {
-      await axios.post('/api/auth/forgot-password', { email });
+      await apiClient.post('/api/auth/forgot-password', { email });
       toast.success('Password reset link sent to your email');
       return { success: true };
     } catch (error) {
@@ -207,7 +208,7 @@ export const AuthProvider = ({ children }) => {
   // Reset password
   const resetPassword = async (token, password) => {
     try {
-      await axios.post('/api/auth/reset-password', { token, password });
+      await apiClient.post('/api/auth/reset-password', { token, password });
       toast.success('Password reset successfully');
       return { success: true };
     } catch (error) {
@@ -220,7 +221,7 @@ export const AuthProvider = ({ children }) => {
   // Verify email
   const verifyEmail = async (token) => {
     try {
-      await axios.post('/api/auth/verify-email', { token });
+      await apiClient.post('/api/auth/verify-email', { token });
       toast.success('Email verified successfully');
       return { success: true };
     } catch (error) {
@@ -233,7 +234,7 @@ export const AuthProvider = ({ children }) => {
   // Resend verification email
   const resendVerification = async () => {
     try {
-      await axios.post('/api/auth/resend-verification');
+      await apiClient.post('/api/auth/resend-verification');
       toast.success('Verification email sent');
       return { success: true };
     } catch (error) {

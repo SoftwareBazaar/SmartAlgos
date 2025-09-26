@@ -1,4 +1,6 @@
 const databaseService = require('./databaseService');
+const marketDataService = require('./marketDataService');
+const newsService = require('./newsService');
 const axios = require('axios');
 
 class AISignalService {
@@ -515,22 +517,240 @@ class AISignalService {
   }
 
   /**
+   * Get news sentiment for a symbol
+   */
+  async getNewsSentiment(symbol) {
+    try {
+      // Get recent news for the symbol
+      const news = await newsService.getNewsForSymbol(symbol, 10);
+      
+      if (!news || !news.data || news.data.length === 0) {
+        return {
+          score: 50,
+          sentiment: 'neutral',
+          confidence: 30,
+          articleCount: 0,
+          sources: []
+        };
+      }
+
+      // Analyze sentiment from news articles
+      let totalScore = 0;
+      let positiveCount = 0;
+      let negativeCount = 0;
+      const sources = new Set();
+
+      for (const article of news.data) {
+        // Simple sentiment analysis based on keywords
+        const sentiment = this.analyzeSentimentFromText(article.title + ' ' + article.description);
+        totalScore += sentiment.score;
+        
+        if (sentiment.score > 60) positiveCount++;
+        else if (sentiment.score < 40) negativeCount++;
+        
+        sources.add(article.source);
+      }
+
+      const averageScore = totalScore / news.data.length;
+      const confidence = Math.min(news.data.length * 10, 100); // More articles = higher confidence
+
+      return {
+        score: Math.round(averageScore),
+        sentiment: this.getSentimentLabel(averageScore),
+        confidence: Math.round(confidence),
+        articleCount: news.data.length,
+        positiveCount,
+        negativeCount,
+        neutralCount: news.data.length - positiveCount - negativeCount,
+        sources: Array.from(sources)
+      };
+    } catch (error) {
+      console.error('Error getting news sentiment:', error);
+      return {
+        score: 50,
+        sentiment: 'neutral',
+        confidence: 0,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Get social sentiment for a symbol (mock implementation)
+   */
+  async getSocialSentiment(symbol) {
+    try {
+      // Mock social sentiment data
+      // In production, integrate with Twitter API, Reddit API, etc.
+      const score = Math.random() * 40 + 30; // 30-70 range
+      
+      return {
+        score: Math.round(score),
+        sentiment: this.getSentimentLabel(score),
+        confidence: Math.round(Math.random() * 30 + 50), // 50-80 confidence
+        mentions: Math.floor(Math.random() * 1000 + 100),
+        sources: ['twitter', 'reddit', 'stocktwits'],
+        trending: Math.random() > 0.7,
+        volume: Math.random() > 0.5 ? 'high' : 'normal'
+      };
+    } catch (error) {
+      console.error('Error getting social sentiment:', error);
+      return {
+        score: 50,
+        sentiment: 'neutral',
+        confidence: 0,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Generate news summary using AI
+   */
+  async generateNewsSummary(article) {
+    try {
+      // Mock AI-generated summary
+      // In production, use OpenAI, Claude, or other LLM APIs
+      const summary = {
+        text: this.generateMockSummary(article),
+        keyPoints: this.extractKeyPoints(article),
+        sentiment: this.analyzeSentimentFromText(article.title + ' ' + article.description),
+        marketImpact: this.assessMarketImpact(article),
+        confidence: Math.round(Math.random() * 30 + 70) // 70-100% confidence
+      };
+
+      return summary;
+    } catch (error) {
+      console.error('Error generating news summary:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Analyze sentiment from text
+   */
+  analyzeSentimentFromText(text) {
+    const positiveWords = [
+      'growth', 'profit', 'gain', 'increase', 'rise', 'bull', 'bullish', 'positive',
+      'strong', 'excellent', 'outstanding', 'beat', 'exceed', 'surge', 'rally',
+      'upgrade', 'buy', 'optimistic', 'confident', 'success', 'breakthrough'
+    ];
+
+    const negativeWords = [
+      'loss', 'decline', 'fall', 'drop', 'bear', 'bearish', 'negative',
+      'weak', 'poor', 'miss', 'below', 'crash', 'plunge', 'sell',
+      'downgrade', 'pessimistic', 'concern', 'risk', 'failure', 'warning'
+    ];
+
+    const words = text.toLowerCase().split(/\s+/);
+    let positiveCount = 0;
+    let negativeCount = 0;
+
+    words.forEach(word => {
+      if (positiveWords.some(pos => word.includes(pos))) {
+        positiveCount++;
+      } else if (negativeWords.some(neg => word.includes(neg))) {
+        negativeCount++;
+      }
+    });
+
+    const totalSentimentWords = positiveCount + negativeCount;
+    if (totalSentimentWords === 0) {
+      return { score: 50, sentiment: 'neutral' };
+    }
+
+    const score = (positiveCount / totalSentimentWords) * 100;
+    
+    return {
+      score: Math.round(score),
+      sentiment: this.getSentimentLabel(score),
+      positiveWords: positiveCount,
+      negativeWords: negativeCount
+    };
+  }
+
+  /**
+   * Get sentiment label from score
+   */
+  getSentimentLabel(score) {
+    if (score >= 80) return 'very_bullish';
+    if (score >= 60) return 'bullish';
+    if (score >= 40) return 'neutral';
+    if (score >= 20) return 'bearish';
+    return 'very_bearish';
+  }
+
+  /**
+   * Generate mock summary
+   */
+  generateMockSummary(article) {
+    const templates = [
+      `${article.title} - This development indicates potential market movement based on recent financial data and analyst perspectives.`,
+      `Key market update: ${article.title}. Industry experts suggest this could impact trading patterns in the near term.`,
+      `Breaking: ${article.title}. Market analysis shows this news may influence investor sentiment and price action.`
+    ];
+    
+    return templates[Math.floor(Math.random() * templates.length)];
+  }
+
+  /**
+   * Extract key points from article
+   */
+  extractKeyPoints(article) {
+    // Mock key points extraction
+    const points = [
+      'Market sentiment analysis shows mixed signals',
+      'Technical indicators suggest potential price movement',
+      'Volume patterns indicate increased investor interest',
+      'Fundamental analysis supports current valuation levels'
+    ];
+    
+    return points.slice(0, Math.floor(Math.random() * 3) + 2);
+  }
+
+  /**
+   * Assess market impact of news
+   */
+  assessMarketImpact(article) {
+    const impacts = ['low', 'medium', 'high'];
+    const impact = impacts[Math.floor(Math.random() * impacts.length)];
+    
+    return {
+      level: impact,
+      timeframe: Math.random() > 0.5 ? 'short-term' : 'medium-term',
+      sectors: ['technology', 'finance', 'healthcare'][Math.floor(Math.random() * 3)],
+      confidence: Math.round(Math.random() * 30 + 60)
+    };
+  }
+
+  /**
    * Get service statistics
    */
   async getStatistics() {
-    const activeJobs = this.activeJobs.size;
-    const totalSignals = await TradingSignal.countDocuments({ source: 'ai-generated' });
-    const activeSignals = await TradingSignal.countDocuments({ 
-      source: 'ai-generated', 
-      status: 'active' 
-    });
-    
-    return {
-      activeJobs,
-      totalSignals,
-      activeSignals,
-      uptime: process.uptime()
-    };
+    try {
+      const activeJobs = this.activeJobs.size;
+      const signals = await databaseService.getTradingSignals({ source: 'ai-generated' });
+      const totalSignals = signals.length;
+      const activeSignals = signals.filter(s => s.status === 'active').length;
+      
+      return {
+        activeJobs,
+        totalSignals,
+        activeSignals,
+        uptime: process.uptime(),
+        cacheSize: this.signalCache.size,
+        lastUpdated: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error getting AI service statistics:', error);
+      return {
+        activeJobs: this.activeJobs.size,
+        totalSignals: 0,
+        activeSignals: 0,
+        uptime: process.uptime(),
+        error: error.message
+      };
+    }
   }
 }
 

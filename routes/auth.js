@@ -1,17 +1,22 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const databaseService = require('../services/databaseService');
 const { auth, createActionRateLimit } = require('../middleware/auth');
+const securityService = require('../services/securityService');
 const router = express.Router();
+
+const EMAIL_NORMALIZE_OPTIONS = {
+  gmail_remove_dots: false,
+  gmail_remove_subaddress: false,
+  outlookdotcom_remove_dots: false,
+  yahoo_remove_subaddress: false,
+  icloud_remove_subaddress: false
+};
 
 // Generate JWT token
 const generateToken = (userId) => {
-  const secret = process.env.JWT_SECRET || 'smart-algos-fallback-secret-key-2024';
-  return jwt.sign({ userId }, secret, {
-    expiresIn: process.env.JWT_EXPIRE || '7d'
-  });
+  return securityService.generateToken({ userId }, process.env.JWT_EXPIRE || '7d');
 };
 
 // Rate limiting for auth actions (very lenient for development)
@@ -34,7 +39,7 @@ router.post('/register', [
     .withMessage('Last name must be between 2 and 50 characters'),
   body('email')
     .isEmail()
-    .normalizeEmail()
+    .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
     .withMessage('Please provide a valid email'),
   body('password')
     .isLength({ min: 8 })
@@ -123,7 +128,7 @@ router.post('/login', [
   loginRateLimit,
   body('email')
     .isEmail()
-    .normalizeEmail()
+    .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
     .withMessage('Please provide a valid email'),
   body('password')
     .notEmpty()
@@ -144,6 +149,20 @@ router.post('/login', [
 
     // Find user by email
     const user = await databaseService.getUserByEmail(email);
+    if (!user) {
+      console.warn('[admin-login] user not found for email:', email);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    console.log('[admin-login] fetched user', {
+      id: user.id,
+      role: user.role,
+      is_active: user.is_active,
+      login_attempts: user.login_attempts
+    });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -169,6 +188,9 @@ router.post('/login', [
 
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      console.warn('[admin-login] password mismatch for user:', user.id);
+    }
     if (!isMatch) {
       // Increment login attempts
       const loginAttempts = (user.login_attempts || 0) + 1;
@@ -214,10 +236,16 @@ router.post('/login', [
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login error details:', {
+      message: error.message,
+      stack: error.stack,
+      email: req.body.email,
+      timestamp: new Date().toISOString()
+    });
     res.status(500).json({
       success: false,
-      message: 'Server error during login'
+      message: 'Server error during login',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -227,10 +255,23 @@ router.post('/login', [
 // @access  Private
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await databaseService.getUserById(req.user.userId);
+    const userId = req.user.userId || req.user.id;
+    const user = await databaseService.getUserById(userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Remove sensitive data
+    const userResponse = { ...user };
+    delete userResponse.password_hash;
+
     res.json({
       success: true,
-      user
+      user: userResponse
     });
   } catch (error) {
     console.error('Get user error:', error);
@@ -248,7 +289,7 @@ router.post('/forgot-password', [
   passwordResetRateLimit,
   body('email')
     .isEmail()
-    .normalizeEmail()
+    .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
     .withMessage('Please provide a valid email')
 ], async (req, res) => {
   try {
@@ -265,6 +306,20 @@ router.post('/forgot-password', [
 
     const user = await databaseService.getUserByEmail(email);
     if (!user) {
+      console.warn('[admin-login] user not found for email:', email);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    console.log('[admin-login] fetched user', {
+      id: user.id,
+      role: user.role,
+      is_active: user.is_active,
+      login_attempts: user.login_attempts
+    });
+    if (!user) {
       // Don't reveal if email exists or not
       return res.json({
         success: true,
@@ -273,10 +328,9 @@ router.post('/forgot-password', [
     }
 
     // Generate reset token (in a real app, you'd send this via email)
-    const resetToken = jwt.sign(
+    const resetToken = securityService.generateToken(
       { userId: user.id, type: 'password-reset' },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      '1h'
     );
 
     await databaseService.updateUser(user.id, {
@@ -327,7 +381,7 @@ router.post('/reset-password', [
     const { token, password } = req.body;
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = securityService.verifyToken(token);
     if (decoded.type !== 'password-reset') {
       return res.status(400).json({
         success: false,
@@ -448,7 +502,7 @@ router.post('/verify-email', [
   try {
     const { token } = req.body;
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = securityService.verifyToken(token);
     if (decoded.type !== 'email-verification') {
       return res.status(400).json({
         success: false,
@@ -504,10 +558,9 @@ router.post('/resend-verification', auth, async (req, res) => {
     }
 
     // Generate verification token
-    const verificationToken = jwt.sign(
+    const verificationToken = securityService.generateToken(
       { userId: req.user.userId, type: 'email-verification' },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      '24h'
     );
 
     await databaseService.updateUser(req.user.userId, {
@@ -560,7 +613,7 @@ router.post('/admin/login', [
   loginRateLimit,
   body('email')
     .isEmail()
-    .normalizeEmail()
+    .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
     .withMessage('Please provide a valid email'),
   body('password')
     .notEmpty()
@@ -581,6 +634,20 @@ router.post('/admin/login', [
 
     // Find user by email
     const user = await databaseService.getUserByEmail(email);
+    if (!user) {
+      console.warn('[admin-login] user not found for email:', email);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    console.log('[admin-login] fetched user', {
+      id: user.id,
+      role: user.role,
+      is_active: user.is_active,
+      login_attempts: user.login_attempts
+    });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -614,6 +681,9 @@ router.post('/admin/login', [
 
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      console.warn('[admin-login] password mismatch for user:', user.id);
+    }
     if (!isMatch) {
       // Increment login attempts
       const loginAttempts = (user.login_attempts || 0) + 1;
@@ -682,7 +752,7 @@ router.post('/admin/register', [
     .withMessage('Last name must be between 2 and 50 characters'),
   body('email')
     .isEmail()
-    .normalizeEmail()
+    .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
     .withMessage('Please provide a valid email'),
   body('password')
     .isLength({ min: 8 })
@@ -807,3 +877,8 @@ router.post('/setup', async (req, res) => {
 });
 
 module.exports = router;
+
+
+
+
+

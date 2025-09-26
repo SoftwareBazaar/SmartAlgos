@@ -23,6 +23,7 @@ import {
 import Button from '../../components/UI/Button';
 import Card from '../../components/UI/Card';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
+import apiClient from '../../lib/apiClient';
 
 const News = () => {
   const [news, setNews] = useState([]);
@@ -67,6 +68,16 @@ const News = () => {
   const fetchNews = async () => {
     setLoading(true);
     try {
+      const params = { limit: 40 };
+      if (selectedCategory !== 'all') params.category = selectedCategory;
+      if (selectedImpact !== 'all') params.impact = selectedImpact;
+      if (selectedSentiment !== 'all') params.sentiment = selectedSentiment;
+      if (searchTerm.trim()) params.search = searchTerm.trim();
+
+      const response = await apiClient.get('/api/news', { params });
+      setNews(response.data?.data || []);
+      setLoading(false);
+      return;
       // Mock data for now - replace with actual API call
       setTimeout(() => {
         setNews([
@@ -165,6 +176,10 @@ const News = () => {
 
   const fetchTrending = async () => {
     try {
+      const response = await apiClient.get('/api/news/trending');
+      const data = response.data?.data || {};
+      setTrending(data.trending_symbols || []);
+      return;
       // Mock trending data
       setTrending(['EURUSD', 'GBPUSD', 'BTCUSD', 'AAPL', 'TSLA']);
     } catch (error) {

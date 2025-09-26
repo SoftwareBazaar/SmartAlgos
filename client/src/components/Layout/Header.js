@@ -21,13 +21,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 const Header = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  // Fallback user object for development
-  const displayUser = user || {
+  const fallbackUser = {
     firstName: 'John',
     lastName: 'Doe',
-    fullName: 'John Doe',
+    email: 'john.doe@example.com',
     subscription: { type: 'Premium' }
   };
+  const rawUser = user || fallbackUser;
+  const userInitials = ([rawUser.firstName, rawUser.lastName]
+    .map((value) => (value ? value.charAt(0) : ''))
+    .join('')
+    .toUpperCase() || rawUser.email?.slice(0, 2)?.toUpperCase() || 'SA');
+  const userFullName = rawUser.fullName
+    || [rawUser.firstName, rawUser.lastName].filter(Boolean).join(' ')
+    || rawUser.email
+    || 'Smart Algos User';
+  const userSubscriptionLabel = rawUser.subscription?.type || 'Member';
   const { theme, toggleTheme } = useTheme();
   // const { connected } = useWebSocket();
   const connected = true; // Temporary fallback
@@ -176,15 +185,15 @@ const Header = ({ onMenuClick }) => {
               >
                 <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
                   <span className="text-sm font-medium text-white">
-                    {displayUser?.firstName?.charAt(0)}{displayUser?.lastName?.charAt(0)}
+                    {userInitials}
                   </span>
                 </div>
                 <div className="hidden md:block text-left">
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {displayUser?.fullName}
+                    {userFullName}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {displayUser?.subscription?.type}
+                    {userSubscriptionLabel}
                   </p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -199,11 +208,25 @@ const Header = ({ onMenuClick }) => {
                     className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
                   >
                     <div className="py-1">
-                      <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigate('/profile');
+                          setShowUserMenu(false);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
                         <User className="h-4 w-4 mr-3" />
                         Profile
                       </button>
-                      <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigate('/settings');
+                          setShowUserMenu(false);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
                         <Settings className="h-4 w-4 mr-3" />
                         Settings
                       </button>

@@ -20,7 +20,7 @@ import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
 import EscrowIntegration from '../../components/EscrowIntegration';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import apiClient from '../../lib/apiClient';
 
 const EAMarketplace = () => {
   const navigate = useNavigate();
@@ -41,9 +41,18 @@ const EAMarketplace = () => {
     const fetchEAs = async () => {
       try {
         setLoading(true);
-        // For now, use mock data directly
-        // TODO: Connect to real API when authentication is working
-        setEas(mockEAs);
+        const params = {
+          limit: 24
+        };
+        if (activeCategory !== 'all') {
+          params.category = activeCategory;
+        }
+        if (searchTerm.trim()) {
+          params.search = searchTerm.trim();
+        }
+
+        const response = await apiClient.get('/api/eas', { params });
+        setEas(response.data?.data || mockEAs);
       } catch (error) {
         console.error('Error fetching EAs:', error);
         // Fallback to mock data if API fails

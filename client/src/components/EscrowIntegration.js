@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Shield,
@@ -43,7 +43,7 @@ const EscrowIntegration = ({
 
   const calculateEscrowFee = async () => {
     try {
-      const response = await axios.get('/api/escrow/fee-calculator', {
+      const response = await apiClient.get('/api/escrow/fee-calculator', {
         params: {
           amount: productPrice,
           currency: 'USD'
@@ -90,7 +90,7 @@ const EscrowIntegration = ({
         }
       };
 
-      const response = await axios.post('/api/escrow/transactions', transactionData, {
+      const response = await apiClient.post('/api/escrow/transactions', transactionData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token') || 'test_token'}`
@@ -127,7 +127,7 @@ const EscrowIntegration = ({
         }
       };
 
-      const response = await axios.post(
+      const response = await apiClient.post(
         `/api/escrow/transactions/${transaction.id}/payments`,
         paymentData,
         {

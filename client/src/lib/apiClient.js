@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const DEFAULT_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '');
+const DEFAULT_BASE_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000' 
+  : 'https://smart-algos.vercel.app/api';
 
 const apiClient = axios.create({
   baseURL: DEFAULT_BASE_URL,

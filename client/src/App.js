@@ -44,6 +44,7 @@ import LoginTest from './pages/Test/LoginTest';
 
 // Loading component
 import LoadingSpinner from './components/UI/LoadingSpinner';
+import DebugInfo from './components/DebugInfo';
 
 function App() {
   const { user, loading } = useAuth();
@@ -71,6 +72,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <DebugInfo />
       <Routes>
         {/* Animated login route (standalone) */}
         <Route path="/login" element={<AnimatedLogin />} />

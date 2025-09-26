@@ -1,20 +1,6 @@
 import React from 'react';
 
 function App() {
-  const apiUrl = process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:5000' 
-    : 'https://smart-algos-cdbf.vercel.app/api';
-
-  const testAPI = async () => {
-    try {
-      const response = await fetch(`${apiUrl}/health`);
-      const data = await response.json();
-      alert(`API Status: ${data.status || 'Connected'}`);
-    } catch (error) {
-      alert(`API Error: ${error.message}`);
-    }
-  };
-
   return (
     <div style={{ 
       padding: '40px', 
@@ -37,45 +23,18 @@ function App() {
         <div style={{ marginBottom: '30px' }}>
           <h2>✅ App is Working!</h2>
           <p>Environment: <strong>{process.env.NODE_ENV || 'production'}</strong></p>
-          <p>API URL: <strong>{apiUrl}</strong></p>
           <p>Current Time: <strong>{new Date().toLocaleString()}</strong></p>
+          <p>Status: <strong>Deployment Successful!</strong></p>
         </div>
-
-        <button 
-          onClick={testAPI}
-          style={{
-            backgroundColor: '#2563eb',
-            color: 'white',
-            padding: '12px 24px',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            marginRight: '10px'
-          }}
-        >
-          Test API Connection
-        </button>
 
         <div style={{ marginTop: '30px' }}>
-          <h3>🎯 Status:</h3>
+          <h3>🎯 Next Steps:</h3>
           <ul>
-            <li>✅ React app is loading</li>
-            <li>✅ Environment variables working</li>
+            <li>✅ React app deployed successfully</li>
             <li>✅ No 404 errors</li>
-            <li>🔄 Ready to test API</li>
+            <li>✅ Clean project structure</li>
+            <li>🔄 Ready to add features</li>
           </ul>
-        </div>
-
-        <div style={{ 
-          marginTop: '30px', 
-          padding: '20px', 
-          backgroundColor: '#f8f9fa', 
-          borderRadius: '6px' 
-        }}>
-          <h4>🔧 Debug Info:</h4>
-          <p><strong>URL:</strong> {window.location.href}</p>
-          <p><strong>User Agent:</strong> {navigator.userAgent.substring(0, 50)}...</p>
         </div>
       </div>
     </div>

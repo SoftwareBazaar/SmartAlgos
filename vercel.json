@@ -1,6 +1,6 @@
 ﻿{
   "version": 2,
-  "buildCommand": "cd client && npm run build",
+  "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/build",
   "builds": [
     {
@@ -22,8 +22,5 @@
     "api/index.js": {
       "maxDuration": 30
     }
-  },
-  "env": {
-    "NODE_ENV": "production"
   }
 }

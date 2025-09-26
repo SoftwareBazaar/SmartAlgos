@@ -26,11 +26,6 @@
       "dest": "/index.html"
     }
   ],
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30
-    }
-  },
   "env": {
     "REACT_APP_API_URL": "https://smart-algos.vercel.app/api",
     "REACT_APP_WS_URL": "https://smart-algos.vercel.app",

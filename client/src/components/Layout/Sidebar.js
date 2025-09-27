@@ -1,21 +1,20 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  TrendingUp, 
-  Newspaper, 
-  Bot, 
-  Zap, 
-  PieChart, 
-  User, 
-  Settings, 
+import {
+  Home,
+  TrendingUp,
+  Newspaper,
+  Bot,
+  Zap,
+  PieChart,
+  User,
+  Settings,
   CreditCard,
   DollarSign,
   Monitor,
   X
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { motion } from 'framer-motion';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
@@ -39,32 +38,38 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Payments', href: '/payments', icon: DollarSign },
   ];
 
-  const adminNavigation = [
-    { name: 'Admin Dashboard', href: '/admin', icon: Settings },
-  ];
-
   const isActive = (href) => {
-    return location.pathname === href;
+    return location.pathname === href || location.pathname.startsWith(`${href}/`);
   };
 
-  return (
+  const linkClassNames = (href) => {
+    return `group flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 border ${
+      isActive(href)
+        ? 'bg-primary-500/20 text-primary-100 border-primary-500/60 shadow-soft backdrop-blur'
+        : 'text-gray-300 border-transparent hover:text-white hover:bg-brand-800/60 hover:border-primary-500/20'
+    }`;
+  };
+
+  const sidebarContent = (
     <>
-      {/* Mobile sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            Smart Algos
-          </h1>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-        
-        <nav className="mt-8 px-4">
-          <div className="space-y-1">
+      <div className="flex items-center justify-between h-16 px-4 bg-gradient-to-r from-black via-brand-900 to-black border-b border-brand-800/70 shadow-lg">
+        <h1 className="text-xl font-semibold text-primary-200 tracking-wide">
+          Smart Algos
+        </h1>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-md text-gray-400 hover:text-white hover:bg-brand-800/60 focus:outline-none focus:ring-2 focus:ring-primary-500/60 lg:hidden"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
+      <nav className="mt-6 flex-1 px-3 pb-6 space-y-8">
+        <div className="space-y-1">
+          <p className="px-1 text-xs font-semibold uppercase tracking-wider text-brand-300">
+            Navigation
+          </p>
+          <div className="mt-3 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
@@ -72,148 +77,106 @@ const Sidebar = ({ isOpen, onClose }) => {
                   key={item.name}
                   to={item.href}
                   onClick={onClose}
-                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                    isActive(item.href)
-                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-secondary-700'
-                  }`}
+                  className={linkClassNames(item.href)}
                 >
                   <Icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  <span>{item.name}</span>
                 </NavLink>
               );
             })}
           </div>
+        </div>
 
-          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-            <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Account
+        <div>
+          <p className="px-1 text-xs font-semibold uppercase tracking-wider text-brand-300">
+            Account
+          </p>
+          <div className="mt-3 space-y-1">
+            {userNavigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.name}
+                  to={item.href}
+                  onClick={onClose}
+                  className={linkClassNames(item.href)}
+                >
+                  <Icon className="mr-3 h-5 w-5" />
+                  <span>{item.name}</span>
+                </NavLink>
+              );
+            })}
+          </div>
+        </div>
+
+        {user?.role === 'admin' && (
+          <div>
+            <p className="px-1 text-xs font-semibold uppercase tracking-wider text-brand-300">
+              Admin
             </p>
-            <div className="mt-2 space-y-1">
-              {userNavigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.name}
-                    to={item.href}
-                    onClick={onClose}
-                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                      isActive(item.href)
-                        ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-secondary-700'
-                    }`}
-                  >
-                    <Icon className="mr-3 h-5 w-5" />
-                    {item.name}
-                  </NavLink>
-                );
-              })}
+            <div className="mt-3 space-y-1">
+              <NavLink
+                to="/admin"
+                onClick={onClose}
+                className={linkClassNames('/admin')}
+              >
+                <Settings className="mr-3 h-5 w-5" />
+                <span>Admin Dashboard</span>
+              </NavLink>
+              <NavLink
+                to="/admin/panel"
+                onClick={onClose}
+                className={linkClassNames('/admin/panel')}
+              >
+                <Monitor className="mr-3 h-5 w-5" />
+                <span>Control Panel</span>
+              </NavLink>
             </div>
           </div>
-        </nav>
+        )}
+      </nav>
+
+      <div className="p-4 border-t border-brand-800/70 bg-brand-900/80 backdrop-blur">
+        <div className="flex items-center">
+          <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center shadow-hard">
+            <span className="text-sm font-semibold text-white">
+              {user?.firstName?.charAt(0) || 'U'}{user?.lastName?.charAt(0) || 'S'}
+            </span>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-white">
+              {user?.fullName || 'User'}
+            </p>
+            <p className="text-xs text-brand-300">
+              {user?.subscription?.type || 'Free'}
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-black via-brand-900 to-brand-800/95 shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="flex flex-col h-full">
+          {sidebarContent}
+        </div>
       </div>
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-          <div className="flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-700">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              Smart Algos
-            </h1>
-          </div>
-          
-          <nav className="mt-8 flex-1 px-4 pb-4 space-y-1">
-            <div className="space-y-1">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.name}
-                    to={item.href}
-                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                      isActive(item.href)
-                        ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-secondary-700'
-                    }`}
-                  >
-                    <Icon className="mr-3 h-5 w-5" />
-                    {item.name}
-                  </NavLink>
-                );
-              })}
-            </div>
-
-            <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-              <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Account
-              </p>
-              <div className="mt-2 space-y-1">
-                {userNavigation.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <NavLink
-                      key={item.name}
-                      to={item.href}
-                      className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                        isActive(item.href)
-                          ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-                          : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-secondary-700'
-                      }`}
-                    >
-                      <Icon className="mr-3 h-5 w-5" />
-                      {item.name}
-                    </NavLink>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Admin Section */}
-            {user?.role === 'admin' && (
-              <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-                <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Admin
-                </p>
-                <div className="mt-2 space-y-1">
-                  {adminNavigation.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <NavLink
-                        key={item.name}
-                        to={item.href}
-                        className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                          isActive(item.href)
-                            ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-                            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-secondary-700'
-                        }`}
-                      >
-                        <Icon className="mr-3 h-5 w-5" />
-                        {item.name}
-                      </NavLink>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </nav>
-
-          {/* User info */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-white">
-                  {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-                </span>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {user?.fullName}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {user?.subscription?.type}
-                </p>
-              </div>
-            </div>
+      <div className="hidden lg:flex lg:w-64 xl:w-72 lg:flex-col">
+        <div className="flex flex-col flex-grow bg-gradient-to-b from-black via-brand-900 to-brand-800/90 border-r border-brand-800/70 shadow-xl">
+          <div className="flex flex-col h-full">
+            {sidebarContent}
           </div>
         </div>
       </div>
@@ -222,3 +185,4 @@ const Sidebar = ({ isOpen, onClose }) => {
 };
 
 export default Sidebar;
+

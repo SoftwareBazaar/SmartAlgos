@@ -6,20 +6,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Smart Algos brand colors based on the institutional design
+        // Spotify-inspired colors
         primary: {
-          50: '#f0f4ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#2F6FFF', // Main bright blue from the image
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#1db954', // Spotify green
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
         },
-        // Dark blue theme matching the hero section
+        // Spotify dark theme
         brand: {
           50: '#f8fafc',
           100: '#f1f5f9',
@@ -29,8 +29,8 @@ module.exports = {
           500: '#64748b',
           600: '#475569',
           700: '#334155',
-          800: '#1A233B', // Main dark blue from hero section
-          900: '#0f172a',
+          800: '#121212', // Spotify dark background
+          900: '#000000', // Spotify black
         },
         // Dark theme colors for institutional look
         dark: {

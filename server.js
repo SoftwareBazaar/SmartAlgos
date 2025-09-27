@@ -23,6 +23,8 @@ const paymentRoutes = require('./routes/payments');
 const analysisRoutes = require('./routes/analysis');
 const securityRoutes = require('./routes/security');
 const mt5Routes = require('./routes/mt5');
+const polygonRoutes = require('./routes/polygon');
+const portfolioRoutes = require('./routes/portfolio');
 const testRoutes = require('./routes/test');
 const adminRoutes = require('./admin-panel');
 
@@ -237,6 +239,8 @@ app.use('/api/payments', auth, paymentRoutes);
 app.use('/api/analysis', auth, analysisRoutes);
 app.use('/api/security', auth, securityRoutes);
 app.use('/api/mt5', mt5Routes);
+app.use('/api/polygon', auth, polygonRoutes);
+app.use('/api/portfolio', auth, portfolioRoutes);
 app.use('/api/test', testRoutes); // Test routes for debugging
 app.use('/api/admin', adminRoutes); // Admin routes have their own auth middleware
 

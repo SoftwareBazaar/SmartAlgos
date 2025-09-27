@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -19,10 +19,17 @@ import {
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
+import apiClient from '../../lib/apiClient';
 
 const Portfolio = () => {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('all');
+  const [selectedCsv, setSelectedCsv] = useState(null);
+  const [uploadingCsv, setUploadingCsv] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [uploadPreview, setUploadPreview] = useState(null);
+  const fileInputRef = useRef(null);
+
 
   // Mock portfolios data
   const portfolios = [
@@ -109,12 +116,125 @@ const Portfolio = () => {
     return matchesFilter;
   });
 
+  const pnlEntries = useMemo(() => ([
+    { date: '2024-01-02', pnl: 450 },
+    { date: '2024-01-03', pnl: -220 },
+    { date: '2024-01-04', pnl: 180 },
+    { date: '2024-01-05', pnl: 720 },
+    { date: '2024-01-08', pnl: -310 },
+    { date: '2024-01-09', pnl: 940 },
+    { date: '2024-01-10', pnl: -120 },
+    { date: '2024-01-11', pnl: 0 },
+    { date: '2024-01-12', pnl: 420 },
+    { date: '2024-01-15', pnl: 280 },
+    { date: '2024-01-16', pnl: -640 },
+    { date: '2024-01-17', pnl: 390 },
+    { date: '2024-01-18', pnl: 210 },
+    { date: '2024-01-19', pnl: -450 },
+    { date: '2024-01-22', pnl: 610 },
+    { date: '2024-01-23', pnl: 75 },
+    { date: '2024-01-24', pnl: -180 },
+    { date: '2024-01-25', pnl: 540 },
+    { date: '2024-01-26', pnl: 130 },
+    { date: '2024-01-29', pnl: -90 },
+    { date: '2024-01-30', pnl: 320 },
+    { date: '2024-01-31', pnl: 510 },
+  ]), []);
+
+  const pnlByDate = useMemo(() => {
+    return pnlEntries.reduce((acc, entry) => {
+      acc[entry.date] = entry.pnl;
+      return acc;
+    }, {});
+  }, [pnlEntries]);
+
+  const calendarYear = 2024;
+  const calendarMonthIndex = 0;
+
+  const calendarCells = useMemo(() => {
+    const firstDay = new Date(calendarYear, calendarMonthIndex, 1);
+    const daysInMonth = new Date(calendarYear, calendarMonthIndex + 1, 0).getDate();
+    const cells = [];
+    const leadingEmpty = firstDay.getDay();
+
+    for (let i = 0; i < leadingEmpty; i += 1) {
+      cells.push(null);
+    }
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const dateKey = `${calendarYear}-${String(calendarMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      cells.push({
+        day,
+        dateKey,
+        pnl: pnlByDate[dateKey] ?? 0,
+      });
+    }
+
+    return cells;
+  }, [pnlByDate]);
+
+  const totalMonthlyPnL = useMemo(() => {
+    return pnlEntries.reduce((sum, entry) => sum + entry.pnl, 0);
+  }, [pnlEntries]);
+
+  const formatPnLValue = (value) => {
+    if (value > 0) return `+$${value.toLocaleString()}`;
+    if (value < 0) return `-$${Math.abs(value).toLocaleString()}`;
+    return '$0';
+  };
+
+  const pnlColorClass = (value) => {
+    if (value > 0) return 'bg-success-500/10 border border-success-500/30 text-success-200';
+    if (value < 0) return 'bg-danger-500/10 border border-danger-500/30 text-danger-200';
+    return 'bg-brand-900/60 border border-brand-800/70 text-brand-200';
+  };
+
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const monthLabel = new Date(calendarYear, calendarMonthIndex).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
   const getRiskColor = (risk) => {
     switch (risk) {
       case 'Low': return 'text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-200';
       case 'Medium': return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-200';
       case 'High': return 'text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-200';
       default: return 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-200';
+    }
+  };
+
+  const handleSelectCsv = (event) => {
+    const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+    setSelectedCsv(file);
+    setUploadPreview(null);
+    setUploadError(null);
+  };
+
+  const handleUploadCsv = async () => {
+    if (!selectedCsv) {
+      setUploadError('Please choose a CSV file to upload.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', selectedCsv);
+
+    setUploadingCsv(true);
+    setUploadError(null);
+
+    try {
+      const { data } = await apiClient.post('/api/portfolio/upload-csv', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      setUploadPreview(data);
+      setSelectedCsv(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Upload failed. Please try again.';
+      setUploadError(message);
+    } finally {
+      setUploadingCsv(false);
     }
   };
 
@@ -174,6 +294,156 @@ const Portfolio = () => {
                 </button>
               ))}
             </div>
+          </Card.Body>
+        </Card>
+      </motion.div>
+
+      {/* CSV Upload */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.15 }}
+      >
+        <Card>
+          <Card.Body>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white tracking-wide">
+                  Upload Portfolio CSV
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-brand-200 max-w-2xl">
+                  Import statements exported from MT4/MT5, Polygon flat files, or other brokers. We'll store the file locally and preview the first few lines so you can confirm the format before processing.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={handleSelectCsv}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {selectedCsv ? 'Change CSV' : 'Choose CSV'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleUploadCsv}
+                  disabled={!selectedCsv || uploadingCsv}
+                >
+                  {uploadingCsv ? 'Uploading...' : 'Upload & Preview'}
+                </Button>
+              </div>
+            </div>
+
+            {selectedCsv && (
+              <div className="mt-4 text-sm text-gray-500 dark:text-brand-200">
+                Selected file: <span className="font-semibold text-gray-900 dark:text-white">{selectedCsv.name}</span> ({(selectedCsv.size / 1024).toFixed(1)} KB)
+              </div>
+            )}
+
+            {uploadError && (
+              <div className="mt-4 rounded-lg border border-danger-500/40 bg-danger-500/10 px-4 py-3 text-sm text-danger-200">
+                {uploadError}
+              </div>
+            )}
+
+            {uploadPreview && (
+              <div className="mt-6 rounded-lg border border-brand-800/60 bg-brand-900/40 p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-gray-100">Preview (first {uploadPreview.preview.length} lines)</h3>
+                  <p className="text-xs text-brand-200">Saved to: {uploadPreview.savedTo}</p>
+                </div>
+                <pre className="mt-3 max-h-48 overflow-auto rounded bg-black/40 p-3 text-xs text-brand-100">
+                  {uploadPreview.preview.length ? uploadPreview.preview.join('\n') : 'No data detected.'}
+                    ? uploadPreview.preview.join('\n')
+
+                    : 'No data detected.'}
+                </pre>
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+      </motion.div>
+
+      {/* Monthly PnL Calendar */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Card>
+          <Card.Body>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white tracking-wide">
+                  Monthly PnL
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-brand-200">
+                  {monthLabel} - {formatPnLValue(totalMonthlyPnL)} total
+                </p>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-brand-200">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-success-500/70" />
+                  <span>Gain</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-danger-500/70" />
+                  <span>Loss</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-brand-800" />
+                  <span>Flat</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-7 gap-2 text-xs">
+              {dayLabels.map((label) => (
+                <div key={label} className="text-center text-gray-500 dark:text-brand-300 uppercase tracking-widest">
+                  {label}
+                </div>
+              ))}
+              {calendarCells.map((cell, index) => {
+                if (!cell) {
+                  return <div key={`empty-${index}`} className="h-16 rounded-lg bg-transparent" />;
+                }
+
+                return (
+                  <div
+                    key={cell.dateKey}
+                    className={`flex flex-col justify-between rounded-lg p-2 h-16 shadow-inner transition-transform duration-200 hover:scale-[1.02] ${pnlColorClass(cell.pnl)}`}
+                  >
+                    <div className="flex items-center justify-between text-[11px] font-semibold">
+                      <span>{cell.day}</span>
+                      {cell.pnl !== 0 && (
+                        <span>{formatPnLValue(cell.pnl)}</span>
+                      )}
+                    </div>
+                    <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden">
+                      {cell.pnl !== 0 && (
+                        <div
+                          className={`h-full ${cell.pnl > 0 ? 'bg-success-400' : 'bg-danger-500'}`}
+                          style={{ width: `${Math.min(Math.abs(cell.pnl) / 1200 * 100, 100)}%` }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="mt-4 text-xs text-gray-500 dark:text-brand-200">
+              Calendar uses mock trade statements. Replace with parsed CSV data once your upload pipeline is ready.
+            </p>
           </Card.Body>
         </Card>
       </motion.div>

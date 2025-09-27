@@ -276,10 +276,10 @@ const EAMarketplace = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-sm">
               EA Marketplace
             </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
+            <p className="mt-2 text-brand-200 font-medium">
               Discover and rent professional Expert Advisors
             </p>
           </div>
@@ -363,7 +363,7 @@ const EAMarketplace = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          <h2 className="text-2xl font-semibold text-white tracking-wide mb-4">
             Featured EAs
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -394,7 +394,7 @@ const EAMarketplace = () => {
                   <Card.Body>
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        <h3 className="text-lg font-semibold text-white">
                           {ea.name}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -403,7 +403,7 @@ const EAMarketplace = () => {
                       </div>
                       <div className="flex items-center">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="ml-1 text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <span className="ml-1 text-sm font-medium text-white">
                           {ea.rating}
                         </span>
                         <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
@@ -432,9 +432,9 @@ const EAMarketplace = () => {
                     </div>
 
                     <div className="flex items-center justify-between mb-4">
-                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      <div className="text-2xl font-bold text-white">
                         ${ea.price}
-                        <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                        <span className="text-sm font-normal text-brand-200">
                           /{ea.period}
                         </span>
                       </div>
@@ -494,7 +494,7 @@ const EAMarketplace = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        <h2 className="text-2xl font-semibold text-white tracking-wide mb-4">
           {activeCategory === 'all' ? 'All EAs' : categories.find(c => c.id === activeCategory)?.name}
         </h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -534,7 +534,7 @@ const EAMarketplace = () => {
                 <Card.Body>
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      <h3 className="text-lg font-semibold text-white">
                         {ea.name}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -543,7 +543,7 @@ const EAMarketplace = () => {
                     </div>
                     <div className="flex items-center">
                       <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="ml-1 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <span className="ml-1 text-sm font-medium text-white">
                         {ea.rating}
                       </span>
                       <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
@@ -572,9 +572,9 @@ const EAMarketplace = () => {
                   </div>
 
                   <div className="flex items-center justify-between mb-4">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    <div className="text-2xl font-bold text-white">
                       ${ea.price}
-                      <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                      <span className="text-sm font-normal text-brand-200">
                         /{ea.period}
                       </span>
                     </div>
@@ -650,7 +650,7 @@ const EAMarketplace = () => {
             className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-sm sm:max-w-lg mx-auto max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <h3 className="text-lg font-semibold text-white">
                 Subscribe to {selectedEA.name}
               </h3>
               <button

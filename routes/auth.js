@@ -2,9 +2,88 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const databaseService = require('../services/databaseService');
+const mockAuthStore = require('../services/mockAuthStore');
 const { auth, createActionRateLimit } = require('../middleware/auth');
 const securityService = require('../services/securityService');
 const router = express.Router();
+
+const isPlaceholderKey = (value = '') => {
+  if (!value) {
+    return true;
+  }
+
+  const normalized = value.toLowerCase();
+  return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
+};
+
+const explicitMockFlag = (process.env.MOCK_AUTH || '').toLowerCase();
+const useMockAuth = explicitMockFlag === 'true' || (explicitMockFlag !== 'false' && isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY));
+
+const authStore = {
+  async createUser(payload) {
+    if (useMockAuth) {
+      return mockAuthStore.createUser(payload);
+    }
+
+    try {
+      return await databaseService.createUser(payload);
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[auth] Falling back to mock auth store for createUser:', error.message);
+        return mockAuthStore.createUser(payload);
+      }
+      throw error;
+    }
+  },
+
+  async getUserByEmail(email) {
+    if (useMockAuth) {
+      return mockAuthStore.getUserByEmail(email);
+    }
+
+    try {
+      return await databaseService.getUserByEmail(email);
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[auth] Falling back to mock auth store for getUserByEmail:', error.message);
+        return mockAuthStore.getUserByEmail(email);
+      }
+      throw error;
+    }
+  },
+
+  async getUserById(id) {
+    if (useMockAuth) {
+      return mockAuthStore.getUserById(id);
+    }
+
+    try {
+      return await databaseService.getUserById(id);
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[auth] Falling back to mock auth store for getUserById:', error.message);
+        return mockAuthStore.getUserById(id);
+      }
+      throw error;
+    }
+  },
+
+  async updateUser(id, updates) {
+    if (useMockAuth) {
+      return mockAuthStore.updateUser(id, updates);
+    }
+
+    try {
+      return await databaseService.updateUser(id, updates);
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[auth] Falling back to mock auth store for updateUser:', error.message);
+        return mockAuthStore.updateUser(id, updates);
+      }
+      throw error;
+    }
+  }
+};
 
 const EMAIL_NORMALIZE_OPTIONS = {
   gmail_remove_dots: false,
@@ -68,7 +147,7 @@ router.post('/register', [
     const { firstName, lastName, email, password, phone, country, tradingExperience } = req.body;
 
     // Check if user already exists
-    const existingUser = await databaseService.getUserByEmail(email);
+    const existingUser = await authStore.getUserByEmail(email);
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -96,7 +175,7 @@ router.post('/register', [
       updated_at: new Date().toISOString()
     };
 
-    const user = await databaseService.createUser(userData);
+    const user = await authStore.createUser(userData);
 
     // Generate token
     const token = generateToken(user.id);
@@ -148,7 +227,7 @@ router.post('/login', [
     const { email, password } = req.body;
 
     // Find user by email
-    const user = await databaseService.getUserByEmail(email);
+    const user = await authStore.getUserByEmail(email);
     if (!user) {
       console.warn('[admin-login] user not found for email:', email);
       return res.status(401).json({
@@ -196,7 +275,7 @@ router.post('/login', [
       const loginAttempts = (user.login_attempts || 0) + 1;
       const lockUntil = loginAttempts >= 5 ? new Date(Date.now() + 2 * 60 * 60 * 1000) : null; // Lock for 2 hours after 5 attempts
       
-      await databaseService.updateUser(user.id, {
+      await authStore.updateUser(user.id, {
         login_attempts: loginAttempts,
         lock_until: lockUntil
       });
@@ -209,14 +288,14 @@ router.post('/login', [
 
     // Reset login attempts on successful login
     if (user.login_attempts > 0) {
-      await databaseService.updateUser(user.id, {
+      await authStore.updateUser(user.id, {
         login_attempts: 0,
         lock_until: null
       });
     }
 
     // Update last login and activity
-    await databaseService.updateUser(user.id, {
+    await authStore.updateUser(user.id, {
       last_login: new Date().toISOString(),
       last_activity: new Date().toISOString()
     });
@@ -256,7 +335,7 @@ router.post('/login', [
 router.get('/me', auth, async (req, res) => {
   try {
     const userId = req.user.userId || req.user.id;
-    const user = await databaseService.getUserById(userId);
+    const user = await authStore.getUserById(userId);
     
     if (!user) {
       return res.status(404).json({
@@ -304,7 +383,7 @@ router.post('/forgot-password', [
 
     const { email } = req.body;
 
-    const user = await databaseService.getUserByEmail(email);
+    const user = await authStore.getUserByEmail(email);
     if (!user) {
       console.warn('[admin-login] user not found for email:', email);
       return res.status(401).json({
@@ -333,7 +412,7 @@ router.post('/forgot-password', [
       '1h'
     );
 
-    await databaseService.updateUser(user.id, {
+    await authStore.updateUser(user.id, {
       password_reset_token: resetToken,
       password_reset_expires: new Date(Date.now() + 60 * 60 * 1000).toISOString()
     });
@@ -389,7 +468,7 @@ router.post('/reset-password', [
       });
     }
 
-    const user = await databaseService.getUserById(decoded.userId);
+    const user = await authStore.getUserById(decoded.userId);
     
     if (!user || user.password_reset_token !== token || new Date(user.password_reset_expires) < new Date()) {
       return res.status(400).json({
@@ -403,7 +482,7 @@ router.post('/reset-password', [
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // Update password
-    await databaseService.updateUser(user.id, {
+    await authStore.updateUser(user.id, {
       password_hash: passwordHash,
       password_reset_token: null,
       password_reset_expires: null
@@ -457,7 +536,7 @@ router.post('/change-password', [
     const { currentPassword, newPassword } = req.body;
 
     // Get user with password
-    const user = await databaseService.getUserById(req.user.userId);
+    const user = await authStore.getUserById(req.user.userId);
     
     // Verify current password
     const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
@@ -473,7 +552,7 @@ router.post('/change-password', [
     const passwordHash = await bcrypt.hash(newPassword, saltRounds);
 
     // Update password
-    await databaseService.updateUser(user.id, {
+    await authStore.updateUser(user.id, {
       password_hash: passwordHash
     });
 
@@ -510,7 +589,7 @@ router.post('/verify-email', [
       });
     }
 
-    const user = await databaseService.getUserById(decoded.userId);
+    const user = await authStore.getUserById(decoded.userId);
 
     if (!user || user.email_verification_token !== token) {
       return res.status(400).json({
@@ -519,7 +598,7 @@ router.post('/verify-email', [
       });
     }
 
-    await databaseService.updateUser(user.id, {
+    await authStore.updateUser(user.id, {
       is_email_verified: true,
       email_verification_token: null
     });
@@ -563,7 +642,7 @@ router.post('/resend-verification', auth, async (req, res) => {
       '24h'
     );
 
-    await databaseService.updateUser(req.user.userId, {
+    await authStore.updateUser(req.user.userId, {
       email_verification_token: verificationToken
     });
 
@@ -589,7 +668,7 @@ router.post('/resend-verification', auth, async (req, res) => {
 router.post('/logout', auth, async (req, res) => {
   try {
     // Update last activity
-    await databaseService.updateUser(req.user.userId, {
+    await authStore.updateUser(req.user.userId, {
       last_activity: new Date().toISOString()
     });
 
@@ -633,7 +712,7 @@ router.post('/admin/login', [
     const { email, password } = req.body;
 
     // Find user by email
-    const user = await databaseService.getUserByEmail(email);
+    const user = await authStore.getUserByEmail(email);
     if (!user) {
       console.warn('[admin-login] user not found for email:', email);
       return res.status(401).json({
@@ -689,7 +768,7 @@ router.post('/admin/login', [
       const loginAttempts = (user.login_attempts || 0) + 1;
       const lockUntil = loginAttempts >= 5 ? new Date(Date.now() + 2 * 60 * 60 * 1000) : null;
       
-      await databaseService.updateUser(user.id, {
+      await authStore.updateUser(user.id, {
         login_attempts: loginAttempts,
         lock_until: lockUntil
       });
@@ -702,14 +781,14 @@ router.post('/admin/login', [
 
     // Reset login attempts on successful login
     if (user.login_attempts > 0) {
-      await databaseService.updateUser(user.id, {
+      await authStore.updateUser(user.id, {
         login_attempts: 0,
         lock_until: null
       });
     }
 
     // Update last login and activity
-    await databaseService.updateUser(user.id, {
+    await authStore.updateUser(user.id, {
       last_login: new Date().toISOString(),
       last_activity: new Date().toISOString()
     });
@@ -793,7 +872,7 @@ router.post('/admin/register', [
     }
 
     // Check if user already exists
-    const existingUser = await databaseService.getUserByEmail(email);
+    const existingUser = await authStore.getUserByEmail(email);
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -821,7 +900,7 @@ router.post('/admin/register', [
       updated_at: new Date().toISOString()
     };
 
-    const user = await databaseService.createUser(userData);
+    const user = await authStore.createUser(userData);
 
     // Generate token
     const token = generateToken(user.id);
@@ -877,6 +956,7 @@ router.post('/setup', async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 

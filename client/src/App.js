@@ -4,10 +4,13 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
+import { EAProvider } from './contexts/EAContext';
+import { UtilitiesProvider } from './contexts/UtilitiesContext';
 
 // Layout Components
 import Layout from './components/Layout/Layout';
 import AuthLayout from './components/Layout/AuthLayout';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
 
 // Auth Pages
 import Login from './pages/Auth/Login';
@@ -19,7 +22,7 @@ import AdminRegister from './pages/Auth/AdminRegister';
 
 // Main Pages
 import Dashboard from './pages/Dashboard/Dashboard';
-import SimpleDashboard from './pages/Dashboard/SimpleDashboard';
+// import SimpleDashboard from './pages/Dashboard/SimpleDashboard';
 import Markets from './pages/Markets/Markets';
 import MarketDetail from './pages/Markets/MarketDetail';
 import News from './pages/News/News';
@@ -28,6 +31,8 @@ import SignalDetail from './pages/Signals/SignalDetail';
 import EAMarketplace from './pages/EAMarketplace/EAMarketplace';
 import EADetail from './pages/EAMarketplace/EADetail';
 import CreateEA from './pages/EAMarketplace/CreateEA';
+import EditEA from './pages/EAMarketplace/EditEA';
+import UtilitiesPage from './pages/Utilities/UtilitiesPage';
 import HFTBots from './pages/HFTBots/HFTBots';
 import HFTBotDetail from './pages/HFTBots/HFTBotDetail';
 import Portfolio from './pages/Portfolio/Portfolio';
@@ -44,6 +49,8 @@ import EscrowDashboard from './pages/Escrow/EscrowDashboard';
 // Admin Pages
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminPanel from './pages/Admin/AdminPanel';
+import AdminAccess from './pages/Admin/AdminAccess';
+import SimpleAdminLogin from './pages/Admin/SimpleAdminLogin';
 
 // Test Pages
 import TestPage from './pages/Test/TestPage';
@@ -62,6 +69,8 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <WebSocketProvider>
+            <EAProvider>
+            <UtilitiesProvider>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
               <Routes>
                 {/* Auth Routes */}
@@ -74,10 +83,18 @@ function App() {
                   <Route path="admin/register" element={<AdminRegister />} />
                 </Route>
 
+                {/* Direct Admin Access - Outside Layout */}
+                <Route path="/admin" element={<SimpleAdminLogin />} />
+                <Route path="/admin-login" element={<SimpleAdminLogin />} />
+                <Route path="/admin-access" element={<AdminAccess />} />
+                
+                {/* Direct Admin Dashboard - Bypass Authentication */}
+                <Route path="/admin-dashboard" element={<AdminDashboard />} />
+
                 {/* Main Application Routes */}
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Navigate to="/dashboard" replace />} />
-                  <Route path="dashboard" element={<SimpleDashboard />} />
+                  <Route path="dashboard" element={<Dashboard />} />
                   
                   {/* Markets */}
                   <Route path="markets" element={<Markets />} />
@@ -96,6 +113,10 @@ function App() {
                   <Route path="ea-marketplace" element={<EAMarketplace />} />
                   <Route path="ea-marketplace/:id" element={<EADetail />} />
                   <Route path="create-ea" element={<CreateEA />} />
+                  <Route path="edit-ea/:id" element={<EditEA />} />
+                  
+                  {/* Free Utilities */}
+                  <Route path="utilities" element={<UtilitiesPage />} />
                   
                   {/* HFT Bots */}
                   <Route path="hft-bots" element={<HFTBots />} />
@@ -116,8 +137,8 @@ function App() {
                   <Route path="escrow" element={<EscrowDashboard />} />
                   
                   {/* Admin Routes */}
-                  <Route path="admin" element={<AdminDashboard />} />
-                  <Route path="admin/panel" element={<AdminPanel />} />
+                  <Route path="admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
+                  <Route path="admin/panel" element={<ProtectedRoute requireAdmin={true}><AdminPanel /></ProtectedRoute>} />
                   
                   {/* Test Routes */}
                   <Route path="test" element={<TestPage />} />
@@ -158,6 +179,8 @@ function App() {
                 }}
               />
             </div>
+            </UtilitiesProvider>
+            </EAProvider>
           </WebSocketProvider>
         </AuthProvider>
       </ThemeProvider>
@@ -166,3 +189,5 @@ function App() {
 }
 
 export default App;
+
+

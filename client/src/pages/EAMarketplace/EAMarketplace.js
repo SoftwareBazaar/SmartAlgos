@@ -13,21 +13,23 @@ import {
   CheckCircle,
   AlertCircle,
   Lock,
-  Unlock
+  Unlock,
+  RefreshCw
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
 import EscrowIntegration from '../../components/EscrowIntegration';
 import { useAuth } from '../../contexts/AuthContext';
+import { useEA } from '../../contexts/EAContext';
 import apiClient from '../../lib/apiClient';
 
 const EAMarketplace = () => {
   const navigate = useNavigate();
+  const { eas, getEAsByCategory, searchEAs, refreshEAs } = useEA();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [eas, setEas] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedEA, setSelectedEA] = useState(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [subscriptionType, setSubscriptionType] = useState('monthly');
@@ -36,34 +38,7 @@ const EAMarketplace = () => {
   const [useEscrow, setUseEscrow] = useState(true);
   const [escrowTransaction, setEscrowTransaction] = useState(null);
 
-  // Fetch EAs from Supabase
-  useEffect(() => {
-    const fetchEAs = async () => {
-      try {
-        setLoading(true);
-        const params = {
-          limit: 24
-        };
-        if (activeCategory !== 'all') {
-          params.category = activeCategory;
-        }
-        if (searchTerm.trim()) {
-          params.search = searchTerm.trim();
-        }
-
-        const response = await apiClient.get('/api/eas', { params });
-        setEas(response.data?.data || mockEAs);
-      } catch (error) {
-        console.error('Error fetching EAs:', error);
-        // Fallback to mock data if API fails
-        setEas(mockEAs);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEAs();
-  }, [activeCategory, searchTerm]);
+  // EAs are now managed by the EA context
 
   const handleSubscribe = (ea) => {
     setSelectedEA(ea);
@@ -243,16 +218,12 @@ const EAMarketplace = () => {
     { id: 'grid', name: 'Grid', count: eas.filter(ea => ea.category === 'grid').length },
     { id: 'arbitrage', name: 'Arbitrage', count: eas.filter(ea => ea.category === 'arbitrage').length },
     { id: 'hedging', name: 'Hedging', count: eas.filter(ea => ea.category === 'hedging').length },
+    { id: 'institutional', name: 'Institutional', count: eas.filter(ea => ea.category === 'Institutional').length },
   ];
 
-  const filteredEAs = eas.filter(ea => {
-    const matchesCategory = activeCategory === 'all' || ea.category === activeCategory;
-    const matchesSearch = ea.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ea.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (ea.tags && ea.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
-    
-    return matchesCategory && matchesSearch;
-  });
+  // Get EAs based on category and search
+  const categoryEAs = getEAsByCategory(activeCategory);
+  const filteredEAs = searchTerm ? searchEAs(searchTerm) : categoryEAs;
 
   const getCategoryColor = (category) => {
     const colors = {
@@ -262,12 +233,37 @@ const EAMarketplace = () => {
       grid: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
       arbitrage: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
       hedging: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+      institutional: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
     };
     return colors[category] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
   };
 
   return (
     <div className="space-y-6">
+      {/* Discount Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-4 text-white"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="bg-white bg-opacity-20 rounded-full p-2">
+              <span className="text-2xl">🎉</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold">Running Discount - 20% OFF!</h3>
+              <p className="text-sm opacity-90">All EA subscriptions are 20% off this month. Discount automatically applied at checkout.</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold">20%</div>
+            <div className="text-sm opacity-90">OFF</div>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -284,6 +280,10 @@ const EAMarketplace = () => {
             </p>
           </div>
           <div className="flex items-center space-x-2">
+            <Button variant="outline" onClick={refreshEAs}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
             <Button variant="outline">
               <Settings className="h-4 w-4 mr-2" />
               My EAs
@@ -507,8 +507,16 @@ const EAMarketplace = () => {
             >
               <Card hover className="h-full">
                 <div className="relative">
-                  <div className="h-48 bg-gradient-to-br from-primary-500 to-primary-600 rounded-t-lg flex items-center justify-center">
-                    <Bot className="h-16 w-16 text-white" />
+                  <div className="h-48 bg-gradient-to-br from-primary-500 to-primary-600 rounded-t-lg flex items-center justify-center overflow-hidden">
+                    {ea.image ? (
+                      <img 
+                        src={ea.image} 
+                        alt={ea.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Bot className="h-16 w-16 text-white" />
+                    )}
                   </div>
                   <div className="absolute top-4 left-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(ea.category)}`}>
@@ -575,7 +583,7 @@ const EAMarketplace = () => {
                     <div className="text-2xl font-bold text-white">
                       ${ea.price}
                       <span className="text-sm font-normal text-brand-200">
-                        /{ea.period}
+                        /{ea.currentPeriod || 'monthly'}
                       </span>
                     </div>
                     <div className="flex items-center space-x-1">
@@ -590,6 +598,25 @@ const EAMarketplace = () => {
                           <span className="text-xs">Offline</span>
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  {/* Rental Timeline Options */}
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Rental Period:</p>
+                    <div className="flex space-x-2">
+                      {['monthly', 'quarterly', 'yearly'].map((period) => (
+                        <button
+                          key={period}
+                          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                            (ea.currentPeriod || 'monthly') === period
+                              ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200'
+                              : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                          }`}
+                        >
+                          {period.charAt(0).toUpperCase() + period.slice(1)}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
@@ -608,6 +635,14 @@ const EAMarketplace = () => {
                       onClick={() => navigate(`/ea-marketplace/${ea.id}`)}
                     >
                       <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => navigate(`/edit-ea/${ea.id}`)}
+                      title="Edit EA"
+                    >
+                      <Settings className="h-4 w-4" />
                     </Button>
                   </div>
                 </Card.Body>

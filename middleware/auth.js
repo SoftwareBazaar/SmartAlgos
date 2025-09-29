@@ -1,6 +1,18 @@
 const databaseService = require('../services/databaseService');
+const mockAuthStore = require('../services/mockAuthStore');
 const securityService = require('../services/securityService');
 const userService = require('../services/userService');
+const isPlaceholderKey = (value = '') => {
+  if (!value) {
+    return true;
+  }
+
+  const normalized = value.toLowerCase();
+  return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
+};
+
+const explicitMockFlag = (process.env.MOCK_AUTH || '').toLowerCase();
+const useMockAuth = explicitMockFlag === 'true' || (explicitMockFlag !== 'false' && isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY));
 
 const parseDate = (value) => {
   if (!value) {
@@ -18,6 +30,17 @@ const auth = async (req, res, next) => {
     
     // Allow test token in development mode
     if (token === 'test_token' && (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV)) {
+      if (useMockAuth) {
+        const mockUser = await mockAuthStore.getUserByEmail('test@smartalgos.com') ||
+          await mockAuthStore.getUserByEmail('demo@smartalgos.local');
+
+        if (mockUser) {
+          req.user = userService.normalizeUser(mockUser);
+          req.userRaw = mockUser;
+          return next();
+        }
+      }
+
       req.user = userService.normalizeUser({
         id: 'test_user_123',
         email: 'test@example.com',
@@ -41,7 +64,9 @@ const auth = async (req, res, next) => {
     }
 
     const decoded = securityService.verifyToken(token);
-    const rawUser = await databaseService.getUserById(decoded.userId);
+    const rawUser = useMockAuth
+      ? await mockAuthStore.getUserById(decoded.userId)
+      : await databaseService.getUserById(decoded.userId);
 
     if (!rawUser) {
       return res.status(401).json({
@@ -305,6 +330,7 @@ module.exports = {
   updateActivity,
   createActionRateLimit
 };
+
 
 
 

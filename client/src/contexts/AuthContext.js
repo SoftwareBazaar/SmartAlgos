@@ -159,6 +159,8 @@ export const AuthProvider = ({ children }) => {
       delete apiClient.defaults.headers.common.Authorization;
       dispatch({ type: 'LOGOUT' });
       toast.success('Logged out successfully');
+      // Redirect to login page
+      window.location.href = '/auth/login';
     }
   };
 

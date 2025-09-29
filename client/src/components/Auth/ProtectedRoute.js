@@ -1,27 +1,27 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import LoadingSpinner from '../UI/LoadingSpinner';
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
+  // Show loading spinner while checking authentication
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-500"></div>
       </div>
     );
   }
 
+  // Redirect to login if not authenticated
   if (!user) {
-    // Redirect to login page with return url
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
+  // Check admin requirement
   if (requireAdmin && user.role !== 'admin') {
-    // Redirect to dashboard if not admin
     return <Navigate to="/dashboard" replace />;
   }
 

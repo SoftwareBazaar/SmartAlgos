@@ -15,12 +15,17 @@ const AdminLogin = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      email: 'Softwarebazaar.ke@gmail.com',
+      password: '28103441Jw@'
+    }
+  });
 
   const onSubmit = async (data) => {
     const result = await adminLogin(data.email, data.password);
     if (result.success) {
-      navigate('/admin/dashboard');
+      navigate('/admin');
     }
   };
 
@@ -49,6 +54,34 @@ const AdminLogin = () => {
               All admin activities are logged and monitored.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Quick Login Button */}
+      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <Shield className="h-5 w-5 text-green-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-green-800 dark:text-green-200">
+                <strong>Quick Admin Access:</strong> Use the pre-filled credentials below for instant access.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            onClick={() => {
+              const form = document.querySelector('form');
+              if (form) {
+                form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+              }
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            Quick Login
+          </Button>
         </div>
       </div>
 

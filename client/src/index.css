@@ -216,8 +216,9 @@
 
   /* Animation classes */
   .animate-fade-in {
-    @apply animate-fade-in;
+    animation: fadeIn 0.5s ease-out forwards;
   }
+
 
   .animate-slide-up {
     @apply animate-slide-up;
@@ -368,3 +369,12 @@
     @apply flex items-center justify-end;
   }
 }
+
+
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+

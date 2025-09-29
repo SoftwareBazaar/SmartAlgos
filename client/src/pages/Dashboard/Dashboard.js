@@ -11,17 +11,21 @@ import {
   Users,
   Bot,
   Zap,
-  ArrowLeft
+  ArrowLeft,
+  Settings,
+  Shield
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import PNLCalendar from '../../components/Analysis/PNLCalendar';
 // import { useAuth } from '../../contexts/AuthContext';
 // import { useWebSocket } from '../../contexts/WebSocketContext';
+import { useEA } from '../../contexts/EAContext';
 
 const Dashboard = () => {
   // const { user } = useAuth();
   // const { connected } = useWebSocket();
+  const { getActiveEAs } = useEA();
 
   // Mock data - in production, this would come from API calls
   const stats = [
@@ -106,35 +110,7 @@ const Dashboard = () => {
     },
   ];
 
-  const activeEAs = [
-    {
-      id: 1,
-      name: 'Gold Scalping Pro',
-      category: 'Scalping',
-      performance: '+12.5%',
-      trades: 45,
-      winRate: '78%',
-      status: 'active',
-    },
-    {
-      id: 2,
-      name: 'Trend Master EA',
-      category: 'Trend',
-      performance: '+8.2%',
-      trades: 23,
-      winRate: '65%',
-      status: 'active',
-    },
-    {
-      id: 3,
-      name: 'News Trader Bot',
-      category: 'News',
-      performance: '+15.8%',
-      trades: 12,
-      winRate: '83%',
-      status: 'active',
-    },
-  ];
+  const activeEAs = getActiveEAs();
 
   const marketOverview = [
     {
@@ -170,19 +146,43 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 text-white">
       {/* Header with Back Button */}
-      <div className="flex items-center space-x-4">
-        <Button
-          onClick={() => window.history.back()}
-          variant="outline"
-          size="sm"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Welcome back, Trader! 👋
-          </h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button
+            onClick={() => window.history.back()}
+            variant="outline"
+            size="sm"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              Welcome back, Trader! 👋
+            </h1>
+          </div>
+        </div>
+        
+        {/* Admin Access Button */}
+        <div className="flex space-x-2">
+          <Button
+            onClick={() => window.open('/admin', '_blank')}
+            variant="outline"
+            size="sm"
+            className="bg-primary-500 hover:bg-primary-600 text-white border-primary-500"
+          >
+            <Shield className="h-4 w-4 mr-2" />
+            Admin Access
+          </Button>
+          <Button
+            onClick={() => window.open('/admin-login', '_blank')}
+            variant="outline"
+            size="sm"
+            className="bg-gray-600 hover:bg-gray-700 text-white border-gray-600"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Admin Login
+          </Button>
         </div>
       </div>
 

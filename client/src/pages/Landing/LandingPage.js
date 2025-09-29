@@ -78,7 +78,7 @@ const LandingPage = () => {
               <span className="text-xl font-bold text-gray-900 dark:text-white">Smart Algos</span>
             </div>
             <div className="flex space-x-4">
-              <Link to="/auth/login">
+              <Link to="/login">
                 <Button variant="outline">Sign In</Button>
               </Link>
               <Link to="/auth/register">
@@ -218,7 +218,7 @@ const LandingPage = () => {
                   Create Free Account
                 </Button>
               </Link>
-              <Link to="/auth/login">
+              <Link to="/login">
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary-600">
                   Sign In
                 </Button>
@@ -264,7 +264,7 @@ const LandingPage = () => {
             <div>
               <h3 className="font-semibold mb-4">Support</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/auth/login" className="hover:text-white">Login</Link></li>
+                <li><Link to="/login" className="hover:text-white">Login</Link></li>
                 <li><Link to="/auth/register" className="hover:text-white">Register</Link></li>
                 <li><Link to="/test" className="hover:text-white">Test Page</Link></li>
                 <li><Link to="/desktop-features" className="hover:text-white">Desktop App</Link></li>

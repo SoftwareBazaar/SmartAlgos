@@ -21,6 +21,31 @@ import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import apiClient from '../../lib/apiClient';
 
+const DEFAULT_PNL_ENTRIES = [
+    { date: '2024-01-02', pnl: 450 },
+    { date: '2024-01-03', pnl: -220 },
+    { date: '2024-01-04', pnl: 180 },
+    { date: '2024-01-05', pnl: 720 },
+    { date: '2024-01-08', pnl: -310 },
+    { date: '2024-01-09', pnl: 940 },
+    { date: '2024-01-10', pnl: -120 },
+    { date: '2024-01-11', pnl: 0 },
+    { date: '2024-01-12', pnl: 420 },
+    { date: '2024-01-15', pnl: 280 },
+    { date: '2024-01-16', pnl: -640 },
+    { date: '2024-01-17', pnl: 390 },
+    { date: '2024-01-18', pnl: 210 },
+    { date: '2024-01-19', pnl: -450 },
+    { date: '2024-01-22', pnl: 610 },
+    { date: '2024-01-23', pnl: 75 },
+    { date: '2024-01-24', pnl: -180 },
+    { date: '2024-01-25', pnl: 540 },
+    { date: '2024-01-26', pnl: 130 },
+    { date: '2024-01-29', pnl: -90 },
+    { date: '2024-01-30', pnl: 320 },
+    { date: '2024-01-31', pnl: 510 },
+  ];
+
 const Portfolio = () => {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('all');
@@ -116,30 +141,7 @@ const Portfolio = () => {
     return matchesFilter;
   });
 
-  const pnlEntries = useMemo(() => ([
-    { date: '2024-01-02', pnl: 450 },
-    { date: '2024-01-03', pnl: -220 },
-    { date: '2024-01-04', pnl: 180 },
-    { date: '2024-01-05', pnl: 720 },
-    { date: '2024-01-08', pnl: -310 },
-    { date: '2024-01-09', pnl: 940 },
-    { date: '2024-01-10', pnl: -120 },
-    { date: '2024-01-11', pnl: 0 },
-    { date: '2024-01-12', pnl: 420 },
-    { date: '2024-01-15', pnl: 280 },
-    { date: '2024-01-16', pnl: -640 },
-    { date: '2024-01-17', pnl: 390 },
-    { date: '2024-01-18', pnl: 210 },
-    { date: '2024-01-19', pnl: -450 },
-    { date: '2024-01-22', pnl: 610 },
-    { date: '2024-01-23', pnl: 75 },
-    { date: '2024-01-24', pnl: -180 },
-    { date: '2024-01-25', pnl: 540 },
-    { date: '2024-01-26', pnl: 130 },
-    { date: '2024-01-29', pnl: -90 },
-    { date: '2024-01-30', pnl: 320 },
-    { date: '2024-01-31', pnl: 510 },
-  ]), []);
+  const [pnlEntries, setPnLEntries] = useState(DEFAULT_PNL_ENTRIES);
 
   const pnlByDate = useMemo(() => {
     return pnlEntries.reduce((acc, entry) => {
@@ -148,9 +150,23 @@ const Portfolio = () => {
     }, {});
   }, [pnlEntries]);
 
-  const calendarYear = 2024;
-  const calendarMonthIndex = 0;
+  const calendarReferenceDate = useMemo(() => {
+    if (!pnlEntries.length) {
+      return new Date();
+    }
 
+    const lastEntry = pnlEntries[pnlEntries.length - 1];
+    const parsedDate = new Date(lastEntry.date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return new Date();
+    }
+
+    return parsedDate;
+  }, [pnlEntries]);
+
+  const calendarYear = calendarReferenceDate.getFullYear();
+  const calendarMonthIndex = calendarReferenceDate.getMonth();
   const calendarCells = useMemo(() => {
     const firstDay = new Date(calendarYear, calendarMonthIndex, 1);
     const daysInMonth = new Date(calendarYear, calendarMonthIndex + 1, 0).getDate();
@@ -171,16 +187,40 @@ const Portfolio = () => {
     }
 
     return cells;
-  }, [pnlByDate]);
+  }, [pnlByDate, calendarYear, calendarMonthIndex]);
 
   const totalMonthlyPnL = useMemo(() => {
-    return pnlEntries.reduce((sum, entry) => sum + entry.pnl, 0);
-  }, [pnlEntries]);
+    return pnlEntries.reduce((sum, entry) => {
+      const entryDate = new Date(entry.date);
 
-  const formatPnLValue = (value) => {
-    if (value > 0) return `+$${value.toLocaleString()}`;
-    if (value < 0) return `-$${Math.abs(value).toLocaleString()}`;
-    return '$0';
+      if (Number.isNaN(entryDate.getTime())) {
+        return sum;
+      }
+
+      if (entryDate.getFullYear() !== calendarYear || entryDate.getMonth() !== calendarMonthIndex) {
+        return sum;
+      }
+
+      return sum + entry.pnl;
+    }, 0);
+  }, [pnlEntries, calendarYear, calendarMonthIndex]);
+
+  const formatPnLValue = (value, currencySymbol = '$') => {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      return `${currencySymbol}0`;
+    }
+
+    const formatted = Math.abs(value).toLocaleString();
+
+    if (value > 0) {
+      return `+${currencySymbol}${formatted}`;
+    }
+
+    if (value < 0) {
+      return `-${currencySymbol}${formatted}`;
+    }
+
+    return `${currencySymbol}0`;
   };
 
   const pnlColorClass = (value) => {
@@ -200,6 +240,10 @@ const Portfolio = () => {
       default: return 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-200';
     }
   };
+
+  const analysis = uploadPreview?.analysis;
+  const analysisTotals = analysis?.totals;
+  const analysisColumns = analysis?.detectedColumns;
 
   const handleSelectCsv = (event) => {
     const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
@@ -226,6 +270,11 @@ const Portfolio = () => {
       });
 
       setUploadPreview(data);
+
+      if (data?.analysis?.pnlEntries?.length) {
+        setPnLEntries(data.analysis.pnlEntries);
+      }
+
       setSelectedCsv(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -358,15 +407,79 @@ const Portfolio = () => {
             {uploadPreview && (
               <div className="mt-6 rounded-lg border border-brand-800/60 bg-brand-900/40 p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-gray-100">Preview (first {uploadPreview.preview.length} lines)</h3>
+                  <h3 className="text-sm font-semibold text-gray-100">
+                    Preview (first {uploadPreview.preview.length} lines)
+                  </h3>
                   <p className="text-xs text-brand-200">Saved to: {uploadPreview.savedTo}</p>
                 </div>
                 <pre className="mt-3 max-h-48 overflow-auto rounded bg-black/40 p-3 text-xs text-brand-100">
                   {uploadPreview.preview.length ? uploadPreview.preview.join('\n') : 'No data detected.'}
-                    ? uploadPreview.preview.join('\n')
-
-                    : 'No data detected.'}
                 </pre>
+
+                {analysis && (
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-lg border border-brand-800/60 bg-brand-900/60 p-4">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-brand-200">
+                        PnL Summary
+                      </h4>
+                      <div className="mt-3 space-y-2 text-sm text-brand-100">
+                        <div className="flex items-center justify-between">
+                          <span>Total Profit</span>
+                          <span className={analysisTotals?.totalProfit >= 0 ? 'text-success-300' : 'text-danger-300'}>
+                            {analysisTotals ? formatPnLValue(analysisTotals.totalProfit, analysis.currency || '$') : '—'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Average Daily</span>
+                          <span>{analysisTotals ? formatPnLValue(analysisTotals.averageDailyProfit, analysis.currency || '$') : '—'}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span>Positive / Negative / Flat</span>
+                          <span>{analysisTotals ? `${analysisTotals.positiveDays}/${analysisTotals.negativeDays}/${analysisTotals.flatDays}` : 'N/A'}</span>
+                        </div>
+                        {analysisTotals?.bestDay && (
+                          <div className="flex items-center justify-between text-xs">
+                            <span>Best Day</span>
+                            <span>{analysisTotals.bestDay.date} - {formatPnLValue(analysisTotals.bestDay.pnl, analysis.currency || '$')}</span>
+                          </div>
+                        )}
+                        {analysisTotals?.worstDay && (
+                          <div className="flex items-center justify-between text-xs">
+                            <span>Worst Day</span>
+                            <span>{analysisTotals.worstDay.date} - {formatPnLValue(analysisTotals.worstDay.pnl, analysis.currency || '$')}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-brand-800/60 bg-brand-900/60 p-4">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-brand-200">
+                        CSV Details
+                      </h4>
+                      <div className="mt-3 space-y-2 text-sm text-brand-100">
+                        <div className="flex items-center justify-between">
+                          <span>Rows Parsed</span>
+                          <span>{analysis.parsedRows}/{analysis.totalRows}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Skipped Rows</span>
+                          <span>{analysis.skippedRows}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span>Date Column</span>
+                          <span>{analysisColumns?.dateColumn ?? '—'}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span>Profit Column</span>
+                          <span>{analysisColumns?.profitColumn ?? '—'}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span>Symbol Column</span>
+                          <span>{analysisColumns?.symbolColumn ?? '—'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </Card.Body>

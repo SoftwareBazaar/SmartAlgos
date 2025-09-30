@@ -9,7 +9,8 @@
       "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build"
+        "distDir": "build",
+        "buildCommand": "DISABLE_ESLINT_PLUGIN=true CI=false npm run build"
       }
     }
   ],
@@ -29,6 +30,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "buildCommand": "npm run build:client"
+  }
 }

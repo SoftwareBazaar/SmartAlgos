@@ -222,6 +222,17 @@ app.use(requestLogger);
 // Static files
 app.use('/uploads', express.static('uploads'));
 
+// Serve React app in production
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  app.use(express.static(path.join(__dirname, 'client/build')));
+  
+  // Catch all handler: send back React's index.html file for any non-API routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+  });
+}
+
 // Make io accessible to routes
 app.use((req, res, next) => {
   req.io = io;

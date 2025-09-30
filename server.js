@@ -222,7 +222,8 @@ app.use(requestLogger);
 // Static files
 app.use('/uploads', express.static('uploads'));
 
-// React app is served by Vercel static files
+// Serve React static files
+app.use('/static', express.static('static'));
 
 // Make io accessible to routes
 app.use((req, res, next) => {

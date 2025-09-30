@@ -2,6 +2,16 @@ const axios = require('axios');
 const EventEmitter = require('events');
 const nseService = require('./nseService');
 const alphaVantageService = require('./alphaVantageService');
+const polygonMarketService = require('./polygonMarketService');
+
+const DEFAULT_US_TICKERS = (process.env.US_MARKET_TICKERS || 'AAPL,TSLA,GOOGL,MSFT,AMZN')
+  .split(',')
+  .map((ticker) => ticker.trim().toUpperCase())
+  .filter(Boolean);
+const DEFAULT_US_INDEX_TICKERS = (process.env.US_INDEX_TICKERS || 'SPY,QQQ,DIA,IWM')
+  .split(',')
+  .map((ticker) => ticker.trim().toUpperCase())
+  .filter(Boolean);
 
 class MarketDataService extends EventEmitter {
   constructor() {
@@ -10,10 +20,10 @@ class MarketDataService extends EventEmitter {
     this.subscriptions = new Map();
     this.realTimeConnections = new Map();
     this.cacheDuration = {
-      quotes: 10000,      // 10 seconds
-      overview: 30000,    // 30 seconds
-      historical: 300000, // 5 minutes
-      screener: 60000     // 1 minute
+      quotes: 3000,       // 3 seconds - for real-time trading
+      overview: 10000,    // 10 seconds - faster market overview
+      historical: 300000, // 5 minutes - historical data can be slower
+      screener: 30000     // 30 seconds - screener updates
     };
     
     // Start real-time data updates
@@ -187,12 +197,42 @@ class MarketDataService extends EventEmitter {
     if (cached) return cached;
 
     try {
-      // Try Alpha Vantage first for real data
+      const [indices, quotes] = await Promise.all([
+        polygonMarketService.getIndicesSnapshot(),
+        Promise.all(DEFAULT_US_TICKERS.map((ticker) => polygonMarketService.getQuote(ticker)))
+      ]);
+
+      const validQuotes = quotes.filter(Boolean);
+
+      if (validQuotes.length) {
+        const gainers = [...validQuotes].sort((a, b) => (b.changePercent || 0) - (a.changePercent || 0));
+        const losers = [...validQuotes].sort((a, b) => (a.changePercent || 0) - (b.changePercent || 0));
+        const mostActive = [...validQuotes].sort((a, b) => (b.volume || 0) - (a.volume || 0));
+
+        const overview = {
+          indices: indices && indices.length ? indices : await this.fetchUSIndices({ usePolygon: false }),
+          gainers: gainers.slice(0, 10),
+          losers: losers.slice(0, 10),
+          mostActive: mostActive.slice(0, 10),
+          marketStatus: this.getUSMarketStatus(),
+          timestamp: new Date()
+        };
+
+        this.setCachedData(cacheKey, overview, this.cacheDuration.overview);
+        return overview;
+      }
+    } catch (polygonError) {
+      if (polygonError.code !== 'POLYGON_API_KEY_MISSING') {
+        console.error('Polygon US market overview error:', polygonError.message || polygonError);
+      }
+    }
+
+    try {
       const alphaData = await this.getAlphaVantageTopGainersLosers();
-      
+
       if (alphaData && alphaData.gainers && alphaData.gainers.length > 0) {
         const overview = {
-          indices: await this.fetchUSIndices(),
+          indices: await this.fetchUSIndices({ usePolygon: false }),
           gainers: alphaData.gainers,
           losers: alphaData.losers,
           mostActive: alphaData.mostActive,
@@ -203,119 +243,157 @@ class MarketDataService extends EventEmitter {
         this.setCachedData(cacheKey, overview, this.cacheDuration.overview);
         return overview;
       }
-
-      // Fallback to mock data if Alpha Vantage fails
-      const [indices, gainers, losers, mostActive] = await Promise.allSettled([
-        this.fetchUSIndices(),
-        this.fetchUSGainers(),
-        this.fetchUSLosers(),
-        this.fetchUSMostActive()
-      ]);
-
-      const overview = {
-        indices: indices.status === 'fulfilled' ? indices.value : null,
-        gainers: gainers.status === 'fulfilled' ? gainers.value : null,
-        losers: losers.status === 'fulfilled' ? losers.value : null,
-        mostActive: mostActive.status === 'fulfilled' ? mostActive.value : null,
-        marketStatus: this.getUSMarketStatus(),
-        timestamp: new Date()
-      };
-
-      this.setCachedData(cacheKey, overview, this.cacheDuration.overview);
-      return overview;
-    } catch (error) {
-      console.error('Error fetching US market overview:', error);
-      return null;
+    } catch (alphaError) {
+      console.error('Alpha Vantage US market overview error:', alphaError.message || alphaError);
     }
+
+    const [indices, gainers, losers, mostActive] = await Promise.allSettled([
+      this.fetchUSIndices({ usePolygon: false }),
+      this.fetchUSGainers({ usePolygon: false }),
+      this.fetchUSLosers({ usePolygon: false }),
+      this.fetchUSMostActive({ usePolygon: false })
+    ]);
+
+    const overview = {
+      indices: indices.status === 'fulfilled' ? indices.value : null,
+      gainers: gainers.status === 'fulfilled' ? gainers.value : null,
+      losers: losers.status === 'fulfilled' ? losers.value : null,
+      mostActive: mostActive.status === 'fulfilled' ? mostActive.value : null,
+      marketStatus: this.getUSMarketStatus(),
+      timestamp: new Date()
+    };
+
+    this.setCachedData(cacheKey, overview, this.cacheDuration.overview);
+    return overview;
   }
 
-  async fetchUSIndices() {
-    try {
-      // Using Alpha Vantage for indices
-      const response = await axios.get(`https://www.alphavantage.co/query?function=TOP_GAINERS_LOSERS&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`);
-      
-      // Mock data for demonstration
-      return [
-        {
-          symbol: 'SPX',
-          name: 'S&P 500',
-          price: 4567.89,
-          change: 23.45,
-          changePercent: 0.52,
-          volume: 0
-        },
-        {
-          symbol: 'DJI',
-          name: 'Dow Jones',
-          price: 34567.89,
-          change: 123.45,
-          changePercent: 0.36,
-          volume: 0
-        },
-        {
-          symbol: 'IXIC',
-          name: 'NASDAQ',
-          price: 14567.89,
-          change: 89.23,
-          changePercent: 0.62,
-          volume: 0
+  async fetchUSIndices(options = {}) {
+    const { usePolygon = true } = options;
+
+    if (usePolygon) {
+      try {
+        const quotes = await Promise.all(
+          DEFAULT_US_INDEX_TICKERS.map((ticker) => polygonMarketService.getQuote(ticker))
+        );
+
+        const validQuotes = quotes.filter(Boolean);
+        if (validQuotes.length) {
+          return validQuotes.map((quote, index) => ({
+            symbol: DEFAULT_US_INDEX_TICKERS[index],
+            name: DEFAULT_US_INDEX_TICKERS[index],
+            price: quote.price,
+            change: quote.change,
+            changePercent: quote.changePercent,
+            volume: quote.volume,
+            previousClose: quote.previousClose
+          }));
         }
-      ];
-    } catch (error) {
-      console.error('Error fetching US indices:', error);
-      return null;
+      } catch (error) {
+        if (error.code !== 'POLYGON_API_KEY_MISSING') {
+          console.error('Error fetching US indices from Polygon:', error.message || error);
+        }
+      }
     }
+
+    return [
+      { symbol: 'SPX', name: 'S&P 500', price: 4567.89, change: 23.45, changePercent: 0.52, volume: 0 },
+      { symbol: 'DJI', name: 'Dow Jones', price: 34567.89, change: 123.45, changePercent: 0.36, volume: 0 },
+      { symbol: 'IXIC', name: 'NASDAQ', price: 14567.89, change: 89.23, changePercent: 0.62, volume: 0 }
+    ];
   }
 
-  async fetchUSGainers() {
-    try {
-      // Mock data - in production, use real API
-      return Array.from({ length: 10 }, (_, i) => ({
-        symbol: `GAIN${i + 1}`,
-        name: `Gainer Stock ${i + 1}`,
-        price: Math.random() * 100 + 50,
-        change: Math.random() * 10 + 1,
-        changePercent: Math.random() * 5 + 1,
-        volume: Math.floor(Math.random() * 1000000)
-      }));
-    } catch (error) {
-      console.error('Error fetching US gainers:', error);
-      return null;
+
+  async fetchUSGainers(options = {}) {
+    const { usePolygon = true, limit = 10 } = options;
+
+    if (usePolygon) {
+      try {
+        const quotes = await Promise.all(
+          DEFAULT_US_TICKERS.map((ticker) => polygonMarketService.getQuote(ticker))
+        );
+        const validQuotes = quotes.filter(Boolean);
+        if (validQuotes.length) {
+          return validQuotes
+            .sort((a, b) => (b.changePercent || 0) - (a.changePercent || 0))
+            .slice(0, limit);
+        }
+      } catch (error) {
+        if (error.code !== 'POLYGON_API_KEY_MISSING') {
+          console.error('Error fetching US gainers from Polygon:', error.message || error);
+        }
+      }
     }
+
+    return Array.from({ length: limit }, (_, i) => ({
+      symbol: `GAINER${i + 1}`,
+      name: `Top Gainer ${i + 1}`,
+      price: Math.random() * 100 + 20,
+      change: Math.random() * 15 + 5,
+      changePercent: Math.random() * 5 + 1,
+      volume: Math.floor(Math.random() * 5000000) + 1000000
+    }));
   }
 
-  async fetchUSLosers() {
-    try {
-      // Mock data - in production, use real API
-      return Array.from({ length: 10 }, (_, i) => ({
-        symbol: `LOSS${i + 1}`,
-        name: `Loser Stock ${i + 1}`,
-        price: Math.random() * 100 + 50,
-        change: -(Math.random() * 10 + 1),
-        changePercent: -(Math.random() * 5 + 1),
-        volume: Math.floor(Math.random() * 1000000)
-      }));
-    } catch (error) {
-      console.error('Error fetching US losers:', error);
-      return null;
+  async fetchUSLosers(options = {}) {
+    const { usePolygon = true, limit = 10 } = options;
+
+    if (usePolygon) {
+      try {
+        const quotes = await Promise.all(
+          DEFAULT_US_TICKERS.map((ticker) => polygonMarketService.getQuote(ticker))
+        );
+        const validQuotes = quotes.filter(Boolean);
+        if (validQuotes.length) {
+          return validQuotes
+            .sort((a, b) => (a.changePercent || 0) - (b.changePercent || 0))
+            .slice(0, limit);
+        }
+      } catch (error) {
+        if (error.code !== 'POLYGON_API_KEY_MISSING') {
+          console.error('Error fetching US losers from Polygon:', error.message || error);
+        }
+      }
     }
+
+    return Array.from({ length: limit }, (_, i) => ({
+      symbol: `LOSER${i + 1}`,
+      name: `Top Loser ${i + 1}`,
+      price: Math.random() * 100 + 20,
+      change: -(Math.random() * 15 + 5),
+      changePercent: -(Math.random() * 5 + 1),
+      volume: Math.floor(Math.random() * 5000000) + 1000000
+    }));
   }
 
-  async fetchUSMostActive() {
-    try {
-      // Mock data - in production, use real API
-      return Array.from({ length: 10 }, (_, i) => ({
-        symbol: `ACTIVE${i + 1}`,
-        name: `Active Stock ${i + 1}`,
-        price: Math.random() * 100 + 50,
-        change: Math.random() * 20 - 10,
-        changePercent: Math.random() * 10 - 5,
-        volume: Math.floor(Math.random() * 5000000) + 1000000
-      }));
-    } catch (error) {
-      console.error('Error fetching US most active:', error);
-      return null;
+  async fetchUSMostActive(options = {}) {
+    const { usePolygon = true, limit = 10 } = options;
+
+    if (usePolygon) {
+      try {
+        const quotes = await Promise.all(
+          DEFAULT_US_TICKERS.map((ticker) => polygonMarketService.getQuote(ticker))
+        );
+        const validQuotes = quotes.filter(Boolean);
+        if (validQuotes.length) {
+          return validQuotes
+            .sort((a, b) => (b.volume || 0) - (a.volume || 0))
+            .slice(0, limit);
+        }
+      } catch (error) {
+        if (error.code !== 'POLYGON_API_KEY_MISSING') {
+          console.error('Error fetching US most active from Polygon:', error.message || error);
+        }
+      }
     }
+
+    return Array.from({ length: limit }, (_, i) => ({
+      symbol: `ACTIVE${i + 1}`,
+      name: `Active Stock ${i + 1}`,
+      price: Math.random() * 100 + 50,
+      change: Math.random() * 20 - 10,
+      changePercent: Math.random() * 10 - 5,
+      volume: Math.floor(Math.random() * 5000000) + 1000000
+    }));
   }
 
   async getUSStockQuote(symbol) {
@@ -324,33 +402,28 @@ class MarketDataService extends EventEmitter {
     if (cached) return cached;
 
     try {
-      // Using Alpha Vantage for real-time quotes
-      const response = await axios.get(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`);
-      
-      if (response.data['Global Quote']) {
-        const quote = response.data['Global Quote'];
-        const stockQuote = {
-          symbol: quote['01. symbol'],
-          price: parseFloat(quote['05. price']),
-          change: parseFloat(quote['09. change']),
-          changePercent: parseFloat(quote['10. change percent'].replace('%', '')),
-          volume: parseInt(quote['06. volume']),
-          high: parseFloat(quote['03. high']),
-          low: parseFloat(quote['04. low']),
-          open: parseFloat(quote['02. open']),
-          previousClose: parseFloat(quote['08. previous close']),
-          timestamp: new Date()
-        };
-
-        this.setCachedData(cacheKey, stockQuote, this.cacheDuration.quotes);
-        return stockQuote;
+      const quote = await polygonMarketService.getQuote(symbol);
+      if (quote) {
+        this.setCachedData(cacheKey, quote, this.cacheDuration.quotes);
+        return quote;
       }
-      
-      return null;
     } catch (error) {
-      console.error('Error fetching US stock quote:', error);
-      return null;
+      if (error.code !== 'POLYGON_API_KEY_MISSING') {
+        console.error('Polygon US stock quote error:', error.message || error);
+      }
     }
+
+    try {
+      const fallbackQuote = await alphaVantageService.getStockQuote(symbol);
+      if (fallbackQuote) {
+        this.setCachedData(cacheKey, fallbackQuote, this.cacheDuration.quotes);
+        return fallbackQuote;
+      }
+    } catch (alphaError) {
+      console.error('Alpha Vantage US stock quote error:', alphaError.message || alphaError);
+    }
+
+    return null;
   }
 
   async getUSHistoricalData(symbol, interval = '1d', period = '1mo') {
@@ -358,8 +431,152 @@ class MarketDataService extends EventEmitter {
     const cached = this.getCachedData(cacheKey);
     if (cached) return cached;
 
+    const timespanMap = {
+      '1d': { multiplier: 1, timespan: 'day' },
+      '1h': { multiplier: 1, timespan: 'hour' },
+      '5m': { multiplier: 5, timespan: 'minute' }
+    };
+
+    const resolveRange = (requestedPeriod) => {
+      const now = new Date();
+      const start = new Date(now);
+
+      switch (requestedPeriod) {
+        case '1d':
+          start.setDate(now.getDate() - 1);
+          break;
+        case '5d':
+          start.setDate(now.getDate() - 5);
+          break;
+        case '1w':
+          start.setDate(now.getDate() - 7);
+          break;
+        case '3mo':
+          start.setMonth(now.getMonth() - 3);
+          break;
+        case '6mo':
+          start.setMonth(now.getMonth() - 6);
+          break;
+        case '1y':
+          start.setFullYear(now.getFullYear() - 1);
+          break;
+        case '2y':
+          start.setFullYear(now.getFullYear() - 2);
+          break;
+        case '5y':
+          start.setFullYear(now.getFullYear() - 5);
+          break;
+        default:
+          start.setMonth(now.getMonth() - 1);
+      }
+
+      return {
+        from: start.toISOString().split('T')[0],
+        to: now.toISOString().split('T')[0]
+      };
+    };
+
+    const timescale = timespanMap[interval] || timespanMap['1d'];
+    const range = resolveRange(period);
+
     try {
-      // Using Alpha Vantage for historical data
+      const aggregates = await polygonMarketService.getAggregates({
+        ticker: symbol,
+        multiplier: timescale.multiplier,
+        timespan: timescale.timespan,
+        from: range.from,
+        to: range.to,
+        limit: 500
+      });
+
+      if (aggregates && aggregates.length) {
+        const historicalData = aggregates.map((item) => ({
+          date: new Date(item.t).toISOString(),
+          open: item.o,
+          high: item.h,
+          low: item.l,
+          close: item.c,
+          volume: item.v
+        }));
+
+        this.setCachedData(cacheKey, historicalData, this.cacheDuration.historical);
+        return historicalData;
+      }
+    } catch (error) {
+      if (error.code !== 'POLYGON_API_KEY_MISSING') {
+        console.error('Polygon US historical data error:', error.message || error);
+      }
+    }
+
+    try {
+      const functionMap = {
+        '1d': 'TIME_SERIES_DAILY',
+        '1h': 'TIME_SERIES_INTRADAY',
+        '5m': 'TIME_SERIES_INTRADAY'
+      };
+
+      const functionName = functionMap[interval] || 'TIME_SERIES_DAILY';
+      const response = await axios.get(`https://www.alphavantage.co/query?function=${functionName}&symbol=${symbol}&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`);
+
+      if (response.data['Time Series (Daily)'] || response.data['Time Series (5min)']) {
+        const timeSeries = response.data['Time Series (Daily)'] || response.data['Time Series (5min)'];
+        const historicalData = Object.entries(timeSeries)
+          .map(([date, data]) => ({
+            date,
+            open: parseFloat(data['1. open']),
+            high: parseFloat(data['2. high']),
+            low: parseFloat(data['3. low']),
+            close: parseFloat(data['4. close']),
+            volume: parseInt(data['5. volume'], 10)
+          }))
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        this.setCachedData(cacheKey, historicalData, this.cacheDuration.historical);
+        return historicalData;
+      }
+
+      return null;
+    } catch (alphaError) {
+      console.error('Alpha Vantage US historical data error:', alphaError.message || alphaError);
+      return null;
+    }
+  }
+
+  async getNSEHistoricalData(symbol, interval = '1d', period = '1mo') {
+    const cacheKey = `nse_historical_${symbol}_${interval}_${period}`;
+    const cached = this.getCachedData(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const aggregates = await polygonMarketService.getAggregates({
+        ticker: symbol,
+        multiplier: timescale.multiplier,
+        timespan: timescale.timespan,
+        from: range.from,
+        to: range.to,
+        limit: 500
+      });
+
+      if (aggregates && aggregates.length) {
+        const historicalData = aggregates.map((item) => ({
+          date: new Date(item.t).toISOString(),
+          open: item.o,
+          high: item.h,
+          low: item.l,
+          close: item.c,
+          volume: item.v
+        }));
+
+        this.setCachedData(cacheKey, historicalData, this.cacheDuration.historical);
+        return historicalData;
+      }
+    } catch (error) {
+      if (error.code !== 'POLYGON_API_KEY_MISSING') {
+        console.error('Polygon US historical data error:', error.message || error);
+      }
+    }
+
+    try {
       const functionMap = {
         '1d': 'TIME_SERIES_DAILY',
         '1h': 'TIME_SERIES_INTRADAY',
@@ -377,7 +594,7 @@ class MarketDataService extends EventEmitter {
           high: parseFloat(data['2. high']),
           low: parseFloat(data['3. low']),
           close: parseFloat(data['4. close']),
-          volume: parseInt(data['5. volume'])
+          volume: parseInt(data['5. volume'], 10)
         })).sort((a, b) => new Date(a.date) - new Date(b.date));
 
         this.setCachedData(cacheKey, historicalData, this.cacheDuration.historical);
@@ -385,8 +602,8 @@ class MarketDataService extends EventEmitter {
       }
 
       return null;
-    } catch (error) {
-      console.error('Error fetching US historical data:', error);
+    } catch (alphaError) {
+      console.error('Alpha Vantage US historical data error:', alphaError.message || alphaError);
       return null;
     }
   }
@@ -741,14 +958,16 @@ class MarketDataService extends EventEmitter {
   // ==================== REAL-TIME UPDATES ====================
 
   startRealTimeUpdates() {
-    // Update market data every 30 seconds
+    // Update market data every 5 seconds for real-time trading
     setInterval(async () => {
       try {
         await this.updateRealTimeData();
       } catch (error) {
         console.error('Error in real-time updates:', error);
       }
-    }, 30000);
+    }, 5000); // 5 seconds for near real-time updates
+    
+    console.log('✅ Real-time market data updates started (5-second refresh)');
   }
 
   async updateRealTimeData() {

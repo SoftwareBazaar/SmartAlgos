@@ -136,7 +136,7 @@ export default function SmartAlgosLogin() {
   const goToRegister = () => navigate('/auth/register');
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 flex items-center justify-center relative overflow-hidden py-8">
       <style>{animationStyles}</style>
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -145,121 +145,124 @@ export default function SmartAlgosLogin() {
         <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl animate-pulse" />
       </div>
 
-      <div className="w-full py-6 px-4 bg-slate-900/80 backdrop-blur-xl border-b border-purple-500/20 relative z-10">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center animate-pulse">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
+      <div className="w-full max-w-lg px-4 relative z-10">
+          <div className="bg-slate-800/40 backdrop-blur-2xl rounded-2xl shadow-2xl border border-purple-500/30 overflow-hidden">
+            {/* Logo Header */}
+            <div className="bg-slate-900/80 backdrop-blur-xl border-b border-purple-500/20 py-3 px-4">
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+                <h1 className="text-lg font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+                  Smart Algos
+                </h1>
+              </div>
+              <p className="text-slate-400 text-center mt-0.5 text-xs">AI Powered Trading Excellence</p>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-              Smart Algos
-            </h1>
-          </div>
-          <p className="text-slate-400 text-center mt-2 text-sm md:text-base">
-            AI Powered Trading Excellence
-          </p>
-        </div>
-      </div>
 
-      <div className="flex-1 w-full flex items-center justify-center p-4 relative z-10">
-        <div className="w-full max-w-xl">
-          <div className="bg-slate-800/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-purple-500/30 overflow-hidden">
-            <div className="bg-gradient-to-br from-purple-600 via-purple-500 to-blue-600 p-10 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-purple-600 via-purple-500 to-blue-600 p-4 relative overflow-hidden">
               <div className="absolute inset-0">
-                <div className="absolute top-4 left-4 w-2 h-2 bg-white/40 rounded-full animate-ping" />
-                <div className="absolute top-8 right-8 w-1 h-1 bg-white/30 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
-                <div className="absolute bottom-6 left-12 w-1.5 h-1.5 bg-white/50 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
-                <div className="absolute top-1/2 right-6 w-1 h-1 bg-white/40 rounded-full animate-ping" style={{ animationDelay: '1.5s' }} />
+                <div className="absolute top-2 left-2 w-1.5 h-1.5 bg-white/40 rounded-full animate-ping" />
+                <div className="absolute top-4 right-4 w-1 h-1 bg-white/30 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
+                <div className="absolute bottom-3 left-6 w-1 h-1 bg-white/50 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+                <div className="absolute top-1/2 right-3 w-1 h-1 bg-white/40 rounded-full animate-ping" style={{ animationDelay: '1.5s' }} />
               </div>
 
               <div className="relative z-10 flex flex-col items-center">
-                <div className={`w-36 h-36 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center shadow-2xl mb-4 relative transition-all duration-500 ${isPasswordFocused ? 'scale-95' : 'scale-100'}`}>
+                <div className={`w-16 h-16 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center shadow-lg mb-2 relative transition-all duration-500 ${isPasswordFocused ? 'scale-95' : 'scale-100'}`}>
+                  {/* Eyebrows */}
                   <div
-                    className={`absolute top-8 left-8 w-8 h-1 bg-slate-800 rounded-full transition-all duration-300 ${isPasswordFocused ? '-rotate-12 scale-90' : ''}`}
-                    style={{ transform: isPasswordFocused ? 'rotate(-12deg) translateY(-2px)' : `translateX(${eyePosition.x * 0.3}px)` }}
+                    className={`absolute top-4 left-4 w-4 h-0.5 bg-slate-800 rounded-full transition-all duration-300 ${isPasswordFocused ? '-rotate-12 scale-90' : ''}`}
+                    style={{ transform: isPasswordFocused ? 'rotate(-12deg) translateY(-1px)' : `translateX(${eyePosition.x * 0.2}px)` }}
                   />
                   <div
-                    className={`absolute top-8 right-8 w-8 h-1 bg-slate-800 rounded-full transition-all duration-300 ${isPasswordFocused ? 'rotate-12 scale-90' : ''}`}
-                    style={{ transform: isPasswordFocused ? 'rotate(12deg) translateY(-2px)' : `translateX(${eyePosition.x * 0.3}px)` }}
+                    className={`absolute top-4 right-4 w-4 h-0.5 bg-slate-800 rounded-full transition-all duration-300 ${isPasswordFocused ? 'rotate-12 scale-90' : ''}`}
+                    style={{ transform: isPasswordFocused ? 'rotate(12deg) translateY(-1px)' : `translateX(${eyePosition.x * 0.2}px)` }}
                   />
 
-                  <div className="flex gap-8 mb-2">
-                    <div className="relative w-7 h-7 bg-white rounded-full shadow-inner">
+                  {/* Eyes */}
+                  <div className="flex gap-4 mb-1">
+                    <div className="relative w-4 h-4 bg-white rounded-full shadow-inner">
                       <div
-                        className={`absolute bg-slate-800 rounded-full transition-all duration-300 ${isPasswordFocused ? 'w-7 h-1 top-3 left-0' : 'w-4 h-4 top-1.5 left-1.5'}`}
-                        style={{ transform: !isPasswordFocused ? `translate(${eyePosition.x}px, ${eyePosition.y}px)` : 'none' }}
+                        className={`absolute bg-slate-800 rounded-full transition-all duration-300 ${isPasswordFocused ? 'w-4 h-0.5 top-1.5 left-0' : 'w-2 h-2 top-1 left-1'}`}
+                        style={{ transform: !isPasswordFocused ? `translate(${eyePosition.x * 0.5}px, ${eyePosition.y * 0.5}px)` : 'none' }}
                       >
                         {!isPasswordFocused && (
-                          <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                          <div className="absolute top-0.5 right-0.5 w-1 h-1 bg-white rounded-full animate-pulse" />
                         )}
                       </div>
                       {isPasswordFocused && <div className="absolute inset-0 bg-amber-200 rounded-full animate-blink" />}
                     </div>
-                    <div className="relative w-7 h-7 bg-white rounded-full shadow-inner">
+                    <div className="relative w-4 h-4 bg-white rounded-full shadow-inner">
                       <div
-                        className={`absolute bg-slate-800 rounded-full transition-all duration-300 ${isPasswordFocused ? 'w-7 h-1 top-3 left-0' : 'w-4 h-4 top-1.5 left-1.5'}`}
-                        style={{ transform: !isPasswordFocused ? `translate(${eyePosition.x}px, ${eyePosition.y}px)` : 'none' }}
+                        className={`absolute bg-slate-800 rounded-full transition-all duration-300 ${isPasswordFocused ? 'w-4 h-0.5 top-1.5 left-0' : 'w-2 h-2 top-1 left-1'}`}
+                        style={{ transform: !isPasswordFocused ? `translate(${eyePosition.x * 0.5}px, ${eyePosition.y * 0.5}px)` : 'none' }}
                       >
                         {!isPasswordFocused && (
-                          <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                          <div className="absolute top-0.5 right-0.5 w-1 h-1 bg-white rounded-full animate-pulse" />
                         )}
                       </div>
                       {isPasswordFocused && <div className="absolute inset-0 bg-amber-200 rounded-full animate-blink" />}
                     </div>
                   </div>
 
-                  <div className="absolute top-16 left-1/2 transform -translate-x-1/2 w-3 h-4 bg-amber-300 rounded-full" />
+                  {/* Nose */}
+                  <div className="absolute top-9 left-1/2 transform -translate-x-1/2 w-1.5 h-2 bg-amber-300 rounded-full" />
 
-                  <div className={`absolute bottom-8 left-1/2 transform -translate-x-1/2 transition-all duration-300 ${isPasswordFocused ? 'w-6 h-6' : 'w-10 h-5'}`}>
+                  {/* Mouth */}
+                  <div className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 transition-all duration-300 ${isPasswordFocused ? 'w-3 h-3' : 'w-5 h-2.5'}`}>
                     {isPasswordFocused ? (
-                      <div className="w-6 h-6 border-2 border-slate-800 rounded-full bg-slate-800/20" />
+                      <div className="w-3 h-3 border border-slate-800 rounded-full bg-slate-800/20" />
                     ) : (
-                      <div className="w-10 h-5 border-b-4 border-slate-800 rounded-b-full" />
+                      <div className="w-5 h-2.5 border-b-2 border-slate-800 rounded-b-full" />
                     )}
                   </div>
 
+                  {/* Blush */}
                   {isPasswordFocused && (
                     <>
-                      <div className="absolute top-16 left-4 w-6 h-4 bg-pink-300/60 rounded-full blur-sm animate-fade-in" />
-                      <div className="absolute top-16 right-4 w-6 h-4 bg-pink-300/60 rounded-full blur-sm animate-fade-in" />
+                      <div className="absolute top-9 left-2 w-3 h-2 bg-pink-300/60 rounded-full blur-sm animate-fade-in" />
+                      <div className="absolute top-9 right-2 w-3 h-2 bg-pink-300/60 rounded-full blur-sm animate-fade-in" />
                     </>
                   )}
 
+                  {/* Hands */}
                   {isPasswordFocused && (
                     <>
-                      <div className={`absolute top-10 left-4 w-14 h-10 bg-gradient-to-br from-amber-200 to-amber-300 rounded-2xl transform -rotate-20 shadow-lg ${shakeHands ? 'animate-shake' : 'animate-slide-in-left'}`}>
-                        <div className="absolute -top-1 left-1 w-2 h-3 bg-amber-300 rounded-t-full" />
-                        <div className="absolute -top-2 left-3 w-2 h-4 bg-amber-300 rounded-t-full" />
-                        <div className="absolute -top-2 left-5 w-2 h-4 bg-amber-300 rounded-t-full" />
-                        <div className="absolute -top-1 left-7 w-2 h-3 bg-amber-300 rounded-t-full" />
+                      <div className={`absolute top-6 -left-2 w-7 h-5 bg-gradient-to-br from-amber-200 to-amber-300 rounded-xl transform -rotate-20 shadow-lg ${shakeHands ? 'animate-shake' : 'animate-slide-in-left'}`}>
+                        <div className="absolute -top-0.5 left-0.5 w-1 h-1.5 bg-amber-300 rounded-t-full" />
+                        <div className="absolute -top-1 left-1.5 w-1 h-2 bg-amber-300 rounded-t-full" />
+                        <div className="absolute -top-1 left-2.5 w-1 h-2 bg-amber-300 rounded-t-full" />
+                        <div className="absolute -top-0.5 left-3.5 w-1 h-1.5 bg-amber-300 rounded-t-full" />
                       </div>
-                      <div className={`absolute top-10 right-4 w-14 h-10 bg-gradient-to-br from-amber-200 to-amber-300 rounded-2xl transform rotate-20 shadow-lg ${shakeHands ? 'animate-shake' : 'animate-slide-in-right'}`}>
-                        <div className="absolute -top-1 right-1 w-2 h-3 bg-amber-300 rounded-t-full" />
-                        <div className="absolute -top-2 right-3 w-2 h-4 bg-amber-300 rounded-t-full" />
-                        <div className="absolute -top-2 right-5 w-2 h-4 bg-amber-300 rounded-t-full" />
-                        <div className="absolute -top-1 right-7 w-2 h-3 bg-amber-300 rounded-t-full" />
+                      <div className={`absolute top-6 -right-2 w-7 h-5 bg-gradient-to-br from-amber-200 to-amber-300 rounded-xl transform rotate-20 shadow-lg ${shakeHands ? 'animate-shake' : 'animate-slide-in-right'}`}>
+                        <div className="absolute -top-0.5 right-0.5 w-1 h-1.5 bg-amber-300 rounded-t-full" />
+                        <div className="absolute -top-1 right-1.5 w-1 h-2 bg-amber-300 rounded-t-full" />
+                        <div className="absolute -top-1 right-2.5 w-1 h-2 bg-amber-300 rounded-t-full" />
+                        <div className="absolute -top-0.5 right-3.5 w-1 h-1.5 bg-amber-300 rounded-t-full" />
                       </div>
                     </>
                   )}
 
+                  {/* Sweat drops */}
                   {isTyping && isPasswordFocused && (
                     <>
-                      <div className="absolute top-6 right-8 w-2 h-3 bg-blue-300 rounded-full animate-drip" />
-                      <div className="absolute top-8 right-10 w-1.5 h-2 bg-blue-300 rounded-full animate-drip" style={{ animationDelay: '0.18s' }} />
+                      <div className="absolute top-3 right-4 w-1 h-1.5 bg-blue-300 rounded-full animate-drip" />
+                      <div className="absolute top-4 right-5 w-0.5 h-1 bg-blue-300 rounded-full animate-drip" style={{ animationDelay: '0.18s' }} />
                     </>
                   )}
                 </div>
 
-                <div className="text-center space-y-2 min-h-[80px] flex flex-col items-center justify-center">
-                  <h2 className={`text-3xl font-bold text-white transition-all duration-500 ${isPasswordFocused ? 'scale-95 opacity-90' : 'scale-100'}`}>
+                <div className="text-center space-y-0.5 min-h-[35px] flex flex-col items-center justify-center">
+                  <h2 className={`text-base font-bold text-white transition-all duration-500 ${isPasswordFocused ? 'scale-95 opacity-90' : 'scale-100'}`}>
                     {isPasswordFocused ? 'Sorry, not looking!' : 'Welcome back trader!'}
                   </h2>
-                  <p className="text-purple-100 text-center max-w-xs transition-all duration-300">
+                  <p className="text-purple-100 text-center max-w-xs text-xs transition-all duration-300">
                     {isPasswordFocused
                       ? isTyping
-                        ? 'Speed typing detected. Promise we are not peeking.'
+                        ? 'Speed typing detected. Promise not peeking.'
                         : 'We will keep that password secret.'
                       : email.length > 0
                         ? `Great to see you, ${email.split('@')[0]}!`
@@ -269,9 +272,9 @@ export default function SmartAlgosLogin() {
               </div>
             </div>
 
-            <form className="p-8 space-y-5" onSubmit={handleSubmit}>
+            <form className="p-4 space-y-3" onSubmit={handleSubmit}>
               <div className="relative">
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   Email Address
                 </label>
                 <div className="relative group">
@@ -280,16 +283,16 @@ export default function SmartAlgosLogin() {
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="trader@smartalgos.com"
-                    className="w-full px-4 py-3 pl-11 bg-slate-700/50 border-2 border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-slate-500"
+                    className="w-full px-3 py-2 pl-9 bg-slate-700/50 border border-slate-600 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-slate-500"
                   />
-                  <svg className="absolute left-3 top-3.5 w-5 h-5 text-slate-400 group-hover:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400 group-hover:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                   </svg>
                 </div>
               </div>
 
               <div className="relative">
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   Password
                 </label>
                 <div className="relative group">
@@ -300,21 +303,21 @@ export default function SmartAlgosLogin() {
                     onFocus={handlePasswordFocus}
                     onBlur={handlePasswordBlur}
                     placeholder="**********"
-                    className="w-full px-4 py-3 pl-11 bg-slate-700/50 border-2 border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-slate-500"
+                    className="w-full px-3 py-2 pl-9 bg-slate-700/50 border border-slate-600 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-slate-500"
                   />
-                  <svg className="absolute left-3 top-3.5 w-5 h-5 text-slate-400 group-hover:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400 group-hover:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-xs">
                 <label className="flex items-center text-slate-300 cursor-pointer hover:text-white transition group">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(event) => setRememberMe(event.target.checked)}
-                    className="mr-2 rounded border-slate-600 bg-slate-700 text-purple-500 focus:ring-purple-500"
+                    className="mr-1.5 rounded border-slate-600 bg-slate-700 text-purple-500 focus:ring-purple-500"
                   />
                   <span className="group-hover:translate-x-0.5 transition-transform">Remember me</span>
                 </label>
@@ -325,7 +328,7 @@ export default function SmartAlgosLogin() {
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-600 text-white font-bold rounded-xl hover:from-purple-600 hover:via-pink-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-2xl hover:shadow-purple-500/50 transform hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden group"
+                className="w-full py-2 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-600 text-white text-sm font-bold rounded-lg hover:from-purple-600 hover:via-pink-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl hover:shadow-purple-500/50 transform hover:scale-[1.01] active:scale-[0.99] relative overflow-hidden group"
                 disabled={loading}
               >
                 <span className="relative z-10">{loading ? 'Signing in...' : 'Launch Trading Dashboard'}</span>
@@ -336,7 +339,7 @@ export default function SmartAlgosLogin() {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-700" />
                 </div>
-                <div className="relative flex justify-center text-sm">
+                <div className="relative flex justify-center text-xs">
                   <span className="px-2 bg-slate-800/40 text-slate-400">New to Smart Algos?</span>
                 </div>
               </div>
@@ -344,27 +347,24 @@ export default function SmartAlgosLogin() {
               <button
                 type="button"
                 onClick={goToRegister}
-                className="w-full py-3 bg-slate-700/50 border-2 border-slate-600 text-white font-semibold rounded-xl hover:bg-slate-700 hover:border-purple-500 transition-all transform hover:scale-[1.01] active:scale-[0.99]"
+                className="w-full py-2 bg-slate-700/50 border border-slate-600 text-white text-sm font-semibold rounded-lg hover:bg-slate-700 hover:border-purple-500 transition-all transform hover:scale-[1.01] active:scale-[0.99]"
               >
                 Create Account
               </button>
             </form>
 
-            <div className="mt-6 flex items-center justify-center gap-2 text-slate-400 text-sm">
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="pb-3 px-4 flex items-center justify-center gap-1.5 text-slate-400 text-xs">
+              <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <span>256-bit SSL Encrypted • Your data is secure</span>
+              <span>256-bit SSL Encrypted</span>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="w-full py-4 px-4 bg-slate-900/80 backdrop-blur-xl border-t border-purple-500/20 relative z-10">
-        <p className="text-center text-slate-400 text-xs md:text-sm">
-          © 2025 Smart Algos • AI Powered Trading Platform
-        </p>
-      </div>
+          <p className="text-center text-slate-400 text-xs mt-3">
+            Â© 2025 Smart Algos Â· AI Powered Trading Platform
+          </p>
+        </div>
     </div>
   );
 }

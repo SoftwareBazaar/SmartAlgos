@@ -1,4 +1,5 @@
 const axios = require('axios');
+const polygonMarketService = require('./polygonMarketService');
 
 class NewsService {
   constructor() {
@@ -22,12 +23,62 @@ class NewsService {
     } = options;
 
     const cacheKey = `news_${JSON.stringify({ symbols, countries, limit, offset })}`;
-    
+
     // Check cache first
     if (this.cache.has(cacheKey)) {
       const cached = this.cache.get(cacheKey);
       if (Date.now() - cached.timestamp < this.cacheTimeout) {
         return cached.data;
+      }
+    }
+
+    // Try Polygon first when API key is configured
+    try {
+      const polygonArticles = await polygonMarketService.getNews({
+        tickers: symbols.slice(0, 20),
+        limit
+      });
+
+      if (polygonArticles && polygonArticles.length) {
+        const processedNews = polygonArticles.map(article => {
+          const description = article.description || article.summary || '';
+          const mappedArticle = {
+            id: article.id || article.article_id || article.published_utc,
+            title: article.title,
+            description,
+            url: article.article_url,
+            source: article.publisher && article.publisher.name ? article.publisher.name : (article.publisher && article.publisher.slug ? article.publisher.slug : 'Polygon'),
+            published_at: article.published_utc,
+            symbols: article.tickers || [],
+            image_url: article.image_url || article.thumbnail || null
+          };
+
+          return {
+            ...mappedArticle,
+            sentiment: this.analyzeSentiment(`${mappedArticle.title} ${mappedArticle.description}`),
+            impact: this.calculateMarketImpact(mappedArticle),
+            category: this.categorizeNews(mappedArticle),
+            relevance_score: this.calculateRelevanceScore(mappedArticle, symbols)
+          };
+        });
+
+        const result = {
+          success: true,
+          data: processedNews.sort((a, b) => b.relevance_score - a.relevance_score),
+          meta: {
+            total: polygonArticles.length,
+            returned: polygonArticles.length,
+            page: 1,
+            provider: 'polygon'
+          }
+        };
+
+        this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+        return result;
+      }
+    } catch (error) {
+      if (error.code !== 'POLYGON_API_KEY_MISSING') {
+        console.error('Polygon news API error:', error.message || error);
       }
     }
 
@@ -66,7 +117,8 @@ class NewsService {
         meta: {
           total: response.data.meta.found,
           returned: response.data.meta.returned,
-          page: response.data.meta.page
+          page: response.data.meta.page,
+          provider: 'marketaux'
         }
       };
 
@@ -85,7 +137,6 @@ class NewsService {
       return this.getMockNews();
     }
   }
-
   /**
    * Get news for specific symbol/pair
    */

@@ -133,10 +133,14 @@ app.set("trust proxy", 1);
 // Enhanced Security middleware
 app.use(securityService.getSecurityHeaders());
 
-// Global rate limiting
+// Global rate limiting (more lenient in development)
 const globalLimiter = securityService.createRateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100
+  max: isProduction ? (parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100) : 1000, // 1000 requests in dev
+  skip: (req) => {
+    // Skip rate limiting for localhost in development
+    return !isProduction && (req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === 'localhost');
+  }
 });
 app.use(globalLimiter);
 
@@ -243,6 +247,7 @@ app.use('/api/polygon', auth, polygonRoutes);
 app.use('/api/portfolio', auth, portfolioRoutes);
 app.use('/api/test', testRoutes); // Test routes for debugging
 app.use('/api/admin', adminRoutes); // Admin routes have their own auth middleware
+app.use('/api/utilities', require('./routes/utilities')); // Utilities routes (public read, admin write)
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

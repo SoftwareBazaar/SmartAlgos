@@ -148,6 +148,7 @@ const UtilitiesPage = () => {
                 {/* Utility Image */}
                 <div className="mb-4">
                   <img 
+                    key={`utility-${utility.id}-${utility.imageTimestamp || utility.updated_at || 0}`}
                     src={utility.image} 
                     alt={utility.name}
                     className="w-full h-32 object-cover rounded-lg"
@@ -438,6 +439,7 @@ const UtilitiesPage = () => {
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Tool Preview</h4>
                   <img 
+                    key={`modal-${selectedUtility.id}-${selectedUtility.imageTimestamp || selectedUtility.updated_at || 0}`}
                     src={selectedUtility.image} 
                     alt={selectedUtility.name}
                     className="w-full h-32 object-cover rounded-lg"

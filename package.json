@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "dev-all": "node start-dev.js",
-    "build": "cd client && npm install && npm run build && echo 'React build completed'",
+    "build": "cd client && npm install && npm run build && cd .. && node -e \"const fs=require('fs'); const path=require('path'); const src='client/build'; const files=['index.html','manifest.json','asset-manifest.json']; files.forEach(f=>fs.copyFileSync(path.join(src,f),f)); const copyDir=(s,d)=>{fs.mkdirSync(d,{recursive:true}); fs.readdirSync(s,{withFileTypes:true}).forEach(e=>e.isDirectory()?copyDir(path.join(s,e.name),path.join(d,e.name)):fs.copyFileSync(path.join(s,e.name),path.join(d,e.name)))}; copyDir('client/build/static','static');\"",
     "build:client": "cd client && npm install && npm run build",
     "install:all": "npm install && cd client && npm install",
     "setup-env": "node setup-env.js",

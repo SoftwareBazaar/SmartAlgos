@@ -262,8 +262,8 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Root endpoint
-app.get('/', (req, res) => {
+// Root endpoint (only for API mode)
+app.get('/api', (req, res) => {
   res.json({
     message: 'Smart Algos Trading Platform API',
     version: '1.0.0',
@@ -271,13 +271,31 @@ app.get('/', (req, res) => {
   });
 });
 
+// Serve React app in production
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  
+  // Serve static files from React build
+  app.use(express.static(path.join(__dirname, 'client/build')));
+  
+  // Handle React routing - return all non-API requests to React app
+  app.get('*', (req, res, next) => {
+    // Skip if it's an API route
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
+    res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
+  });
+}
+
 // Error handling middleware
 app.use(errorHandler);
 
-// 404 handler
-app.use('*', (req, res) => {
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
   res.status(404).json({
-    error: 'Route not found',
+    error: 'API route not found',
     path: req.originalUrl
   });
 });

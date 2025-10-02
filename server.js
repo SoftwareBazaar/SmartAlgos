@@ -48,13 +48,20 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
-    methods: ["GET", "POST"]
+    origin: [
+      process.env.CLIENT_URL || "http://localhost:3000",
+      "https://web-production-fdb58.up.railway.app",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000"
+    ],
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
 const isProduction = process.env.NODE_ENV === "production";
 const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null;
+const railwayUrl = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "https://web-production-fdb58.up.railway.app";
 const baseOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
@@ -64,6 +71,7 @@ const baseOrigins = [
 const mergedOrigins = [
   process.env.CLIENT_URL,
   vercelUrl,
+  railwayUrl,
   ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : []),
   ...baseOrigins
 ]
@@ -117,6 +125,10 @@ const corsOptions = {
     }
 
     if (vercelUrl && origin === vercelUrl) {
+      return callback(null, true);
+    }
+
+    if (railwayUrl && origin === railwayUrl) {
       return callback(null, true);
     }
 

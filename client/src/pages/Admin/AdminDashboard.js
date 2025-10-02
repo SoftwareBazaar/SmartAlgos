@@ -36,6 +36,8 @@ import { useEA } from "../../contexts/EAContext";
 
 import { useUtilities } from "../../contexts/UtilitiesContext";
 
+import apiClient from "../../lib/apiClient";
+
 const AdminDashboard = () => {
   const { user } = useAuth();
 
@@ -1961,34 +1963,29 @@ const AdminDashboard = () => {
         const formData = new FormData();
         formData.append('image', file);
 
-        const token = localStorage.getItem('token') || 'test_token'; // Fallback to test token for development
-
-        const response = await fetch('/api/utilities/upload-image', {
-          method: 'POST',
+        const response = await apiClient.post('/api/utilities/upload-image', formData, {
           headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: formData
+            'Content-Type': 'multipart/form-data'
+          }
         });
 
-        const result = await response.json();
-
-        if (result.success) {
+        if (response.data.success) {
           // Update with server URL for actual storage
           setUtilityFormData((prev) => ({
             ...prev,
-            image: result.data.imageUrl, // Use server URL for database storage
+            image: response.data.data.imageUrl, // Use server URL for database storage
             imageTimestamp: Date.now(),
           }));
           
-          console.log('✅ Image uploaded successfully:', result.data.imageUrl);
+          console.log('✅ Image uploaded successfully:', response.data.data.imageUrl);
         } else {
-          console.error('Upload failed:', result.message);
-          alert('Failed to upload image: ' + result.message);
+          console.error('Upload failed:', response.data.message);
+          alert('Failed to upload image: ' + response.data.message);
         }
       } catch (error) {
         console.error('Upload error:', error);
-        alert('Failed to upload image. Please try again.');
+        const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+        alert('Failed to upload image: ' + errorMessage);
       }
     }
   };

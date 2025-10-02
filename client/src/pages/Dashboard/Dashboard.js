@@ -18,12 +18,12 @@ import {
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import PNLCalendar from '../../components/Analysis/PNLCalendar';
-// import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 // import { useWebSocket } from '../../contexts/WebSocketContext';
 import { useEA } from '../../contexts/EAContext';
 
 const Dashboard = () => {
-  // const { user } = useAuth();
+  const { user } = useAuth();
   // const { connected } = useWebSocket();
   const { getActiveEAs } = useEA();
 
@@ -163,27 +163,29 @@ const Dashboard = () => {
           </div>
         </div>
         
-        {/* Admin Access Button */}
-        <div className="flex space-x-2">
-          <Button
-            onClick={() => window.open('/admin', '_blank')}
-            variant="outline"
-            size="sm"
-            className="bg-primary-500 hover:bg-primary-600 text-white border-primary-500"
-          >
-            <Shield className="h-4 w-4 mr-2" />
-            Admin Access
-          </Button>
-          <Button
-            onClick={() => window.open('/admin-login', '_blank')}
-            variant="outline"
-            size="sm"
-            className="bg-gray-600 hover:bg-gray-700 text-white border-gray-600"
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Admin Login
-          </Button>
-        </div>
+        {/* Admin Access Buttons - Only visible to admins */}
+        {user?.role === 'admin' && (
+          <div className="flex space-x-2">
+            <Button
+              onClick={() => window.open('/admin', '_blank')}
+              variant="outline"
+              size="sm"
+              className="bg-primary-500 hover:bg-primary-600 text-white border-primary-500"
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              Admin Access
+            </Button>
+            <Button
+              onClick={() => window.open('/admin-login', '_blank')}
+              variant="outline"
+              size="sm"
+              className="bg-gray-600 hover:bg-gray-700 text-white border-gray-600"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Admin Login
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Welcome Section */}

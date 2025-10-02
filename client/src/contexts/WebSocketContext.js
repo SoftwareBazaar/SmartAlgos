@@ -17,7 +17,11 @@ export const WebSocketProvider = ({ children }) => {
   // Initialize WebSocket connection
   useEffect(() => {
     if (user && !socket) {
-      const newSocket = io(process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'https://smart-algos.vercel.app', {
+      const wsUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:5000' 
+        : 'https://web-production-fdb58.up.railway.app';
+      
+      const newSocket = io(wsUrl, {
         auth: {
           token: localStorage.getItem('token')
         },

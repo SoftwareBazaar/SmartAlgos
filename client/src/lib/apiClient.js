@@ -11,8 +11,8 @@ const getBaseURL = () => {
     return 'http://localhost:5000';
   }
   
-  // Production default (update this with your actual production URL)
-  return 'https://smart-algos.vercel.app';
+  // Production - Railway backend
+  return 'https://web-production-fdb58.up.railway.app';
 };
 
 const apiClient = axios.create({

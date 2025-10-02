@@ -333,7 +333,8 @@ setupWebSocketHandlers(io);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-const HOST = process.env.HOST || 'localhost';
+// Use 0.0.0.0 for production/Railway, localhost for local development
+const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost');
 
 if (!process.env.VERCEL) {
   server.listen(PORT, HOST, () => {

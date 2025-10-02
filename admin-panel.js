@@ -106,16 +106,50 @@ const getDashboardSnapshot = async (user) => {
   const now = new Date();
   const monthStart = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1));
 
+  // User stats
   const totalUsers = await countRows('users_accounts');
   const activeUsers = await countRows('users_accounts', (query) => query.eq('is_active', true));
   const newThisMonth = await countRows('users_accounts', (query) => query.gte('created_at', monthStart.toISOString()));
 
+  // EA stats
+  const totalEAs = await countRows('expert_advisors');
+  const activeEAs = await countRows('expert_advisors', (query) => query.eq('status', 'active'));
+  const featuredEAs = await countRows('expert_advisors', (query) => query.eq('is_featured', true));
+
+  // Subscription stats
+  const activeSubscriptions = await countRows('subscriptions', (query) => query.eq('status', 'active'));
+  const { data: revenueData } = await databaseService.supabase
+    .from('subscriptions')
+    .select('price')
+    .eq('status', 'active');
+  const totalRevenue = revenueData?.reduce((sum, sub) => sum + (parseFloat(sub.price) || 0), 0) || 0;
+
+  // Signal stats
+  const totalSignals = await countRows('trading_signals');
+  const activeSignals = await countRows('trading_signals', (query) => query.eq('is_active', true));
+  const { data: signalAccuracy } = await databaseService.supabase
+    .from('trading_signals')
+    .select('ai_analysis')
+    .limit(100);
+  const avgConfidence = signalAccuracy && signalAccuracy.length > 0
+    ? signalAccuracy.reduce((sum, s) => sum + (s.ai_analysis?.confidence || 0), 0) / signalAccuracy.length / 100
+    : 0;
+
+  // HFT Bot stats  
+  const totalBots = await countRows('hft_bots');
+  const activeBots = await countRows('hft_bots', (query) => query.eq('status', 'active'));
+
+  // Utilities stats
+  const totalUtilities = await countRows('utilities');
+  const activeUtilities = await countRows('utilities', (query) => query.eq('is_active', true));
+
+  // Recent activity from content
   const contentItems = await readContentStore();
   const recentActivity = contentItems
     .slice(-5)
     .reverse()
     .map((item) => ({
-      details: `Created content “${item.title}”`,
+      details: `Created content "${item.title}"`,
       user: { name: item.createdBy?.name || 'Admin' },
       createdAt: item.createdAt
     }));
@@ -138,16 +172,26 @@ const getDashboardSnapshot = async (user) => {
         newThisMonth
       },
       eas: {
-        active: 0,
-        featured: 0
+        total: totalEAs,
+        active: activeEAs,
+        featured: featuredEAs
       },
       subscriptions: {
-        active: 0,
-        revenue: [{ total: 0 }]
+        active: activeSubscriptions,
+        revenue: [{ total: totalRevenue }]
       },
       signals: {
-        total: 0,
-        accuracy: [{ avgConfidence: 0.82 }]
+        total: totalSignals,
+        active: activeSignals,
+        accuracy: [{ avgConfidence }]
+      },
+      bots: {
+        total: totalBots,
+        active: activeBots
+      },
+      utilities: {
+        total: totalUtilities,
+        active: activeUtilities
       }
     },
     recentActivity
@@ -221,6 +265,37 @@ const mapUserRecord = (record) => ({
   status: record.is_active === false ? 'inactive' : 'active',
   createdAt: record.created_at,
   subscription: record.subscription_type || 'free'
+});
+
+// @route   GET /api/admin/users/recent
+// @desc    Get recently registered users
+// @access  Private (Admin only)
+router.get('/users/recent', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const client = databaseService.getClient();
+    
+    const { data: rows, error } = await client
+      .from('users_accounts')
+      .select('id, first_name, last_name, email, role, is_active, created_at, subscription_type')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('[admin] Recent users query failed:', error);
+      return res.json({ success: true, data: { users: [] } });
+    }
+
+    const users = (rows || []).map(mapUserRecord);
+    
+    res.json({
+      success: true,
+      data: users
+    });
+  } catch (error) {
+    console.error('[admin] recent users error:', error);
+    res.status(500).json({ success: false, message: 'Failed to load recent users.' });
+  }
 });
 
 router.get('/users', async (req, res) => {

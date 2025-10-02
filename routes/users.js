@@ -91,6 +91,56 @@ function buildProfileUpdatePayload(body) {
   return updates;
 }
 
+// @route   GET /api/users/dashboard-stats
+// @desc    Get dashboard statistics for user
+// @access  Private
+router.get('/dashboard-stats', [auth, updateActivity], async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Get user's subscriptions count
+    const { data: subscriptions } = await databaseService.supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'active');
+
+    // Get user's signals count
+    const { data: signals } = await databaseService.supabase
+      .from('trading_signals')
+      .select('*')
+      .eq('is_active', true);
+
+    // Get user data for portfolio value
+    const user = await getUserRecordById(userId);
+    const portfolio = user?.portfolio || {};
+
+    // Calculate stats
+    const stats = {
+      portfolioValue: portfolio.totalValue || 0,
+      todayPnL: portfolio.todayPnL || 0,
+      todayPnLPercent: portfolio.todayPnLPercent || 0,
+      activeSignals: signals?.length || 0,
+      winRate: portfolio.winRate || 0,
+      activeSubscriptions: subscriptions?.length || 0,
+      totalTrades: portfolio.totalTrades || 0,
+      profitFactor: portfolio.profitFactor || 0,
+      updatedAt: new Date().toISOString()
+    };
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Get dashboard stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to load dashboard statistics'
+    });
+  }
+});
+
 router.get('/profile', [auth, updateActivity], async (req, res) => {
   try {
     const raw = await getUserRecordById(req.user.userId);
@@ -253,50 +303,89 @@ router.get('/portfolio', [auth, updateActivity], async (req, res) => {
   }
 });
 
+// @route   GET /api/users/activity
+// @desc    Get user activity log
+// @access  Private
 router.get('/activity', [
   auth,
   updateActivity,
   query('limit').optional().isInt({ min: 1, max: 100 }),
-  query('type').optional().isIn(['login', 'subscription', 'purchase', 'trade'])
+  query('type').optional().isIn(['login', 'subscription', 'purchase', 'trade', 'signal'])
 ], async (req, res) => {
   try {
     if (!respondValidation(res, req)) {
       return;
     }
 
-    const now = new Date();
-    const normalized = req.user;
+    const userId = req.user.userId;
+    const limit = parseInt(req.query.limit, 10) || 50;
+    
+    // Build activity log from various sources
+    const activities = [];
 
-    const sampleActivity = [
-      {
-        id: 'login_' + normalized.userId,
+    // Get user's subscriptions
+    const { data: subscriptions } = await databaseService.supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (subscriptions) {
+      subscriptions.forEach(sub => {
+        activities.push({
+          id: `sub_${sub.id}`,
+          type: 'subscription',
+          description: `Subscribed to ${sub.plan_name || 'plan'}`,
+          metadata: { subscriptionId: sub.id, status: sub.status },
+          timestamp: sub.created_at
+        });
+      });
+    }
+
+    // Get user's escrow transactions
+    const { data: escrowTxs } = await databaseService.supabase
+      .from('escrow_transactions')
+      .select('*')
+      .or(`buyer_email.eq.${req.user.email},seller_email.eq.${req.user.email}`)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (escrowTxs) {
+      escrowTxs.forEach(tx => {
+        activities.push({
+          id: `escrow_${tx.id}`,
+          type: 'purchase',
+          description: `Escrow transaction: ${tx.description}`,
+          metadata: { amount: tx.amount, currency: tx.currency, status: tx.status },
+          timestamp: tx.created_at
+        });
+      });
+    }
+
+    // Add login activity
+    const user = await getUserRecordById(userId);
+    if (user?.last_login) {
+      activities.push({
+        id: `login_${userId}_${user.last_login}`,
         type: 'login',
-        description: 'Successful login',
-        metadata: {
-          ip: securityService.getClientIP(req),
-          userAgent: req.headers['user-agent']
-        },
-        timestamp: normalized.last_login || now.toISOString()
-      },
-      {
-        id: 'subscription_' + normalized.userId,
-        type: 'subscription',
-        description: `Subscription status: ${normalized.subscription.status}`,
-        metadata: normalized.subscription,
-        timestamp: normalized.updated_at || now.toISOString()
-      }
-    ];
+        description: 'Logged in',
+        metadata: { ip: securityService.getClientIP(req) },
+        timestamp: user.last_login
+      });
+    }
 
-    let filtered = sampleActivity;
+    // Sort by timestamp descending
+    activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
+    // Filter by type if specified
+    let filtered = activities;
     if (req.query.type) {
-      filtered = filtered.filter((item) => item.type === req.query.type);
+      filtered = filtered.filter(item => item.type === req.query.type);
     }
 
-    if (req.query.limit) {
-      const limit = parseInt(req.query.limit, 10);
-      filtered = filtered.slice(0, Number.isNaN(limit) ? sampleActivity.length : limit);
-    }
+    // Apply limit
+    filtered = filtered.slice(0, limit);
 
     res.json({
       success: true,

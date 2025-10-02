@@ -149,41 +149,24 @@ router.post('/upload-image', [
       authHeader: req.header('Authorization')?.substring(0, 20) + '...'
     });
     
-    // In development, skip admin check if using test token
-    const isDevelopment = process.env.NODE_ENV !== 'production';
-    const isTestToken = req.header('Authorization')?.includes('test_token');
-    
-    console.log('🔐 Auth check:', { 
-      isDevelopment, 
-      isTestToken, 
-      userId: req.user?.userId, 
-      userRole: req.user?.role 
-    });
-    
-    // Skip admin check ONLY if both development AND test token
-    if (!(isDevelopment && isTestToken)) {
-      // Check if user is admin
-      if (!req.user || !req.user.userId) {
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication required'
-        });
-      }
-      
-      const { data: userData, error: userError } = await databaseService.supabase
-        .from('users_accounts')
-        .select('role')
-        .eq('id', req.user.userId)
-        .single();
-      
-      if (userError || !userData || userData.role !== 'admin') {
-        console.log('❌ Admin check failed:', { userError, userData, userId: req.user.userId });
-        return res.status(403).json({
-          success: false,
-          message: 'Admin access required'
-        });
-      }
+    // Check if user is authenticated
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
     }
+    
+    // Check if user is admin (role is already in req.user from auth middleware)
+    if (req.user.role !== 'admin') {
+      console.log('❌ Admin check failed:', { userId: req.user.userId, role: req.user.role });
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+    
+    console.log('✅ Admin check passed:', { userId: req.user.userId, role: req.user.role });
 
     if (!req.file) {
       console.log('❌ No file uploaded');
@@ -234,25 +217,12 @@ router.post('/', [
   body('version').trim().notEmpty().withMessage('Version is required'),
 ], async (req, res) => {
   try {
-    // In development, skip admin check if using test token
-    const isDevelopment = process.env.NODE_ENV !== 'production';
-    const isTestToken = req.header('Authorization')?.includes('test_token');
-    
-    // Skip admin check ONLY if both development AND test token
-    if (!(isDevelopment && isTestToken)) {
-      // Check if user is admin
-      const { data: userData, error: userError } = await databaseService.supabase
-        .from('users_accounts')
-        .select('role')
-        .eq('id', req.user.userId)
-        .single();
-      
-      if (userError || !userData || userData.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: 'Admin access required'
-        });
-      }
+    // Check if user is admin (role is already in req.user from auth middleware)
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
     }
     
     const errors = validationResult(req);
@@ -363,25 +333,12 @@ router.put('/:id', [
     .withMessage('Invalid category'),
 ], async (req, res) => {
   try {
-    // In development, skip admin check if using test token
-    const isDevelopment = process.env.NODE_ENV !== 'production';
-    const isTestToken = req.header('Authorization')?.includes('test_token');
-    
-    // Skip admin check ONLY if both development AND test token
-    if (!(isDevelopment && isTestToken)) {
-      // Check if user is admin
-      const { data: userData, error: userError } = await databaseService.supabase
-        .from('users_accounts')
-        .select('role')
-        .eq('id', req.user.userId)
-        .single();
-      
-      if (userError || !userData || userData.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: 'Admin access required'
-        });
-      }
+    // Check if user is admin (role is already in req.user from auth middleware)
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
     }
     
     const errors = validationResult(req);
@@ -459,25 +416,12 @@ router.put('/:id', [
 // @access  Private (Admin only)
 router.delete('/:id', [auth, updateActivity], async (req, res) => {
   try {
-    // In development, skip admin check if using test token
-    const isDevelopment = process.env.NODE_ENV !== 'production';
-    const isTestToken = req.header('Authorization')?.includes('test_token');
-    
-    // Skip admin check ONLY if both development AND test token
-    if (!(isDevelopment && isTestToken)) {
-      // Check if user is admin
-      const { data: userData, error: userError } = await databaseService.supabase
-        .from('users_accounts')
-        .select('role')
-        .eq('id', req.user.userId)
-        .single();
-      
-      if (userError || !userData || userData.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: 'Admin access required'
-        });
-      }
+    // Check if user is admin (role is already in req.user from auth middleware)
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
     }
     
     // Use admin client for admin operations to bypass RLS

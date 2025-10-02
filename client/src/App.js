@@ -91,56 +91,58 @@ function App() {
                 {/* Direct Admin Dashboard - Bypass Authentication */}
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
-                {/* Main Application Routes */}
+                {/* Landing Page - Public */}
+                <Route index element={<LandingPage />} />
+
+                {/* Main Application Routes - Protected */}
                 <Route path="/" element={<Layout />}>
-                  <Route index element={<Navigate to="/dashboard" replace />} />
-                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                   
                   {/* Markets */}
-                  <Route path="markets" element={<Markets />} />
-                  <Route path="markets/:id" element={<MarketDetail />} />
+                  <Route path="markets" element={<ProtectedRoute><Markets /></ProtectedRoute>} />
+                  <Route path="markets/:id" element={<ProtectedRoute><MarketDetail /></ProtectedRoute>} />
                   
                   {/* News & Analysis */}
-                  <Route path="news" element={<News />} />
-                  <Route path="analysis" element={<Analysis />} />
-                  <Route path="analysis/:id" element={<AnalysisDetail />} />
+                  <Route path="news" element={<ProtectedRoute><News /></ProtectedRoute>} />
+                  <Route path="analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
+                  <Route path="analysis/:id" element={<ProtectedRoute><AnalysisDetail /></ProtectedRoute>} />
                   
                   {/* Trading Signals */}
-                  <Route path="signals" element={<Signals />} />
-                  <Route path="signals/:id" element={<SignalDetail />} />
+                  <Route path="signals" element={<ProtectedRoute><Signals /></ProtectedRoute>} />
+                  <Route path="signals/:id" element={<ProtectedRoute><SignalDetail /></ProtectedRoute>} />
                   
                   {/* EA Marketplace */}
-                  <Route path="ea-marketplace" element={<EAMarketplace />} />
-                  <Route path="ea-marketplace/:id" element={<EADetail />} />
-                  <Route path="create-ea" element={<CreateEA />} />
-                  <Route path="edit-ea/:id" element={<EditEA />} />
+                  <Route path="ea-marketplace" element={<ProtectedRoute><EAMarketplace /></ProtectedRoute>} />
+                  <Route path="ea-marketplace/:id" element={<ProtectedRoute><EADetail /></ProtectedRoute>} />
+                  <Route path="create-ea" element={<ProtectedRoute><CreateEA /></ProtectedRoute>} />
+                  <Route path="edit-ea/:id" element={<ProtectedRoute><EditEA /></ProtectedRoute>} />
                   
                   {/* Free Utilities */}
-                  <Route path="utilities" element={<UtilitiesPage />} />
+                  <Route path="utilities" element={<ProtectedRoute><UtilitiesPage /></ProtectedRoute>} />
                   
                   {/* HFT Bots */}
-                  <Route path="hft-bots" element={<HFTBots />} />
-                  <Route path="hft-bots/:id" element={<HFTBotDetail />} />
+                  <Route path="hft-bots" element={<ProtectedRoute><HFTBots /></ProtectedRoute>} />
+                  <Route path="hft-bots/:id" element={<ProtectedRoute><HFTBotDetail /></ProtectedRoute>} />
                   
                   {/* Portfolio */}
-                  <Route path="portfolio" element={<Portfolio />} />
-                  <Route path="portfolio/:id" element={<PortfolioDetail />} />
+                  <Route path="portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
+                  <Route path="portfolio/:id" element={<ProtectedRoute><PortfolioDetail /></ProtectedRoute>} />
                   
                   {/* User Management */}
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="subscription" element={<Subscription />} />
-                  <Route path="payments" element={<Payments />} />
-                  <Route path="desktop-features" element={<DesktopFeatures />} />
+                  <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                  <Route path="subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+                  <Route path="payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
+                  <Route path="desktop-features" element={<ProtectedRoute><DesktopFeatures /></ProtectedRoute>} />
                   
                   {/* Escrow */}
-                  <Route path="escrow" element={<EscrowDashboard />} />
+                  <Route path="escrow" element={<ProtectedRoute><EscrowDashboard /></ProtectedRoute>} />
                   
                   {/* Admin Routes */}
                   <Route path="admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
                   <Route path="admin/panel" element={<ProtectedRoute requireAdmin={true}><AdminPanel /></ProtectedRoute>} />
                   
-                  {/* Test Routes */}
+                  {/* Test Routes - For Development */}
                   <Route path="test" element={<TestPage />} />
                   <Route path="test/login" element={<LoginTest />} />
                   <Route path="test/simple" element={<SimpleTest />} />
@@ -148,9 +150,6 @@ function App() {
                   {/* Demo Routes */}
                   <Route path="demo/visme" element={<VismeDemo />} />
                 </Route>
-
-                {/* Landing page - accessible via /landing */}
-                <Route path="/landing" element={<LandingPage />} />
               </Routes>
               
               {/* Toast notifications */}

@@ -8,13 +8,11 @@ import {
   Zap,
   PieChart,
   User,
-  Settings,
+  Settings as SettingsIcon,
   CreditCard,
   DollarSign,
   Monitor,
   X,
-  Shield,
-  Lock,
   Wrench
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -35,17 +33,11 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const userNavigation = [
     { name: 'Profile', href: '/profile', icon: User },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Settings', href: '/settings', icon: SettingsIcon },
     { name: 'Desktop Features', href: '/desktop-features', icon: Monitor },
     { name: 'Create Custom EA', href: '/create-ea', icon: Bot },
     { name: 'Subscription', href: '/subscription', icon: CreditCard },
     { name: 'Payments', href: '/payments', icon: DollarSign },
-  ];
-
-  const adminNavigation = [
-    { name: 'Admin Access Portal', href: '/admin-access', icon: Shield, external: false },
-    { name: 'Admin Dashboard', href: '/admin', icon: Shield, external: true },
-    { name: 'Admin Login', href: '/admin-login', icon: Lock, external: true },
   ];
 
   const isActive = (href) => {
@@ -119,45 +111,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Admin Access Section - Always Visible */}
-        <div>
-          <p className="px-1 text-xs font-semibold uppercase tracking-wider text-brand-300">
-            Admin Access
-          </p>
-          <div className="mt-3 space-y-1">
-            {adminNavigation.map((item) => {
-              const Icon = item.icon;
-              if (item.external) {
-                return (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={onClose}
-                    className={`group flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 border text-gray-300 border-transparent hover:text-white hover:bg-brand-800/60 hover:border-primary-500/20`}
-                  >
-                    <Icon className="mr-3 h-5 w-5" />
-                    <span>{item.name}</span>
-                  </a>
-                );
-              } else {
-                return (
-                  <NavLink
-                    key={item.name}
-                    to={item.href}
-                    onClick={onClose}
-                    className={linkClassNames(item.href)}
-                  >
-                    <Icon className="mr-3 h-5 w-5" />
-                    <span>{item.name}</span>
-                  </NavLink>
-                );
-              }
-            })}
-          </div>
-        </div>
-
+        {/* Admin Section - Only for Admins */}
         {user?.role === 'admin' && (
           <div>
             <p className="px-1 text-xs font-semibold uppercase tracking-wider text-brand-300">
@@ -169,7 +123,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 onClick={onClose}
                 className={linkClassNames('/admin')}
               >
-                <Settings className="mr-3 h-5 w-5" />
+                <SettingsIcon className="mr-3 h-5 w-5" />
                 <span>Admin Dashboard</span>
               </NavLink>
               <NavLink

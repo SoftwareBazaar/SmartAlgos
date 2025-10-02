@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   TrendingUp, 
@@ -21,47 +21,79 @@ import PNLCalendar from '../../components/Analysis/PNLCalendar';
 import { useAuth } from '../../contexts/AuthContext';
 // import { useWebSocket } from '../../contexts/WebSocketContext';
 import { useEA } from '../../contexts/EAContext';
+import apiClient from '../../lib/apiClient';
 
 const Dashboard = () => {
   const { user } = useAuth();
   // const { connected } = useWebSocket();
   const { getActiveEAs } = useEA();
+  
+  const [statsData, setStatsData] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(true);
 
-  // Mock data - in production, this would come from API calls
-  const stats = [
+  // Fetch real dashboard stats from API
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setLoadingStats(true);
+        const response = await apiClient.get('/api/users/dashboard-stats');
+        if (response.data.success) {
+          setStatsData(response.data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
+
+  // Transform API data to stats format
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value || 0);
+  };
+
+  const formatPercent = (value) => {
+    const num = parseFloat(value) || 0;
+    return `${num >= 0 ? '+' : ''}${num.toFixed(1)}%`;
+  };
+
+  const stats = statsData ? [
     {
       name: 'Portfolio Value',
-      value: '$125,430.50',
-      change: '+$2,450.30',
-      changePercent: '+2.0%',
-      trend: 'up',
+      value: formatCurrency(statsData.portfolioValue),
+      change: formatCurrency(Math.abs(statsData.todayPnL) || 0),
+      changePercent: formatPercent(statsData.todayPnLPercent),
+      trend: (statsData.todayPnL || 0) >= 0 ? 'up' : 'down',
       icon: DollarSign,
     },
     {
       name: 'Today\'s P&L',
-      value: '+$1,250.75',
-      change: '+$150.25',
-      changePercent: '+13.6%',
-      trend: 'up',
+      value: formatCurrency(statsData.todayPnL),
+      change: formatCurrency(Math.abs(statsData.todayPnL) * 0.1),
+      changePercent: formatPercent(statsData.todayPnLPercent),
+      trend: (statsData.todayPnL || 0) >= 0 ? 'up' : 'down',
       icon: TrendingUp,
     },
     {
       name: 'Active Signals',
-      value: '12',
-      change: '+3',
-      changePercent: '+33.3%',
+      value: String(statsData.activeSignals || 0),
+      change: '+0',
+      changePercent: '+0%',
       trend: 'up',
       icon: Activity,
     },
     {
       name: 'Win Rate',
-      value: '68.5%',
-      change: '+2.1%',
-      changePercent: '+3.2%',
-      trend: 'up',
+      value: formatPercent(statsData.winRate),
+      change: '+0%',
+      changePercent: '+0%',
+      trend: (statsData.winRate || 0) >= 50 ? 'up' : 'down',
       icon: TrendingUp,
     },
-  ];
+  ] : [];
 
   const recentSignals = [
     {
@@ -206,45 +238,63 @@ const Dashboard = () => {
         transition={{ duration: 0.5, delay: 0.1 }}
         className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
       >
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.name} hover className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {stat.name}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {stat.value}
-                  </p>
-                  <div className="flex items-center mt-1">
-                    {stat.trend === 'up' ? (
-                      <ArrowUpRight className="h-4 w-4 text-success-500" />
-                    ) : (
-                      <ArrowDownRight className="h-4 w-4 text-danger-500" />
-                    )}
-                    <span
-                      className={`text-sm font-medium ml-1 ${
-                        stat.trend === 'up'
-                          ? 'text-success-600 dark:text-success-400'
-                          : 'text-danger-600 dark:text-danger-400'
-                      }`}
-                    >
-                      {stat.changePercent}
-                    </span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
-                      vs yesterday
-                    </span>
-                  </div>
-                </div>
-                <div className="p-3 bg-primary-100 dark:bg-primary-900 rounded-lg">
-                  <Icon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
-                </div>
+        {loadingStats ? (
+          // Loading skeleton
+          [1, 2, 3, 4].map((i) => (
+            <Card key={i} className="p-6">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-24 mb-3"></div>
+                <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-32 mb-2"></div>
+                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-20"></div>
               </div>
             </Card>
-          );
-        })}
+          ))
+        ) : stats.length > 0 ? (
+          stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={stat.name} hover className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      {stat.name}
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      {stat.value}
+                    </p>
+                    <div className="flex items-center mt-1">
+                      {stat.trend === 'up' ? (
+                        <ArrowUpRight className="h-4 w-4 text-success-500" />
+                      ) : (
+                        <ArrowDownRight className="h-4 w-4 text-danger-500" />
+                      )}
+                      <span
+                        className={`text-sm font-medium ml-1 ${
+                          stat.trend === 'up'
+                            ? 'text-success-600 dark:text-success-400'
+                            : 'text-danger-600 dark:text-danger-400'
+                        }`}
+                      >
+                        {stat.changePercent}
+                      </span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
+                        vs yesterday
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-primary-100 dark:bg-primary-900 rounded-lg">
+                    <Icon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                  </div>
+                </div>
+              </Card>
+            );
+          })
+        ) : (
+          // Empty state
+          <div className="col-span-4 text-center py-12">
+            <p className="text-gray-500 dark:text-gray-400">Unable to load dashboard statistics</p>
+          </div>
+        )}
       </motion.div>
 
       {/* Main Content Grid */}

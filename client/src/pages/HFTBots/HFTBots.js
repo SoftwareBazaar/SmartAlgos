@@ -34,8 +34,8 @@ import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
 import EscrowIntegration from '../../components/EscrowIntegration';
+import apiClient from '../../lib/apiClient';
 // import { useAuth } from '../../contexts/AuthContext';
-// import axios from 'axios';
 
 const HFTBots = () => {
   const navigate = useNavigate();
@@ -54,14 +54,27 @@ const HFTBots = () => {
   const [useEscrow, setUseEscrow] = useState(true);
   const [escrowTransaction, setEscrowTransaction] = useState(null);
 
-  // Use mock data for now
+  // Fetch real HFT bots from API
   useEffect(() => {
-    setLoading(true);
-    // Simulate API call delay
-    setTimeout(() => {
-      setBots(mockBots);
-      setLoading(false);
-    }, 500);
+    const fetchBots = async () => {
+      try {
+        setLoading(true);
+        const params = {};
+        if (activeStrategy !== 'all') params.strategy = activeStrategy;
+        if (activeExchange !== 'all') params.exchange = activeExchange;
+        if (searchTerm.trim()) params.search = searchTerm.trim();
+        
+        const response = await apiClient.get('/api/hft', { params });
+        setBots(response.data?.data || []);
+      } catch (error) {
+        console.error('Failed to fetch HFT bots:', error);
+        setBots([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBots();
   }, [activeStrategy, activeExchange, searchTerm]);
 
   const handleRent = (bot) => {
@@ -88,200 +101,7 @@ const HFTBots = () => {
     }
   };
 
-  // Mock HFT Bot data (fallback)
-  const mockBots = [
-    {
-      id: 1,
-      name: 'HFT Scalping Bot',
-      description: 'Ultra-fast scalping bot with microsecond execution for high-frequency trading',
-      strategy: 'scalping',
-      exchange: 'binance',
-      creator: 'HFTMaster',
-      rating: 4.9,
-      reviews: 89,
-      pricing: {
-        basic: 299,
-        professional: 699,
-        enterprise: 1499
-      },
-      currency: 'USD',
-      winRate: 95,
-      totalTrades: 15420,
-      profitFactor: 2.85,
-      maxDrawdown: 2.1,
-      monthlyReturn: 18.5,
-      isLive: true,
-      isFeatured: true,
-      status: 'working',
-      latency: 5,
-      markets: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT'],
-      systemRequirements: {
-        minimumRAM: 8,
-        recommendedRAM: 16,
-        networkLatency: 10,
-        vpsRequired: true
-      }
-    },
-    {
-      id: 2,
-      name: 'Market Maker Elite',
-      description: 'Professional market making bot with advanced risk management',
-      strategy: 'market-making',
-      exchange: 'binance',
-      creator: 'HFTMaster',
-      rating: 4.7,
-      reviews: 156,
-      pricing: {
-        basic: 299,
-        professional: 699,
-        enterprise: 1499
-      },
-      currency: 'USD',
-      winRate: 78,
-      totalTrades: 8920,
-      profitFactor: 1.95,
-      maxDrawdown: 8.5,
-      monthlyReturn: 12.3,
-      isLive: false,
-      isFeatured: false,
-      status: 'incoming',
-      latency: 8,
-      markets: ['BTCUSDT', 'ETHUSDT', 'ADAUSDT'],
-      systemRequirements: {
-        minimumRAM: 16,
-        recommendedRAM: 32,
-        networkLatency: 5,
-        vpsRequired: true
-      }
-    },
-    {
-      id: 3,
-      name: 'Momentum Hunter',
-      description: 'High-speed momentum trading bot for volatile markets',
-      strategy: 'momentum',
-      exchange: 'binance',
-      creator: 'SpeedTrader',
-      rating: 4.6,
-      reviews: 67,
-      pricing: {
-        basic: 149,
-        professional: 399,
-        enterprise: 799
-      },
-      currency: 'USD',
-      winRate: 72,
-      totalTrades: 5670,
-      profitFactor: 1.68,
-      maxDrawdown: 12.3,
-      monthlyReturn: 15.7,
-      isLive: false,
-      isFeatured: false,
-      status: 'incoming',
-      latency: 3,
-      markets: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
-      systemRequirements: {
-        minimumRAM: 8,
-        recommendedRAM: 16,
-        networkLatency: 15,
-        vpsRequired: true
-      }
-    },
-    {
-      id: 4,
-      name: 'Grid Trading Master',
-      description: 'Sophisticated grid trading bot with dynamic grid spacing',
-      strategy: 'grid-trading',
-      exchange: 'binance',
-      creator: 'GridPro',
-      rating: 4.4,
-      reviews: 123,
-      pricing: {
-        basic: 99,
-        professional: 249,
-        enterprise: 499
-      },
-      currency: 'USD',
-      winRate: 85,
-      totalTrades: 12340,
-      profitFactor: 1.45,
-      maxDrawdown: 6.8,
-      monthlyReturn: 8.9,
-      isLive: false,
-      isFeatured: false,
-      status: 'incoming',
-      latency: 12,
-      markets: ['BTCUSDT', 'ETHUSDT', 'DOTUSDT'],
-      systemRequirements: {
-        minimumRAM: 4,
-        recommendedRAM: 8,
-        networkLatency: 50,
-        vpsRequired: false
-      }
-    },
-    {
-      id: 5,
-      name: 'Liquidation Hunter',
-      description: 'Specialized bot for hunting liquidation opportunities',
-      strategy: 'liquidation-hunter',
-      exchange: 'binance',
-      creator: 'LiquidHunter',
-      rating: 4.8,
-      reviews: 45,
-      pricing: {
-        basic: 399,
-        professional: 899,
-        enterprise: 1999
-      },
-      currency: 'USD',
-      winRate: 88,
-      totalTrades: 2340,
-      profitFactor: 3.25,
-      maxDrawdown: 4.2,
-      monthlyReturn: 22.1,
-      isLive: false,
-      isFeatured: false,
-      status: 'incoming',
-      latency: 2,
-      markets: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT'],
-      systemRequirements: {
-        minimumRAM: 16,
-        recommendedRAM: 32,
-        networkLatency: 5,
-        vpsRequired: true
-      }
-    },
-    {
-      id: 6,
-      name: 'Statistical Arbitrage Bot',
-      description: 'Advanced statistical arbitrage with machine learning',
-      strategy: 'statistical-arbitrage',
-      exchange: 'binance',
-      creator: 'StatArb',
-      rating: 4.5,
-      reviews: 78,
-      pricing: {
-        basic: 249,
-        professional: 599,
-        enterprise: 1299
-      },
-      currency: 'USD',
-      winRate: 82,
-      totalTrades: 6780,
-      profitFactor: 2.15,
-      maxDrawdown: 7.5,
-      monthlyReturn: 14.2,
-      isLive: true,
-      isFeatured: false,
-      latency: 6,
-      markets: ['BTCUSDT', 'ETHUSDT', 'LINKUSDT'],
-      systemRequirements: {
-        minimumRAM: 12,
-        recommendedRAM: 24,
-        networkLatency: 20,
-        vpsRequired: true
-      }
-    }
-  ];
+  // Real data fetched from API - no mock fallback
 
   const strategies = [
     { id: 'all', name: 'All Strategies', count: bots.length },

@@ -77,97 +77,6 @@ const News = () => {
       const response = await apiClient.get('/api/news', { params });
       setNews(response.data?.data || []);
       setLoading(false);
-      return;
-      // Mock data for now - replace with actual API call
-      setTimeout(() => {
-        setNews([
-          {
-            id: '1',
-            title: 'Federal Reserve Holds Interest Rates Steady at 5.25%',
-            description: 'The Federal Reserve maintained its benchmark interest rate unchanged, citing ongoing inflation concerns and economic uncertainty. This decision comes as the central bank continues to monitor economic indicators.',
-            url: '#',
-            source: 'Reuters',
-            published_at: new Date().toISOString(),
-            symbols: ['EURUSD', 'GBPUSD', 'USDJPY'],
-            sentiment: 'neutral',
-            impact: 'high',
-            category: 'monetary_policy',
-            image_url: null,
-            relevance_score: 95
-          },
-          {
-            id: '2',
-            title: 'EUR/USD Rises on ECB Hawkish Comments',
-            description: 'The Euro strengthened against the US Dollar following European Central Bank officials suggesting potential rate hikes in the coming months.',
-            url: '#',
-            source: 'Bloomberg',
-            published_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            symbols: ['EURUSD'],
-            sentiment: 'positive',
-            impact: 'medium',
-            category: 'forex',
-            image_url: null,
-            relevance_score: 85
-          },
-          {
-            id: '3',
-            title: 'Bitcoin Surges Past $45,000 on Institutional Adoption',
-            description: 'Bitcoin reached new monthly highs as major corporations announce increased cryptocurrency holdings and adoption strategies.',
-            url: '#',
-            source: 'CoinDesk',
-            published_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-            symbols: ['BTCUSD'],
-            sentiment: 'positive',
-            impact: 'medium',
-            category: 'crypto',
-            image_url: null,
-            relevance_score: 80
-          },
-          {
-            id: '4',
-            title: 'Apple Reports Strong Q4 Earnings, Stock Rises 3%',
-            description: 'Apple Inc. exceeded analyst expectations with robust iPhone sales and services revenue growth in the fourth quarter.',
-            url: '#',
-            source: 'MarketWatch',
-            published_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-            symbols: ['AAPL'],
-            sentiment: 'positive',
-            impact: 'medium',
-            category: 'earnings',
-            image_url: null,
-            relevance_score: 75
-          },
-          {
-            id: '5',
-            title: 'US Inflation Data Shows Modest Increase in December',
-            description: 'Consumer Price Index rose 0.2% month-over-month, slightly above expectations but showing signs of cooling inflation.',
-            url: '#',
-            source: 'CNBC',
-            published_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-            symbols: ['EURUSD', 'GBPUSD', 'USDJPY'],
-            sentiment: 'neutral',
-            impact: 'high',
-            category: 'inflation',
-            image_url: null,
-            relevance_score: 90
-          },
-          {
-            id: '6',
-            title: 'Bank of England Signals Potential Rate Cut',
-            description: 'The Bank of England hinted at possible interest rate reductions as economic growth slows and inflation pressures ease.',
-            url: '#',
-            source: 'Financial Times',
-            published_at: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
-            symbols: ['GBPUSD'],
-            sentiment: 'negative',
-            impact: 'high',
-            category: 'monetary_policy',
-            image_url: null,
-            relevance_score: 88
-          }
-        ]);
-        setLoading(false);
-      }, 1000);
     } catch (error) {
       console.error('Error fetching news:', error);
       setLoading(false);
@@ -179,11 +88,9 @@ const News = () => {
       const response = await apiClient.get('/api/news/trending');
       const data = response.data?.data || {};
       setTrending(data.trending_symbols || []);
-      return;
-      // Mock trending data
-      setTrending(['EURUSD', 'GBPUSD', 'BTCUSD', 'AAPL', 'TSLA']);
     } catch (error) {
       console.error('Error fetching trending:', error);
+      setTrending([]);
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { motion } from "framer-motion";
 
@@ -257,31 +257,35 @@ const AdminDashboard = () => {
     },
   ];
 
-  const recentUsers = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      role: "user",
-      joined: "2 hours ago",
-    },
+  // Fetch recent users from API
+  const [recentUsers, setRecentUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      role: "user",
-      joined: "4 hours ago",
-    },
+  useEffect(() => {
+    const fetchRecentUsers = async () => {
+      try {
+        setLoadingUsers(true);
+        const response = await apiClient.get('/api/admin/users/recent?limit=5');
+        if (response.data.success) {
+          const users = response.data.data.map(u => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: u.role,
+            joined: new Date(u.createdAt).toLocaleString()
+          }));
+          setRecentUsers(users);
+        }
+      } catch (error) {
+        console.error('Failed to fetch recent users:', error);
+        setRecentUsers([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
 
-    {
-      id: 3,
-      name: "Mike Johnson",
-      email: "mike@example.com",
-      role: "user",
-      joined: "6 hours ago",
-    },
-  ];
+    fetchRecentUsers();
+  }, []);
 
   const tabs = [
     { id: "overview", name: "Overview", icon: BarChart3 },

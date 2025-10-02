@@ -56,8 +56,21 @@ const DEFAULT_ACCOUNTS = [
 class MockAuthStore {
   constructor() {
     this.storagePath = path.join(__dirname, '..', 'uploads', 'mock-users.json');
+    this.uploadsDir = path.join(__dirname, '..', 'uploads');
     this.users = [];
+    this._ensureUploadsDir();
     this._load();
+  }
+
+  _ensureUploadsDir() {
+    try {
+      if (!fs.existsSync(this.uploadsDir)) {
+        fs.mkdirSync(this.uploadsDir, { recursive: true });
+        console.log('[mock-auth] Created uploads directory');
+      }
+    } catch (error) {
+      console.error('[mock-auth] Failed to create uploads directory:', error.message);
+    }
   }
 
   _load() {
@@ -81,6 +94,8 @@ class MockAuthStore {
 
   _persist() {
     try {
+      // Ensure directory exists before writing
+      this._ensureUploadsDir();
       fs.writeFileSync(this.storagePath, JSON.stringify(this.users, null, 2));
     } catch (error) {
       console.error('[mock-auth] Failed to persist mock users:', error.message);

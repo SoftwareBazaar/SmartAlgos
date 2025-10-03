@@ -88,8 +88,8 @@ function App() {
                 <Route path="/admin-login" element={<SimpleAdminLogin />} />
                 <Route path="/admin-access" element={<AdminAccess />} />
                 
-                {/* Direct Admin Dashboard - Bypass Authentication */}
-                <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                {/* Direct Admin Dashboard - Protected */}
+                <Route path="/admin-dashboard" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
 
                 {/* Landing Page - Public */}
                 <Route index element={<LandingPage />} />

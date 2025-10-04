@@ -14,7 +14,7 @@ router.get('/', [
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
   query('category').optional().isIn(['scalping', 'trend', 'news', 'grid', 'arbitrage', 'martingale', 'hedging']),
   query('status').optional().isIn(['draft', 'pending', 'approved', 'rejected', 'suspended', 'discontinued']),
-  query('sortBy').optional().isIn(['name', 'createdAt', 'performance.winRate', 'performance.totalReturn', 'subscriptionStats.averageRating']),
+  query('sortBy').optional().isIn(['name', 'created_at', 'win_rate', 'average_rating', 'price_monthly']),
   query('sortOrder').optional().isIn(['asc', 'desc']),
   query('search').optional().isLength({ min: 1, max: 100 }).withMessage('Search term must be between 1 and 100 characters')
 ], async (req, res) => {
@@ -33,7 +33,7 @@ router.get('/', [
       limit = 20,
       category,
       status = 'approved',
-      sortBy = 'createdAt',
+      sortBy = 'created_at',
       sortOrder = 'desc',
       search,
       minWinRate,
@@ -223,10 +223,7 @@ router.post('/', [
     .withMessage('Invalid risk level'),
   body('pricing.monthly')
     .isFloat({ min: 0 })
-    .withMessage('Monthly price must be a positive number'),
-  body('pricing.weekly')
-    .isFloat({ min: 0 })
-    .withMessage('Weekly price must be a positive number')
+    .withMessage('Monthly price must be a positive number')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -239,13 +236,24 @@ router.post('/', [
     }
 
     const eaData = {
-      ...req.body,
-      creator: req.user._id,
-      creatorName: req.user.fullName
+      name: req.body.name,
+      description: req.body.description,
+      category: req.body.category,
+      strategy_type: req.body.category, // Use category as strategy type for now
+      risk_level: req.body.riskLevel,
+      price_monthly: req.body.pricing.monthly,
+      price_yearly: req.body.pricing.monthly * 10, // Calculate yearly price (10 months)
+      creator_id: req.user.id,
+      creator_name: `${req.user.first_name || ''} ${req.user.last_name || ''}`.trim() || 'Admin User',
+      status: 'pending',
+      is_active: true,
+      is_featured: false,
+      version: '1.0.0',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
-    const ea = new EA(eaData);
-    await ea.save();
+    const ea = await databaseService.createEA(eaData);
 
     res.status(201).json({
       success: true,
@@ -255,9 +263,12 @@ router.post('/', [
 
   } catch (error) {
     console.error('Create EA error:', error);
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

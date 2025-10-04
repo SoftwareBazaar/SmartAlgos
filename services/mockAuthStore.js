@@ -49,7 +49,11 @@ const DEFAULT_ACCOUNTS = [
     role: 'admin',
     is_active: true,
     is_email_verified: true,
-    enforcePassword: true
+    enforcePassword: true,
+    subscription_type: 'institutional',
+    subscription_status: 'active',
+    subscription_start_date: new Date().toISOString(),
+    subscription_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
   }
 ];
 
@@ -159,6 +163,27 @@ class MockAuthStore {
           accountChanged = true;
         }
 
+        // Update subscription data if provided
+        if (account.subscription_type && user.subscription_type !== account.subscription_type) {
+          user.subscription_type = account.subscription_type;
+          accountChanged = true;
+        }
+
+        if (account.subscription_status && user.subscription_status !== account.subscription_status) {
+          user.subscription_status = account.subscription_status;
+          accountChanged = true;
+        }
+
+        if (account.subscription_start_date && user.subscription_start_date !== account.subscription_start_date) {
+          user.subscription_start_date = account.subscription_start_date;
+          accountChanged = true;
+        }
+
+        if (account.subscription_end_date && user.subscription_end_date !== account.subscription_end_date) {
+          user.subscription_end_date = account.subscription_end_date;
+          accountChanged = true;
+        }
+
         if (accountChanged) {
           user.login_attempts = 0;
           user.updated_at = now;
@@ -181,6 +206,10 @@ class MockAuthStore {
         is_active: account.is_active !== false,
         is_email_verified: account.is_email_verified !== false,
         login_attempts: 0,
+        subscription_type: account.subscription_type || 'free',
+        subscription_status: account.subscription_status || 'active',
+        subscription_start_date: account.subscription_start_date || now,
+        subscription_end_date: account.subscription_end_date || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
         created_at: now,
         updated_at: now
       };

@@ -29,11 +29,19 @@ console.log(`[API Client] Environment: ${process.env.NODE_ENV || 'development'}`
 
 // Request interceptor
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  let token = localStorage.getItem('token');
   const runtimeEnv = typeof window !== 'undefined' && window.env ? window.env.nodeEnv : undefined;
   const isDevRuntime = (process.env.NODE_ENV && process.env.NODE_ENV !== 'production')
     || (!process.env.NODE_ENV && runtimeEnv && runtimeEnv !== 'production')
     || runtimeEnv === 'development';
+
+  // Check if token is a malformed JWT (old Supabase token)
+  if (token && token.includes('.') && token.split('.').length === 3) {
+    console.warn('[API Client] Detected old JWT token, clearing it...');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    token = null;
+  }
 
   if (token) {
     config.headers = config.headers || {};
@@ -73,8 +81,18 @@ apiClient.interceptors.response.use(
 
       // Handle specific error cases
       if (status === 401) {
-        // Unauthorized - clear token and redirect to login
-        localStorage.removeItem('token');
+        // Check if it's a JWT token error
+        const errorMessage = error.response.data?.message || '';
+        if (errorMessage.includes('JWT') || errorMessage.includes('malformed') || errorMessage.includes('invalid')) {
+          console.warn('[API Client] JWT token error detected, clearing storage...');
+          localStorage.clear();
+          sessionStorage.clear();
+        } else {
+          // Regular unauthorized error
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+        
         delete apiClient.defaults.headers.common.Authorization;
         
         // Only redirect if not already on auth pages

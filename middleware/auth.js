@@ -28,46 +28,6 @@ const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
-    // Allow test token and dev tokens in development mode
-    if ((token === 'test_token' || token?.startsWith('dev_token_')) && (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV)) {
-      if (useMockAuth) {
-        const mockUser = await mockAuthStore.getUserByEmail('test@smartalgos.com') ||
-          await mockAuthStore.getUserByEmail('demo@smartalgos.local');
-
-        if (mockUser) {
-          req.user = userService.normalizeUser(mockUser);
-          req.userRaw = mockUser;
-          return next();
-        }
-      }
-
-      // Handle dev tokens
-      if (token?.startsWith('dev_token_')) {
-        const userId = token.replace('dev_token_', '');
-        const rawUser = await databaseService.getUserById(userId);
-        
-        if (rawUser) {
-          req.user = userService.normalizeUser(rawUser);
-          req.userRaw = rawUser;
-          return next();
-        }
-      }
-      
-      req.user = userService.normalizeUser({
-        id: 'test_user_123',
-        email: 'test@example.com',
-        role: 'user',
-        is_active: true,
-        is_email_verified: true,
-        subscription_type: 'basic',
-        subscription_status: 'active',
-        subscription_start_date: new Date().toISOString(),
-        subscription_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-        preferences: {}
-      });
-      return next();
-    }
-    
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -75,14 +35,19 @@ const auth = async (req, res, next) => {
       });
     }
 
-    // For development: Handle dev tokens directly (no JWT/Supabase verification)
     let rawUser;
     
     try {
-      // Check if it's a dev token
+      // Check if it's a dev token (for regular users and admin)
       if (token.startsWith('dev_token_')) {
         const userId = token.replace('dev_token_', '');
-        rawUser = await databaseService.getUserById(userId);
+        
+        // Use mock auth store if enabled, otherwise use database service
+        if (useMockAuth) {
+          rawUser = await mockAuthStore.getUserById(userId);
+        } else {
+          rawUser = await databaseService.getUserById(userId);
+        }
         
         if (!rawUser) {
           console.error('Dev token user not found:', userId);
@@ -91,8 +56,37 @@ const auth = async (req, res, next) => {
             message: 'Invalid token. User not found.'
           });
         }
-      } else {
-        // For other tokens, try Supabase verification (fallback)
+      } 
+      // Check if it's a test token (development only)
+      else if (token === 'test_token' && (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV)) {
+        if (useMockAuth) {
+          const mockUser = await mockAuthStore.getUserByEmail('test@smartalgos.com') ||
+            await mockAuthStore.getUserByEmail('demo@smartalgos.local');
+
+          if (mockUser) {
+            req.user = userService.normalizeUser(mockUser);
+            req.userRaw = mockUser;
+            return next();
+          }
+        }
+        
+        // Fallback test user
+        req.user = userService.normalizeUser({
+          id: 'test_user_123',
+          email: 'test@example.com',
+          role: 'user',
+          is_active: true,
+          is_email_verified: true,
+          subscription_type: 'basic',
+          subscription_status: 'active',
+          subscription_start_date: new Date().toISOString(),
+          subscription_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          preferences: {}
+        });
+        return next();
+      }
+      // For Supabase JWT tokens (only if not a dev token)
+      else if (token.includes('.') && token.split('.').length === 3) {
         const supabase = databaseService.getClient();
         const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(token);
         
@@ -123,6 +117,14 @@ const auth = async (req, res, next) => {
           
           rawUser = await databaseService.createUser(userData);
         }
+      }
+      // Invalid token format
+      else {
+        console.error('Invalid token format:', token.substring(0, 20) + '...');
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid token format. Please login again.'
+        });
       }
     } catch (error) {
       console.error('Token verification error:', error);

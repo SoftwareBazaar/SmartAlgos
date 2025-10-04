@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
+import { adminLogin as bulletproofAdminLogin, getCurrentUser, logout as bulletproofLogout } from '../utils/auth';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -45,28 +46,26 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Use backend API for authentication check
-        const token = localStorage.getItem('token');
-        if (token) {
-          apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
-          try {
-            const response = await apiClient.get('/api/auth/me');
-            if (response.data.success) {
-              dispatch({ type: 'SET_USER', payload: response.data.user });
-            } else {
-              localStorage.removeItem('token');
-              delete apiClient.defaults.headers.common.Authorization;
-            }
-          } catch (apiError) {
-            console.error('API auth check failed:', apiError);
-            localStorage.removeItem('token');
-            delete apiClient.defaults.headers.common.Authorization;
-          }
+        console.log('=== CHECKING AUTH ON APP LOAD ===');
+        
+        // Clear any old tokens first
+        const oldToken = localStorage.getItem('token');
+        if (oldToken && oldToken.includes('.') && oldToken.split('.').length === 3) {
+          console.log('Clearing old JWT token');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+        
+        // Use bulletproof auth system
+        const userData = await getCurrentUser();
+        if (userData && userData.user) {
+          dispatch({ type: 'SET_USER', payload: userData.user });
         }
       } catch (error) {
         console.error('Auth check failed:', error);
+        localStorage.removeItem('auth_token');
         localStorage.removeItem('token');
-        delete apiClient.defaults.headers.common.Authorization;
+        localStorage.removeItem('user');
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
@@ -107,44 +106,51 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       
-      // Use backend API for admin login
-      const response = await apiClient.post('/auth/admin/login', {
-        email,
-        password
-      });
+      console.log('=== ADMIN LOGIN STARTED ===');
       
-      const { token, user } = response.data;
+      // Use bulletproof admin login
+      const data = await bulletproofAdminLogin(email, password);
       
-      if (token) {
-        localStorage.setItem('token', token);
-        apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+      if (data.token && data.user) {
+        // Store token in both locations for compatibility
+        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('token', data.token);
+        
+        apiClient.defaults.headers.common.Authorization = `Bearer ${data.token}`;
+        
+        console.log('✓ Admin login completed successfully');
+      } else {
+        throw new Error('No token or user received');
       }
       
       // Normalize user data
       const normalizedUser = {
-        id: user.id,
-        email: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        role: user.role,
-        isActive: user.is_active,
-        isEmailVerified: user.is_email_verified,
+        id: data.user.id,
+        email: data.user.email,
+        firstName: data.user.first_name,
+        lastName: data.user.last_name,
+        role: data.user.role,
+        isActive: data.user.is_active,
+        isEmailVerified: data.user.is_email_verified,
         subscription: {
-          type: user.subscription_type || 'basic',
-          status: user.subscription_status || 'active',
-          startDate: user.subscription_start_date,
-          endDate: user.subscription_end_date
+          type: data.user.subscription_type || 'basic',
+          status: data.user.subscription_status || 'active',
+          startDate: data.user.subscription_start_date,
+          endDate: data.user.subscription_end_date
         },
-        preferences: user.preferences || {},
-        createdAt: user.created_at,
-        updatedAt: user.updated_at
+        preferences: data.user.preferences || {},
+        createdAt: data.user.created_at,
+        updatedAt: data.user.updated_at
       };
       
       dispatch({ type: 'SET_USER', payload: normalizedUser });
       toast.success('Admin login successful!');
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || error.message || 'Admin login failed';
+      console.error('=== ADMIN LOGIN FAILED ===');
+      console.error('Error:', error);
+      
+      const message = error.message || 'Admin login failed';
       dispatch({ type: 'SET_ERROR', payload: message });
       toast.error(message);
       return { success: false, error: message };
@@ -191,19 +197,22 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = async () => {
     try {
-      // Use backend API for logout
-      try {
-        await apiClient.post('/api/auth/logout');
-      } catch (apiError) {
-        console.error('API logout error:', apiError);
-      }
+      console.log('=== LOGOUT STARTED ===');
+      
+      // Use bulletproof logout
+      await bulletproofLogout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // Clear all tokens and user data
+      localStorage.removeItem('auth_token');
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       delete apiClient.defaults.headers.common.Authorization;
       dispatch({ type: 'LOGOUT' });
       toast.success('Logged out successfully');
+      
+      console.log('✓ Logout completed');
       // Redirect to login page
       window.location.href = '/auth/login';
     }

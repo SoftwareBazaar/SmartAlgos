@@ -620,7 +620,7 @@ router.post('/logout', auth, async (req, res) => {
 });
 
 // @route   POST /api/auth/admin/login
-// @desc    Admin login using Supabase
+// @desc    Admin login using database authentication
 // @access  Public
 router.post('/admin/login', [
   loginRateLimit,
@@ -645,46 +645,22 @@ router.post('/admin/login', [
 
     const { email, password } = req.body;
 
-    // Use Supabase for authentication
-    const supabase = databaseService.getClient();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    // Use authStore for admin login (supports both database and mock auth)
+    console.log('[admin-login] Looking for user with email:', email);
+    const profile = await authStore.getUserByEmail(email);
 
-    if (error) {
-      console.warn('[admin-login] Supabase auth error:', error.message);
+    if (!profile) {
+      console.warn('[admin-login] User not found:', email);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
-    if (!data.user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Get user profile from database
-    const { data: profile, error: profileError } = await supabase
-      .from('users_accounts')
-      .select('*')
-      .eq('id', data.user.id)
-      .single();
-
-    if (profileError || !profile) {
-      console.warn('[admin-login] Profile not found for user:', data.user.id);
-      return res.status(401).json({
-        success: false,
-        message: 'User profile not found'
-      });
-    }
+    console.log('[admin-login] Found user:', profile.email, 'role:', profile.role);
 
     // Check if user is admin
     if (profile.role !== 'admin') {
-      await supabase.auth.signOut();
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -693,32 +669,30 @@ router.post('/admin/login', [
 
     // Check if account is active
     if (!profile.is_active) {
-      await supabase.auth.signOut();
       return res.status(401).json({
         success: false,
         message: 'Account is deactivated'
       });
     }
 
-    // Update last login and activity
-    await supabase
-      .from('users_accounts')
-      .update({
-        last_login: new Date().toISOString(),
-        last_activity: new Date().toISOString()
-      })
-      .eq('id', data.user.id);
-
-    // Get the session token
-    const { data: session } = await supabase.auth.getSession();
-    const token = session?.session?.access_token;
-
-    if (!token) {
-      return res.status(500).json({
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, profile.password_hash);
+    if (!isPasswordValid) {
+      console.warn('[admin-login] Invalid password for admin:', email);
+      return res.status(401).json({
         success: false,
-        message: 'Failed to get session token'
+        message: 'Invalid email or password'
       });
     }
+
+    // Update last login and activity
+    await authStore.updateUser(profile.id, {
+      last_login: new Date().toISOString(),
+      last_activity: new Date().toISOString()
+    });
+
+    // Generate a dev token for admin (consistent with regular user tokens)
+    const token = `dev_token_${profile.id}`;
 
     // Remove password from response
     const userResponse = { ...profile };

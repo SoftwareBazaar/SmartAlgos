@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, Shield, ArrowRight } from 'lucide-react';
 import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SimpleAdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -11,110 +12,77 @@ const SimpleAdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { adminLogin } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     
-    console.log('Attempting direct admin login with:', { email, password });
+    console.log('=== ADMIN LOGIN ATTEMPT ===');
+    console.log('Email:', email);
     
-    // Direct admin authentication - bypass backend
-    setTimeout(() => {
-      console.log('Setting up direct admin access');
+    try {
+      const result = await adminLogin(email, password);
       
-      // Set admin user in localStorage
-      const adminUser = {
-        id: 'admin-user-123',
-        email: email,
-        first_name: 'Admin',
-        last_name: 'User',
-        role: 'admin',
-        is_active: true,
-        is_email_verified: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
-      // Set authentication data
-      localStorage.setItem('token', 'admin-token-direct-access');
-      localStorage.setItem('user', JSON.stringify(adminUser));
-      
-      // Set auth header for API calls
-      if (window.apiClient) {
-        window.apiClient.defaults.headers.common.Authorization = 'Bearer admin-token-direct-access';
+      if (result.success) {
+        console.log('✅ Admin login successful, navigating to admin panel');
+        navigate('/admin-dashboard');
+      } else {
+        setError(result.error || 'Admin login failed');
+        setLoading(false);
       }
-      
-      console.log('Direct admin access granted, navigating to admin panel');
+    } catch (err) {
+      console.error('Admin login error:', err);
+      setError(err.message || 'Admin login failed');
       setLoading(false);
-      navigate('/admin-dashboard');
-    }, 1000);
+    }
   };
 
-  const handleDirectAdminAccess = () => {
-    console.log('Direct admin access requested');
+  const handleDirectAdminAccess = async () => {
+    console.log('=== DIRECT ADMIN ACCESS REQUESTED ===');
     
-    // Set admin user in localStorage for direct access
-    const adminUser = {
-      id: 'admin-user-direct',
-      email: 'Softwarebazaar.ke@gmail.com',
-      first_name: 'Admin',
-      last_name: 'User',
-      role: 'admin',
-      is_active: true,
-      is_email_verified: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    setLoading(true);
+    setError('');
     
-    localStorage.setItem('token', 'admin-token-direct-bypass');
-    localStorage.setItem('user', JSON.stringify(adminUser));
-    
-    // Set auth header for API calls
-    if (window.apiClient) {
-      window.apiClient.defaults.headers.common.Authorization = 'Bearer admin-token-direct-bypass';
+    try {
+      const result = await adminLogin('Softwarebazaar.ke@gmail.com', '28103441Jw@');
+      
+      if (result.success) {
+        console.log('✅ Direct admin access granted');
+        navigate('/admin-dashboard');
+      } else {
+        setError(result.error || 'Direct access failed');
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error('Direct access error:', err);
+      setError(err.message || 'Direct access failed');
+      setLoading(false);
     }
-    
-      console.log('Direct admin access granted, navigating to admin panel');
-      navigate('/admin-dashboard');
   };
 
   const handleQuickLogin = async () => {
     setLoading(true);
     setError('');
     
-    console.log('Quick login attempt with:', { email, password });
+    console.log('=== QUICK ADMIN LOGIN ===');
     
-    // Direct quick admin authentication
-    setTimeout(() => {
-      console.log('Setting up quick admin access');
+    try {
+      const result = await adminLogin(email, password);
       
-      // Set admin user in localStorage
-      const adminUser = {
-        id: 'admin-user-quick',
-        email: email,
-        first_name: 'Admin',
-        last_name: 'User',
-        role: 'admin',
-        is_active: true,
-        is_email_verified: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
-      // Set authentication data
-      localStorage.setItem('token', 'admin-token-quick-access');
-      localStorage.setItem('user', JSON.stringify(adminUser));
-      
-      // Set auth header for API calls
-      if (window.apiClient) {
-        window.apiClient.defaults.headers.common.Authorization = 'Bearer admin-token-quick-access';
+      if (result.success) {
+        console.log('✅ Quick admin login successful');
+        navigate('/admin-dashboard');
+      } else {
+        setError(result.error || 'Quick login failed');
+        setLoading(false);
       }
-      
-      console.log('Quick admin access granted, navigating to admin panel');
+    } catch (err) {
+      console.error('Quick login error:', err);
+      setError(err.message || 'Quick login failed');
       setLoading(false);
-      navigate('/admin-dashboard');
-    }, 500);
+    }
   };
 
   return (

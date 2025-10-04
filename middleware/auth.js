@@ -102,10 +102,13 @@ const auth = async (req, res, next) => {
     req.userRaw = rawUser;
     next();
   } catch (error) {
+    console.error('Token verification error:', error);
+    
     if (error.name === 'JsonWebTokenError') {
+      // Clear invalid token from client
       return res.status(401).json({
         success: false,
-        message: 'Invalid token.'
+        message: 'Invalid or expired token. Please login again.'
       });
     }
     

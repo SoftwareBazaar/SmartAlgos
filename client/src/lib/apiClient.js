@@ -75,7 +75,10 @@ apiClient.interceptors.response.use(
       if (status === 401) {
         // Unauthorized - clear token and redirect to login
         localStorage.removeItem('token');
-        if (!window.location.pathname.includes('/auth')) {
+        delete apiClient.defaults.headers.common.Authorization;
+        
+        // Only redirect if not already on auth pages
+        if (!window.location.pathname.includes('/auth') && !window.location.pathname.includes('/admin')) {
           window.location.href = '/auth/login';
         }
       } else if (status === 404) {

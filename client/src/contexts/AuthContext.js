@@ -51,9 +51,16 @@ export const AuthProvider = ({ children }) => {
           dispatch({ type: 'SET_USER', payload: response.data.user });
         } catch (error) {
           console.error('Auth check failed:', error);
+          // Clear invalid token
           localStorage.removeItem('token');
           delete apiClient.defaults.headers.common.Authorization;
-          dispatch({ type: 'SET_ERROR', payload: error.response?.data?.message || 'Authentication failed' });
+          
+          // Don't show error for invalid tokens, just clear them silently
+          if (error.response?.status === 401) {
+            dispatch({ type: 'SET_LOADING', payload: false });
+          } else {
+            dispatch({ type: 'SET_ERROR', payload: error.response?.data?.message || 'Authentication failed' });
+          }
         }
       } else {
         dispatch({ type: 'SET_LOADING', payload: false });

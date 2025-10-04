@@ -96,13 +96,15 @@ async function updateLastActivity(userId, context = {}) {
     updated_at: new Date().toISOString()
   };
 
+  // Only update fields that exist in the database
   if (context.ip) {
     updates.last_activity_ip = context.ip;
   }
 
-  if (context.userAgent) {
-    updates.last_activity_agent = context.userAgent;
-  }
+  // Skip last_activity_agent if column doesn't exist
+  // if (context.userAgent) {
+  //   updates.last_activity_agent = context.userAgent;
+  // }
 
   try {
     await databaseService.updateUser(userId, updates);

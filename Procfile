@@ -1,2 +1,1 @@
-web: npm start
-
+web: cross-env MOCK_AUTH=true NODE_ENV=development npm start

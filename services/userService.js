@@ -91,25 +91,21 @@ async function updateLastActivity(userId, context = {}) {
     return;
   }
 
+  // Only update fields that definitely exist in the database
   const updates = {
     last_activity: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
 
-  // Only update fields that exist in the database
-  if (context.ip) {
-    updates.last_activity_ip = context.ip;
-  }
-
-  // Skip last_activity_agent if column doesn't exist
-  // if (context.userAgent) {
-  //   updates.last_activity_agent = context.userAgent;
-  // }
+  // Skip any additional fields that might not exist
+  // The database schema only has: last_activity, updated_at, created_at, etc.
+  // No last_activity_ip or last_activity_agent columns
 
   try {
     await databaseService.updateUser(userId, updates);
   } catch (error) {
     console.error('Failed to update user activity:', error.message);
+    // Don't throw error - this is not critical for login
   }
 }
 

@@ -198,9 +198,14 @@ class SecurityService {
 
   verifyToken(token) {
     try {
+      // Check if token is valid format first
+      if (!token || typeof token !== 'string' || token.length < 10) {
+        throw new Error('Invalid token format');
+      }
+      
       return jwt.verify(token, this.jwtSecret);
     } catch (error) {
-      console.error('Token verification error:', error);
+      console.error('Token verification error:', error.message);
       throw error;
     }
   }

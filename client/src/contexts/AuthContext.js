@@ -45,77 +45,22 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Import Supabase client dynamically to avoid SSR issues
-        const { supabase } = await import('../lib/supabase');
-        
-        // Check Supabase session first
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Supabase session check failed:', error);
-        }
-        
-        if (session?.user) {
-          // Get user profile from database
-          const { data: profile, error: profileError } = await supabase
-            .from('users_accounts')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profileError || !profile) {
-            console.error('User profile not found:', profileError);
-            await supabase.auth.signOut();
-            localStorage.removeItem('token');
-            delete apiClient.defaults.headers.common.Authorization;
-            dispatch({ type: 'SET_LOADING', payload: false });
-            return;
-          }
-          
-          // Set token and user data
-          const token = session.access_token;
-          localStorage.setItem('token', token);
+        // Use backend API for authentication check
+        const token = localStorage.getItem('token');
+        if (token) {
           apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
-          
-          // Normalize user data
-          const normalizedUser = {
-            id: profile.id,
-            email: profile.email,
-            firstName: profile.first_name,
-            lastName: profile.last_name,
-            role: profile.role,
-            isActive: profile.is_active,
-            isEmailVerified: profile.is_email_verified,
-            subscription: {
-              type: profile.subscription_type || 'basic',
-              status: profile.subscription_status || 'active',
-              startDate: profile.subscription_start_date,
-              endDate: profile.subscription_end_date
-            },
-            preferences: profile.preferences || {},
-            createdAt: profile.created_at,
-            updatedAt: profile.updated_at
-          };
-          
-          dispatch({ type: 'SET_USER', payload: normalizedUser });
-        } else {
-          // Fallback to custom token check
-          const token = localStorage.getItem('token');
-          if (token) {
-            apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
-            try {
-              const response = await apiClient.get('/api/auth/me');
-              if (response.data.success) {
-                dispatch({ type: 'SET_USER', payload: response.data.user });
-              } else {
-                localStorage.removeItem('token');
-                delete apiClient.defaults.headers.common.Authorization;
-              }
-            } catch (apiError) {
-              console.error('API auth check failed:', apiError);
+          try {
+            const response = await apiClient.get('/api/auth/me');
+            if (response.data.success) {
+              dispatch({ type: 'SET_USER', payload: response.data.user });
+            } else {
               localStorage.removeItem('token');
               delete apiClient.defaults.headers.common.Authorization;
             }
+          } catch (apiError) {
+            console.error('API auth check failed:', apiError);
+            localStorage.removeItem('token');
+            delete apiClient.defaults.headers.common.Authorization;
           }
         }
       } catch (error) {
@@ -162,42 +107,13 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       
-      // Import Supabase client dynamically to avoid SSR issues
-      const { supabase } = await import('../lib/supabase');
-      
-      // Sign in with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Use backend API for admin login
+      const response = await apiClient.post('/auth/admin/login', {
         email,
         password
       });
       
-      if (error) {
-        throw error;
-      }
-      
-      if (!data.user) {
-        throw new Error('No user data returned');
-      }
-      
-      // Check if user has admin role
-      const { data: profile, error: profileError } = await supabase
-        .from('users_accounts')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-      
-      if (profileError || !profile) {
-        throw new Error('User profile not found');
-      }
-      
-      if (profile.role !== 'admin') {
-        await supabase.auth.signOut();
-        throw new Error('Access denied. Admin privileges required.');
-      }
-      
-      // Get the session token
-      const { data: session } = await supabase.auth.getSession();
-      const token = session?.session?.access_token;
+      const { token, user } = response.data;
       
       if (token) {
         localStorage.setItem('token', token);
@@ -206,29 +122,29 @@ export const AuthProvider = ({ children }) => {
       
       // Normalize user data
       const normalizedUser = {
-        id: profile.id,
-        email: profile.email,
-        firstName: profile.first_name,
-        lastName: profile.last_name,
-        role: profile.role,
-        isActive: profile.is_active,
-        isEmailVerified: profile.is_email_verified,
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        role: user.role,
+        isActive: user.is_active,
+        isEmailVerified: user.is_email_verified,
         subscription: {
-          type: profile.subscription_type || 'basic',
-          status: profile.subscription_status || 'active',
-          startDate: profile.subscription_start_date,
-          endDate: profile.subscription_end_date
+          type: user.subscription_type || 'basic',
+          status: user.subscription_status || 'active',
+          startDate: user.subscription_start_date,
+          endDate: user.subscription_end_date
         },
-        preferences: profile.preferences || {},
-        createdAt: profile.created_at,
-        updatedAt: profile.updated_at
+        preferences: user.preferences || {},
+        createdAt: user.created_at,
+        updatedAt: user.updated_at
       };
       
       dispatch({ type: 'SET_USER', payload: normalizedUser });
       toast.success('Admin login successful!');
       return { success: true };
     } catch (error) {
-      const message = error.message || 'Admin login failed';
+      const message = error.response?.data?.message || error.message || 'Admin login failed';
       dispatch({ type: 'SET_ERROR', payload: message });
       toast.error(message);
       return { success: false, error: message };
@@ -275,13 +191,7 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = async () => {
     try {
-      // Import Supabase client dynamically to avoid SSR issues
-      const { supabase } = await import('../lib/supabase');
-      
-      // Sign out from Supabase
-      await supabase.auth.signOut();
-      
-      // Also try API logout for custom auth
+      // Use backend API for logout
       try {
         await apiClient.post('/api/auth/logout');
       } catch (apiError) {

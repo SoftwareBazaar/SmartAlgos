@@ -28,8 +28,8 @@ const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
-    // Allow test token in development mode
-    if (token === 'test_token' && (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV)) {
+    // Allow test token and dev tokens in development mode
+    if ((token === 'test_token' || token?.startsWith('dev_token_')) && (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV)) {
       if (useMockAuth) {
         const mockUser = await mockAuthStore.getUserByEmail('test@smartalgos.com') ||
           await mockAuthStore.getUserByEmail('demo@smartalgos.local');
@@ -41,6 +41,18 @@ const auth = async (req, res, next) => {
         }
       }
 
+      // Handle dev tokens
+      if (token?.startsWith('dev_token_')) {
+        const userId = token.replace('dev_token_', '');
+        const rawUser = await databaseService.getUserById(userId);
+        
+        if (rawUser) {
+          req.user = userService.normalizeUser(rawUser);
+          req.userRaw = rawUser;
+          return next();
+        }
+      }
+      
       req.user = userService.normalizeUser({
         id: 'test_user_123',
         email: 'test@example.com',

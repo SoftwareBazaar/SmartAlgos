@@ -93,10 +93,7 @@ const EMAIL_NORMALIZE_OPTIONS = {
   icloud_remove_subaddress: false
 };
 
-// Generate JWT token
-const generateToken = (userId) => {
-  return securityService.generateToken({ userId }, process.env.JWT_EXPIRE || '7d');
-};
+// No longer using custom JWT tokens - using Supabase tokens only
 
 // Rate limiting for auth actions (very lenient for development)
 const loginRateLimit = createActionRateLimit(1000, 5 * 60 * 1000, 'login'); // 1000 attempts per 5 minutes (development)
@@ -177,8 +174,8 @@ router.post('/register', [
 
     const user = await authStore.createUser(userData);
 
-    // Generate token
-    const token = generateToken(user.id);
+    // No custom token generation - using Supabase tokens only
+    const token = null;
 
     // Remove password from response
     const userResponse = { ...user };
@@ -201,7 +198,7 @@ router.post('/register', [
 });
 
 // @route   POST /api/auth/login
-// @desc    Login user
+// @desc    Login user using Supabase
 // @access  Public
 router.post('/login', [
   loginRateLimit,
@@ -226,85 +223,74 @@ router.post('/login', [
 
     const { email, password } = req.body;
 
-    // Find user by email
-    const user = await authStore.getUserByEmail(email);
-    if (!user) {
-      console.warn('[admin-login] user not found for email:', email);
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    console.log('[admin-login] fetched user', {
-      id: user.id,
-      role: user.role,
-      is_active: user.is_active,
-      login_attempts: user.login_attempts
+    // Use Supabase for authentication
+    const supabase = databaseService.getClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
     });
-    if (!user) {
+
+    if (error) {
+      console.warn('[login] Supabase auth error:', error.message);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
-    // Check if account is locked
-    if (user.lock_until && new Date() < new Date(user.lock_until)) {
+    if (!data.user) {
       return res.status(401).json({
         success: false,
-        message: 'Account is temporarily locked due to multiple failed login attempts'
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Get user profile from database
+    const { data: profile, error: profileError } = await supabase
+      .from('users_accounts')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+
+    if (profileError || !profile) {
+      console.warn('[login] Profile not found for user:', data.user.id);
+      return res.status(401).json({
+        success: false,
+        message: 'User profile not found'
       });
     }
 
     // Check if account is active
-    if (!user.is_active) {
+    if (!profile.is_active) {
+      await supabase.auth.signOut();
       return res.status(401).json({
         success: false,
         message: 'Account is deactivated'
       });
     }
 
-    // Compare password
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch) {
-      console.warn('[admin-login] password mismatch for user:', user.id);
-    }
-    if (!isMatch) {
-      // Increment login attempts
-      const loginAttempts = (user.login_attempts || 0) + 1;
-      const lockUntil = loginAttempts >= 5 ? new Date(Date.now() + 2 * 60 * 60 * 1000) : null; // Lock for 2 hours after 5 attempts
-      
-      await authStore.updateUser(user.id, {
-        login_attempts: loginAttempts,
-        lock_until: lockUntil
-      });
-      
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Reset login attempts on successful login
-    if (user.login_attempts > 0) {
-      await authStore.updateUser(user.id, {
-        login_attempts: 0,
-        lock_until: null
-      });
-    }
-
     // Update last login and activity
-    await authStore.updateUser(user.id, {
-      last_login: new Date().toISOString(),
-      last_activity: new Date().toISOString()
-    });
+    await supabase
+      .from('users_accounts')
+      .update({
+        last_login: new Date().toISOString(),
+        last_activity: new Date().toISOString()
+      })
+      .eq('id', data.user.id);
 
-    // Generate token
-    const token = generateToken(user.id);
+    // Get the session token
+    const { data: session } = await supabase.auth.getSession();
+    const token = session?.session?.access_token;
+
+    if (!token) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to get session token'
+      });
+    }
 
     // Remove password from response
-    const userResponse = { ...user };
+    const userResponse = { ...profile };
     delete userResponse.password_hash;
 
     res.json({
@@ -334,8 +320,8 @@ router.post('/login', [
 // @access  Private
 router.get('/me', auth, async (req, res) => {
   try {
-    const userId = req.user.userId || req.user.id;
-    const user = await authStore.getUserById(userId);
+    // User is already verified by auth middleware
+    const user = req.userRaw || req.user;
     
     if (!user) {
       return res.status(404).json({
@@ -406,11 +392,18 @@ router.post('/forgot-password', [
       });
     }
 
-    // Generate reset token (in a real app, you'd send this via email)
-    const resetToken = securityService.generateToken(
-      { userId: user.id, type: 'password-reset' },
-      '1h'
-    );
+    // Generate reset token using Supabase
+    const { data: resetData, error: resetError } = await supabase.auth.resetPasswordForEmail(email);
+    
+    if (resetError) {
+      console.error('Password reset error:', resetError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send password reset email'
+      });
+    }
+    
+    const resetToken = null; // Supabase handles the reset flow
 
     await authStore.updateUser(user.id, {
       password_reset_token: resetToken,
@@ -459,48 +452,16 @@ router.post('/reset-password', [
 
     const { token, password } = req.body;
 
-    // Verify token
-    const decoded = securityService.verifyToken(token);
-    if (decoded.type !== 'password-reset') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid reset token'
-      });
-    }
-
-    const user = await authStore.getUserById(decoded.userId);
-    
-    if (!user || user.password_reset_token !== token || new Date(user.password_reset_expires) < new Date()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid or expired reset token'
-      });
-    }
-
-    // Hash new password
-    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
-    const passwordHash = await bcrypt.hash(password, saltRounds);
-
-    // Update password
-    await authStore.updateUser(user.id, {
-      password_hash: passwordHash,
-      password_reset_token: null,
-      password_reset_expires: null
+    // Password reset is handled by Supabase - no custom token verification needed
+    // This endpoint should not be used with Supabase authentication
+    return res.status(400).json({
+      success: false,
+      message: 'Password reset is handled by Supabase. Use the reset link from your email.'
     });
 
-    res.json({
-      success: true,
-      message: 'Password reset successful'
-    });
-
+    // This code is unreachable due to the return statement above
+    // Password reset is handled by Supabase
   } catch (error) {
-    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid or expired reset token'
-      });
-    }
-
     console.error('Reset password error:', error);
     res.status(500).json({
       success: false,
@@ -581,41 +542,13 @@ router.post('/verify-email', [
   try {
     const { token } = req.body;
 
-    const decoded = securityService.verifyToken(token);
-    if (decoded.type !== 'email-verification') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid verification token'
-      });
-    }
-
-    const user = await authStore.getUserById(decoded.userId);
-
-    if (!user || user.email_verification_token !== token) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid verification token'
-      });
-    }
-
-    await authStore.updateUser(user.id, {
-      is_email_verified: true,
-      email_verification_token: null
-    });
-
-    res.json({
-      success: true,
-      message: 'Email verified successfully'
+    // Email verification is handled by Supabase - no custom token verification needed
+    return res.status(400).json({
+      success: false,
+      message: 'Email verification is handled by Supabase. Use the verification link from your email.'
     });
 
   } catch (error) {
-    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid or expired verification token'
-      });
-    }
-
     console.error('Email verification error:', error);
     res.status(500).json({
       success: false,
@@ -636,11 +569,8 @@ router.post('/resend-verification', auth, async (req, res) => {
       });
     }
 
-    // Generate verification token
-    const verificationToken = securityService.generateToken(
-      { userId: req.user.userId, type: 'email-verification' },
-      '24h'
-    );
+    // Email verification is handled by Supabase
+    const verificationToken = null;
 
     await authStore.updateUser(req.user.userId, {
       email_verification_token: verificationToken
@@ -686,7 +616,7 @@ router.post('/logout', auth, async (req, res) => {
 });
 
 // @route   POST /api/auth/admin/login
-// @desc    Admin login
+// @desc    Admin login using Supabase
 // @access  Public
 router.post('/admin/login', [
   loginRateLimit,
@@ -711,93 +641,83 @@ router.post('/admin/login', [
 
     const { email, password } = req.body;
 
-    // Find user by email
-    const user = await authStore.getUserByEmail(email);
-    if (!user) {
-      console.warn('[admin-login] user not found for email:', email);
+    // Use Supabase for authentication
+    const supabase = databaseService.getClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      console.warn('[admin-login] Supabase auth error:', error.message);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
-    console.log('[admin-login] fetched user', {
-      id: user.id,
-      role: user.role,
-      is_active: user.is_active,
-      login_attempts: user.login_attempts
-    });
-    if (!user) {
+    if (!data.user) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
+      });
+    }
+
+    // Get user profile from database
+    const { data: profile, error: profileError } = await supabase
+      .from('users_accounts')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+
+    if (profileError || !profile) {
+      console.warn('[admin-login] Profile not found for user:', data.user.id);
+      return res.status(401).json({
+        success: false,
+        message: 'User profile not found'
       });
     }
 
     // Check if user is admin
-    if (user.role !== 'admin') {
+    if (profile.role !== 'admin') {
+      await supabase.auth.signOut();
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
       });
     }
 
-    // Check if account is locked
-    if (user.lock_until && new Date() < new Date(user.lock_until)) {
-      return res.status(401).json({
-        success: false,
-        message: 'Account is temporarily locked due to multiple failed login attempts'
-      });
-    }
-
     // Check if account is active
-    if (!user.is_active) {
+    if (!profile.is_active) {
+      await supabase.auth.signOut();
       return res.status(401).json({
         success: false,
         message: 'Account is deactivated'
       });
     }
 
-    // Compare password
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch) {
-      console.warn('[admin-login] password mismatch for user:', user.id);
-    }
-    if (!isMatch) {
-      // Increment login attempts
-      const loginAttempts = (user.login_attempts || 0) + 1;
-      const lockUntil = loginAttempts >= 5 ? new Date(Date.now() + 2 * 60 * 60 * 1000) : null;
-      
-      await authStore.updateUser(user.id, {
-        login_attempts: loginAttempts,
-        lock_until: lockUntil
-      });
-      
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Reset login attempts on successful login
-    if (user.login_attempts > 0) {
-      await authStore.updateUser(user.id, {
-        login_attempts: 0,
-        lock_until: null
-      });
-    }
-
     // Update last login and activity
-    await authStore.updateUser(user.id, {
-      last_login: new Date().toISOString(),
-      last_activity: new Date().toISOString()
-    });
+    await supabase
+      .from('users_accounts')
+      .update({
+        last_login: new Date().toISOString(),
+        last_activity: new Date().toISOString()
+      })
+      .eq('id', data.user.id);
 
-    // Generate token with admin role
-    const token = generateToken(user.id);
+    // Get the session token
+    const { data: session } = await supabase.auth.getSession();
+    const token = session?.session?.access_token;
+
+    if (!token) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to get session token'
+      });
+    }
 
     // Remove password from response
-    const userResponse = { ...user };
+    const userResponse = { ...profile };
     delete userResponse.password_hash;
 
     res.json({
@@ -902,8 +822,8 @@ router.post('/admin/register', [
 
     const user = await authStore.createUser(userData);
 
-    // Generate token
-    const token = generateToken(user.id);
+    // No custom token generation - using Supabase tokens only
+    const token = null;
 
     // Remove password from response
     const userResponse = { ...user };

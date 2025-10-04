@@ -1,150 +1,202 @@
-# Paystack Setup Guide
+# 💳 Paystack Test Keys Setup Guide
 
-This guide will help you set up Paystack integration for the Smart Algos platform.
-
-## 🔑 Getting Paystack API Keys
-
-### 1. Create Paystack Account
-1. Go to [Paystack Dashboard](https://dashboard.paystack.com)
-2. Sign up for a free account
-3. Complete the verification process
-
-### 2. Get API Keys
-1. Navigate to **Settings** → **API Keys & Webhooks**
-2. Copy your **Test Secret Key** (starts with `sk_test_`)
-3. Copy your **Test Public Key** (starts with `pk_test_`)
-4. For production, use **Live Keys** (starts with `sk_live_` and `pk_live_`)
-
-## ⚙️ Environment Configuration
-
-### 1. Create .env File
-Create a `.env` file in your project root with the following configuration:
-
-```env
-# Server Configuration
-NODE_ENV=development
-PORT=5000
-HOST=localhost
-
-# Paystack Configuration
-PAYSTACK_SECRET_KEY=sk_test_your_paystack_secret_key_here
-PAYSTACK_PUBLIC_KEY=pk_test_your_paystack_public_key_here
-PAYSTACK_WEBHOOK_SECRET=whsec_your_webhook_secret_here
-
-# Client URL for payment callbacks
-CLIENT_URL=http://localhost:3000
-
-# Other required configurations...
-JWT_SECRET=your-super-secret-jwt-key-here
-JWT_EXPIRE=7d
-```
-
-### 2. Webhook Configuration (Optional)
-For production, set up webhooks:
-1. In Paystack Dashboard, go to **Settings** → **Webhooks**
-2. Add webhook URL: `https://yourdomain.com/api/payments/webhook/paystack`
-3. Select events: `charge.success`, `charge.failed`, `subscription.create`
-4. Copy the webhook secret to `PAYSTACK_WEBHOOK_SECRET`
-
-## 🧪 Testing Configuration
-
-### 1. Run Verification Script
-```bash
-node verify-paystack-config.js
-```
-
-### 2. Run Integration Tests
-```bash
-node test-paystack-integration.js
-```
-
-### 3. Test in Frontend
-1. Start the application
-2. Go to **Payments** page
-3. Click **"Test Paystack"** button
-4. Check console for success/error messages
-
-## 📊 Current Status
-
-Based on the verification results:
-
-### ✅ What's Working
-- Paystack service initialized successfully
-- Mock mode functioning properly
-- All API methods working in mock mode
-- Sample transactions available for testing
-- Frontend integration ready
-
-### ❌ What Needs Configuration
-- **PAYSTACK_SECRET_KEY**: Not configured
-- **PAYSTACK_PUBLIC_KEY**: Not configured  
-- **PAYSTACK_WEBHOOK_SECRET**: Not configured
-- **CLIENT_URL**: Not configured (optional)
-
-### 📈 Success Rate: 80%
-- 4 tests passed
-- 1 test failed (webhook configuration)
-- All core functionality working in mock mode
-
-## 🎯 Next Steps
-
-### For Development (Current State)
-1. ✅ **Mock Mode**: Already working perfectly
-2. ✅ **Sample Data**: Available for testing
-3. ✅ **Frontend Integration**: Ready to use
-4. ✅ **API Endpoints**: All functional
-
-### For Production
-1. 🔑 **Get Paystack Keys**: From dashboard
-2. ⚙️ **Configure Environment**: Add keys to .env
-3. 🔗 **Set Up Webhooks**: For real-time updates
-4. 🧪 **Test Live Integration**: With real API calls
-5. 📊 **Monitor Transactions**: Check logs and dashboard
-
-## 💡 Recommendations
-
-### Immediate Actions
-1. **Keep using mock mode** for development and testing
-2. **Test the payment flow** with sample transactions
-3. **Verify frontend integration** works correctly
-
-### When Ready for Production
-1. **Get Paystack account** and API keys
-2. **Configure environment variables**
-3. **Set up webhook endpoints**
-4. **Test with real payment methods**
-
-## 🔍 Troubleshooting
-
-### Common Issues
-1. **"Paystack keys not configured"**
-   - Solution: This is normal in development. Mock mode works perfectly.
-
-2. **"Authorization required"**
-   - Solution: Make sure you're logged in to the app
-
-3. **"Network errors"**
-   - Solution: Ensure server is running on port 5000
-
-### Debug Commands
-```bash
-# Check configuration
-node verify-paystack-config.js
-
-# Run full tests
-node test-paystack-integration.js
-
-# Quick test
-node run-paystack-test.js
-```
-
-## 📚 Resources
-
-- [Paystack API Documentation](https://paystack.com/docs/api/)
-- [Paystack Dashboard](https://dashboard.paystack.com)
-- [Testing Guide](./PAYSTACK_TESTING_GUIDE.md)
-- [Integration Documentation](./PAYSTACK_INTEGRATION.md)
+**Date:** October 4, 2025  
+**Status:** ⚠️ NEEDS CONFIGURATION
 
 ---
 
-**Current Status**: ✅ **Ready for Development** - Mock mode is fully functional and perfect for testing the payment flow without real API keys.
+## 🎯 **CURRENT STATUS:**
+
+### **✅ Paystack Service:**
+- ✅ Secure Paystack service created (`services/paystackService.js`)
+- ✅ Direct API integration (no vulnerable dependencies)
+- ✅ Mock mode for testing
+- ✅ All payment methods implemented
+
+### **❌ Environment Variables:**
+- ❌ `PAYSTACK_SECRET_KEY` - NOT SET
+- ❌ `PAYSTACK_PUBLIC_KEY` - NOT SET
+
+---
+
+## 🔧 **HOW TO GET PAYSTACK TEST KEYS:**
+
+### **Step 1: Create Paystack Account**
+1. Visit: https://paystack.com
+2. Click **"Get Started"**
+3. Sign up with your email
+4. Verify your email address
+
+### **Step 2: Access Dashboard**
+1. Login to your Paystack dashboard
+2. Go to **Settings** → **API Keys & Webhooks**
+3. You'll see your test keys
+
+### **Step 3: Copy Test Keys**
+```
+Secret Key: sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Public Key: pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+---
+
+## 🚀 **CONFIGURE RAILWAY ENVIRONMENT:**
+
+### **Option 1: Railway Dashboard**
+1. Go to your Railway project
+2. Click **Variables** tab
+3. Add these environment variables:
+
+```
+PAYSTACK_SECRET_KEY=sk_test_your_actual_secret_key_here
+PAYSTACK_PUBLIC_KEY=pk_test_your_actual_public_key_here
+```
+
+### **Option 2: Railway CLI**
+```bash
+railway variables set PAYSTACK_SECRET_KEY=sk_test_your_actual_secret_key_here
+railway variables set PAYSTACK_PUBLIC_KEY=pk_test_your_actual_public_key_here
+```
+
+---
+
+## 🧪 **TEST PAYSTACK INTEGRATION:**
+
+### **Step 1: Verify Configuration**
+After setting the environment variables, restart your Railway deployment and check:
+
+```bash
+# Test if keys are loaded
+node -e "
+const paystackService = require('./services/paystackService');
+console.log('Paystack Mock Mode:', paystackService.isMockMode);
+console.log('Secret Key Set:', !!paystackService.secretKey);
+console.log('Public Key Set:', !!paystackService.publicKey);
+"
+```
+
+### **Step 2: Test Payment Flow**
+1. Go to your admin dashboard
+2. Try to create a subscription
+3. Check if Paystack integration works
+
+---
+
+## 📋 **PAYSTACK FEATURES AVAILABLE:**
+
+### **✅ Payment Methods:**
+- ✅ **Initialize Transaction** - Start payment process
+- ✅ **Verify Transaction** - Confirm payment success
+- ✅ **Create Subscription** - Recurring payments
+- ✅ **Cancel Subscription** - Stop recurring payments
+- ✅ **Initiate Transfer** - Send money to bank accounts
+- ✅ **List Banks** - Get supported banks
+- ✅ **Verify Bank Account** - Validate account details
+
+### **✅ Security Features:**
+- ✅ **Direct API Integration** - No vulnerable dependencies
+- ✅ **Environment Variables** - Secure key storage
+- ✅ **Mock Mode** - Safe testing without real charges
+- ✅ **Error Handling** - Proper error management
+
+---
+
+## 🎯 **EXPECTED RESULTS:**
+
+### **Before Configuration:**
+```
+⚠️  Paystack running in MOCK MODE (no real API calls)
+```
+
+### **After Configuration:**
+```
+✅ Paystack connected to live API
+✅ Real payment processing available
+✅ Test transactions work
+```
+
+---
+
+## 🔒 **SECURITY NOTES:**
+
+### **Test Keys:**
+- ✅ **Safe for testing** - No real money charged
+- ✅ **Test cards available** - Use Paystack test cards
+- ✅ **Full functionality** - All features work in test mode
+
+### **Live Keys (Later):**
+- ⚠️ **Real money** - Only use when ready for production
+- ⚠️ **PCI Compliance** - Ensure proper security measures
+- ⚠️ **Webhook Security** - Verify webhook signatures
+
+---
+
+## 🧪 **TEST CARDS (Paystack):**
+
+### **Successful Payment:**
+```
+Card Number: 4084084084084081
+Expiry: Any future date
+CVV: Any 3 digits
+PIN: 1234
+```
+
+### **Failed Payment:**
+```
+Card Number: 4084084084084085
+Expiry: Any future date
+CVV: Any 3 digits
+PIN: 1234
+```
+
+### **Insufficient Funds:**
+```
+Card Number: 4084084084084082
+Expiry: Any future date
+CVV: Any 3 digits
+PIN: 1234
+```
+
+---
+
+## 📝 **NEXT STEPS:**
+
+### **1. Get Paystack Account:**
+- [ ] Sign up at paystack.com
+- [ ] Verify email address
+- [ ] Access dashboard
+
+### **2. Get Test Keys:**
+- [ ] Go to Settings → API Keys
+- [ ] Copy Secret Key (sk_test_...)
+- [ ] Copy Public Key (pk_test_...)
+
+### **3. Configure Railway:**
+- [ ] Add PAYSTACK_SECRET_KEY
+- [ ] Add PAYSTACK_PUBLIC_KEY
+- [ ] Restart deployment
+
+### **4. Test Integration:**
+- [ ] Verify keys are loaded
+- [ ] Test payment flow
+- [ ] Check admin dashboard
+
+---
+
+## 🎊 **SUMMARY:**
+
+**Current Status:** Paystack service ready, needs API keys  
+**Next Step:** Get test keys from Paystack dashboard  
+**Time Required:** 5-10 minutes  
+**Result:** Full payment processing capability
+
+**Once configured, you'll have:**
+- ✅ Real payment processing
+- ✅ Subscription management
+- ✅ Bank transfers
+- ✅ Secure integration
+- ✅ Test mode for development
+
+---
+
+**Ready to set up Paystack? Get your test keys and configure Railway!** 🚀

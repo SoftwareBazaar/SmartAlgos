@@ -63,10 +63,49 @@ const auth = async (req, res, next) => {
       });
     }
 
-    const decoded = securityService.verifyToken(token);
-    const rawUser = useMockAuth
-      ? await mockAuthStore.getUserById(decoded.userId)
-      : await databaseService.getUserById(decoded.userId);
+    // Verify token using Supabase only - NO JWT verification
+    let rawUser;
+    
+    try {
+      // Only verify with Supabase - no JWT fallback
+      const supabase = databaseService.getClient();
+      const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(token);
+      
+      if (error || !supabaseUser) {
+        console.error('Supabase token verification failed:', error?.message || 'No user data');
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid or expired token. Please login again.'
+        });
+      }
+      
+      // Supabase verification successful
+      // Get user from our database using Supabase user ID
+      rawUser = await databaseService.getUserById(supabaseUser.id);
+      
+      if (!rawUser) {
+        // Create user record if it doesn't exist
+        const userData = {
+          id: supabaseUser.id,
+          email: supabaseUser.email,
+          first_name: supabaseUser.user_metadata?.first_name || supabaseUser.user_metadata?.name?.split(' ')[0] || '',
+          last_name: supabaseUser.user_metadata?.last_name || supabaseUser.user_metadata?.name?.split(' ').slice(1).join(' ') || '',
+          role: supabaseUser.user_metadata?.role || 'user',
+          is_active: true,
+          is_email_verified: supabaseUser.email_confirmed_at ? true : false,
+          created_at: supabaseUser.created_at,
+          updated_at: supabaseUser.updated_at
+        };
+        
+        rawUser = await databaseService.createUser(userData);
+      }
+    } catch (error) {
+      console.error('Token verification error:', error);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired token. Please login again.'
+      });
+    }
 
     if (!rawUser) {
       return res.status(401).json({
@@ -102,23 +141,6 @@ const auth = async (req, res, next) => {
     req.userRaw = rawUser;
     next();
   } catch (error) {
-    console.error('Token verification error:', error);
-    
-    if (error.name === 'JsonWebTokenError') {
-      // Clear invalid token from client
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid or expired token. Please login again.'
-      });
-    }
-    
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Token expired.'
-      });
-    }
-
     console.error('Auth middleware error:', error);
     res.status(500).json({
       success: false,
@@ -270,7 +292,7 @@ const updateActivity = async (req, res, next) => {
   try {
     if (req.user && req.user.userId) {
       await userService.updateLastActivity(req.user.userId, {
-        ip: securityService.getClientIP(req),
+        ip: req.ip || req.connection.remoteAddress || req.socket.remoteAddress,
         userAgent: req.headers['user-agent']
       });
     }

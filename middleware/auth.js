@@ -75,41 +75,54 @@ const auth = async (req, res, next) => {
       });
     }
 
-    // Verify token using Supabase only - NO JWT verification
+    // For development: Handle dev tokens directly (no JWT/Supabase verification)
     let rawUser;
     
     try {
-      // Only verify with Supabase - no JWT fallback
-      const supabase = databaseService.getClient();
-      const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(token);
-      
-      if (error || !supabaseUser) {
-        console.error('Supabase token verification failed:', error?.message || 'No user data');
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid or expired token. Please login again.'
-        });
-      }
-      
-      // Supabase verification successful
-      // Get user from our database using Supabase user ID
-      rawUser = await databaseService.getUserById(supabaseUser.id);
-      
-      if (!rawUser) {
-        // Create user record if it doesn't exist
-        const userData = {
-          id: supabaseUser.id,
-          email: supabaseUser.email,
-          first_name: supabaseUser.user_metadata?.first_name || supabaseUser.user_metadata?.name?.split(' ')[0] || '',
-          last_name: supabaseUser.user_metadata?.last_name || supabaseUser.user_metadata?.name?.split(' ').slice(1).join(' ') || '',
-          role: supabaseUser.user_metadata?.role || 'user',
-          is_active: true,
-          is_email_verified: supabaseUser.email_confirmed_at ? true : false,
-          created_at: supabaseUser.created_at,
-          updated_at: supabaseUser.updated_at
-        };
+      // Check if it's a dev token
+      if (token.startsWith('dev_token_')) {
+        const userId = token.replace('dev_token_', '');
+        rawUser = await databaseService.getUserById(userId);
         
-        rawUser = await databaseService.createUser(userData);
+        if (!rawUser) {
+          console.error('Dev token user not found:', userId);
+          return res.status(401).json({
+            success: false,
+            message: 'Invalid token. User not found.'
+          });
+        }
+      } else {
+        // For other tokens, try Supabase verification (fallback)
+        const supabase = databaseService.getClient();
+        const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(token);
+        
+        if (error || !supabaseUser) {
+          console.error('Supabase token verification failed:', error?.message || 'No user data');
+          return res.status(401).json({
+            success: false,
+            message: 'Invalid or expired token. Please login again.'
+          });
+        }
+        
+        // Get user from our database using Supabase user ID
+        rawUser = await databaseService.getUserById(supabaseUser.id);
+        
+        if (!rawUser) {
+          // Create user record if it doesn't exist
+          const userData = {
+            id: supabaseUser.id,
+            email: supabaseUser.email,
+            first_name: supabaseUser.user_metadata?.first_name || supabaseUser.user_metadata?.name?.split(' ')[0] || '',
+            last_name: supabaseUser.user_metadata?.last_name || supabaseUser.user_metadata?.name?.split(' ').slice(1).join(' ') || '',
+            role: supabaseUser.user_metadata?.role || 'user',
+            is_active: true,
+            is_email_verified: supabaseUser.email_confirmed_at ? true : false,
+            created_at: supabaseUser.created_at,
+            updated_at: supabaseUser.updated_at
+          };
+          
+          rawUser = await databaseService.createUser(userData);
+        }
       }
     } catch (error) {
       console.error('Token verification error:', error);

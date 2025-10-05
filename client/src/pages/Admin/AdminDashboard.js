@@ -599,7 +599,13 @@ const AdminDashboard = () => {
                   <tr key={ea.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        {ea.image ? (
+                        {ea.files?.image ? (
+                          <img
+                            src={`/api/eas/uploads/ea-images/${ea.files.image.filename}`}
+                            alt={ea.name}
+                            className="h-12 w-12 rounded-lg object-cover"
+                          />
+                        ) : ea.image ? (
                           <img
                             src={ea.image}
                             alt={ea.name}
@@ -712,11 +718,19 @@ const AdminDashboard = () => {
 
                 <div className="flex items-center space-x-4">
                   {eaFormData.image ? (
-                    <img
-                      src={eaFormData.image}
-                      alt="EA Preview"
-                      className="h-20 w-20 rounded-lg object-cover"
-                    />
+                    eaFormData.image instanceof File ? (
+                      <img
+                        src={URL.createObjectURL(eaFormData.image)}
+                        alt="EA Preview"
+                        className="h-20 w-20 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={eaFormData.image}
+                        alt="EA Preview"
+                        className="h-20 w-20 rounded-lg object-cover"
+                      />
+                    )
                   ) : (
                     <div className="h-20 w-20 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                       <Bot className="h-8 w-8 text-gray-400" />
@@ -729,6 +743,169 @@ const AdminDashboard = () => {
                       accept="image/*"
                       onChange={handleEAImageUpload}
                       className="block w-full text-sm text-gray-500 dark:text-gray-400
+                        file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-primary-50 file:text-primary-700
+                        hover:file:bg-primary-100
+                        dark:file:bg-primary-900 dark:file:text-primary-300"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      PNG, JPG, GIF up to 10MB
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* EA File Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  EA File
+                </label>
+                
+                <div className="flex items-center space-x-4">
+                  {eaFormData.eaFile ? (
+                    <div className="flex items-center space-x-2">
+                      <FileText className="h-8 w-8 text-blue-500" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        {eaFormData.eaFile.name}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="h-12 w-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                      <FileText className="h-6 w-6 text-gray-400" />
+                    </div>
+                  )}
+
+                  <div>
+                    <input
+                      type="file"
+                      accept=".ex4,.mq4,.mq5,.ex5"
+                      onChange={handleEAFileUpload}
+                      className="block w-full text-sm text-gray-500 dark:text-gray-400
+                        file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-primary-50 file:text-primary-700
+                        hover:file:bg-primary-100
+                        dark:file:bg-primary-900 dark:file:text-primary-300"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      .ex4, .mq4, .mq5, .ex5 files up to 50MB
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* EA Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    EA Name
+                  </label>
+                  <Input
+                    value={eaFormData.name}
+                    onChange={(e) => setEaFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter EA name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Version
+                  </label>
+                  <Input
+                    value={eaFormData.version}
+                    onChange={(e) => setEaFormData(prev => ({ ...prev, version: e.target.value }))}
+                    placeholder="e.g., 1.0.0"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={eaFormData.category}
+                    onChange={(e) => setEaFormData(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
+                  >
+                    <option value="">Select category</option>
+                    <option value="scalping">Scalping</option>
+                    <option value="trend">Trend Following</option>
+                    <option value="news">News Trading</option>
+                    <option value="grid">Grid Trading</option>
+                    <option value="arbitrage">Arbitrage</option>
+                    <option value="martingale">Martingale</option>
+                    <option value="hedging">Hedging</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Price
+                  </label>
+                  <Input
+                    type="number"
+                    value={eaFormData.price}
+                    onChange={(e) => setEaFormData(prev => ({ ...prev, price: e.target.value }))}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={eaFormData.description}
+                  onChange={(e) => setEaFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe the EA's strategy and features..."
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Tags
+                </label>
+                <Input
+                  value={eaFormData.tags}
+                  onChange={(e) => setEaFormData(prev => ({ ...prev, tags: e.target.value }))}
+                  placeholder="gold,scalping,mt4 (comma separated)"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Status
+                </label>
+                <select
+                  value={eaFormData.status}
+                  onChange={(e) => setEaFormData(prev => ({ ...prev, status: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Button variant="outline" onClick={handleCancelEA}>
+                  Cancel
+                </Button>
+                <Button variant="primary" onClick={handleSaveEA}>
+                  {editingEA ? "Update EA" : "Create EA"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
 
 
@@ -1776,20 +1953,37 @@ const AdminDashboard = () => {
     setShowEAEditor(true);
   };
 
-  const handleSaveEA = () => {
-    if (editingEA) {
-      // Update existing EA
+  const handleSaveEA = async () => {
+    try {
+      if (editingEA) {
+        // Update existing EA
+        await updateEA(editingEA.id, eaFormData);
+      } else {
+        // Add new EA
+        await addEA(eaFormData);
+      }
 
-      updateEA(editingEA.id, eaFormData);
-    } else {
-      // Add new EA
-
-      addEA(eaFormData);
+      setShowEAEditor(false);
+      setEditingEA(null);
+      
+      // Reset form
+      setEaFormData({
+        name: "",
+        description: "",
+        version: "",
+        status: "pending",
+        price: "",
+        category: "",
+        tags: "",
+        image: null,
+        eaFile: null,
+        rentalPeriods: ["monthly", "quarterly", "yearly"],
+        currentPeriod: "monthly",
+      });
+    } catch (error) {
+      console.error('Error saving EA:', error);
+      // Handle error (show toast notification, etc.)
     }
-
-    setShowEAEditor(false);
-
-    setEditingEA(null);
   };
 
   const handleDeleteEA = (eaId) => {
@@ -1800,17 +1994,21 @@ const AdminDashboard = () => {
     const file = event.target.files[0];
 
     if (file) {
-      const reader = new FileReader();
+      setEaFormData((prev) => ({
+        ...prev,
+        image: file,
+      }));
+    }
+  };
 
-      reader.onload = (e) => {
-        setEaFormData((prev) => ({
-          ...prev,
+  const handleEAFileUpload = (event) => {
+    const file = event.target.files[0];
 
-          image: e.target.result,
-        }));
-      };
-
-      reader.readAsDataURL(file);
+    if (file) {
+      setEaFormData((prev) => ({
+        ...prev,
+        eaFile: file,
+      }));
     }
   };
 

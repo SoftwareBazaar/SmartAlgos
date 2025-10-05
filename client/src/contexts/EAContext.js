@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import apiClient from '../lib/apiClient';
 
 const EAContext = createContext();
 
@@ -168,31 +169,75 @@ export const EAProvider = ({ children }) => {
   }, [state.eas]);
 
   // EA management functions
-  const addEA = (eaData) => {
-    const newEA = {
-      id: Date.now(),
-      ...eaData,
-      subscribers: 0,
-      revenue: '$0',
-      rentalPeriods: ['monthly', 'quarterly', 'yearly'],
-      currentPeriod: 'monthly',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    dispatch({ type: 'ADD_EA', payload: newEA });
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('ea-updated'));
+  const addEA = async (eaData) => {
+    try {
+      const formData = new FormData();
+      
+      // Append all EA data to FormData
+      Object.keys(eaData).forEach(key => {
+        if (key === 'image' && eaData[key] && eaData[key] instanceof File) {
+          formData.append('image', eaData[key]);
+        } else if (key === 'eaFile' && eaData[key] && eaData[key] instanceof File) {
+          formData.append('eaFile', eaData[key]);
+        } else if (eaData[key] !== null && eaData[key] !== undefined) {
+          formData.append(key, eaData[key]);
+        }
+      });
+
+      const response = await apiClient.post('/api/eas', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.success) {
+        const newEA = response.data.data;
+        dispatch({ type: 'ADD_EA', payload: newEA });
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new CustomEvent('ea-updated'));
+        return newEA;
+      }
+    } catch (error) {
+      console.error('Error adding EA:', error);
+      throw error;
+    }
   };
 
-  const updateEA = (eaId, eaData) => {
-    const updatedEA = {
-      ...eaData,
-      id: eaId,
-      updated_at: new Date().toISOString()
-    };
-    dispatch({ type: 'UPDATE_EA', payload: updatedEA });
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('ea-updated'));
+  const updateEA = async (eaId, eaData) => {
+    try {
+      const formData = new FormData();
+      
+      // Append all EA data to FormData
+      Object.keys(eaData).forEach(key => {
+        if (key === 'image' && eaData[key] && eaData[key] instanceof File) {
+          formData.append('image', eaData[key]);
+        } else if (key === 'eaFile' && eaData[key] && eaData[key] instanceof File) {
+          formData.append('eaFile', eaData[key]);
+        } else if (key === 'currentImage' || key === 'currentEaFile') {
+          // Keep current files if no new ones uploaded
+          formData.append(key, eaData[key]);
+        } else if (eaData[key] !== null && eaData[key] !== undefined) {
+          formData.append(key, eaData[key]);
+        }
+      });
+
+      const response = await apiClient.put(`/api/eas/${eaId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.success) {
+        const updatedEA = response.data.data;
+        dispatch({ type: 'UPDATE_EA', payload: updatedEA });
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new CustomEvent('ea-updated'));
+        return updatedEA;
+      }
+    } catch (error) {
+      console.error('Error updating EA:', error);
+      throw error;
+    }
   };
 
   const deleteEA = (eaId) => {

@@ -265,73 +265,28 @@ app.use('/api/admin', adminRoutes); // Admin routes have their own auth middlewa
 app.use('/api/utilities', require('./routes/utilities')); // Utilities routes (public read, admin write)
 
 
-// Minimal health endpoint for Railway (no external dependencies)
+// Health check endpoints (must be defined before React catch-all)
 app.get('/health', (req, res) => {
-  try {
-    res.status(200).json({
-      status: 'OK',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      environment: process.env.NODE_ENV || 'development',
-      message: 'Railway healthcheck endpoint',
-      version: '1.0.0'
-    });
-  } catch (error) {
-    console.error('Health check error:', error);
-    res.status(500).json({
-      status: 'ERROR',
-      message: 'Health check failed',
-      error: error.message
-    });
-  }
-});
-
-// Also add a simple root endpoint
-app.get('/', (req, res) => {
   res.status(200).json({
-    message: 'Smart Algos Trading Platform API',
-    status: 'running',
+    status: 'OK',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    message: 'Railway healthcheck endpoint'
   });
 });
 
-
-// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV
-  });
-});
-
-// Add the Railway healthcheck endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV,
-    message: 'Railway healthcheck endpoint'
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
 
-// Add the Railway healthcheck endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV,
-    message: 'Railway healthcheck endpoint'
-  });
-});
-
-
-// Root endpoint (only for API mode)
+// API root endpoint
 app.get('/api', (req, res) => {
   res.json({
     message: 'Smart Algos Trading Platform API',

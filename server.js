@@ -340,12 +340,19 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Serve React app in production
-if (process.env.NODE_ENV === 'production') {
-  const path = require('path');
+// Serve React app (always serve if build exists)
+const path = require('path');
+const fs = require('fs');
+
+// Check if React build exists
+const buildPath = path.join(__dirname, 'client/build');
+const indexPath = path.join(buildPath, 'index.html');
+
+if (fs.existsSync(indexPath)) {
+  console.log('📱 Serving React frontend from:', buildPath);
   
   // Serve static files from React build
-  app.use(express.static(path.join(__dirname, 'client/build')));
+  app.use(express.static(buildPath));
   
   // Handle React routing - return all non-API requests to React app
   app.get('*', (req, res, next) => {
@@ -354,8 +361,16 @@ if (process.env.NODE_ENV === 'production') {
       return next();
     }
     
-    res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
+    // Skip if it's the health endpoint
+    if (req.path === '/health') {
+      return next();
+    }
+    
+    res.sendFile(indexPath);
   });
+} else {
+  console.log('⚠️  React build not found at:', buildPath);
+  console.log('💡 Run "npm run build" to create the React build');
 }
 
 // Error handling middleware

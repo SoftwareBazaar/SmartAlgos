@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cross-env MOCK_AUTH=true NODE_ENV=development npm start",
+    "startCommand": "cross-env MOCK_AUTH=false NODE_ENV=production npm start",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",

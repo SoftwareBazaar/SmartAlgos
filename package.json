@@ -13,7 +13,8 @@
     "setup-env": "node setup-env.js",
     "heroku-postbuild": "cd client && npm install && npm run build",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "start:railway": "node server.js"
   },
   "keywords": [
     "trading",

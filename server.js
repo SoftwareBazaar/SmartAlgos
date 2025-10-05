@@ -264,6 +264,39 @@ app.use('/api/test', testRoutes); // Test routes for debugging
 app.use('/api/admin', adminRoutes); // Admin routes have their own auth middleware
 app.use('/api/utilities', require('./routes/utilities')); // Utilities routes (public read, admin write)
 
+
+// Minimal health endpoint for Railway (no external dependencies)
+app.get('/health', (req, res) => {
+  try {
+    res.status(200).json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      message: 'Railway healthcheck endpoint',
+      version: '1.0.0'
+    });
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).json({
+      status: 'ERROR',
+      message: 'Health check failed',
+      error: error.message
+    });
+  }
+});
+
+// Also add a simple root endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Smart Algos Trading Platform API',
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -367,17 +400,31 @@ try {
 // Setup WebSocket handlers
 setupWebSocketHandlers(io);
 
-// Start server
+
+// Railway startup fix - ensure server starts even with missing env vars
 const PORT = process.env.PORT || 5000;
-// Use 0.0.0.0 for production/Railway, localhost for local development
 const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost');
 
+// Add error handling for server startup
+server.on('error', (error) => {
+  console.error('Server error:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+  }
+});
+
 if (!process.env.VERCEL) {
-  server.listen(PORT, HOST, () => {
-    console.log(`[startup] Smart Algos API running on http://${HOST}:${PORT}`);
-    console.log(`[startup] WebSocket server ready on ws://${HOST}:${PORT}`);
-    console.log(`[startup] Environment: ${process.env.NODE_ENV || 'development'}`);
-  });
+  try {
+    server.listen(PORT, HOST, () => {
+      console.log(`[startup] Smart Algos API running on http://${HOST}:${PORT}`);
+      console.log(`[startup] WebSocket server ready on ws://${HOST}:${PORT}`);
+      console.log(`[startup] Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`[startup] Railway deployment ready`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
 }
 
 // Graceful shutdown

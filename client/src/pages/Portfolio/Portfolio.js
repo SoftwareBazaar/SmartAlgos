@@ -22,29 +22,29 @@ import Button from '../../components/UI/Button';
 import apiClient from '../../lib/apiClient';
 
 const DEFAULT_PNL_ENTRIES = [
-    { date: '2024-01-02', pnl: 450 },
-    { date: '2024-01-03', pnl: -220 },
-    { date: '2024-01-04', pnl: 180 },
-    { date: '2024-01-05', pnl: 720 },
-    { date: '2024-01-08', pnl: -310 },
-    { date: '2024-01-09', pnl: 940 },
-    { date: '2024-01-10', pnl: -120 },
-    { date: '2024-01-11', pnl: 0 },
-    { date: '2024-01-12', pnl: 420 },
-    { date: '2024-01-15', pnl: 280 },
-    { date: '2024-01-16', pnl: -640 },
-    { date: '2024-01-17', pnl: 390 },
-    { date: '2024-01-18', pnl: 210 },
-    { date: '2024-01-19', pnl: -450 },
-    { date: '2024-01-22', pnl: 610 },
-    { date: '2024-01-23', pnl: 75 },
-    { date: '2024-01-24', pnl: -180 },
-    { date: '2024-01-25', pnl: 540 },
-    { date: '2024-01-26', pnl: 130 },
-    { date: '2024-01-29', pnl: -90 },
-    { date: '2024-01-30', pnl: 320 },
-    { date: '2024-01-31', pnl: 510 },
-  ];
+  { date: '2024-01-02', pnl: 450 },
+  { date: '2024-01-03', pnl: -220 },
+  { date: '2024-01-04', pnl: 180 },
+  { date: '2024-01-05', pnl: 720 },
+  { date: '2024-01-08', pnl: -310 },
+  { date: '2024-01-09', pnl: 940 },
+  { date: '2024-01-10', pnl: -120 },
+  { date: '2024-01-11', pnl: 0 },
+  { date: '2024-01-12', pnl: 420 },
+  { date: '2024-01-15', pnl: 280 },
+  { date: '2024-01-16', pnl: -640 },
+  { date: '2024-01-17', pnl: 390 },
+  { date: '2024-01-18', pnl: 210 },
+  { date: '2024-01-19', pnl: -450 },
+  { date: '2024-01-22', pnl: 610 },
+  { date: '2024-01-23', pnl: 75 },
+  { date: '2024-01-24', pnl: -180 },
+  { date: '2024-01-25', pnl: 540 },
+  { date: '2024-01-26', pnl: 130 },
+  { date: '2024-01-29', pnl: -90 },
+  { date: '2024-01-30', pnl: 320 },
+  { date: '2024-01-31', pnl: 510 }
+];
 
 const Portfolio = () => {
   const navigate = useNavigate();
@@ -54,7 +54,6 @@ const Portfolio = () => {
   const [uploadError, setUploadError] = useState(null);
   const [uploadPreview, setUploadPreview] = useState(null);
   const fileInputRef = useRef(null);
-
 
   // Mock portfolios data
   const portfolios = [
@@ -182,7 +181,7 @@ const Portfolio = () => {
       cells.push({
         day,
         dateKey,
-        pnl: pnlByDate[dateKey] ?? 0,
+        pnl: pnlByDate[dateKey] ?? 0
       });
     }
 
@@ -266,7 +265,7 @@ const Portfolio = () => {
 
     try {
       const { data } = await apiClient.post('/api/portfolio/upload-csv', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       setUploadPreview(data);
@@ -426,12 +425,12 @@ const Portfolio = () => {
                         <div className="flex items-center justify-between">
                           <span>Total Profit</span>
                           <span className={analysisTotals?.totalProfit >= 0 ? 'text-success-300' : 'text-danger-300'}>
-                            {analysisTotals ? formatPnLValue(analysisTotals.totalProfit, analysis.currency || '$') : '—'}
+                            {analysisTotals ? formatPnLValue(analysisTotals.totalProfit, analysis.currency || '$') : 'N/A'}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span>Average Daily</span>
-                          <span>{analysisTotals ? formatPnLValue(analysisTotals.averageDailyProfit, analysis.currency || '$') : '—'}</span>
+                          <span>{analysisTotals ? formatPnLValue(analysisTotals.averageDailyProfit, analysis.currency || '$') : 'N/A'}</span>
                         </div>
                         <div className="flex items-center justify-between text-xs">
                           <span>Positive / Negative / Flat</span>
@@ -466,15 +465,15 @@ const Portfolio = () => {
                         </div>
                         <div className="flex items-center justify-between text-xs">
                           <span>Date Column</span>
-                          <span>{analysisColumns?.dateColumn ?? '—'}</span>
+                          <span>{analysisColumns?.dateColumn ?? 'N/A'}</span>
                         </div>
                         <div className="flex items-center justify-between text-xs">
                           <span>Profit Column</span>
-                          <span>{analysisColumns?.profitColumn ?? '—'}</span>
+                          <span>{analysisColumns?.profitColumn ?? 'N/A'}</span>
                         </div>
                         <div className="flex items-center justify-between text-xs">
                           <span>Symbol Column</span>
-                          <span>{analysisColumns?.symbolColumn ?? '—'}</span>
+                          <span>{analysisColumns?.symbolColumn ?? 'N/A'}</span>
                         </div>
                       </div>
                     </div>

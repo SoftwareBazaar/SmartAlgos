@@ -17,7 +17,7 @@ const AdminLogin = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      // Use standardized credentials for Railway deployment
+      // Standardized admin credentials for Railway deployment
       email: 'admin@smartalgos.com',
       password: 'AdminPass123!'
     }

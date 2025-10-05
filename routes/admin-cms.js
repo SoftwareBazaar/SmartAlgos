@@ -3,6 +3,8 @@ const router = express.Router();
 const { auth } = require('../middleware/auth');
 const fs = require('fs').promises;
 const path = require('path');
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
 
 // Admin-only middleware
 const requireAdmin = (req, res, next) => {
@@ -15,14 +17,101 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-// Apply auth and admin middleware to all routes
+// Apply auth and admin middleware to all routes (except file serving)
 router.use(auth);
 router.use(requireAdmin);
+
+// Serve uploaded files (public access)
+router.get('/uploads/:type/:filename', (req, res) => {
+  const { type, filename } = req.params;
+  let filePath;
+  
+  if (type === 'cms-images') {
+    filePath = path.join(IMAGES_PATH, filename);
+  } else if (type === 'ea-files') {
+    filePath = path.join(EA_FILES_PATH, filename);
+  } else {
+    return res.status(404).json({ success: false, message: 'File type not found' });
+  }
+  
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Error serving file:', err);
+      res.status(404).json({ success: false, message: 'File not found' });
+    }
+  });
+});
 
 // Content store path
 const CONTENT_STORE_PATH = path.join(__dirname, '../data/content.json');
 const SETTINGS_STORE_PATH = path.join(__dirname, '../data/settings.json');
 const AUDIT_LOG_PATH = path.join(__dirname, '../data/audit-logs.json');
+
+// Upload paths
+const UPLOADS_PATH = path.join(__dirname, '../uploads');
+const IMAGES_PATH = path.join(UPLOADS_PATH, 'cms-images');
+const EA_FILES_PATH = path.join(UPLOADS_PATH, 'ea-files');
+
+// Ensure upload directories exist
+const ensureUploadDirectories = async () => {
+  try {
+    await fs.mkdir(UPLOADS_PATH, { recursive: true });
+    await fs.mkdir(IMAGES_PATH, { recursive: true });
+    await fs.mkdir(EA_FILES_PATH, { recursive: true });
+  } catch (error) {
+    console.error('Error creating upload directories:', error);
+  }
+};
+
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    await ensureUploadDirectories();
+    
+    if (file.fieldname === 'featuredImage' || file.fieldname === 'previewScreenshots') {
+      cb(null, IMAGES_PATH);
+    } else if (file.fieldname === 'eaFile') {
+      cb(null, EA_FILES_PATH);
+    } else {
+      cb(null, UPLOADS_PATH);
+    }
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow images
+    if (file.fieldname === 'featuredImage' || file.fieldname === 'previewScreenshots') {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed for images'), false);
+      }
+    }
+    // Allow EA files
+    else if (file.fieldname === 'eaFile') {
+      const allowedExts = ['.ex4', '.mq4'];
+      const ext = path.extname(file.originalname).toLowerCase();
+      if (allowedExts.includes(ext)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only .ex4 and .mq4 files are allowed for EA files'), false);
+      }
+    }
+    else {
+      cb(null, true);
+    }
+  }
+});
 
 // Ensure data directory exists
 const ensureDataDirectory = async () => {
@@ -182,17 +271,57 @@ router.get('/cms/content', async (req, res) => {
 });
 
 // @route   POST /api/admin/cms/content
-// @desc    Create new content
+// @desc    Create new content with file uploads
 // @access  Admin
-router.post('/cms/content', async (req, res) => {
+router.post('/cms/content', upload.fields([
+  { name: 'featuredImage', maxCount: 1 },
+  { name: 'previewScreenshots', maxCount: 10 },
+  { name: 'eaFile', maxCount: 1 }
+]), async (req, res) => {
   try {
-    const { title, content, type, status, metaTitle, metaDescription, tags } = req.body;
+    const { title, content, type, status, metaTitle, metaDescription, tags, category, price, description, features, performance } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({
         success: false,
         message: 'Title and content are required'
       });
+    }
+
+    // Handle uploaded files
+    const uploadedFiles = {
+      featuredImage: null,
+      previewScreenshots: [],
+      eaFile: null
+    };
+
+    if (req.files) {
+      if (req.files.featuredImage && req.files.featuredImage[0]) {
+        uploadedFiles.featuredImage = {
+          filename: req.files.featuredImage[0].filename,
+          originalName: req.files.featuredImage[0].originalname,
+          path: `/uploads/cms-images/${req.files.featuredImage[0].filename}`,
+          size: req.files.featuredImage[0].size
+        };
+      }
+
+      if (req.files.previewScreenshots) {
+        uploadedFiles.previewScreenshots = req.files.previewScreenshots.map(file => ({
+          filename: file.filename,
+          originalName: file.originalname,
+          path: `/uploads/cms-images/${file.filename}`,
+          size: file.size
+        }));
+      }
+
+      if (req.files.eaFile && req.files.eaFile[0]) {
+        uploadedFiles.eaFile = {
+          filename: req.files.eaFile[0].filename,
+          originalName: req.files.eaFile[0].originalname,
+          path: `/uploads/ea-files/${req.files.eaFile[0].filename}`,
+          size: req.files.eaFile[0].size
+        };
+      }
     }
 
     const contentList = await readContentStore();
@@ -205,6 +334,12 @@ router.post('/cms/content', async (req, res) => {
       metaTitle: metaTitle || title,
       metaDescription: metaDescription || '',
       tags: tags || '',
+      category: category || '',
+      price: price || '',
+      description: description || '',
+      features: features || '',
+      performance: performance || '',
+      files: uploadedFiles,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       createdBy: req.user.email
@@ -213,7 +348,7 @@ router.post('/cms/content', async (req, res) => {
     contentList.unshift(newContent);
     await writeContentStore(contentList);
 
-    await addAuditLog('CREATE_CONTENT', `Created content: ${title}`, req.user, req.ip);
+    await addAuditLog('CREATE_CONTENT', `Created content: ${title} (Type: ${type})`, req.user, req.ip);
 
     res.json({
       success: true,
@@ -222,6 +357,20 @@ router.post('/cms/content', async (req, res) => {
     });
   } catch (error) {
     console.error('Create content error:', error);
+    
+    // Clean up uploaded files on error
+    if (req.files) {
+      try {
+        for (const field in req.files) {
+          for (const file of req.files[field]) {
+            await fs.unlink(file.path);
+          }
+        }
+      } catch (cleanupError) {
+        console.error('Error cleaning up files:', cleanupError);
+      }
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to create content'

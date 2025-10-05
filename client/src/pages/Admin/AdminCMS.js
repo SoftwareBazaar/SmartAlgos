@@ -31,7 +31,14 @@ const AdminCMS = () => {
     metaTitle: '',
     metaDescription: '',
     tags: '',
-    featuredImage: null
+    featuredImage: null,
+    previewScreenshots: [],
+    eaFile: null,
+    category: '',
+    price: '',
+    description: '',
+    features: '',
+    performance: ''
   });
 
   // System settings state
@@ -92,11 +99,57 @@ const AdminCMS = () => {
   const handleSaveContent = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.post('/api/admin/cms/content', contentFormData);
+      
+      // Create FormData for file uploads
+      const formData = new FormData();
+      
+      // Add all form fields
+      Object.keys(contentFormData).forEach(key => {
+        if (key === 'previewScreenshots' && Array.isArray(contentFormData[key])) {
+          // Handle multiple preview screenshots
+          contentFormData[key].forEach((file, index) => {
+            formData.append(`previewScreenshots`, file);
+          });
+        } else if (key === 'featuredImage' && contentFormData[key]) {
+          // Handle featured image
+          formData.append('featuredImage', contentFormData[key]);
+        } else if (key === 'eaFile' && contentFormData[key]) {
+          // Handle EA file
+          formData.append('eaFile', contentFormData[key]);
+        } else if (contentFormData[key] !== null && contentFormData[key] !== undefined) {
+          // Handle regular fields
+          formData.append(key, contentFormData[key]);
+        }
+      });
+
+      const response = await apiClient.post('/api/admin/cms/content', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
       if (response.data.success) {
         toast.success('Content saved successfully');
         setShowContentEditor(false);
         fetchAdminData();
+        // Reset form
+        setContentFormData({
+          title: '',
+          content: '',
+          type: 'page',
+          status: 'published',
+          metaTitle: '',
+          metaDescription: '',
+          tags: '',
+          featuredImage: null,
+          previewScreenshots: [],
+          eaFile: null,
+          category: '',
+          price: '',
+          description: '',
+          features: '',
+          performance: ''
+        });
       }
     } catch (error) {
       console.error('Error saving content:', error);
@@ -120,6 +173,60 @@ const AdminCMS = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // File upload handlers
+  const handleFileUpload = (field, files) => {
+    if (field === 'previewScreenshots') {
+      // Handle multiple preview screenshots
+      const newFiles = Array.from(files);
+      setContentFormData(prev => ({
+        ...prev,
+        [field]: [...(prev[field] || []), ...newFiles]
+      }));
+    } else {
+      // Handle single file
+      setContentFormData(prev => ({
+        ...prev,
+        [field]: files[0]
+      }));
+    }
+  };
+
+  const removeFile = (field, index = null) => {
+    if (field === 'previewScreenshots' && index !== null) {
+      setContentFormData(prev => ({
+        ...prev,
+        [field]: prev[field].filter((_, i) => i !== index)
+      }));
+    } else {
+      setContentFormData(prev => ({
+        ...prev,
+        [field]: null
+      }));
+    }
+  };
+
+  const handleEditContent = (content) => {
+    setEditingContent(content);
+    setContentFormData({
+      title: content.title || '',
+      content: content.content || '',
+      type: content.type || 'page',
+      status: content.status || 'published',
+      metaTitle: content.metaTitle || '',
+      metaDescription: content.metaDescription || '',
+      tags: content.tags || '',
+      featuredImage: null,
+      previewScreenshots: [],
+      eaFile: null,
+      category: content.category || '',
+      price: content.price || '',
+      description: content.description || '',
+      features: content.features || '',
+      performance: content.performance || ''
+    });
+    setShowContentEditor(true);
   };
 
   const handleUserAction = async (userId, action) => {
@@ -313,7 +420,11 @@ const AdminCMS = () => {
                         <Button size="sm" variant="outline">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleEditContent(item)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
@@ -334,7 +445,9 @@ const AdminCMS = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Add New Content</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {editingContent ? 'Edit Content' : 'Add New Content'}
+              </h3>
               <Button variant="outline" onClick={() => setShowContentEditor(false)}>
                 <X className="h-4 w-4" />
               </Button>
@@ -362,9 +475,38 @@ const AdminCMS = () => {
                     <option value="post">Blog Post</option>
                     <option value="announcement">Announcement</option>
                     <option value="guide">Guide</option>
+                    <option value="ea">Expert Advisor</option>
+                    <option value="hft">HFT Bot</option>
                   </select>
                 </div>
               </div>
+
+              {/* EA/HFT specific fields */}
+              {(contentFormData.type === 'ea' || contentFormData.type === 'hft') && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+                    <input
+                      type="text"
+                      value={contentFormData.category}
+                      onChange={(e) => setContentFormData(prev => ({ ...prev, category: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="e.g., Forex, Crypto, Stocks"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Price ($)</label>
+                    <input
+                      type="number"
+                      value={contentFormData.price}
+                      onChange={(e) => setContentFormData(prev => ({ ...prev, price: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="0.00"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content</label>
@@ -375,6 +517,125 @@ const AdminCMS = () => {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
                   placeholder="Enter your content here..."
                 />
+              </div>
+
+              {/* File Uploads */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Featured Image */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Featured Image</label>
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload('featuredImage', e.target.files)}
+                      className="hidden"
+                      id="featured-image"
+                    />
+                    <label
+                      htmlFor="featured-image"
+                      className="cursor-pointer flex flex-col items-center justify-center text-gray-500 dark:text-gray-400"
+                    >
+                      <Image className="h-8 w-8 mb-2" />
+                      <span className="text-sm">Click to upload featured image</span>
+                    </label>
+                    {contentFormData.featuredImage && (
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {contentFormData.featuredImage.name}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => removeFile('featuredImage')}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* EA File Upload */}
+                {(contentFormData.type === 'ea' || contentFormData.type === 'hft') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {contentFormData.type === 'ea' ? 'EA File (.ex4)' : 'Bot File (.ex4)'}
+                    </label>
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                      <input
+                        type="file"
+                        accept=".ex4,.mq4"
+                        onChange={(e) => handleFileUpload('eaFile', e.target.files)}
+                        className="hidden"
+                        id="ea-file"
+                      />
+                      <label
+                        htmlFor="ea-file"
+                        className="cursor-pointer flex flex-col items-center justify-center text-gray-500 dark:text-gray-400"
+                      >
+                        <Upload className="h-8 w-8 mb-2" />
+                        <span className="text-sm">Click to upload {contentFormData.type === 'ea' ? 'EA' : 'Bot'} file</span>
+                      </label>
+                      {contentFormData.eaFile && (
+                        <div className="mt-2 flex items-center justify-between">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {contentFormData.eaFile.name}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => removeFile('eaFile')}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Preview Screenshots */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview Screenshots</label>
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => handleFileUpload('previewScreenshots', e.target.files)}
+                    className="hidden"
+                    id="preview-screenshots"
+                  />
+                  <label
+                    htmlFor="preview-screenshots"
+                    className="cursor-pointer flex flex-col items-center justify-center text-gray-500 dark:text-gray-400"
+                  >
+                    <Image className="h-8 w-8 mb-2" />
+                    <span className="text-sm">Click to upload multiple preview screenshots</span>
+                  </label>
+                  
+                  {contentFormData.previewScreenshots && contentFormData.previewScreenshots.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      {contentFormData.previewScreenshots.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{file.name}</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => removeFile('previewScreenshots', index)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

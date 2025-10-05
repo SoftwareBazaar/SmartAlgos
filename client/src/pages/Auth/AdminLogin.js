@@ -17,12 +17,14 @@ const AdminLogin = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      email: 'Softwarebazaar.ke@gmail.com',
-      password: '28103441Jw@'
+      // Use standardized credentials for Railway deployment
+      email: 'admin@smartalgos.com',
+      password: 'AdminPass123!'
     }
   });
 
   const onSubmit = async (data) => {
+    console.log('🔐 Admin login attempt:', data.email);
     const result = await adminLogin(data.email, data.password);
     if (result.success) {
       navigate('/admin');

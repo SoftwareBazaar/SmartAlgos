@@ -87,9 +87,10 @@ const authStore = {
 };
 
 const EMAIL_NORMALIZE_OPTIONS = {
+  all_lowercase: true,
   gmail_remove_dots: false,
   gmail_remove_subaddress: false,
-  outlookdotcom_remove_dots: false,
+  outlookdotcom_remove_subaddress: false,
   yahoo_remove_subaddress: false,
   icloud_remove_subaddress: false
 };
@@ -627,13 +628,13 @@ router.post('/admin/login', [
   body('email')
     .isEmail()
     .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
+    .customSanitizer(value => value.toLowerCase().trim()) // Force lowercase and trim
     .withMessage('Please provide a valid email'),
   body('password')
     .notEmpty()
     .withMessage('Password is required')
 ], async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -644,13 +645,15 @@ router.post('/admin/login', [
     }
 
     const { email, password } = req.body;
-
-    // Use authStore for admin login (supports both database and mock auth)
-    console.log('[admin-login] Looking for user with email:', email);
-    const profile = await authStore.getUserByEmail(email);
+    
+    // Ensure email is lowercase and trimmed
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    console.log('[admin-login] Looking for user with email:', normalizedEmail);
+    const profile = await authStore.getUserByEmail(normalizedEmail);
 
     if (!profile) {
-      console.warn('[admin-login] User not found:', email);
+      console.warn('[admin-login] User not found:', normalizedEmail);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -678,7 +681,7 @@ router.post('/admin/login', [
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, profile.password_hash);
     if (!isPasswordValid) {
-      console.warn('[admin-login] Invalid password for admin:', email);
+      console.warn('[admin-login] Invalid password for admin:', normalizedEmail);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'

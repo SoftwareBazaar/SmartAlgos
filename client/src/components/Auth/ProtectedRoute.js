@@ -15,14 +15,22 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     );
   }
 
-  // Redirect to login if not authenticated
+  // Redirect to appropriate login if not authenticated
   if (!user) {
+    if (requireAdmin) {
+      return <Navigate to="/auth/admin/login" state={{ from: location }} replace />;
+    }
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
   // Check admin requirement
   if (requireAdmin && user.role !== 'admin') {
     return <Navigate to="/dashboard" replace />;
+  }
+
+  // For admin routes, ensure it's an admin session
+  if (requireAdmin && !user.isAdminSession) {
+    return <Navigate to="/auth/admin/login" state={{ from: location }} replace />;
   }
 
   return children;

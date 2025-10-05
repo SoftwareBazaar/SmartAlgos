@@ -19,7 +19,7 @@ const AdminLogin = () => {
     defaultValues: {
       // Standardized admin credentials for Railway deployment
       email: 'admin@smartalgos.com',
-      password: 'AdminPass123!'
+      password: 'Admin123!@#'
     }
   });
 
@@ -27,7 +27,7 @@ const AdminLogin = () => {
     console.log('🔐 Admin login attempt:', data.email);
     const result = await adminLogin(data.email, data.password);
     if (result.success) {
-      navigate('/admin');
+      navigate('/admin-cms');
     }
   };
 
@@ -45,15 +45,15 @@ const AdminLogin = () => {
         </p>
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
         <div className="flex">
           <div className="flex-shrink-0">
-            <Shield className="h-5 w-5 text-blue-400" />
+            <Shield className="h-5 w-5 text-red-400" />
           </div>
           <div className="ml-3">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              <strong>Administrator Access:</strong> This login is restricted to authorized administrators only.
-              All admin activities are logged and monitored.
+            <p className="text-sm text-red-800 dark:text-red-200">
+              <strong>Security Notice:</strong> Admin sessions are temporary and will not be saved. 
+              You must re-enter credentials each time for maximum security. All admin activities are logged and monitored.
             </p>
           </div>
         </div>
@@ -127,15 +127,12 @@ const AdminLogin = () => {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-            />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-              Remember me
-            </label>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                <Shield className="h-3 w-3 mr-1" />
+                No persistent login
+              </span>
+            </div>
           </div>
 
           <div className="text-sm">

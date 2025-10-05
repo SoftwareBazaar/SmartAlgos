@@ -27,6 +27,7 @@ const polygonRoutes = require('./routes/polygon');
 const portfolioRoutes = require('./routes/portfolio');
 const testRoutes = require('./routes/test');
 const adminRoutes = require('./admin-panel');
+const adminCMSRoutes = require('./routes/admin-cms');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -262,6 +263,7 @@ app.use('/api/polygon', auth, polygonRoutes);
 app.use('/api/portfolio', auth, portfolioRoutes);
 app.use('/api/test', testRoutes); // Test routes for debugging
 app.use('/api/admin', adminRoutes); // Admin routes have their own auth middleware
+app.use('/api/admin', adminCMSRoutes); // Admin CMS routes
 app.use('/api/utilities', require('./routes/utilities')); // Utilities routes (public read, admin write)
 
 

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "content_1759669128717_17ae48d4fe5fb",
+    "title": "Test Content",
+    "content": "This is a test content created by the admin CMS system.",
+    "type": "page",
+    "status": "published",
+    "metaTitle": "Test Content - Smart Algos",
+    "metaDescription": "Test content for admin CMS system",
+    "tags": "test,admin,cms",
+    "createdAt": "2025-10-05T12:58:48.717Z",
+    "updatedAt": "2025-10-05T12:58:48.717Z",
+    "createdBy": "admin@smartalgos.com"
+  }
+]

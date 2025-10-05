@@ -48,6 +48,18 @@ export const AuthProvider = ({ children }) => {
       try {
         console.log('=== CHECKING AUTH ON APP LOAD ===');
         
+        // CRITICAL: For admin sessions, do NOT restore from localStorage
+        // Admin must always re-authenticate for security
+        const isAdminRoute = window.location.pathname.includes('/admin');
+        if (isAdminRoute) {
+          console.log('Admin route detected - clearing any stored tokens for security');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          dispatch({ type: 'SET_LOADING', payload: false });
+          return;
+        }
+        
         // Clear any old tokens first
         const oldToken = localStorage.getItem('token');
         if (oldToken && oldToken.includes('.') && oldToken.split('.').length === 3) {
@@ -56,7 +68,7 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('user');
         }
         
-        // Use bulletproof auth system
+        // Use bulletproof auth system for regular users only
         const userData = await getCurrentUser();
         if (userData && userData.user) {
           dispatch({ type: 'SET_USER', payload: userData.user });
@@ -101,7 +113,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Admin login function
+  // Admin login function - NO PERSISTENT STORAGE
   const adminLogin = async (email, password) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
@@ -112,40 +124,42 @@ export const AuthProvider = ({ children }) => {
       const data = await bulletproofAdminLogin(email, password);
       
       if (data.token && data.user) {
-        // Store token in both locations for compatibility
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('token', data.token);
+        // CRITICAL: DO NOT store tokens in localStorage for admin
+        // Admin sessions should be temporary and require re-authentication
+        console.log('✓ Admin login completed - NO PERSISTENT STORAGE');
         
+        // Set token only for current session (in memory)
         apiClient.defaults.headers.common.Authorization = `Bearer ${data.token}`;
         
-        console.log('✓ Admin login completed successfully');
+        // Normalize user data
+        const normalizedUser = {
+          id: data.user.id,
+          email: data.user.email,
+          firstName: data.user.first_name,
+          lastName: data.user.last_name,
+          role: data.user.role,
+          isActive: data.user.is_active,
+          isEmailVerified: data.user.is_email_verified,
+          subscription: {
+            type: data.user.subscription_type || 'basic',
+            status: data.user.subscription_status || 'active',
+            startDate: data.user.subscription_start_date,
+            endDate: data.user.subscription_end_date
+          },
+          preferences: data.user.preferences || {},
+          createdAt: data.user.created_at,
+          updatedAt: data.user.updated_at,
+          // Add session timestamp for admin
+          sessionStart: new Date().toISOString(),
+          isAdminSession: true
+        };
+        
+        dispatch({ type: 'SET_USER', payload: normalizedUser });
+        toast.success('Admin login successful! Session will expire on browser close.');
+        return { success: true };
       } else {
         throw new Error('No token or user received');
       }
-      
-      // Normalize user data
-      const normalizedUser = {
-        id: data.user.id,
-        email: data.user.email,
-        firstName: data.user.first_name,
-        lastName: data.user.last_name,
-        role: data.user.role,
-        isActive: data.user.is_active,
-        isEmailVerified: data.user.is_email_verified,
-        subscription: {
-          type: data.user.subscription_type || 'basic',
-          status: data.user.subscription_status || 'active',
-          startDate: data.user.subscription_start_date,
-          endDate: data.user.subscription_end_date
-        },
-        preferences: data.user.preferences || {},
-        createdAt: data.user.created_at,
-        updatedAt: data.user.updated_at
-      };
-      
-      dispatch({ type: 'SET_USER', payload: normalizedUser });
-      toast.success('Admin login successful!');
-      return { success: true };
     } catch (error) {
       console.error('=== ADMIN LOGIN FAILED ===');
       console.error('Error:', error);
@@ -215,6 +229,30 @@ export const AuthProvider = ({ children }) => {
       console.log('✓ Logout completed');
       // Redirect to login page
       window.location.href = '/auth/login';
+    }
+  };
+
+  // Admin logout function - Enhanced security
+  const adminLogout = async () => {
+    try {
+      console.log('=== ADMIN LOGOUT STARTED ===');
+      
+      // Use bulletproof logout
+      await bulletproofLogout();
+    } catch (error) {
+      console.error('Admin logout error:', error);
+    } finally {
+      // Clear all tokens and user data - CRITICAL for admin security
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      delete apiClient.defaults.headers.common.Authorization;
+      dispatch({ type: 'LOGOUT' });
+      toast.success('Admin session ended. Please login again for security.');
+      
+      console.log('✓ Admin logout completed - all data cleared');
+      // Redirect to admin login page
+      window.location.href = '/auth/admin/login';
     }
   };
 
@@ -306,6 +344,7 @@ export const AuthProvider = ({ children }) => {
     adminLogin,
     register,
     logout,
+    adminLogout,
     updateProfile,
     changePassword,
     forgotPassword,

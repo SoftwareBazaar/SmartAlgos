@@ -1,0 +1,10 @@
+{
+  "siteName": "Smart Algos Trading Platform - Updated",
+  "siteDescription": "Advanced algorithmic trading and investment solutions - Updated",
+  "contactEmail": "support@smartalgos.com",
+  "contactPhone": "+1 (555) 123-4567",
+  "maintenanceMode": false,
+  "allowRegistration": true,
+  "maxUsers": 1000,
+  "sessionTimeout": 30
+}

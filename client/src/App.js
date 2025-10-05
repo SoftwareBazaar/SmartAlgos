@@ -49,6 +49,7 @@ import EscrowDashboard from './pages/Escrow/EscrowDashboard';
 // Admin Pages
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminPanel from './pages/Admin/AdminPanel';
+import AdminCMS from './pages/Admin/AdminCMS';
 import AdminAccess from './pages/Admin/AdminAccess';
 import SimpleAdminLogin from './pages/Admin/SimpleAdminLogin';
 
@@ -90,6 +91,9 @@ function App() {
                 
                 {/* Direct Admin Dashboard - Protected */}
                 <Route path="/admin-dashboard" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
+                
+                {/* Admin CMS - Protected */}
+                <Route path="/admin-cms" element={<ProtectedRoute requireAdmin={true}><AdminCMS /></ProtectedRoute>} />
 
                 {/* Landing Page - Public */}
                 <Route index element={<LandingPage />} />

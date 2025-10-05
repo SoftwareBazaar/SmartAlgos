@@ -1,0 +1,38 @@
+[
+  {
+    "id": "log_1759669129881_48e13eced7c25",
+    "timestamp": "2025-10-05T12:58:49.881Z",
+    "action": "VIEW_AUDIT_LOGS",
+    "details": "Viewed audit logs",
+    "userEmail": "admin@smartalgos.com",
+    "userRole": "admin",
+    "ipAddress": "::1"
+  },
+  {
+    "id": "log_1759669129602_344f5e70490d9",
+    "timestamp": "2025-10-05T12:58:49.602Z",
+    "action": "UPDATE_SETTINGS",
+    "details": "Updated system settings",
+    "userEmail": "admin@smartalgos.com",
+    "userRole": "admin",
+    "ipAddress": "::1"
+  },
+  {
+    "id": "log_1759669128719_1bc5965e2b6b5",
+    "timestamp": "2025-10-05T12:58:48.719Z",
+    "action": "CREATE_CONTENT",
+    "details": "Created content: Test Content",
+    "userEmail": "admin@smartalgos.com",
+    "userRole": "admin",
+    "ipAddress": "::1"
+  },
+  {
+    "id": "log_1759669128434_237e714ffe5da8",
+    "timestamp": "2025-10-05T12:58:48.434Z",
+    "action": "VIEW_OVERVIEW",
+    "details": "Viewed CMS overview",
+    "userEmail": "admin@smartalgos.com",
+    "userRole": "admin",
+    "ipAddress": "::1"
+  }
+]

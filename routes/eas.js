@@ -741,12 +741,36 @@ router.put('/:id', [
     }
     
     // Copy basic fields (excluding 'price' and 'tags' which need special handling)
-    const allowedFields = ['name', 'description', 'version', 'status', 'category'];
+    const allowedFields = [
+      'name', 'description', 'version', 'status', 'category', 
+      'win_rate', 'profit_factor', 'max_drawdown', 'sharpe_ratio', 
+      'total_trades', 'profitable_trades', 'min_deposit', 
+      'recommended_deposit', 'max_spread', 'risk_level'
+    ];
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
     });
+    
+    // Handle array fields (supported_pairs, timeframes)
+    if (req.body.supported_pairs) {
+      if (typeof req.body.supported_pairs === 'string') {
+        updates.supported_pairs = req.body.supported_pairs.split(',').map(p => p.trim()).filter(p => p);
+      } else if (Array.isArray(req.body.supported_pairs)) {
+        updates.supported_pairs = req.body.supported_pairs;
+      }
+      console.log('[EA Update] Setting supported_pairs:', updates.supported_pairs);
+    }
+    
+    if (req.body.timeframes) {
+      if (typeof req.body.timeframes === 'string') {
+        updates.timeframes = req.body.timeframes.split(',').map(t => t.trim()).filter(t => t);
+      } else if (Array.isArray(req.body.timeframes)) {
+        updates.timeframes = req.body.timeframes;
+      }
+      console.log('[EA Update] Setting timeframes:', updates.timeframes);
+    }
     
     // Handle price field - map to price_weekly, price_monthly, and price_yearly
     if (req.body.price !== undefined) {

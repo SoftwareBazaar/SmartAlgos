@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Clear Cache</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+    p {
+      color: #666;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 18px;
+      margin: 15px 0;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 10;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    .btn-danger {
+      background: #f44336;
+      color: white;
+      box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+    }
+    .btn-danger:hover {
+      background: #da190b;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(244, 67, 54, 0.6);
+    }
+    .btn-success {
+      background: #4CAF50;
+      color: white;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+    }
+    .btn-success:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+    }
+    .result {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f0f9ff;
+      border-radius: 12px;
+      border-left: 4px solid #667eea;
+      display: none;
+    }
+    .result h3 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+    .result p {
+      color: #333;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧹 Clear EA Cache</h1>
+    <p>Clear old EA data from your browser to see the latest prices and updates from the database.</p>
+    
+    <button class="btn btn-success" id="clearCacheBtn">
+      Clear EA Cache
+    </button>
+    
+    <button class="btn btn-primary" id="forceReloadBtn">
+      Force Reload from Database
+    </button>
+    
+    <button class="btn btn-danger" id="clearAllBtn">
+      Clear ALL App Data (Logout)
+    </button>
+    
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    // Clear EA Cache button
+    document.getElementById('clearCacheBtn').addEventListener('click', function() {
+      try {
+        localStorage.removeItem('smart-algos-eas');
+        
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result').innerHTML = `
+          <h3>✅ EA Cache Cleared!</h3>
+          <p><strong>Removed:</strong> smart-algos-eas</p>
+          <p><strong>Next:</strong> Go to admin panel or EA marketplace</p>
+          <p><strong>Then:</strong> Press Ctrl+Shift+R to hard refresh</p>
+          <p>✨ EAs will reload with latest data from database!</p>
+        `;
+        
+        console.log('✅ Cleared localStorage: smart-algos-eas');
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    });
+    
+    // Force Reload button
+    document.getElementById('forceReloadBtn').addEventListener('click', function() {
+      try {
+        localStorage.removeItem('smart-algos-eas');
+        localStorage.setItem('force-ea-reload', 'true');
+        
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result').innerHTML = `
+          <h3>✅ Force Reload Triggered!</h3>
+          <p>✅ Cleared EA cache</p>
+          <p>✅ Set force reload flag</p>
+          <p><strong>Redirecting to EA Marketplace in 2 seconds...</strong></p>
+          <p>Prices will show: Weekly $6.99, Monthly $18, Lifetime $97</p>
+        `;
+        
+        setTimeout(() => {
+          window.location.href = '/ea-marketplace';
+        }, 2000);
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    });
+    
+    // Clear All button
+    document.getElementById('clearAllBtn').addEventListener('click', function() {
+      if (confirm('⚠️ This will clear ALL app data and log you out. Continue?')) {
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          document.getElementById('result').style.display = 'block';
+          document.getElementById('result').innerHTML = `
+            <h3>✅ All Data Cleared!</h3>
+            <p>Cleared localStorage and sessionStorage</p>
+            <p><strong>Redirecting to login...</strong></p>
+          `;
+          
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 2000);
+        } catch (error) {
+          alert('Error: ' + error.message);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
+

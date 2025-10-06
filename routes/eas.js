@@ -299,16 +299,19 @@ router.post('/', [
     .isLength({ min: 3, max: 100 })
     .withMessage('Name must be between 3 and 100 characters'),
   body('description')
+    .optional()
     .trim()
-    .isLength({ min: 10, max: 1000 })
-    .withMessage('Description must be between 10 and 1000 characters'),
+    .isLength({ min: 1, max: 1000 })
+    .withMessage('Description must be between 1 and 1000 characters'),
   body('category')
     .isIn(['scalping', 'trend', 'news', 'grid', 'arbitrage', 'martingale', 'hedging'])
     .withMessage('Invalid category'),
   body('riskLevel')
+    .optional()
     .isIn(['low', 'medium', 'high', 'very-high'])
     .withMessage('Invalid risk level'),
   body('price')
+    .optional()
     .isFloat({ min: 0 })
     .withMessage('Price must be a positive number')
 ], async (req, res) => {
@@ -319,7 +322,11 @@ router.post('/', [
     
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('[EA Create] Validation failed:', errors.array());
+      console.log('[EA Create] ❌ Validation failed:');
+      errors.array().forEach(err => {
+        console.log(`   - ${err.param}: ${err.msg} (value: ${JSON.stringify(err.value)})`);
+      });
+      
       // Clean up uploaded files if validation fails
       if (req.files) {
         const cleanupPromises = [];
@@ -338,7 +345,8 @@ router.post('/', [
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
-        errors: errors.array()
+        errors: errors.array(),
+        details: errors.array().map(e => `${e.param}: ${e.msg}`)
       });
     }
 

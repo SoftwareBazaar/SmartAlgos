@@ -58,10 +58,8 @@ const upload = multer({
 
 // @route   GET /api/eas
 // @desc    Get all EAs with filtering and pagination
-// @access  Private
+// @access  Public (no auth required for viewing marketplace)
 router.get('/', [
-  auth,
-  updateActivity,
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
   query('category').optional().isIn(['scalping', 'trend', 'news', 'grid', 'arbitrage', 'martingale', 'hedging']),
@@ -189,7 +187,8 @@ router.get('/', [
 // @route   GET /api/eas/featured
 // @desc    Get featured EAs
 // @access  Private
-router.get('/featured', [auth, updateActivity], async (req, res) => {
+// @access  Public (no auth required for viewing featured EAs)
+router.get('/featured', async (req, res) => {
   try {
     const eas = await databaseService.getFeaturedEAs({
       limit: 10,
@@ -212,8 +211,8 @@ router.get('/featured', [auth, updateActivity], async (req, res) => {
 
 // @route   GET /api/eas/categories
 // @desc    Get EA categories with counts
-// @access  Private
-router.get('/categories', [auth, updateActivity], async (req, res) => {
+// @access  Public (no auth required for viewing categories)
+router.get('/categories', async (req, res) => {
   try {
     const categories = await databaseService.getEACategories();
 
@@ -233,8 +232,8 @@ router.get('/categories', [auth, updateActivity], async (req, res) => {
 
 // @route   GET /api/eas/:id
 // @desc    Get single EA by ID
-// @access  Private
-router.get('/:id', [auth, updateActivity], async (req, res) => {
+// @access  Public (no auth required for viewing EA details)
+router.get('/:id', async (req, res) => {
   try {
     const ea = await databaseService.getEAById(req.params.id);
 
@@ -250,15 +249,10 @@ router.get('/:id', [auth, updateActivity], async (req, res) => {
       views: (ea.views || 0) + 1 
     });
 
-    // Check if user has access to files based on subscription
-    const userTier = req.user.subscription_type || 'free';
-    const tierLevels = { 'free': 0, 'basic': 1, 'professional': 2, 'institutional': 3 };
-    
-    if (tierLevels[userTier] < 1) {
-      // Remove file paths for free users
-      ea.ea_file_path = undefined;
-      ea.manual_file_path = undefined;
-    }
+    // Remove file download paths for unauthenticated users (they can see details but can't download)
+    // The file paths are only accessible after subscription/purchase
+    ea.ea_file_path = undefined;
+    ea.manual_file_path = undefined;
 
     res.json({
       success: true,

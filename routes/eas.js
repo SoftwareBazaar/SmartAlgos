@@ -553,8 +553,10 @@ router.put('/:id', [
     .withMessage('Description must be between 10 and 1000 characters')
 ], async (req, res) => {
   try {
-    console.log(`[EA Update] Starting update for EA ${req.params.id}`);
+    console.log(`[EA Update] ===== STARTING UPDATE FOR EA ${req.params.id} =====`);
+    console.log(`[EA Update] User:`, req.user?.id, req.user?.role);
     console.log(`[EA Update] Request body keys:`, Object.keys(req.body));
+    console.log(`[EA Update] Request body:`, JSON.stringify(req.body, null, 2));
     console.log(`[EA Update] Files received:`, req.files ? Object.keys(req.files) : 'none');
     
     const errors = validationResult(req);
@@ -589,6 +591,9 @@ router.put('/:id', [
       return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
     };
     const useMockAuth = process.env.MOCK_AUTH === 'true' || isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.log(`[EA Update] Mode detected: ${useMockAuth ? 'MOCK' : 'DATABASE'}`);
+    console.log(`[EA Update] MOCK_AUTH:`, process.env.MOCK_AUTH);
+    console.log(`[EA Update] Has SUPABASE_SERVICE_ROLE_KEY:`, !!process.env.SUPABASE_SERVICE_ROLE_KEY);
 
     // Handle file uploads
     let imageFile = null;
@@ -710,13 +715,17 @@ router.put('/:id', [
 
     // Update files if new ones were uploaded
     if (imageFile || eaFile) {
-      updates.files = {
-        image: imageFile,
-        eaFile: eaFile
-      };
+      updates.files = {};
+      if (imageFile) {
+        updates.files.image = imageFile;
+      }
+      if (eaFile) {
+        updates.files.eaFile = eaFile;
+      }
     }
 
-    console.log(`[EA Update] Update object prepared:`, Object.keys(updates));
+    console.log(`[EA Update] Update object prepared with keys:`, Object.keys(updates));
+    console.log(`[EA Update] Full update object:`, JSON.stringify(updates, null, 2));
 
     let updatedEA;
     
@@ -768,11 +777,22 @@ router.put('/:id', [
       console.log(`✅ [EA Update] Mock EA updated: ${updatedEA.id}`);
     } else {
       // Update in database
+      console.log(`[EA Update] 🔄 Calling database update for EA ${req.params.id}...`);
+      console.log(`[EA Update] Update data being sent to DB:`, JSON.stringify(updates, null, 2));
       try {
         updatedEA = await databaseService.updateEA(req.params.id, updates);
         console.log(`✅ [EA Update] Database update successful for EA ${req.params.id}`);
+        console.log(`✅ [EA Update] Updated EA data:`, JSON.stringify(updatedEA, null, 2));
       } catch (dbError) {
-        console.error('[EA Update] Database update failed:', dbError);
+        console.error('❌ [EA Update] Database update failed:', dbError);
+        console.error('❌ [EA Update] DB Error details:', {
+          name: dbError.name,
+          message: dbError.message,
+          code: dbError.code,
+          details: dbError.details,
+          hint: dbError.hint,
+          stack: dbError.stack
+        });
         throw dbError;
       }
     }
@@ -785,6 +805,14 @@ router.put('/:id', [
 
   } catch (error) {
     console.error('❌ [EA Update] Error:', error);
+    console.error('❌ [EA Update] Error stack:', error.stack);
+    console.error('❌ [EA Update] Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
     
     // Clean up uploaded files on error
     if (req.files) {
@@ -801,10 +829,18 @@ router.put('/:id', [
       await Promise.all(cleanupPromises);
     }
     
+    // Return detailed error for debugging
     res.status(500).json({
       success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: error.message || 'Server error',
+      errorCode: error.code,
+      errorDetails: error.details,
+      errorHint: error.hint,
+      // Include more details in production for debugging Railway issues
+      debug: {
+        errorName: error.name,
+        timestamp: new Date().toISOString()
+      }
     });
   }
 });

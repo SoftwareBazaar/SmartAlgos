@@ -289,9 +289,9 @@ const EAMarketplace = () => {
 
                     <div className="flex items-center justify-between mb-4">
                       <div className="text-2xl font-bold text-white">
-                        ${ea.price}
+                        ${ea.price_monthly || ea.price || 0}
                         <span className="text-sm font-normal text-brand-200">
-                          /{ea.period}
+                          /{ea.period || 'monthly'}
                         </span>
                       </div>
                       <div className="flex items-center space-x-1">
@@ -586,7 +586,10 @@ const EAMarketplace = () => {
                     >
                       <div className="capitalize">{type}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                        ${selectedEA.pricing?.[type] || selectedEA.price}
+                        ${type === 'monthly' ? (selectedEA.price_monthly || 0) :
+                          type === 'yearly' ? (selectedEA.price_yearly || 0) :
+                          type === 'weekly' ? ((selectedEA.price_monthly || 0) / 4).toFixed(2) :
+                          type === 'quarterly' ? ((selectedEA.price_monthly || 0) * 3).toFixed(2) : 0}
                       </div>
                     </button>
                   ))}
@@ -654,7 +657,10 @@ const EAMarketplace = () => {
                   productType="ea_subscription"
                   productId={selectedEA.id}
                   productName={selectedEA.name}
-                  productPrice={selectedEA.pricing?.[subscriptionType] || selectedEA.price}
+                  productPrice={subscriptionType === 'monthly' ? (selectedEA.price_monthly || 0) :
+                                subscriptionType === 'yearly' ? (selectedEA.price_yearly || 0) :
+                                subscriptionType === 'weekly' ? ((selectedEA.price_monthly || 0) / 4) :
+                                (selectedEA.price_monthly || 0) * 3}
                   sellerEmail={selectedEA.creator || selectedEA.creatorName}
                   onTransactionCreated={(transaction) => {
                     setEscrowTransaction(transaction);
@@ -673,14 +679,20 @@ const EAMarketplace = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Product Price</span>
                     <span className="text-gray-900 dark:text-gray-100">
-                      ${selectedEA.pricing?.[subscriptionType] || selectedEA.price}
+                      ${subscriptionType === 'monthly' ? (selectedEA.price_monthly || 0) :
+                        subscriptionType === 'yearly' ? (selectedEA.price_yearly || 0) :
+                        subscriptionType === 'weekly' ? ((selectedEA.price_monthly || 0) / 4).toFixed(2) :
+                        ((selectedEA.price_monthly || 0) * 3).toFixed(2)}
                     </span>
                   </div>
                   {useEscrow && (
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 dark:text-gray-400">Escrow Fee</span>
                       <span className="text-gray-900 dark:text-gray-100">
-                        ${((selectedEA.pricing?.[subscriptionType] || selectedEA.price) * 0.0089).toFixed(2)}
+                        ${((subscriptionType === 'monthly' ? (selectedEA.price_monthly || 0) :
+                            subscriptionType === 'yearly' ? (selectedEA.price_yearly || 0) :
+                            subscriptionType === 'weekly' ? ((selectedEA.price_monthly || 0) / 4) :
+                            (selectedEA.price_monthly || 0) * 3) * 0.0089).toFixed(2)}
                       </span>
                     </div>
                   )}
@@ -691,8 +703,14 @@ const EAMarketplace = () => {
                       </span>
                       <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                         ${useEscrow 
-                          ? ((selectedEA.pricing?.[subscriptionType] || selectedEA.price) * 1.0089).toFixed(2)
-                          : selectedEA.pricing?.[subscriptionType] || selectedEA.price
+                          ? ((subscriptionType === 'monthly' ? (selectedEA.price_monthly || 0) :
+                              subscriptionType === 'yearly' ? (selectedEA.price_yearly || 0) :
+                              subscriptionType === 'weekly' ? ((selectedEA.price_monthly || 0) / 4) :
+                              (selectedEA.price_monthly || 0) * 3) * 1.0089).toFixed(2)
+                          : (subscriptionType === 'monthly' ? (selectedEA.price_monthly || 0) :
+                              subscriptionType === 'yearly' ? (selectedEA.price_yearly || 0) :
+                              subscriptionType === 'weekly' ? ((selectedEA.price_monthly || 0) / 4).toFixed(2) :
+                              ((selectedEA.price_monthly || 0) * 3).toFixed(2))
                         }
                       </span>
                     </div>

@@ -346,10 +346,17 @@ router.post('/', [
     let eaFileUrl = null;
 
     if (req.files) {
-      // Upload image to Supabase Storage
+      // Upload image to Supabase Storage (skip if takes too long)
       if (req.files.image && req.files.image[0]) {
         try {
-          console.log(`[EA Create] Uploading image to Supabase Storage...`);
+          console.log(`[EA Create] Uploading image to Supabase Storage (${req.files.image[0].size} bytes)...`);
+          
+          // Only attempt upload if file is < 5MB to avoid timeouts
+          if (req.files.image[0].size > 5 * 1024 * 1024) {
+            console.warn(`[EA Create] ⚠️ Image too large (${req.files.image[0].size} bytes), skipping Supabase upload`);
+            throw new Error('Image too large');
+          }
+          
           const uploadResult = await supabaseStorage.uploadImage(
             req.files.image[0].buffer,
             req.files.image[0].originalname,
@@ -367,8 +374,10 @@ router.post('/', [
           };
           console.log(`[EA Create] ✅ Image uploaded to Supabase: ${imageUrl}`);
         } catch (uploadError) {
-          console.error(`[EA Create] Image upload to Supabase failed:`, uploadError);
+          console.warn(`[EA Create] ⚠️ Skipping image upload (${uploadError.message}), creating EA without image`);
           // Continue without image rather than failing completely
+          imageUrl = null;
+          imageFile = null;
         }
       }
       
@@ -393,8 +402,10 @@ router.post('/', [
           };
           console.log(`[EA Create] ✅ EA file uploaded to Supabase: ${eaFileUrl}`);
         } catch (uploadError) {
-          console.error(`[EA Create] EA file upload to Supabase failed:`, uploadError);
+          console.error(`[EA Create] ❌ EA file upload to Supabase failed:`, uploadError.message);
           // Continue without EA file rather than failing completely
+          eaFileUrl = null;
+          eaFile = null;
         }
       }
     }

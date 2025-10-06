@@ -28,22 +28,29 @@ class SupabaseStorageService {
       const filename = `image-${timestamp}-${random}.${ext}`;
       const filePath = filename;
 
-      console.log(`[Storage] Uploading to Supabase: ${bucket}/${filePath}`);
+      console.log(`[Storage] Uploading to Supabase: ${bucket}/${filePath} (${fileBuffer.length} bytes)`);
 
-      // Upload to Supabase Storage
-      const { data, error } = await this.supabase.storage
+      // Add timeout to upload
+      const uploadPromise = this.supabase.storage
         .from(bucket)
         .upload(filePath, fileBuffer, {
           contentType: mimetype,
           upsert: false
         });
 
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Supabase Storage upload timeout after 15s')), 15000)
+      );
+
+      // Upload with 15 second timeout
+      const { data, error } = await Promise.race([uploadPromise, timeoutPromise]);
+
       if (error) {
         console.error('[Storage] Upload failed:', error);
         throw error;
       }
 
-      // Get public URL
+      // Get public URL (no await needed - synchronous)
       const { data: urlData } = this.supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);

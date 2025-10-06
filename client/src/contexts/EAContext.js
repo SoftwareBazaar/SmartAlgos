@@ -211,8 +211,11 @@ export const EAProvider = ({ children }) => {
         const newEA = response.data.data;
         console.log('[EAContext] ✅ EA created successfully:', newEA);
         
-        // Refresh EAs from API to get latest data
-        await refreshEAs();
+        // Add EA to state immediately (don't wait for refresh which might timeout)
+        dispatch({ type: 'ADD_EA', payload: newEA });
+        
+        // Refresh in background (non-blocking)
+        refreshEAs().catch(err => console.warn('[EAContext] Background refresh failed:', err));
         
         // Dispatch custom event to notify other components
         window.dispatchEvent(new CustomEvent('ea-updated'));
@@ -273,8 +276,11 @@ export const EAProvider = ({ children }) => {
         const updatedEA = response.data.data;
         console.log('[EAContext] ✅ EA updated with data:', updatedEA);
         
-        // Refresh EAs from API to get latest data from database
-        await refreshEAs();
+        // Update state immediately
+        dispatch({ type: 'UPDATE_EA', payload: { id: parseInt(eaId), ...updatedEA } });
+        
+        // Refresh in background (non-blocking)
+        refreshEAs().catch(err => console.warn('[EAContext] Background refresh failed:', err));
         
         // Dispatch custom event to notify other components
         window.dispatchEvent(new CustomEvent('ea-updated'));

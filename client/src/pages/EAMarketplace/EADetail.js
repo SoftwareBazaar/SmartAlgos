@@ -27,6 +27,8 @@ import {
 import Button from '../../components/UI/Button';
 import Card from '../../components/UI/Card';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
+import apiClient from '../../lib/apiClient';
+import { useEA } from '../../contexts/EAContext';
 
 const EADetail = () => {
   const { id } = useParams();
@@ -38,95 +40,62 @@ const EADetail = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('monthly');
 
-  // Mock EA data - replace with actual API call
+  // Load EA from API
   useEffect(() => {
     const fetchEA = async () => {
-      setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setEa({
-          id: id,
-          name: "Advanced Forex Scalper Pro",
-          description: "A sophisticated Expert Advisor designed for high-frequency scalping in the forex market. Uses advanced machine learning algorithms to identify optimal entry and exit points.",
-          version: "2.1.4",
-          category: "Forex",
-          strategy_type: "Scalping",
-          win_rate: 78.5,
-          profit_factor: 2.3,
-          max_drawdown: 12.4,
-          sharpe_ratio: 1.8,
-          total_trades: 1247,
-          profitable_trades: 978,
-          price_monthly: 99.99,
-          price_yearly: 999.99,
-          currency: "USD",
-          supported_pairs: ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD"],
-          timeframes: ["M1", "M5", "M15", "M30"],
-          min_deposit: 1000,
-          recommended_deposit: 5000,
-          max_spread: 2,
-          slippage_tolerance: 3,
-          risk_level: "Medium",
-          max_risk_per_trade: 2.0,
-          max_daily_risk: 5.0,
-          stop_loss_enabled: true,
-          take_profit_enabled: true,
-          status: "approved",
-          is_active: true,
-          is_featured: true,
-          creator_name: "TradingMaster Pro",
-          total_subscribers: 1247,
-          active_subscribers: 892,
-          average_rating: 4.7,
-          total_reviews: 156,
-          views: 15420,
-          downloads: 892,
-          screenshots: [
-            "/api/placeholder/800/400",
-            "/api/placeholder/800/400",
-            "/api/placeholder/800/400"
-          ],
-          backtest_results: {
-            period: "2020-2024",
-            total_return: 245.6,
-            max_drawdown: 12.4,
-            sharpe_ratio: 1.8,
-            win_rate: 78.5,
-            profit_factor: 2.3,
-            total_trades: 1247
-          },
-          live_results: {
-            period: "2023-2024",
-            total_return: 89.2,
-            max_drawdown: 8.7,
-            sharpe_ratio: 1.6,
-            win_rate: 76.8,
-            profit_factor: 2.1,
-            total_trades: 456
-          },
-          features: [
-            "Advanced ML-based signal generation",
-            "Multi-timeframe analysis",
-            "Dynamic risk management",
-            "News filter integration",
-            "Customizable parameters",
-            "Real-time monitoring",
-            "Mobile notifications",
-            "24/7 support"
-          ],
-          requirements: {
-            broker: "Any MT4/MT5 broker",
-            vps: "Recommended for optimal performance",
-            internet: "Stable connection required",
-            cpu: "Minimum 2 cores",
-            ram: "Minimum 4GB",
-            os: "Windows 7+ or Linux"
-          },
-          created_at: "2023-01-15T10:30:00Z",
-          updated_at: "2024-01-15T14:20:00Z"
-        });
+      try {
+        setLoading(true);
+        console.log('[EADetail] Loading EA:', id);
+        
+        const response = await apiClient.get(`/api/eas/${id}`);
+        
+        if (response.data.success) {
+          const eaData = response.data.data;
+          console.log('[EADetail] ✅ Loaded EA:', eaData);
+          
+          // Set EA with proper defaults for missing fields
+          setEa({
+            ...eaData,
+            // Ensure arrays exist
+            supported_pairs: eaData.supported_pairs || [],
+            timeframes: eaData.timeframes || [],
+            keywords: eaData.keywords || [],
+            screenshots: eaData.screenshots || [],
+            // Ensure numbers are parsed
+            win_rate: parseFloat(eaData.win_rate) || 0,
+            profit_factor: parseFloat(eaData.profit_factor) || 0,
+            max_drawdown: parseFloat(eaData.max_drawdown) || 0,
+            price_weekly: parseFloat(eaData.price_weekly) || 6.99,
+            price_monthly: parseFloat(eaData.price_monthly) || 18.00,
+            price_yearly: parseFloat(eaData.price_yearly) || 97.00,
+            // Set default backtest/live results if missing
+            backtest_results: eaData.backtest_results || {
+              period: "Backtest Data",
+              total_return: 0,
+              max_drawdown: parseFloat(eaData.max_drawdown) || 0,
+              win_rate: parseFloat(eaData.win_rate) || 0,
+              profit_factor: parseFloat(eaData.profit_factor) || 0,
+              total_trades: parseInt(eaData.total_trades) || 0
+            },
+            live_results: eaData.live_results || {
+              period: "Live Results",
+              total_return: 0,
+              max_drawdown: parseFloat(eaData.max_drawdown) || 0,
+              sharpe_ratio: parseFloat(eaData.sharpe_ratio) || 0,
+              win_rate: parseFloat(eaData.win_rate) || 0,
+              profit_factor: parseFloat(eaData.profit_factor) || 0,
+              total_trades: parseInt(eaData.total_trades) || 0
+            }
+          });
+          setLoading(false);
+        } else {
+          console.error('[EADetail] Failed to load EA');
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('[EADetail] Error loading EA:', error);
         setLoading(false);
-      }, 1000);
+      }
     };
 
     fetchEA();
@@ -134,26 +103,28 @@ const EADetail = () => {
 
   const pricingPlans = [
     {
-      id: 'monthly',
-      name: 'Monthly',
-      price: ea?.price_monthly || 99.99,
-      period: 'month',
+      id: 'weekly',
+      name: 'Weekly Access',
+      price: ea?.price_weekly || 6.99,
+      period: 'week',
       features: ['Full EA access', 'Email support', 'Updates included'],
+      badge: 'Try it out',
       popular: false
     },
     {
-      id: 'yearly',
-      name: 'Yearly',
-      price: ea?.price_yearly || 999.99,
-      period: 'year',
-      features: ['Full EA access', 'Priority support', 'Updates included', '2 months free'],
+      id: 'monthly',
+      name: 'Monthly Access',
+      price: ea?.price_monthly || 18.00,
+      period: 'month',
+      features: ['Full EA access', 'Priority support', 'All updates', 'Trading signals'],
+      badge: 'MOST POPULAR',
       popular: true
     },
     {
       id: 'lifetime',
-      name: 'Lifetime',
-      price: 2499.99,
-      period: 'lifetime',
+      name: 'Lifetime Access',
+      price: ea?.price_yearly || 97.00,
+      period: 'one-time',
       features: ['Full EA access', 'VIP support', 'All updates', 'Custom modifications', 'Source code access'],
       popular: false
     }

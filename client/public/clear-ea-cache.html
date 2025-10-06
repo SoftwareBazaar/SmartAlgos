@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clear EA Cache</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a2e;
+      color: #fff;
+    }
+    .btn {
+      background: #4CAF50;
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px;
+    }
+    .btn:hover {
+      background: #45a049;
+    }
+    .btn-danger {
+      background: #f44336;
+    }
+    .btn-danger:hover {
+      background: #da190b;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #16213e;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧹 Clear EA Cache</h1>
+  <p>Use this page to clear old EA data from browser cache and force reload from database.</p>
+  
+  <button class="btn" onclick="clearCache()">Clear EA Cache</button>
+  <button class="btn btn-danger" onclick="clearAll()">Clear ALL App Data</button>
+  
+  <div id="result" class="result" style="display:none;"></div>
+
+  <script>
+    function clearCache() {
+      try {
+        // Clear EA localStorage
+        localStorage.removeItem('smart-algos-eas');
+        
+        // Show result
+        const result = document.getElementById('result');
+        result.style.display = 'block';
+        result.innerHTML = `
+          <h3>✅ EA Cache Cleared!</h3>
+          <p>Removed: smart-algos-eas</p>
+          <p><strong>Now refresh your admin panel (Ctrl+Shift+R)</strong></p>
+          <p>EAs will reload fresh from database.</p>
+        `;
+        
+        console.log('✅ Cleared localStorage: smart-algos-eas');
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    }
+    
+    function clearAll() {
+      if (confirm('⚠️ Clear ALL app data? This will log you out!')) {
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          const result = document.getElementById('result');
+          result.style.display = 'block';
+          result.innerHTML = `
+            <h3>✅ All Cache Cleared!</h3>
+            <p>Cleared localStorage and sessionStorage</p>
+            <p><strong>Redirecting to login...</strong></p>
+          `;
+          
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 2000);
+        } catch (error) {
+          alert('Error: ' + error.message);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+

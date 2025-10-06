@@ -547,8 +547,8 @@ router.put('/:id', [
   body('description')
     .optional()
     .trim()
-    .isLength({ min: 10, max: 1000 })
-    .withMessage('Description must be between 10 and 1000 characters')
+    .isLength({ min: 1, max: 1000 })
+    .withMessage('Description must be between 1 and 1000 characters')
 ], async (req, res) => {
   try {
     console.log(`[EA Update] ===== STARTING UPDATE FOR EA ${req.params.id} =====`);

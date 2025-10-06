@@ -288,11 +288,16 @@ const EAMarketplace = () => {
                     </div>
 
                     <div className="flex items-center justify-between mb-4">
-                      <div className="text-2xl font-bold text-white">
-                        ${ea.price_monthly || ea.price || 0}
-                        <span className="text-sm font-normal text-brand-200">
-                          /{ea.period || 'monthly'}
-                        </span>
+                      <div className="relative">
+                        <div className="text-4xl font-extrabold text-white drop-shadow-lg">
+                          ${ea.price_weekly || 6.99}
+                        </div>
+                        <div className="text-xs font-medium text-brand-200 mt-1 tracking-wider">
+                          per week • Start Today
+                        </div>
+                        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+                          LOW ENTRY
+                        </div>
                       </div>
                       <div className="flex items-center space-x-1">
                         {ea.isLive ? (
@@ -578,21 +583,21 @@ const EAMarketplace = () => {
                     { 
                       type: 'weekly', 
                       label: 'Weekly Access', 
-                      price: selectedEA.price_weekly || 6.99,
+                      price: parseFloat(selectedEA.price_weekly) || 6.99,
                       badge: 'Try it out',
                       savings: null
                     },
                     { 
                       type: 'monthly', 
                       label: 'Monthly Access', 
-                      price: selectedEA.price_monthly || 18.00,
+                      price: parseFloat(selectedEA.price_monthly) || 18.00,
                       badge: 'MOST POPULAR',
                       savings: null
                     },
                     { 
                       type: 'lifetime', 
                       label: 'Lifetime Access', 
-                      price: selectedEA.price_yearly || 97.00,
+                      price: parseFloat(selectedEA.price_yearly) || 97.00,
                       badge: 'BEST VALUE',
                       savings: 'Save $115 - Never pay again!'
                     }
@@ -701,10 +706,10 @@ const EAMarketplace = () => {
                   productType="ea_subscription"
                   productId={selectedEA.id}
                   productName={selectedEA.name}
-                  productPrice={subscriptionType === 'weekly' ? (selectedEA.price_weekly || 6.99) :
-                                subscriptionType === 'monthly' ? (selectedEA.price_monthly || 18.00) :
-                                subscriptionType === 'lifetime' ? (selectedEA.price_yearly || 97.00) :
-                                (selectedEA.price_monthly || 18.00)}
+                  productPrice={subscriptionType === 'weekly' ? (parseFloat(selectedEA.price_weekly) || 6.99) :
+                                subscriptionType === 'monthly' ? (parseFloat(selectedEA.price_monthly) || 18.00) :
+                                subscriptionType === 'lifetime' ? (parseFloat(selectedEA.price_yearly) || 97.00) :
+                                (parseFloat(selectedEA.price_monthly) || 18.00)}
                   sellerEmail={selectedEA.creator || selectedEA.creatorName}
                   onTransactionCreated={(transaction) => {
                     setEscrowTransaction(transaction);
@@ -723,20 +728,20 @@ const EAMarketplace = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Product Price</span>
                     <span className="text-gray-900 dark:text-gray-100">
-                      ${subscriptionType === 'weekly' ? (selectedEA.price_weekly || 6.99) :
-                        subscriptionType === 'monthly' ? (selectedEA.price_monthly || 18.00) :
-                        subscriptionType === 'lifetime' ? (selectedEA.price_yearly || 97.00) :
-                        (selectedEA.price_monthly || 18.00)}
+                      ${subscriptionType === 'weekly' ? (parseFloat(selectedEA.price_weekly) || 6.99) :
+                        subscriptionType === 'monthly' ? (parseFloat(selectedEA.price_monthly) || 18.00) :
+                        subscriptionType === 'lifetime' ? (parseFloat(selectedEA.price_yearly) || 97.00) :
+                        (parseFloat(selectedEA.price_monthly) || 18.00)}
                     </span>
                   </div>
                   {useEscrow && (
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 dark:text-gray-400">Escrow Fee (0.89%)</span>
                       <span className="text-gray-900 dark:text-gray-100">
-                        ${((subscriptionType === 'weekly' ? (selectedEA.price_weekly || 6.99) :
-                            subscriptionType === 'monthly' ? (selectedEA.price_monthly || 18.00) :
-                            subscriptionType === 'lifetime' ? (selectedEA.price_yearly || 97.00) :
-                            (selectedEA.price_monthly || 18.00)) * 0.0089).toFixed(2)}
+                        ${((subscriptionType === 'weekly' ? (parseFloat(selectedEA.price_weekly) || 6.99) :
+                            subscriptionType === 'monthly' ? (parseFloat(selectedEA.price_monthly) || 18.00) :
+                            subscriptionType === 'lifetime' ? (parseFloat(selectedEA.price_yearly) || 97.00) :
+                            (parseFloat(selectedEA.price_monthly) || 18.00)) * 0.0089).toFixed(2)}
                       </span>
                     </div>
                   )}
@@ -757,14 +762,14 @@ const EAMarketplace = () => {
                       </span>
                       <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                         ${useEscrow 
-                          ? ((subscriptionType === 'weekly' ? (selectedEA.price_weekly || 6.99) :
-                              subscriptionType === 'monthly' ? (selectedEA.price_monthly || 18.00) :
-                              subscriptionType === 'lifetime' ? (selectedEA.price_yearly || 97.00) :
-                              (selectedEA.price_monthly || 18.00)) * 1.0089).toFixed(2)
-                          : (subscriptionType === 'weekly' ? (selectedEA.price_weekly || 6.99) :
-                              subscriptionType === 'monthly' ? (selectedEA.price_monthly || 18.00) :
-                              subscriptionType === 'lifetime' ? (selectedEA.price_yearly || 97.00) :
-                              (selectedEA.price_monthly || 18.00))
+                          ? ((subscriptionType === 'weekly' ? (parseFloat(selectedEA.price_weekly) || 6.99) :
+                              subscriptionType === 'monthly' ? (parseFloat(selectedEA.price_monthly) || 18.00) :
+                              subscriptionType === 'lifetime' ? (parseFloat(selectedEA.price_yearly) || 97.00) :
+                              (parseFloat(selectedEA.price_monthly) || 18.00)) * 1.0089).toFixed(2)
+                          : (subscriptionType === 'weekly' ? (parseFloat(selectedEA.price_weekly) || 6.99) :
+                              subscriptionType === 'monthly' ? (parseFloat(selectedEA.price_monthly) || 18.00) :
+                              subscriptionType === 'lifetime' ? (parseFloat(selectedEA.price_yearly) || 97.00) :
+                              (parseFloat(selectedEA.price_monthly) || 18.00))
                         }
                       </span>
                     </div>

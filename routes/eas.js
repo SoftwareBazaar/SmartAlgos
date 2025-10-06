@@ -627,13 +627,20 @@ router.put('/:id', [
     // Build update object
     const updates = {};
     
-    // Copy basic fields
-    const allowedFields = ['name', 'description', 'version', 'status', 'price', 'category', 'tags'];
+    // Copy basic fields (excluding 'price' which needs special handling)
+    const allowedFields = ['name', 'description', 'version', 'status', 'category', 'tags'];
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
     });
+    
+    // Handle price field - map to price_monthly and price_yearly
+    if (req.body.price !== undefined) {
+      const priceValue = parseFloat(req.body.price) || 0;
+      updates.price_monthly = priceValue;
+      updates.price_yearly = priceValue * 10; // Yearly price is 10x monthly (discount)
+    }
     
     // Handle specifications if present
     if (req.body.specifications || Object.keys(req.body).some(key => key.startsWith('specifications.'))) {

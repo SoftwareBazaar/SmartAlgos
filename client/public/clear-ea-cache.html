@@ -44,6 +44,7 @@
   
   <button class="btn" onclick="clearCache()">Clear EA Cache</button>
   <button class="btn btn-danger" onclick="clearAll()">Clear ALL App Data</button>
+  <button class="btn" onclick="forceReload()">Force Reload EAs from Database</button>
   
   <div id="result" class="result" style="display:none;"></div>
 
@@ -89,6 +90,27 @@
         } catch (error) {
           alert('Error: ' + error.message);
         }
+      }
+    }
+    
+    function forceReload() {
+      try {
+        // Clear EA cache
+        localStorage.removeItem('smart-algos-eas');
+        
+        // Set a flag to force API reload
+        localStorage.setItem('force-ea-reload', 'true');
+        
+        const result = document.getElementById('result');
+        result.style.display = 'block';
+        result.innerHTML = `
+          <h3>✅ Force Reload Triggered!</h3>
+          <p>Cleared EA cache and set reload flag</p>
+          <p><strong>Now go to the EA Marketplace and refresh (Ctrl+Shift+R)</strong></p>
+          <p>EAs will reload with latest prices from database!</p>
+        `;
+      } catch (error) {
+        alert('Error: ' + error.message);
       }
     }
   </script>

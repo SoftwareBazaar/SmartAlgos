@@ -386,13 +386,13 @@ const EAMarketplace = () => {
                   </div>
                   <div className="absolute top-4 right-4 flex flex-col space-y-1">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      ea.status === 'working' 
+                      ea.status === 'active' 
                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
                         : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                     }`}>
-                      {ea.status === 'working' ? 'Working' : 'Upcoming'}
+                      {ea.status === 'active' ? 'Active' : ea.status ? ea.status.charAt(0).toUpperCase() + ea.status.slice(1) : 'Pending'}
                     </span>
-                    {ea.verified && (
+                    {ea.is_verified && (
                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                         ✓ Verified
                       </span>
@@ -407,17 +407,8 @@ const EAMarketplace = () => {
                         {ea.name}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        by {ea.creator}
+                        by {ea.creator_name || 'AlgoSmart'}
                       </p>
-                    </div>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="ml-1 text-sm font-medium text-white">
-                        {ea.rating}
-                      </span>
-                      <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
-                        ({ea.reviews})
-                      </span>
                     </div>
                   </div>
 
@@ -429,36 +420,39 @@ const EAMarketplace = () => {
                     <div className="text-center">
                       <p className="text-xs text-gray-500 dark:text-gray-400">Win Rate</p>
                       <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                        {ea.winRate}%
+                        {ea.win_rate || 0}%
                       </p>
                     </div>
                     <div className="text-center">
                       <p className="text-xs text-gray-500 dark:text-gray-400">Monthly Return</p>
                       <p className="text-sm font-semibold text-success-600 dark:text-success-400">
-                        +{ea.monthlyReturn}%
+                        +{ea.monthly_return || 0}%
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between mb-4">
-                    <div className="text-2xl font-bold text-white">
-                      ${ea.price}
-                      <span className="text-sm font-normal text-brand-200">
-                        /{ea.currentPeriod || 'monthly'}
-                      </span>
+                    <div className="relative">
+                      <div className="text-4xl font-extrabold text-white drop-shadow-lg">
+                        ${ea.price_weekly || 6.99}
+                      </div>
+                      <div className="text-xs font-medium text-brand-200 mt-1 tracking-wider">
+                        per week • Start Today
+                      </div>
+                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+                        LOW ENTRY
+                      </div>
                     </div>
                     <div className="flex items-center space-x-1">
-                      {ea.isLive ? (
-                        <div className="flex items-center text-success-600 dark:text-success-400">
-                          <div className="w-2 h-2 bg-success-500 rounded-full mr-1"></div>
-                          <span className="text-xs">Live</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center text-gray-500 dark:text-gray-400">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full mr-1"></div>
-                          <span className="text-xs">Offline</span>
-                        </div>
-                      )}
+                      <div className="flex items-center">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="ml-1 text-sm font-medium text-white">
+                          {ea.average_rating || 0}
+                        </span>
+                        <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
+                          ({ea.total_reviews || 0})
+                        </span>
+                      </div>
                     </div>
                   </div>
 

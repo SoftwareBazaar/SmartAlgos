@@ -6,6 +6,8 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 // Import routes
@@ -143,8 +145,24 @@ const shouldLogRequestBodies = process.env.LOG_REQUEST_BODIES === "true" && !isP
 
 app.set("trust proxy", 1);
 
-// Enhanced Security middleware
-app.use(securityService.getSecurityHeaders());
+// Baseline security headers with relaxed CSP for images and external resources
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      imgSrc: ["'self'", "data:", "blob:", "https:", "http:", "https://images.unsplash.com"],
+      connectSrc: ["'self'", "ws:", "wss:", "https:", "http:"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'self'"]
+    }
+  },
+  crossOriginEmbedderPolicy: false
+}));
 
 // Global rate limiting (more lenient in development)
 const globalLimiter = securityService.createRateLimit({
@@ -166,11 +184,6 @@ app.use(sanitizeInput);
 
 // Threat detection
 app.use(detectThreats);
-
-// Baseline security headers
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
-}));
 
 // CORS configuration
 app.use(cors(corsOptions));
@@ -232,8 +245,18 @@ const requestLogger = isProduction
 
 app.use(requestLogger);
 
-// Static files
-app.use('/uploads', express.static('uploads'));
+// Static files - serve uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res, filePath) => {
+    // Set proper content type for images
+    if (filePath.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+      res.set('Content-Type', 'image/' + path.extname(filePath).slice(1));
+    }
+    // Allow cross-origin access
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.set('Access-Control-Allow-Origin', '*');
+  }
+}));
 
 // Serve React static files
 app.use('/static', express.static('static'));
@@ -298,9 +321,6 @@ app.get('/api', (req, res) => {
 });
 
 // Serve React app (always serve if build exists)
-const path = require('path');
-const fs = require('fs');
-
 // Check if React build exists
 const buildPath = path.join(__dirname, 'client/build');
 const indexPath = path.join(buildPath, 'index.html');

@@ -511,6 +511,20 @@ router.post('/seed', async (req, res) => {
       });
     }
     
+    // CSP-compliant SVG placeholders (base64-encoded)
+    const createPlaceholderSVG = (color, text) => {
+      const svg = `<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="300" fill="${color}"/>
+        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" dy=".3em">${text}</text>
+      </svg>`;
+      return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+    };
+
+    const placeholderCalc = createPlaceholderSVG('#4CAF50', 'Calculator');
+    const placeholderCalendar = createPlaceholderSVG('#2196F3', 'Economic Calendar');
+    const placeholderProfit = createPlaceholderSVG('#9C27B0', 'Profit Calculator');
+    const placeholderMarket = createPlaceholderSVG('#FF9800', 'Market Hours');
+
     // Default utilities with actual images
     const defaultUtilities = [
       {
@@ -531,9 +545,9 @@ router.post('/seed', async (req, res) => {
         version: '3.2.1',
         size: '4.5 MB',
         downloads: 0,
-        image: 'https://via.placeholder.com/400x300/4CAF50/FFFFFF?text=Upload+Your+Image',
-        image_timestamp: null,
-        previews: ['https://via.placeholder.com/400x300/4CAF50/FFFFFF?text=Preview'],
+        image: placeholderCalc,
+        image_timestamp: Date.now(),
+        previews: [placeholderCalc],
         guide: {
           title: 'Professional Lot Size Calculator - Quick Start Guide',
           steps: [
@@ -559,9 +573,9 @@ router.post('/seed', async (req, res) => {
         version: '1.8.5',
         size: '1.8 MB',
         downloads: 12350,
-        image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=300&fit=crop',
+        image: placeholderCalendar,
         image_timestamp: Date.now(),
-        previews: ['https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=300&fit=crop'],
+        previews: [placeholderCalendar],
         guide: { title: 'Economic Calendar Guide', steps: ['Install the calendar tool', 'Configure your timezone', 'Select countries to monitor', 'Set up custom alerts', 'Review daily economic events', 'Plan your trading strategy'] }
       },
       {
@@ -573,9 +587,9 @@ router.post('/seed', async (req, res) => {
         version: '1.5.2',
         size: '1.2 MB',
         downloads: 8750,
-        image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400&h=300&fit=crop',
+        image: placeholderProfit,
         image_timestamp: Date.now(),
-        previews: ['https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400&h=300&fit=crop'],
+        previews: [placeholderProfit],
         guide: { title: 'Profit Calculator Guide', steps: ['Download the calculator', 'Enter trade parameters', 'Set entry and exit prices', 'Calculate potential profit/loss', 'Analyze risk-reward ratio'] }
       },
       {
@@ -587,9 +601,9 @@ router.post('/seed', async (req, res) => {
         version: '2.0.1',
         size: '1.5 MB',
         downloads: 6890,
-        image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop',
+        image: placeholderMarket,
         image_timestamp: Date.now(),
-        previews: ['https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'],
+        previews: [placeholderMarket],
         guide: { title: 'Market Hours Guide', steps: ['Install the tracker', 'Set your timezone', 'Monitor session overlaps', 'Plan trading times', 'Track session strength'] }
       }
     ];

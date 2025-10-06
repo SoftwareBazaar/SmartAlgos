@@ -27,7 +27,7 @@ const ensureUploadDirectories = async () => {
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  if (file.fieldname === 'image') {
+  if (file.fieldname === 'image' || file.fieldname === 'screenshots') {
     // Allow only images
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -275,7 +275,8 @@ router.post('/', [
   auth,
   upload.fields([
     { name: 'image', maxCount: 1 },
-    { name: 'eaFile', maxCount: 1 }
+    { name: 'eaFile', maxCount: 1 },
+    { name: 'screenshots', maxCount: 10 }
   ]),
   body('name')
     .trim()
@@ -412,6 +413,39 @@ router.post('/', [
     console.log('[EA Create] Creator info:', { creatorId, creatorName, userId: req.user?.id });
     
     // Skip user creation - causes timeouts. Creator ID is nullable.
+    
+    // Handle screenshot uploads to Supabase Storage
+    let screenshotUrls = [];
+    if (req.files && req.files.screenshots && req.files.screenshots.length > 0) {
+      console.log(`[EA Create] Uploading ${req.files.screenshots.length} screenshots to Supabase Storage...`);
+      
+      for (let i = 0; i < req.files.screenshots.length; i++) {
+        try {
+          const screenshot = req.files.screenshots[i];
+          
+          // Skip large files
+          if (screenshot.size > 5 * 1024 * 1024) {
+            console.warn(`[EA Create] Screenshot ${i+1} too large, skipping`);
+            continue;
+          }
+          
+          const uploadResult = await supabaseStorage.uploadImage(
+            screenshot.buffer,
+            screenshot.originalname,
+            screenshot.mimetype,
+            'ea-screenshots'
+          );
+          
+          screenshotUrls.push(uploadResult.url);
+          console.log(`[EA Create] ✅ Screenshot ${i+1}/${req.files.screenshots.length} uploaded`);
+        } catch (uploadError) {
+          console.warn(`[EA Create] Failed to upload screenshot ${i+1}:`, uploadError.message);
+          // Continue with other screenshots
+        }
+      }
+      
+      console.log(`[EA Create] Successfully uploaded ${screenshotUrls.length}/${req.files.screenshots.length} screenshots`);
+    }
 
     const eaData = {
       name: req.body.name,
@@ -428,7 +462,8 @@ router.post('/', [
       status: req.body.status || 'active', // Default to 'active' instead of 'pending'
       is_active: true,
       is_featured: false,
-      keywords: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : []
+      keywords: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
+      screenshots: screenshotUrls.length > 0 ? screenshotUrls : null
     };
     
     // Set image and file URLs (public web paths, not filesystem paths)
@@ -543,7 +578,8 @@ router.put('/:id', [
   auth,
   upload.fields([
     { name: 'image', maxCount: 1 },
-    { name: 'eaFile', maxCount: 1 }
+    { name: 'eaFile', maxCount: 1 },
+    { name: 'screenshots', maxCount: 10 }
   ]),
   body('name')
     .optional()
@@ -655,10 +691,54 @@ router.put('/:id', [
           console.error(`[EA Update] EA file upload to Supabase failed:`, uploadError);
         }
       }
+      
+      // Handle screenshot uploads to Supabase Storage
+      if (req.files.screenshots && req.files.screenshots.length > 0) {
+        console.log(`[EA Update] Uploading ${req.files.screenshots.length} screenshots to Supabase Storage...`);
+        
+        let screenshotUrls = [];
+        for (let i = 0; i < req.files.screenshots.length; i++) {
+          try {
+            const screenshot = req.files.screenshots[i];
+            
+            // Skip large files
+            if (screenshot.size > 5 * 1024 * 1024) {
+              console.warn(`[EA Update] Screenshot ${i+1} too large, skipping`);
+              continue;
+            }
+            
+            const uploadResult = await supabaseStorage.uploadImage(
+              screenshot.buffer,
+              screenshot.originalname,
+              screenshot.mimetype,
+              'ea-screenshots'
+            );
+            
+            screenshotUrls.push(uploadResult.url);
+            console.log(`[EA Update] ✅ Screenshot ${i+1}/${req.files.screenshots.length} uploaded`);
+          } catch (uploadError) {
+            console.warn(`[EA Update] Failed to upload screenshot ${i+1}:`, uploadError.message);
+            // Continue with other screenshots
+          }
+        }
+        
+        console.log(`[EA Update] Successfully uploaded ${screenshotUrls.length}/${req.files.screenshots.length} screenshots`);
+        
+        // Store for later (will be added to updates object below)
+        if (screenshotUrls.length > 0) {
+          req.uploadedScreenshots = screenshotUrls;
+        }
+      }
     }
 
     // Build update object
     const updates = {};
+    
+    // Add uploaded screenshots if any
+    if (req.uploadedScreenshots) {
+      updates.screenshots = req.uploadedScreenshots;
+      console.log('[EA Update] Setting screenshots:', req.uploadedScreenshots);
+    }
     
     // Copy basic fields (excluding 'price' and 'tags' which need special handling)
     const allowedFields = ['name', 'description', 'version', 'status', 'category'];

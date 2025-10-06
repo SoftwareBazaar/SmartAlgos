@@ -716,10 +716,14 @@ router.put('/:id', [
     if (useMockAuth) {
       console.log('🔄 [EA Update] Using mock mode');
       
-      // Get existing EA data from localStorage to merge
-      const savedEAs = localStorage.getItem('smart-algos-eas');
-      let existingEAs = savedEAs ? JSON.parse(savedEAs) : [];
-      const existingEA = existingEAs.find(ea => ea.id == req.params.id) || {};
+      // FIXED: Get EA from mock store instead of localStorage (which doesn't exist in Node.js)
+      const mockAuthStore = require('../services/mockAuthStore');
+      let existingEA = {};
+      
+      // Try to get EA from mock store if available
+      if (mockAuthStore.mockEAs) {
+        existingEA = mockAuthStore.mockEAs.find(ea => ea.id == req.params.id) || {};
+      }
       
       // In mock mode, simulate the update
       updatedEA = {
@@ -743,7 +747,6 @@ router.put('/:id', [
       delete updatedEA.files;
       
       // Store in mock storage (in-memory for this request)
-      const mockAuthStore = require('../services/mockAuthStore');
       if (!mockAuthStore.mockEAs) {
         mockAuthStore.mockEAs = [];
       }

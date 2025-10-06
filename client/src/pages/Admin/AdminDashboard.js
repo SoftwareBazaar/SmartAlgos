@@ -1536,6 +1536,12 @@ const AdminDashboard = () => {
   const handleEditEA = (ea) => {
     setEditingEA(ea);
 
+    // Helper function to clean price value - removes dollar signs, commas, and spaces
+    const cleanPrice = (price) => {
+      if (!price) return '';
+      return String(price).replace(/[$,\s]/g, '');
+    };
+
     setEaFormData({
       name: ea.name,
 
@@ -1545,7 +1551,7 @@ const AdminDashboard = () => {
 
       status: ea.status,
 
-      price: ea.price,
+      price: cleanPrice(ea.price),  // Clean the price to remove $ signs
 
       category: ea.category,
 

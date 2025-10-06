@@ -48,11 +48,14 @@ export const EAProvider = ({ children }) => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
         console.log('[EAContext] 🔄 Loading EAs from API...');
+        
+        // Always load from API first (ignore localStorage initially)
         const response = await apiClient.get('/api/eas');
         if (response.data.success) {
-          console.log('[EAContext] ✅ Loaded EAs from API:', response.data.data.length, 'EAs');
+          console.log('[EAContext] ✅ Loaded', response.data.data.length, 'EAs from API');
+          console.log('[EAContext] Sample EA data:', response.data.data[0]);
           dispatch({ type: 'SET_EAS', payload: response.data.data });
-          // Also save to localStorage as backup
+          // Save to localStorage for offline fallback only
           localStorage.setItem('smart-algos-eas', JSON.stringify(response.data.data));
         } else {
           throw new Error('Failed to load EAs from API');

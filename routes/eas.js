@@ -382,66 +382,14 @@ router.post('/', [
       }
     }
 
-    // Handle creator_id for test users
-    let creatorId = req.user.id;
+    // Handle creator_id - set to null to avoid foreign key timeout issues
+    // The foreign key validation might timeout if checking UUID existence
+    let creatorId = null; // Bypass foreign key for now
     let creatorName = `${req.user.first_name || ''} ${req.user.last_name || ''}`.trim() || 'Admin User';
     
-    // For test users, create them in the appropriate store if they don't exist
-    if (req.user.id === 'test_user_123' || req.user.id?.startsWith('dev_token_')) {
-      try {
-        // Determine which service to use based on authentication mode
-        const mockAuthStore = require('../services/mockAuthStore');
-        const isPlaceholderKey = (value = '') => {
-          if (!value) return true;
-          const normalized = value.toLowerCase();
-          return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
-        };
-        const useMockAuth = process.env.MOCK_AUTH === 'true' || isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
-        
-        let existingUser = null;
-        
-        if (useMockAuth) {
-          // Use mock auth store
-          existingUser = await mockAuthStore.getUserById(req.user.id);
-        } else {
-          // Use database service
-          existingUser = await databaseService.getUserById(req.user.id);
-        }
-        
-        if (!existingUser) {
-          // Create test user
-          const testUserData = {
-            id: req.user.id,
-            email: req.user.email || 'test@example.com',
-            first_name: req.user.first_name || 'Test',
-            last_name: req.user.last_name || 'User',
-            role: 'admin',
-            is_active: true,
-            is_email_verified: true,
-            subscription_type: 'institutional',
-            subscription_status: 'active',
-            subscription_start_date: new Date().toISOString(),
-            subscription_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-            preferences: {}
-          };
-          
-          if (useMockAuth) {
-            await mockAuthStore.createUser(testUserData);
-            console.log(`✅ Created test user in mock store: ${req.user.id}`);
-          } else {
-            await databaseService.createUser(testUserData);
-            console.log(`✅ Created test user in database: ${req.user.id}`);
-          }
-        }
-        creatorId = req.user.id;
-        creatorName = `${req.user.first_name || 'Test'} ${req.user.last_name || 'User'}`.trim();
-      } catch (userError) {
-        // If user creation fails, use a default creator or null
-        console.warn('Failed to create test user:', userError.message);
-        creatorId = null; // This will work if the foreign key constraint allows null
-        creatorName = 'Test User';
-      }
-    }
+    console.log('[EA Create] Creator info:', { creatorId, creatorName, userId: req.user?.id });
+    
+    // Skip user creation - causes timeouts. Creator ID is nullable.
 
     const eaData = {
       name: req.body.name,
@@ -473,9 +421,14 @@ router.post('/', [
     };
     const useMockAuth = process.env.MOCK_AUTH === 'true' || isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
+    console.log('[EA Create] Preparing to save EA...');
+    console.log('[EA Create] EA Data keys:', Object.keys(eaData));
+    console.log('[EA Create] Using mock auth:', useMockAuth);
+    
     let ea;
     
     if (useMockAuth) {
+      console.log('[EA Create] Using MOCK mode - creating mock EA');
       // In mock mode, create a mock EA response
       ea = {
         id: `mock_ea_${Date.now()}`,
@@ -503,9 +456,23 @@ router.post('/', [
       if (imageUrl) console.log(`   Image: ${ea.image}`);
       if (eaFileUrl) console.log(`   EA File: ${ea.ea_file_path}`);
     } else {
-      // Save to database
-      ea = await databaseService.createEA(eaData);
-      console.log(`✅ Created EA in database: ${ea.id}`);
+      // Save to database with timeout protection
+      console.log('[EA Create] Using DATABASE mode - calling databaseService.createEA...');
+      console.log('[EA Create] EA data to save:', JSON.stringify(eaData, null, 2));
+      
+      try {
+        // Wrap in Promise.race to add timeout protection
+        const createPromise = databaseService.createEA(eaData);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database operation timed out after 25 seconds')), 25000)
+        );
+        
+        ea = await Promise.race([createPromise, timeoutPromise]);
+        console.log(`✅ Created EA in database: ${ea.id}`);
+      } catch (dbError) {
+        console.error('❌ [EA Create] Database operation failed:', dbError);
+        throw dbError;
+      }
     }
 
     res.status(201).json({

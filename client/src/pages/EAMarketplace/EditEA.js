@@ -63,6 +63,7 @@ const EditEA = () => {
 
   const [newFeature, setNewFeature] = useState('');
   const [newScreenshot, setNewScreenshot] = useState(null);
+  const [eaFile, setEaFile] = useState(null);
 
   useEffect(() => {
     if (ea) {
@@ -117,14 +118,11 @@ const EditEA = () => {
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormData(prev => ({
-          ...prev,
-          image: e.target.result
-        }));
-      };
-      reader.readAsDataURL(file);
+      // Store the file object for upload
+      setFormData(prev => ({
+        ...prev,
+        image: file
+      }));
     }
   };
 
@@ -173,13 +171,25 @@ const EditEA = () => {
     }));
   };
 
+  const handleEaFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setEaFile(file);
+      setFormData(prev => ({
+        ...prev,
+        eaFile: file
+      }));
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      updateEA(parseInt(id), formData);
+      await updateEA(id, formData);
       navigate('/ea-marketplace');
     } catch (error) {
       console.error('Error saving EA:', error);
+      alert('Failed to save EA. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -352,7 +362,7 @@ const EditEA = () => {
               {formData.image ? (
                 <div className="relative">
                   <img 
-                    src={formData.image} 
+                    src={formData.image instanceof File ? URL.createObjectURL(formData.image) : formData.image} 
                     alt="EA Preview"
                     className="w-full h-48 object-cover rounded-lg"
                   />
@@ -437,6 +447,64 @@ const EditEA = () => {
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* EA File Upload */}
+        <Card>
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              EA File
+            </h3>
+            
+            <div className="space-y-4">
+              {eaFile ? (
+                <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Bot className="h-8 w-8 text-primary-500" />
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">{eaFile.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {(eaFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setEaFile(null);
+                      setFormData(prev => ({ ...prev, eaFile: null }));
+                    }}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <Bot className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">No EA file uploaded</p>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <input
+                  type="file"
+                  accept=".ex4,.mq4,.mq5,.ex5"
+                  onChange={handleEaFileUpload}
+                  className="block w-full text-sm text-gray-500 dark:text-gray-400
+                    file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-primary-50 file:text-primary-700
+                    hover:file:bg-primary-100
+                    dark:file:bg-primary-900 dark:file:text-primary-300"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Upload EA file (.ex4, .mq4, .mq5, .ex5)
+                </p>
               </div>
             </div>
           </div>

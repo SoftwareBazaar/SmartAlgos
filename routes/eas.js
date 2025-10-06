@@ -149,16 +149,33 @@ router.get('/', [
     // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Execute query using Supabase
-    const eas = await databaseService.getEAs({
-      ...filter,
-      limit: parseInt(limit),
-      offset: skip,
-      orderBy: sortBy,
-      ascending: sortOrder === 'asc'
-    });
+    // Check if we're in mock mode
+    const isPlaceholderKey = (value = '') => {
+      if (!value) return true;
+      const normalized = value.toLowerCase();
+      return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
+    };
+    const useMockAuth = process.env.MOCK_AUTH === 'true' || isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-    const total = await databaseService.countEAs(filter);
+    let eas, total;
+    
+    if (useMockAuth) {
+      // In mock mode, return empty array or mock data
+      eas = [];
+      total = 0;
+      console.log('✅ Using mock mode for EA retrieval');
+    } else {
+      // Execute query using Supabase
+      eas = await databaseService.getEAs({
+        ...filter,
+        limit: parseInt(limit),
+        offset: skip,
+        orderBy: sortBy,
+        ascending: sortOrder === 'asc'
+      });
+
+      total = await databaseService.countEAs(filter);
+    }
 
     res.json({
       success: true,
@@ -230,9 +247,7 @@ router.get('/categories', [auth, updateActivity], async (req, res) => {
 // @access  Private
 router.get('/:id', [auth, updateActivity], async (req, res) => {
   try {
-    const ea = await EA.findById(req.params.id)
-      .populate('creator', 'firstName lastName avatar')
-      .populate('reviews.user', 'firstName lastName avatar');
+    const ea = await databaseService.getEAById(req.params.id);
 
     if (!ea) {
       return res.status(404).json({
@@ -242,16 +257,18 @@ router.get('/:id', [auth, updateActivity], async (req, res) => {
     }
 
     // Increment views
-    await ea.incrementViews();
+    await databaseService.updateEA(req.params.id, { 
+      views: (ea.views || 0) + 1 
+    });
 
     // Check if user has access to files based on subscription
-    const userTier = req.user.subscription.type;
+    const userTier = req.user.subscription_type || 'free';
     const tierLevels = { 'free': 0, 'basic': 1, 'professional': 2, 'institutional': 3 };
     
     if (tierLevels[userTier] < 1) {
       // Remove file paths for free users
-      ea.files.eaFile = undefined;
-      ea.files.setFile = undefined;
+      ea.ea_file_path = undefined;
+      ea.manual_file_path = undefined;
     }
 
     res.json({
@@ -296,8 +313,13 @@ router.post('/', [
     .withMessage('Price must be a positive number')
 ], async (req, res) => {
   try {
+    console.log('[EA Create] Starting EA creation');
+    console.log('[EA Create] Request body keys:', Object.keys(req.body));
+    console.log('[EA Create] Files received:', req.files ? Object.keys(req.files) : 'none');
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('[EA Create] Validation failed:', errors.array());
       // Clean up uploaded files if validation fails
       if (req.files) {
         const cleanupPromises = [];
@@ -323,6 +345,8 @@ router.post('/', [
     // Handle file uploads
     let imageFile = null;
     let eaFile = null;
+    let imageUrl = null;
+    let eaFileUrl = null;
 
     if (req.files) {
       if (req.files.image && req.files.image[0]) {
@@ -333,6 +357,8 @@ router.post('/', [
           size: req.files.image[0].size,
           mimetype: req.files.image[0].mimetype
         };
+        imageUrl = `/uploads/ea-images/${imageFile.filename}`;
+        console.log(`[EA Create] Image uploaded: ${imageUrl}`);
       }
       
       if (req.files.eaFile && req.files.eaFile[0]) {
@@ -343,41 +369,136 @@ router.post('/', [
           size: req.files.eaFile[0].size,
           mimetype: req.files.eaFile[0].mimetype
         };
+        eaFileUrl = `/uploads/ea-files/${eaFile.filename}`;
+        console.log(`[EA Create] EA file uploaded: ${eaFileUrl}`);
+      }
+    }
+
+    // Handle creator_id for test users
+    let creatorId = req.user.id;
+    let creatorName = `${req.user.first_name || ''} ${req.user.last_name || ''}`.trim() || 'Admin User';
+    
+    // For test users, create them in the appropriate store if they don't exist
+    if (req.user.id === 'test_user_123' || req.user.id?.startsWith('dev_token_')) {
+      try {
+        // Determine which service to use based on authentication mode
+        const mockAuthStore = require('../services/mockAuthStore');
+        const isPlaceholderKey = (value = '') => {
+          if (!value) return true;
+          const normalized = value.toLowerCase();
+          return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
+        };
+        const useMockAuth = process.env.MOCK_AUTH === 'true' || isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
+        
+        let existingUser = null;
+        
+        if (useMockAuth) {
+          // Use mock auth store
+          existingUser = await mockAuthStore.getUserById(req.user.id);
+        } else {
+          // Use database service
+          existingUser = await databaseService.getUserById(req.user.id);
+        }
+        
+        if (!existingUser) {
+          // Create test user
+          const testUserData = {
+            id: req.user.id,
+            email: req.user.email || 'test@example.com',
+            first_name: req.user.first_name || 'Test',
+            last_name: req.user.last_name || 'User',
+            role: 'admin',
+            is_active: true,
+            is_email_verified: true,
+            subscription_type: 'institutional',
+            subscription_status: 'active',
+            subscription_start_date: new Date().toISOString(),
+            subscription_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            preferences: {}
+          };
+          
+          if (useMockAuth) {
+            await mockAuthStore.createUser(testUserData);
+            console.log(`✅ Created test user in mock store: ${req.user.id}`);
+          } else {
+            await databaseService.createUser(testUserData);
+            console.log(`✅ Created test user in database: ${req.user.id}`);
+          }
+        }
+        creatorId = req.user.id;
+        creatorName = `${req.user.first_name || 'Test'} ${req.user.last_name || 'User'}`.trim();
+      } catch (userError) {
+        // If user creation fails, use a default creator or null
+        console.warn('Failed to create test user:', userError.message);
+        creatorId = null; // This will work if the foreign key constraint allows null
+        creatorName = 'Test User';
       }
     }
 
     const eaData = {
-      id: `ea_${Date.now()}_${Math.random().toString(16).slice(2)}`,
       name: req.body.name,
       description: req.body.description,
       category: req.body.category,
       strategy_type: req.body.category,
       risk_level: req.body.riskLevel || 'medium',
-      price: req.body.price || 0,
-      price_monthly: req.body.price || 0,
-      price_yearly: (req.body.price || 0) * 10,
+      price_monthly: parseFloat(req.body.price) || 0,
+      price_yearly: (parseFloat(req.body.price) || 0) * 10,
       version: req.body.version || '1.0.0',
-      creator_id: req.user.id || 'admin',
-      creator_name: `${req.user.first_name || ''} ${req.user.last_name || ''}`.trim() || 'Admin User',
+      creator_id: creatorId,
+      creator_name: creatorName,
       status: req.body.status || 'pending',
       is_active: true,
       is_featured: false,
-      subscribers: 0,
-      revenue: '$0',
-      tags: req.body.tags || '',
-      rentalPeriods: ['monthly', 'quarterly', 'yearly'],
-      currentPeriod: 'monthly',
+      keywords: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
       files: {
         image: imageFile,
         eaFile: eaFile
-      },
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      }
     };
 
-    // For now, store in memory/localStorage equivalent
-    // In production, this would save to database
-    const ea = eaData;
+    // Check if we're in mock mode
+    const mockAuthStore = require('../services/mockAuthStore');
+    const isPlaceholderKey = (value = '') => {
+      if (!value) return true;
+      const normalized = value.toLowerCase();
+      return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
+    };
+    const useMockAuth = process.env.MOCK_AUTH === 'true' || isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+    let ea;
+    
+    if (useMockAuth) {
+      // In mock mode, create a mock EA response
+      ea = {
+        id: `mock_ea_${Date.now()}`,
+        ...eaData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        views: 0,
+        downloads: 0,
+        rating: 0,
+        reviews_count: 0
+      };
+      
+      // Set URLs instead of file paths
+      if (imageUrl) {
+        ea.image = imageUrl;
+      }
+      if (eaFileUrl) {
+        ea.ea_file_path = eaFileUrl;
+      }
+      
+      // Remove files object
+      delete ea.files;
+      
+      console.log(`✅ Created mock EA: ${ea.id}`);
+      if (imageUrl) console.log(`   Image: ${ea.image}`);
+      if (eaFileUrl) console.log(`   EA File: ${ea.ea_file_path}`);
+    } else {
+      // Save to database
+      ea = await databaseService.createEA(eaData);
+      console.log(`✅ Created EA in database: ${ea.id}`);
+    }
 
     res.status(201).json({
       success: true,
@@ -386,7 +507,7 @@ router.post('/', [
     });
 
   } catch (error) {
-    console.error('Create EA error:', error);
+    console.error('[EA Create] Error:', error);
     
     // Clean up uploaded files on error
     if (req.files) {
@@ -432,8 +553,13 @@ router.put('/:id', [
     .withMessage('Description must be between 10 and 1000 characters')
 ], async (req, res) => {
   try {
+    console.log(`[EA Update] Starting update for EA ${req.params.id}`);
+    console.log(`[EA Update] Request body keys:`, Object.keys(req.body));
+    console.log(`[EA Update] Files received:`, req.files ? Object.keys(req.files) : 'none');
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('[EA Update] Validation failed:', errors.array());
       // Clean up uploaded files if validation fails
       if (req.files) {
         const cleanupPromises = [];
@@ -456,9 +582,19 @@ router.put('/:id', [
       });
     }
 
+    // Check if we're in mock mode
+    const isPlaceholderKey = (value = '') => {
+      if (!value) return true;
+      const normalized = value.toLowerCase();
+      return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
+    };
+    const useMockAuth = process.env.MOCK_AUTH === 'true' || isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
+
     // Handle file uploads
     let imageFile = null;
     let eaFile = null;
+    let imageUrl = null;
+    let eaFileUrl = null;
 
     if (req.files) {
       if (req.files.image && req.files.image[0]) {
@@ -469,6 +605,9 @@ router.put('/:id', [
           size: req.files.image[0].size,
           mimetype: req.files.image[0].mimetype
         };
+        // Create URL path for frontend access
+        imageUrl = `/uploads/ea-images/${imageFile.filename}`;
+        console.log(`[EA Update] Image uploaded: ${imageUrl}`);
       }
       
       if (req.files.eaFile && req.files.eaFile[0]) {
@@ -479,33 +618,154 @@ router.put('/:id', [
           size: req.files.eaFile[0].size,
           mimetype: req.files.eaFile[0].mimetype
         };
+        // Create URL path for frontend access
+        eaFileUrl = `/uploads/ea-files/${eaFile.filename}`;
+        console.log(`[EA Update] EA file uploaded: ${eaFileUrl}`);
       }
     }
 
-    const updates = {
-      ...req.body,
-      updated_at: new Date().toISOString()
-    };
+    // Build update object
+    const updates = {};
+    
+    // Copy basic fields
+    const allowedFields = ['name', 'description', 'version', 'status', 'price', 'category', 'tags'];
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    });
+    
+    // Handle specifications if present
+    if (req.body.specifications || Object.keys(req.body).some(key => key.startsWith('specifications.'))) {
+      updates.specifications = {};
+      
+      // Handle specifications object
+      if (req.body.specifications) {
+        try {
+          updates.specifications = typeof req.body.specifications === 'string' 
+            ? JSON.parse(req.body.specifications) 
+            : req.body.specifications;
+        } catch (e) {
+          console.error('Error parsing specifications:', e);
+        }
+      }
+      
+      // Handle specifications.field format from FormData
+      Object.keys(req.body).forEach(key => {
+        if (key.startsWith('specifications.')) {
+          const specKey = key.replace('specifications.', '');
+          updates.specifications[specKey] = req.body[key];
+        }
+      });
+    }
+    
+    // Handle features array
+    if (req.body.features) {
+      try {
+        updates.features = typeof req.body.features === 'string' 
+          ? JSON.parse(req.body.features) 
+          : req.body.features;
+      } catch (e) {
+        console.error('Error parsing features:', e);
+        updates.features = [];
+      }
+    } else {
+      // Check for features[0], features[1] format from FormData
+      const featureKeys = Object.keys(req.body).filter(key => key.startsWith('features['));
+      if (featureKeys.length > 0) {
+        updates.features = [];
+        featureKeys.forEach(key => {
+          updates.features.push(req.body[key]);
+        });
+      }
+    }
+    
+    // Handle screenshots array
+    if (req.body.screenshots) {
+      try {
+        updates.screenshots = typeof req.body.screenshots === 'string' 
+          ? JSON.parse(req.body.screenshots) 
+          : req.body.screenshots;
+      } catch (e) {
+        console.error('Error parsing screenshots:', e);
+        updates.screenshots = [];
+      }
+    } else {
+      // Check for screenshots[0], screenshots[1] format from FormData
+      const screenshotKeys = Object.keys(req.body).filter(key => key.startsWith('screenshots['));
+      if (screenshotKeys.length > 0) {
+        updates.screenshots = [];
+        screenshotKeys.forEach(key => {
+          updates.screenshots.push(req.body[key]);
+        });
+      }
+    }
 
     // Update files if new ones were uploaded
     if (imageFile || eaFile) {
       updates.files = {
-        image: imageFile || req.body.currentImage,
-        eaFile: eaFile || req.body.currentEaFile
+        image: imageFile,
+        eaFile: eaFile
       };
     }
 
-    // Don't allow updating certain fields
-    delete updates.creator;
-    delete updates.creatorName;
-    delete updates.subscriptionStats;
-    delete updates.performance;
+    console.log(`[EA Update] Update object prepared:`, Object.keys(updates));
 
-    // For now, return success (in production, this would update the database)
-    const updatedEA = {
-      id: req.params.id,
-      ...updates
-    };
+    let updatedEA;
+    
+    if (useMockAuth) {
+      console.log('🔄 [EA Update] Using mock mode');
+      
+      // Get existing EA data from localStorage to merge
+      const savedEAs = localStorage.getItem('smart-algos-eas');
+      let existingEAs = savedEAs ? JSON.parse(savedEAs) : [];
+      const existingEA = existingEAs.find(ea => ea.id == req.params.id) || {};
+      
+      // In mock mode, simulate the update
+      updatedEA = {
+        ...existingEA,
+        id: parseInt(req.params.id) || req.params.id,
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+      
+      // Set image URL if uploaded
+      if (imageUrl) {
+        updatedEA.image = imageUrl;
+        console.log(`📸 [EA Update] Image set: ${imageUrl}`);
+      }
+      if (eaFileUrl) {
+        updatedEA.ea_file_path = eaFileUrl;
+        console.log(`📦 [EA Update] EA file set: ${eaFileUrl}`);
+      }
+      
+      // Remove files object from response
+      delete updatedEA.files;
+      
+      // Store in mock storage (in-memory for this request)
+      const mockAuthStore = require('../services/mockAuthStore');
+      if (!mockAuthStore.mockEAs) {
+        mockAuthStore.mockEAs = [];
+      }
+      
+      const eaIndex = mockAuthStore.mockEAs.findIndex(ea => ea.id == req.params.id);
+      if (eaIndex >= 0) {
+        mockAuthStore.mockEAs[eaIndex] = updatedEA;
+      } else {
+        mockAuthStore.mockEAs.push(updatedEA);
+      }
+      
+      console.log(`✅ [EA Update] Mock EA updated: ${updatedEA.id}`);
+    } else {
+      // Update in database
+      try {
+        updatedEA = await databaseService.updateEA(req.params.id, updates);
+        console.log(`✅ [EA Update] Database update successful for EA ${req.params.id}`);
+      } catch (dbError) {
+        console.error('[EA Update] Database update failed:', dbError);
+        throw dbError;
+      }
+    }
 
     res.json({
       success: true,
@@ -514,7 +774,7 @@ router.put('/:id', [
     });
 
   } catch (error) {
-    console.error('Update EA error:', error);
+    console.error('❌ [EA Update] Error:', error);
     
     // Clean up uploaded files on error
     if (req.files) {
@@ -533,7 +793,8 @@ router.put('/:id', [
     
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

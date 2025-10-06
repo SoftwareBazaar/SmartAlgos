@@ -21,10 +21,27 @@ const sanitizeSupabaseKey = (value) => {
 class DatabaseService {
   constructor() {
     this.supabase = null;
+    this.mockMode = false;
     this.initialize();
   }
 
   initialize() {
+    // Check if we're in mock mode
+    const isPlaceholderKey = (value = '') => {
+      if (!value) return true;
+      const normalized = value.toLowerCase();
+      return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
+    };
+    const explicitMockFlag = (process.env.MOCK_AUTH || '').toLowerCase();
+    const useMockAuth = explicitMockFlag === 'true' || (explicitMockFlag !== 'false' && isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY));
+
+    if (useMockAuth) {
+      console.log('[database] Mock mode enabled - skipping Supabase initialization');
+      this.supabase = null;
+      this.mockMode = true;
+      return;
+    }
+
     const supabaseUrl = process.env.SUPABASE_URL;
     const rawServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const rawAnonKey = process.env.SUPABASE_ANON_KEY;
@@ -63,6 +80,10 @@ class DatabaseService {
   }
 
   getClient() {
+    if (this.mockMode) {
+      console.warn('[database] getClient() called in mock mode - returning null');
+      return null;
+    }
     return this.supabase;
   }
 
@@ -124,6 +145,21 @@ class DatabaseService {
 
   // Expert Advisor operations
   async createEA(eaData) {
+    // Process file paths for images and EA files
+    if (eaData.files) {
+      if (eaData.files.image) {
+        eaData.image = eaData.files.image.path || eaData.files.image.filename;
+      }
+      if (eaData.files.eaFile) {
+        eaData.ea_file_path = eaData.files.eaFile.path || eaData.files.eaFile.filename;
+      }
+      if (eaData.files.manualFile) {
+        eaData.manual_file_path = eaData.files.manualFile.path || eaData.files.manualFile.filename;
+      }
+      // Remove files object as it's not a database column
+      delete eaData.files;
+    }
+    
     const { data, error } = await this.supabase
       .from('expert_advisors')
       .insert([eaData])
@@ -240,6 +276,47 @@ class DatabaseService {
   }
 
   async updateEA(id, updates) {
+    // Check if in mock mode
+    if (this.mockMode) {
+      console.log(`[database] Mock mode: simulating updateEA for ${id}`);
+      
+      // Process file paths for images and EA files
+      if (updates.files) {
+        if (updates.files.image) {
+          updates.image = `/uploads/ea-images/${updates.files.image.filename}`;
+        }
+        if (updates.files.eaFile) {
+          updates.ea_file_path = `/uploads/ea-files/${updates.files.eaFile.filename}`;
+        }
+        if (updates.files.manualFile) {
+          updates.manual_file_path = `/uploads/ea-files/${updates.files.manualFile.filename}`;
+        }
+        // Remove files object as it's not a database column
+        delete updates.files;
+      }
+      
+      return {
+        id: id,
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+    }
+    
+    // Process file paths for images and EA files
+    if (updates.files) {
+      if (updates.files.image) {
+        updates.image = updates.files.image.path || updates.files.image.filename;
+      }
+      if (updates.files.eaFile) {
+        updates.ea_file_path = updates.files.eaFile.path || updates.files.eaFile.filename;
+      }
+      if (updates.files.manualFile) {
+        updates.manual_file_path = updates.files.manualFile.path || updates.files.manualFile.filename;
+      }
+      // Remove files object as it's not a database column
+      delete updates.files;
+    }
+    
     const { data, error } = await this.supabase
       .from('expert_advisors')
       .update(updates)

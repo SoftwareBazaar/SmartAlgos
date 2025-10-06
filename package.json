@@ -14,7 +14,10 @@
     "heroku-postbuild": "cd client && npm install && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
-    "start:railway": "node server.js"
+    "start:railway": "node server.js",
+    "prestart": "node ensure-upload-dirs.js",
+    "start": "node server.js",
+    "dev": "node ensure-upload-dirs.js && nodemon server.js"
   },
   "keywords": [
     "trading",

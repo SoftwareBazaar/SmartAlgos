@@ -348,16 +348,18 @@ class SecurityService {
         directives: {
           defaultSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-          fontSrc: ["'self'", "https://fonts.gstatic.com"],
-          imgSrc: ["'self'", "data:", "https:"],
-          scriptSrc: ["'self'"],
-          connectSrc: ["'self'", "wss:", "https:"],
-          frameSrc: ["'none'"],
+          fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+          imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          connectSrc: ["'self'", "ws:", "wss:", "https:", "http:"],
+          frameSrc: ["'self'"],
           objectSrc: ["'none'"],
+          mediaSrc: ["'self'"],
           upgradeInsecureRequests: []
         }
       },
       crossOriginEmbedderPolicy: false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
       hsts: {
         maxAge: 31536000,
         includeSubDomains: true,

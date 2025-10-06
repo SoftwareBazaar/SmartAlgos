@@ -291,5 +291,11 @@ class MockAuthStore {
   }
 }
 
-module.exports = new MockAuthStore();
+// Mock EA storage for development
+let mockEAs = [];
+
+const mockAuthStoreInstance = new MockAuthStore();
+
+module.exports = mockAuthStoreInstance;
+module.exports.mockEAs = mockEAs;
 

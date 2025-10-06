@@ -99,7 +99,7 @@ router.get('/', [
       page = 1,
       limit = 20,
       category,
-      status = 'approved',
+      status, // Don't default to 'approved' - show all active EAs regardless of status
       sortBy = 'created_at',
       sortOrder = 'desc',
       search,
@@ -110,9 +110,13 @@ router.get('/', [
 
     // Build filter object for Supabase
     const filter = {
-      is_active: true,
-      status: status
+      is_active: true
     };
+    
+    // Only filter by status if explicitly provided
+    if (status) {
+      filter.status = status;
+    }
 
     if (category) {
       filter.category = category;
@@ -402,15 +406,21 @@ router.post('/', [
       version: req.body.version || '1.0.0',
       creator_id: creatorId,
       creator_name: creatorName,
-      status: req.body.status || 'pending',
+      status: req.body.status || 'active', // Default to 'active' instead of 'pending'
       is_active: true,
       is_featured: false,
-      keywords: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
-      files: {
-        image: imageFile,
-        eaFile: eaFile
-      }
+      keywords: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : []
     };
+    
+    // Set image and file URLs (public web paths, not filesystem paths)
+    if (imageUrl) {
+      eaData.image = imageUrl; // e.g., "/uploads/ea-images/image-123.png"
+      console.log('[EA Create] Setting image URL:', imageUrl);
+    }
+    if (eaFileUrl) {
+      eaData.ea_file_path = eaFileUrl; // e.g., "/uploads/ea-files/file-123.ex4"
+      console.log('[EA Create] Setting EA file URL:', eaFileUrl);
+    }
 
     // Check if we're in mock mode
     const mockAuthStore = require('../services/mockAuthStore');

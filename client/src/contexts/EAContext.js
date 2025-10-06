@@ -47,19 +47,24 @@ export const EAProvider = ({ children }) => {
     const loadEAs = async () => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
+        console.log('[EAContext] 🔄 Loading EAs from API...');
         const response = await apiClient.get('/api/eas');
         if (response.data.success) {
+          console.log('[EAContext] ✅ Loaded EAs from API:', response.data.data.length, 'EAs');
           dispatch({ type: 'SET_EAS', payload: response.data.data });
+          // Also save to localStorage as backup
+          localStorage.setItem('smart-algos-eas', JSON.stringify(response.data.data));
         } else {
           throw new Error('Failed to load EAs from API');
         }
       } catch (error) {
-        console.error('Error loading EAs from API:', error);
+        console.error('[EAContext] ⚠️ Error loading EAs from API:', error);
         // Fallback to localStorage for offline mode
         try {
           const savedEAs = localStorage.getItem('smart-algos-eas');
           if (savedEAs) {
             const eas = JSON.parse(savedEAs);
+            console.log('[EAContext] 📦 Loaded EAs from localStorage:', eas.length, 'EAs');
             dispatch({ type: 'SET_EAS', payload: eas });
           } else {
             // Initialize with default EAs
@@ -204,7 +209,11 @@ export const EAProvider = ({ children }) => {
 
       if (response.data.success) {
         const newEA = response.data.data;
-        dispatch({ type: 'ADD_EA', payload: newEA });
+        console.log('[EAContext] ✅ EA created successfully:', newEA);
+        
+        // Refresh EAs from API to get latest data
+        await refreshEAs();
+        
         // Dispatch custom event to notify other components
         window.dispatchEvent(new CustomEvent('ea-updated'));
         return newEA;
@@ -264,24 +273,8 @@ export const EAProvider = ({ children }) => {
         const updatedEA = response.data.data;
         console.log('[EAContext] ✅ EA updated with data:', updatedEA);
         
-        // Update local state with full EA data using correct ID
-        dispatch({ type: 'UPDATE_EA', payload: { id: parseInt(eaId), ...updatedEA } });
-        
-        // Also update localStorage to ensure persistence
-        try {
-          const savedEAs = localStorage.getItem('smart-algos-eas');
-          if (savedEAs) {
-            const eas = JSON.parse(savedEAs);
-            const index = eas.findIndex(ea => ea.id == eaId);
-            if (index >= 0) {
-              eas[index] = { ...eas[index], ...updatedEA, id: parseInt(eaId) };
-              localStorage.setItem('smart-algos-eas', JSON.stringify(eas));
-              console.log('[EAContext] 💾 Updated EA in localStorage');
-            }
-          }
-        } catch (localStorageError) {
-          console.error('[EAContext] ⚠️ Failed to update localStorage:', localStorageError);
-        }
+        // Refresh EAs from API to get latest data from database
+        await refreshEAs();
         
         // Dispatch custom event to notify other components
         window.dispatchEvent(new CustomEvent('ea-updated'));

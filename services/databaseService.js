@@ -145,28 +145,29 @@ class DatabaseService {
 
   // Expert Advisor operations
   async createEA(eaData) {
-    // Process file paths for images and EA files
+    // Image and file URLs are already set by the route handler
+    // Don't override them here - they should be web-accessible paths like "/uploads/..."
+    // NOT filesystem paths like "/app/uploads/..."
+    
+    // Remove files object if present (not a database column)
     if (eaData.files) {
-      if (eaData.files.image) {
-        eaData.image = eaData.files.image.path || eaData.files.image.filename;
-      }
-      if (eaData.files.eaFile) {
-        eaData.ea_file_path = eaData.files.eaFile.path || eaData.files.eaFile.filename;
-      }
-      if (eaData.files.manualFile) {
-        eaData.manual_file_path = eaData.files.manualFile.path || eaData.files.manualFile.filename;
-      }
-      // Remove files object as it's not a database column
       delete eaData.files;
     }
     
-    const { data, error } = await this.supabase
+    console.log('[DatabaseService] Creating EA with data:', JSON.stringify(eaData, null, 2));
+    
+    const { data, error} = await this.supabase
       .from('expert_advisors')
       .insert([eaData])
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('[DatabaseService] Create EA error:', error);
+      throw error;
+    }
+    
+    console.log('[DatabaseService] ✅ EA created:', data);
     return data;
   }
 
@@ -280,18 +281,8 @@ class DatabaseService {
     if (this.mockMode) {
       console.log(`[database] Mock mode: simulating updateEA for ${id}`);
       
-      // Process file paths for images and EA files
+      // Remove files object (already processed by route handler)
       if (updates.files) {
-        if (updates.files.image) {
-          updates.image = `/uploads/ea-images/${updates.files.image.filename}`;
-        }
-        if (updates.files.eaFile) {
-          updates.ea_file_path = `/uploads/ea-files/${updates.files.eaFile.filename}`;
-        }
-        if (updates.files.manualFile) {
-          updates.manual_file_path = `/uploads/ea-files/${updates.files.manualFile.filename}`;
-        }
-        // Remove files object as it's not a database column
         delete updates.files;
       }
       
@@ -302,20 +293,13 @@ class DatabaseService {
       };
     }
     
-    // Process file paths for images and EA files
+    // Image and file URLs are already set by the route handler
+    // Remove files object as it's not a database column
     if (updates.files) {
-      if (updates.files.image) {
-        updates.image = updates.files.image.path || updates.files.image.filename;
-      }
-      if (updates.files.eaFile) {
-        updates.ea_file_path = updates.files.eaFile.path || updates.files.eaFile.filename;
-      }
-      if (updates.files.manualFile) {
-        updates.manual_file_path = updates.files.manualFile.path || updates.files.manualFile.filename;
-      }
-      // Remove files object as it's not a database column
       delete updates.files;
     }
+    
+    console.log('[DatabaseService] Updating EA:', id, 'with data:', JSON.stringify(updates, null, 2));
     
     const { data, error } = await this.supabase
       .from('expert_advisors')
@@ -324,7 +308,12 @@ class DatabaseService {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('[DatabaseService] Update EA error:', error);
+      throw error;
+    }
+    
+    console.log('[DatabaseService] ✅ EA updated:', data);
     return data;
   }
 

@@ -3,6 +3,7 @@
 ## ✅ What We Fixed
 1. **Price field validation error** - Stripped dollar signs from price values
 2. **Server 500 error** - Removed localStorage call from Node.js backend
+3. **Database column error** - Mapped `price` field to `price_monthly` and `price_yearly` columns
 
 ---
 

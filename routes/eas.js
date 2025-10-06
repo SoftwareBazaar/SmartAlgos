@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const { v4: uuidv4 } = require('uuid');
 const databaseService = require('../services/databaseService');
+const supabaseStorage = require('../services/supabaseStorage');
 const { auth, requireSubscription, requireOwnership, updateActivity } = require('../middleware/auth');
 const router = express.Router();
 
@@ -22,24 +23,8 @@ const ensureUploadDirectories = async () => {
   }
 };
 
-// Multer configuration for EA files and images
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    await ensureUploadDirectories();
-    if (file.fieldname === 'image') {
-      cb(null, EA_IMAGES_PATH);
-    } else if (file.fieldname === 'eaFile') {
-      cb(null, EA_UPLOADS_PATH);
-    } else {
-      cb(null, EA_UPLOADS_PATH);
-    }
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
-  }
-});
+// Multer configuration - use memory storage for Supabase Storage uploads
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   if (file.fieldname === 'image') {
@@ -354,35 +339,63 @@ router.post('/', [
       });
     }
 
-    // Handle file uploads
+    // Handle file uploads to Supabase Storage
     let imageFile = null;
     let eaFile = null;
     let imageUrl = null;
     let eaFileUrl = null;
 
     if (req.files) {
+      // Upload image to Supabase Storage
       if (req.files.image && req.files.image[0]) {
-        imageFile = {
-          filename: req.files.image[0].filename,
-          originalname: req.files.image[0].originalname,
-          path: req.files.image[0].path,
-          size: req.files.image[0].size,
-          mimetype: req.files.image[0].mimetype
-        };
-        imageUrl = `/uploads/ea-images/${imageFile.filename}`;
-        console.log(`[EA Create] Image uploaded: ${imageUrl}`);
+        try {
+          console.log(`[EA Create] Uploading image to Supabase Storage...`);
+          const uploadResult = await supabaseStorage.uploadImage(
+            req.files.image[0].buffer,
+            req.files.image[0].originalname,
+            req.files.image[0].mimetype
+          );
+          
+          imageUrl = uploadResult.url;
+          imageFile = {
+            filename: uploadResult.path,
+            originalname: req.files.image[0].originalname,
+            size: req.files.image[0].size,
+            mimetype: req.files.image[0].mimetype,
+            storagePath: uploadResult.path,
+            publicUrl: uploadResult.url
+          };
+          console.log(`[EA Create] ✅ Image uploaded to Supabase: ${imageUrl}`);
+        } catch (uploadError) {
+          console.error(`[EA Create] Image upload to Supabase failed:`, uploadError);
+          // Continue without image rather than failing completely
+        }
       }
       
+      // Upload EA file to Supabase Storage
       if (req.files.eaFile && req.files.eaFile[0]) {
-        eaFile = {
-          filename: req.files.eaFile[0].filename,
-          originalname: req.files.eaFile[0].originalname,
-          path: req.files.eaFile[0].path,
-          size: req.files.eaFile[0].size,
-          mimetype: req.files.eaFile[0].mimetype
-        };
-        eaFileUrl = `/uploads/ea-files/${eaFile.filename}`;
-        console.log(`[EA Create] EA file uploaded: ${eaFileUrl}`);
+        try {
+          console.log(`[EA Create] Uploading EA file to Supabase Storage...`);
+          const uploadResult = await supabaseStorage.uploadEAFile(
+            req.files.eaFile[0].buffer,
+            req.files.eaFile[0].originalname,
+            req.files.eaFile[0].mimetype
+          );
+          
+          eaFileUrl = uploadResult.url;
+          eaFile = {
+            filename: uploadResult.path,
+            originalname: req.files.eaFile[0].originalname,
+            size: req.files.eaFile[0].size,
+            mimetype: req.files.eaFile[0].mimetype,
+            storagePath: uploadResult.path,
+            publicUrl: uploadResult.url
+          };
+          console.log(`[EA Create] ✅ EA file uploaded to Supabase: ${eaFileUrl}`);
+        } catch (uploadError) {
+          console.error(`[EA Create] EA file upload to Supabase failed:`, uploadError);
+          // Continue without EA file rather than failing completely
+        }
       }
     }
 
@@ -587,30 +600,54 @@ router.put('/:id', [
     let eaFileUrl = null;
 
     if (req.files) {
+      // Upload image to Supabase Storage
       if (req.files.image && req.files.image[0]) {
-        imageFile = {
-          filename: req.files.image[0].filename,
-          originalname: req.files.image[0].originalname,
-          path: req.files.image[0].path,
-          size: req.files.image[0].size,
-          mimetype: req.files.image[0].mimetype
-        };
-        // Create URL path for frontend access
-        imageUrl = `/uploads/ea-images/${imageFile.filename}`;
-        console.log(`[EA Update] Image uploaded: ${imageUrl}`);
+        try {
+          console.log(`[EA Update] Uploading image to Supabase Storage...`);
+          const uploadResult = await supabaseStorage.uploadImage(
+            req.files.image[0].buffer,
+            req.files.image[0].originalname,
+            req.files.image[0].mimetype
+          );
+          
+          imageUrl = uploadResult.url;
+          imageFile = {
+            filename: uploadResult.path,
+            originalname: req.files.image[0].originalname,
+            size: req.files.image[0].size,
+            mimetype: req.files.image[0].mimetype,
+            storagePath: uploadResult.path,
+            publicUrl: uploadResult.url
+          };
+          console.log(`[EA Update] ✅ Image uploaded to Supabase: ${imageUrl}`);
+        } catch (uploadError) {
+          console.error(`[EA Update] Image upload to Supabase failed:`, uploadError);
+        }
       }
       
+      // Upload EA file to Supabase Storage
       if (req.files.eaFile && req.files.eaFile[0]) {
-        eaFile = {
-          filename: req.files.eaFile[0].filename,
-          originalname: req.files.eaFile[0].originalname,
-          path: req.files.eaFile[0].path,
-          size: req.files.eaFile[0].size,
-          mimetype: req.files.eaFile[0].mimetype
-        };
-        // Create URL path for frontend access
-        eaFileUrl = `/uploads/ea-files/${eaFile.filename}`;
-        console.log(`[EA Update] EA file uploaded: ${eaFileUrl}`);
+        try {
+          console.log(`[EA Update] Uploading EA file to Supabase Storage...`);
+          const uploadResult = await supabaseStorage.uploadEAFile(
+            req.files.eaFile[0].buffer,
+            req.files.eaFile[0].originalname,
+            req.files.eaFile[0].mimetype
+          );
+          
+          eaFileUrl = uploadResult.url;
+          eaFile = {
+            filename: uploadResult.path,
+            originalname: req.files.eaFile[0].originalname,
+            size: req.files.eaFile[0].size,
+            mimetype: req.files.eaFile[0].mimetype,
+            storagePath: uploadResult.path,
+            publicUrl: uploadResult.url
+          };
+          console.log(`[EA Update] ✅ EA file uploaded to Supabase: ${eaFileUrl}`);
+        } catch (uploadError) {
+          console.error(`[EA Update] EA file upload to Supabase failed:`, uploadError);
+        }
       }
     }
 

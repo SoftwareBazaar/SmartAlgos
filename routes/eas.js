@@ -632,8 +632,8 @@ router.put('/:id', [
     // Build update object
     const updates = {};
     
-    // Copy basic fields (excluding 'price' which needs special handling)
-    const allowedFields = ['name', 'description', 'version', 'status', 'category', 'tags'];
+    // Copy basic fields (excluding 'price' and 'tags' which need special handling)
+    const allowedFields = ['name', 'description', 'version', 'status', 'category'];
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
@@ -645,6 +645,17 @@ router.put('/:id', [
       const priceValue = parseFloat(req.body.price) || 0;
       updates.price_monthly = priceValue;
       updates.price_yearly = priceValue * 10; // Yearly price is 10x monthly (discount)
+    }
+    
+    // Handle tags field - map to keywords column (database uses 'keywords' not 'tags')
+    if (req.body.tags !== undefined) {
+      // Convert comma-separated string to array
+      if (typeof req.body.tags === 'string') {
+        updates.keywords = req.body.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      } else if (Array.isArray(req.body.tags)) {
+        updates.keywords = req.body.tags;
+      }
+      console.log(`[EA Update] Mapped tags to keywords:`, updates.keywords);
     }
     
     // Handle specifications if present

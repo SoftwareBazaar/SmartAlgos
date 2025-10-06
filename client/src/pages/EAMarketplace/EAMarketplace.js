@@ -571,25 +571,69 @@ const EAMarketplace = () => {
               {/* Subscription Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Subscription Period
+                  Choose Your Plan
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {['weekly', 'monthly', 'quarterly', 'yearly'].map((type) => (
+                <div className="grid grid-cols-1 gap-3">
+                  {[
+                    { 
+                      type: 'weekly', 
+                      label: 'Weekly Access', 
+                      price: selectedEA.price_weekly || 6.99,
+                      badge: 'Try it out',
+                      savings: null
+                    },
+                    { 
+                      type: 'monthly', 
+                      label: 'Monthly Access', 
+                      price: selectedEA.price_monthly || 18.00,
+                      badge: 'MOST POPULAR',
+                      savings: null
+                    },
+                    { 
+                      type: 'lifetime', 
+                      label: 'Lifetime Access', 
+                      price: selectedEA.price_yearly || 97.00,
+                      badge: 'BEST VALUE',
+                      savings: 'Save $115 - Never pay again!'
+                    }
+                  ].map((option) => (
                     <button
-                      key={type}
-                      onClick={() => setSubscriptionType(type)}
-                      className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
-                        subscriptionType === type
-                          ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-                          : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                      key={option.type}
+                      onClick={() => setSubscriptionType(option.type)}
+                      className={`relative p-4 rounded-lg border-2 text-left transition-all ${
+                        subscriptionType === option.type
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 shadow-lg scale-105'
+                          : 'border-gray-200 bg-white hover:border-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-primary-500'
                       }`}
                     >
-                      <div className="capitalize">{type}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        ${type === 'monthly' ? (selectedEA.price_monthly || 0) :
-                          type === 'yearly' ? (selectedEA.price_yearly || 0) :
-                          type === 'weekly' ? ((selectedEA.price_monthly || 0) / 4).toFixed(2) :
-                          type === 'quarterly' ? ((selectedEA.price_monthly || 0) * 3).toFixed(2) : 0}
+                      {option.badge && (
+                        <div className={`absolute -top-2 right-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                          option.type === 'lifetime' 
+                            ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white'
+                            : 'bg-primary-500 text-white'
+                        }`}>
+                          {option.badge}
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="font-semibold text-gray-900 dark:text-gray-100">{option.label}</div>
+                          {option.savings && (
+                            <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                              {option.savings}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                            ${option.price}
+                          </div>
+                          {option.type !== 'lifetime' && (
+                            <div className="text-xs text-gray-500">
+                              /{option.type === 'weekly' ? 'week' : 'month'}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </button>
                   ))}
@@ -657,10 +701,10 @@ const EAMarketplace = () => {
                   productType="ea_subscription"
                   productId={selectedEA.id}
                   productName={selectedEA.name}
-                  productPrice={subscriptionType === 'monthly' ? (selectedEA.price_monthly || 0) :
-                                subscriptionType === 'yearly' ? (selectedEA.price_yearly || 0) :
-                                subscriptionType === 'weekly' ? ((selectedEA.price_monthly || 0) / 4) :
-                                (selectedEA.price_monthly || 0) * 3}
+                  productPrice={subscriptionType === 'weekly' ? (selectedEA.price_weekly || 6.99) :
+                                subscriptionType === 'monthly' ? (selectedEA.price_monthly || 18.00) :
+                                subscriptionType === 'lifetime' ? (selectedEA.price_yearly || 97.00) :
+                                (selectedEA.price_monthly || 18.00)}
                   sellerEmail={selectedEA.creator || selectedEA.creatorName}
                   onTransactionCreated={(transaction) => {
                     setEscrowTransaction(transaction);
@@ -679,21 +723,31 @@ const EAMarketplace = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Product Price</span>
                     <span className="text-gray-900 dark:text-gray-100">
-                      ${subscriptionType === 'monthly' ? (selectedEA.price_monthly || 0) :
-                        subscriptionType === 'yearly' ? (selectedEA.price_yearly || 0) :
-                        subscriptionType === 'weekly' ? ((selectedEA.price_monthly || 0) / 4).toFixed(2) :
-                        ((selectedEA.price_monthly || 0) * 3).toFixed(2)}
+                      ${subscriptionType === 'weekly' ? (selectedEA.price_weekly || 6.99) :
+                        subscriptionType === 'monthly' ? (selectedEA.price_monthly || 18.00) :
+                        subscriptionType === 'lifetime' ? (selectedEA.price_yearly || 97.00) :
+                        (selectedEA.price_monthly || 18.00)}
                     </span>
                   </div>
                   {useEscrow && (
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600 dark:text-gray-400">Escrow Fee</span>
+                      <span className="text-gray-600 dark:text-gray-400">Escrow Fee (0.89%)</span>
                       <span className="text-gray-900 dark:text-gray-100">
-                        ${((subscriptionType === 'monthly' ? (selectedEA.price_monthly || 0) :
-                            subscriptionType === 'yearly' ? (selectedEA.price_yearly || 0) :
-                            subscriptionType === 'weekly' ? ((selectedEA.price_monthly || 0) / 4) :
-                            (selectedEA.price_monthly || 0) * 3) * 0.0089).toFixed(2)}
+                        ${((subscriptionType === 'weekly' ? (selectedEA.price_weekly || 6.99) :
+                            subscriptionType === 'monthly' ? (selectedEA.price_monthly || 18.00) :
+                            subscriptionType === 'lifetime' ? (selectedEA.price_yearly || 97.00) :
+                            (selectedEA.price_monthly || 18.00)) * 0.0089).toFixed(2)}
                       </span>
+                    </div>
+                  )}
+                  {subscriptionType === 'lifetime' && (
+                    <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="text-sm text-green-800 dark:text-green-300 font-medium">
+                        💎 One-time payment - Never pay again!
+                      </div>
+                      <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                        Saves you $115 compared to 6 months of monthly payments
+                      </div>
                     </div>
                   )}
                   <div className="border-t dark:border-gray-600 pt-2">
@@ -703,14 +757,14 @@ const EAMarketplace = () => {
                       </span>
                       <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                         ${useEscrow 
-                          ? ((subscriptionType === 'monthly' ? (selectedEA.price_monthly || 0) :
-                              subscriptionType === 'yearly' ? (selectedEA.price_yearly || 0) :
-                              subscriptionType === 'weekly' ? ((selectedEA.price_monthly || 0) / 4) :
-                              (selectedEA.price_monthly || 0) * 3) * 1.0089).toFixed(2)
-                          : (subscriptionType === 'monthly' ? (selectedEA.price_monthly || 0) :
-                              subscriptionType === 'yearly' ? (selectedEA.price_yearly || 0) :
-                              subscriptionType === 'weekly' ? ((selectedEA.price_monthly || 0) / 4).toFixed(2) :
-                              ((selectedEA.price_monthly || 0) * 3).toFixed(2))
+                          ? ((subscriptionType === 'weekly' ? (selectedEA.price_weekly || 6.99) :
+                              subscriptionType === 'monthly' ? (selectedEA.price_monthly || 18.00) :
+                              subscriptionType === 'lifetime' ? (selectedEA.price_yearly || 97.00) :
+                              (selectedEA.price_monthly || 18.00)) * 1.0089).toFixed(2)
+                          : (subscriptionType === 'weekly' ? (selectedEA.price_weekly || 6.99) :
+                              subscriptionType === 'monthly' ? (selectedEA.price_monthly || 18.00) :
+                              subscriptionType === 'lifetime' ? (selectedEA.price_yearly || 97.00) :
+                              (selectedEA.price_monthly || 18.00))
                         }
                       </span>
                     </div>

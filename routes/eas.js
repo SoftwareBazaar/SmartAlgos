@@ -425,8 +425,9 @@ router.post('/', [
       category: req.body.category,
       strategy_type: req.body.category,
       risk_level: req.body.riskLevel || 'medium',
-      price_monthly: parseFloat(req.body.price) || 0,
-      price_yearly: (parseFloat(req.body.price) || 0) * 10,
+      price_weekly: 6.99, // Psychological pricing for weekly
+      price_monthly: parseFloat(req.body.price) || 18.00,
+      price_yearly: 97.00, // Lifetime access pricing
       version: req.body.version || '1.0.0',
       creator_id: creatorId,
       creator_name: creatorName,
@@ -673,11 +674,12 @@ router.put('/:id', [
       }
     });
     
-    // Handle price field - map to price_monthly and price_yearly
+    // Handle price field - map to price_weekly, price_monthly, and price_yearly
     if (req.body.price !== undefined) {
-      const priceValue = parseFloat(req.body.price) || 0;
-      updates.price_monthly = priceValue;
-      updates.price_yearly = priceValue * 10; // Yearly price is 10x monthly (discount)
+      const monthlyPrice = parseFloat(req.body.price) || 18.00;
+      updates.price_weekly = 6.99; // Psychological weekly pricing
+      updates.price_monthly = monthlyPrice;
+      updates.price_yearly = 97.00; // Lifetime access pricing
     }
     
     // Handle tags field - map to keywords column (database uses 'keywords' not 'tags')

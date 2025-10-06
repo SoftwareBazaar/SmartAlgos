@@ -40,6 +40,8 @@ import { useUtilities } from "../../contexts/UtilitiesContext";
 
 import apiClient from "../../lib/apiClient";
 
+import EnhancedEAEditor from "../../components/Admin/EnhancedEAEditor";
+
 const AdminDashboard = () => {
   const { user } = useAuth();
 
@@ -698,6 +700,15 @@ const AdminDashboard = () => {
       {/* EA Editor Modal */}
 
       {showEAEditor && (
+        <EnhancedEAEditor 
+          ea={editingEA}
+          onSave={handleSaveEA}
+          onCancel={handleCancelEA}
+        />
+      )}
+
+      {/* Old EA Editor Modal (commented out for reference) */}
+      {false && showEAEditor && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
@@ -1567,33 +1578,18 @@ const AdminDashboard = () => {
     setShowEAEditor(true);
   };
 
-  const handleSaveEA = async () => {
+  const handleSaveEA = async (formData) => {
     try {
       if (editingEA) {
         // Update existing EA
-        await updateEA(editingEA.id, eaFormData);
+        await updateEA(editingEA.id, formData);
       } else {
         // Add new EA
-        await addEA(eaFormData);
+        await addEA(formData);
       }
 
       setShowEAEditor(false);
       setEditingEA(null);
-      
-      // Reset form
-      setEaFormData({
-        name: "",
-        description: "",
-        version: "",
-        status: "pending",
-        price: "",
-        category: "",
-        tags: "",
-        image: null,
-        eaFile: null,
-        rentalPeriods: ["monthly", "quarterly", "yearly"],
-        currentPeriod: "monthly",
-      });
     } catch (error) {
       console.error('Error saving EA:', error);
       // Handle error (show toast notification, etc.)

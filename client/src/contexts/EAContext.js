@@ -75,7 +75,7 @@ export const EAProvider = ({ children }) => {
                 price: '$299',
                 category: 'Scalping',
                 tags: 'gold,scalping,mt4',
-                image: null,
+                image: '/uploads/ea-images/gold-scalper.svg',
                 created_at: '2024-01-15',
                 updated_at: '2024-01-20'
               },
@@ -90,7 +90,7 @@ export const EAProvider = ({ children }) => {
                 price: '$199',
                 category: 'Trend Following',
                 tags: 'trend,indicators,multi-timeframe',
-                image: null,
+                image: '/uploads/ea-images/multi-indicator.svg',
                 created_at: '2024-01-10',
                 updated_at: '2024-01-18'
               },
@@ -105,7 +105,7 @@ export const EAProvider = ({ children }) => {
                 price: '$399',
                 category: 'Machine Learning',
                 tags: 'trend,ml,advanced',
-                image: null,
+                image: '/uploads/ea-images/trend-master.svg',
                 created_at: '2024-01-25',
                 updated_at: '2024-01-25'
               },
@@ -120,7 +120,7 @@ export const EAProvider = ({ children }) => {
                 price: '$2,999',
                 category: 'Institutional',
                 tags: 'institutional,hedge-funds,scalping,low-latency',
-                image: null,
+                image: '/uploads/ea-images/institutional.svg',
                 created_at: '2024-01-20',
                 updated_at: '2024-01-28'
               },

@@ -4,6 +4,8 @@ const newsService = require('../services/newsService');
 const databaseService = require('../services/databaseService');
 const aiSignalService = require('../services/aiSignalService');
 const { auth, requireSubscription, updateActivity } = require('../middleware/auth');
+const gnewsService = require('../services/gnewsService');
+const fmpService = require('../services/fmpService');
 const router = express.Router();
 
 // @route   GET /api/news
@@ -47,29 +49,101 @@ router.get('/', [
       offset: parseInt(offset)
     };
 
-    const result = await newsService.getFinancialNews(options);
+    let allNews = [];
 
-    // Apply additional filters
-    let filteredNews = result.data;
+    // Try GNews first (breaking news + financial news)
+    try {
+      const gnewsArticles = await gnewsService.getFinancialNews({
+        limit: Math.ceil(options.limit / 2)
+      });
+      
+      // Transform GNews format to our standard format
+      allNews = allNews.concat(gnewsArticles.map(article => ({
+        id: article.url,
+        title: article.title,
+        description: article.description || article.content || '',
+        url: article.url,
+        source: article.source?.name || 'GNews',
+        published_at: article.publishedAt,
+        symbols: [],
+        image_url: article.image || null,
+        sentiment: article.sentiment || 'neutral',
+        impact: 'medium',
+        category: 'general',
+        relevance_score: 0.8,
+        provider: 'gnews'
+      })));
+    } catch (gnewsError) {
+      console.log('[News Route] GNews failed:', gnewsError.message);
+    }
+
+    // Add FMP news
+    try {
+      const fmpNews = await fmpService.getMarketNews({
+        tickers: options.symbols || ['AAPL', 'TSLA', 'GOOGL'],
+        limit: Math.ceil(options.limit / 2)
+      });
+      
+      allNews = allNews.concat(fmpNews.map(article => ({
+        id: article.url || article.title,
+        title: article.title,
+        description: article.text || '',
+        url: article.url,
+        source: article.site || 'FMP',
+        published_at: article.publishedDate,
+        symbols: article.symbol ? [article.symbol] : [],
+        image_url: article.image || null,
+        sentiment: article.sentiment || 'neutral',
+        impact: 'medium',
+        category: 'general',
+        relevance_score: 0.9,
+        provider: 'fmp'
+      })));
+    } catch (fmpError) {
+      console.log('[News Route] FMP news failed:', fmpError.message);
+    }
+
+    // Fallback to old service if both fail
+    if (allNews.length === 0) {
+      try {
+        const result = await newsService.getFinancialNews(options);
+        allNews = result.data;
+      } catch (fallbackError) {
+        console.log('[News Route] Fallback service also failed:', fallbackError.message);
+      }
+    }
+
+    // Apply filters
+    let filteredNews = allNews;
     
-    if (category) {
+    if (category && category !== 'all') {
       filteredNews = filteredNews.filter(article => article.category === category);
     }
     
-    if (impact) {
+    if (impact && impact !== 'all') {
       filteredNews = filteredNews.filter(article => article.impact === impact);
     }
     
-    if (sentiment) {
+    if (sentiment && sentiment !== 'all') {
       filteredNews = filteredNews.filter(article => article.sentiment === sentiment);
     }
+
+    // Sort by date (most recent first)
+    filteredNews = filteredNews.sort((a, b) => 
+      new Date(b.published_at) - new Date(a.published_at)
+    );
+
+    // Apply limit
+    filteredNews = filteredNews.slice(0, options.limit);
 
     res.json({
       success: true,
       data: filteredNews,
       meta: {
-        ...result.meta,
-        filtered_count: filteredNews.length
+        total: allNews.length,
+        returned: filteredNews.length,
+        filtered_count: filteredNews.length,
+        providers: [...new Set(allNews.map(a => a.provider))]
       }
     });
 

@@ -5,9 +5,9 @@ import { TrendingUp, TrendingDown, Search, Filter, RefreshCw, Globe, Activity } 
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
+import apiClient from '../../lib/apiClient';
 // import { useAuth } from '../../contexts/AuthContext';
 // import { useWebSocket } from '../../contexts/WebSocketContext';
-// import axios from 'axios';
 
 const Markets = () => {
   const navigate = useNavigate();
@@ -88,11 +88,30 @@ const Markets = () => {
   const fetchMarketData = useCallback(async (market = 'US') => {
     setLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Fetch real data from backend
+      const [stocksRes, forexRes, cryptoRes, commoditiesRes] = await Promise.allSettled([
+        apiClient.get('/markets/stocks'),
+        apiClient.get('/markets/forex'),
+        apiClient.get('/markets/crypto'),
+        apiClient.get('/markets/commodities')
+      ]);
       
-      // Use mock data for now
-      setMarketData(getMockMarketData(market));
+      setMarketData({
+        stocks: stocksRes.status === 'fulfilled' && stocksRes.value?.data?.success 
+          ? stocksRes.value.data.data 
+          : getMockMarketData(market).stocks,
+        forex: forexRes.status === 'fulfilled' && forexRes.value?.data?.success 
+          ? forexRes.value.data.data 
+          : getMockMarketData(market).forex,
+        crypto: cryptoRes.status === 'fulfilled' && cryptoRes.value?.data?.success 
+          ? cryptoRes.value.data.data 
+          : getMockMarketData(market).crypto,
+        commodities: commoditiesRes.status === 'fulfilled' && commoditiesRes.value?.data?.success 
+          ? commoditiesRes.value.data.data 
+          : getMockMarketData(market).commodities,
+        indices: getMockMarketData(market).indices // Indices not yet implemented in backend
+      });
+      
       setMarketStatus({ status: 'open', message: 'Market is open' });
     } catch (error) {
       console.error('Error fetching market data:', error);

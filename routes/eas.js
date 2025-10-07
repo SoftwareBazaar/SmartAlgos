@@ -611,50 +611,32 @@ router.put('/:id', [
 
     // Allow only EA creator or admin to edit
     const isAdmin = req.user.role === 'admin';
-    const constructedName = req.user.first_name + ' ' + req.user.last_name;
+    const constructedName = (req.user.first_name || '') + ' ' + (req.user.last_name || '');
     
     // Check ownership - handle null creator_id gracefully
     const isOwnerById = existingEA.creator_id && existingEA.creator_id === req.user.id;
-    const isOwnerByName = existingEA.creator_name && existingEA.creator_name === constructedName;
+    const isOwnerByName = existingEA.creator_name && existingEA.creator_name.trim() === constructedName.trim();
     const isOwner = isOwnerById || isOwnerByName;
     
-    console.log(`[EA Update] Ownership check debug:`, {
-      eaId: req.params.id,
-      existingEA: {
-        creator_id: existingEA.creator_id,
-        creator_name: existingEA.creator_name
-      },
-      currentUser: {
-        id: req.user.id,
-        first_name: req.user.first_name,
-        last_name: req.user.last_name,
-        role: req.user.role,
-        constructed_name: constructedName
-      },
-      isOwnerById,
-      isOwnerByName,
-      isOwner,
-      isAdmin
-    });
+    console.log(`[EA Update] 🔐 Authorization check for EA ${req.params.id}:`);
+    console.log(`  EA Creator: ${existingEA.creator_id} (${existingEA.creator_name})`);
+    console.log(`  Current User: ${req.user.id} (${constructedName})`);
+    console.log(`  Role: ${req.user.role}`);
+    console.log(`  Is Admin: ${isAdmin}`);
+    console.log(`  Is Owner (by ID): ${isOwnerById}`);
+    console.log(`  Is Owner (by name): ${isOwnerByName}`);
+    console.log(`  Full user object:`, JSON.stringify(req.user, null, 2));
     
     // Admin always has access, or must be the owner
     if (!isAdmin && !isOwner) {
-      console.log(`[EA Update] ❌ Access denied for EA ${req.params.id}`, {
-        reason: 'Not owner and not admin',
-        isOwner,
-        isAdmin
-      });
+      console.log(`[EA Update] ❌ Access DENIED for EA ${req.params.id}`);
       return res.status(403).json({
         success: false,
         message: 'Access denied. Only EA creator or admin can edit this EA.'
       });
     }
     
-    console.log(`[EA Update] ✅ Access granted for EA ${req.params.id}`, {
-      reason: isAdmin ? 'Admin access' : 'Owner access',
-      isOwner,
-      isAdmin
-    });
+    console.log(`[EA Update] ✅ Access GRANTED for EA ${req.params.id} (${isAdmin ? 'Admin access' : 'Owner access'})`);
     
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

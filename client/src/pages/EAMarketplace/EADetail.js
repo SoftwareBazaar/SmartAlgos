@@ -22,7 +22,10 @@ import {
   Eye,
   Heart,
   Share2,
-  MessageCircle
+  MessageCircle,
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import Button from '../../components/UI/Button';
 import Card from '../../components/UI/Card';
@@ -39,6 +42,8 @@ const EADetail = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Load EA from API
   useEffect(() => {
@@ -273,19 +278,35 @@ const EADetail = () => {
                   Screenshots
                 </h3>
                 {ea.screenshots && ea.screenshots.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {ea.screenshots.map((screenshot, index) => (
-                      <div key={index} className="relative group cursor-pointer">
-                        <img
-                          src={screenshot}
-                          alt={`Screenshot ${index + 1}`}
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                          <Eye className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative">
+                    <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-200 dark:scrollbar-track-gray-800">
+                      {ea.screenshots.map((screenshot, index) => (
+                        <div 
+                          key={index} 
+                          className="flex-shrink-0 w-64 relative group cursor-pointer"
+                          onClick={() => {
+                            setCurrentImageIndex(index);
+                            setLightboxOpen(true);
+                          }}
+                        >
+                          <img
+                            src={screenshot}
+                            alt={`Screenshot ${index + 1}`}
+                            className="w-full h-48 object-cover rounded-lg"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                            <Eye className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
                         </div>
+                      ))}
+                    </div>
+                    {ea.screenshots.length > 2 && (
+                      <div className="text-center mt-2">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          ← Scroll to see all {ea.screenshots.length} screenshots →
+                        </p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-12">
@@ -756,6 +777,71 @@ const EADetail = () => {
               </Button>
             </div>
           </motion.div>
+        </div>
+      )}
+
+      {/* Screenshot Lightbox Modal */}
+      {lightboxOpen && ea && ea.screenshots && ea.screenshots.length > 0 && (
+        <div 
+          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <div className="relative max-w-6xl w-full h-full flex items-center justify-center">
+            {/* Close Button */}
+            <button
+              onClick={() => setLightboxOpen(false)}
+              className="absolute top-4 right-4 z-10 p-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <X className="h-6 w-6 text-gray-900 dark:text-gray-100" />
+            </button>
+
+            {/* Previous Button */}
+            {ea.screenshots.length > 1 && currentImageIndex > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentImageIndex(currentImageIndex - 1);
+                }}
+                className="absolute left-4 z-10 p-3 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <ChevronLeft className="h-8 w-8 text-gray-900 dark:text-gray-100" />
+              </button>
+            )}
+
+            {/* Image */}
+            <div 
+              className="max-w-full max-h-full flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={ea.screenshots[currentImageIndex]}
+                alt={`Screenshot ${currentImageIndex + 1}`}
+                className="max-w-full max-h-[90vh] object-contain rounded-lg"
+              />
+            </div>
+
+            {/* Next Button */}
+            {ea.screenshots.length > 1 && currentImageIndex < ea.screenshots.length - 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentImageIndex(currentImageIndex + 1);
+                }}
+                className="absolute right-4 z-10 p-3 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <ChevronRight className="h-8 w-8 text-gray-900 dark:text-gray-100" />
+              </button>
+            )}
+
+            {/* Image Counter */}
+            {ea.screenshots.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-white dark:bg-gray-800 rounded-full">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {currentImageIndex + 1} / {ea.screenshots.length}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -4,6 +4,93 @@ const economicCalendarService = require('../services/economicCalendarService');
 const fmpService = require('../services/fmpService');
 const gnewsService = require('../services/gnewsService');
 
+// @route   GET /api/economic-calendar/status
+// @desc    Check API keys status (for debugging)
+// @access  Public
+router.get('/status', async (req, res) => {
+  try {
+    const status = {
+      timestamp: new Date().toISOString(),
+      apis: {}
+    };
+
+    // Check FMP API Key
+    status.apis.fmp = {
+      key_configured: !!process.env.FMP_API_KEY,
+      key_preview: process.env.FMP_API_KEY 
+        ? `${process.env.FMP_API_KEY.substring(0, 8)}...${process.env.FMP_API_KEY.substring(process.env.FMP_API_KEY.length - 4)}`
+        : 'NOT SET',
+      status: 'unknown'
+    };
+
+    // Check GNews API Key
+    status.apis.gnews = {
+      key_configured: !!process.env.GNEWS_API_KEY,
+      key_preview: process.env.GNEWS_API_KEY 
+        ? `${process.env.GNEWS_API_KEY.substring(0, 8)}...${process.env.GNEWS_API_KEY.substring(process.env.GNEWS_API_KEY.length - 4)}`
+        : 'NOT SET',
+      status: 'unknown'
+    };
+
+    // Check Alpha Vantage API Key
+    status.apis.alpha_vantage = {
+      key_configured: !!process.env.ALPHA_VANTAGE_API_KEY && process.env.ALPHA_VANTAGE_API_KEY !== 'demo',
+      key_preview: process.env.ALPHA_VANTAGE_API_KEY 
+        ? `${process.env.ALPHA_VANTAGE_API_KEY.substring(0, 8)}...`
+        : 'NOT SET',
+      status: 'unknown'
+    };
+
+    // Test GNews API (quick health check)
+    try {
+      const gnewsHealth = await gnewsService.healthCheck();
+      status.apis.gnews.status = gnewsHealth.status;
+      status.apis.gnews.working = gnewsHealth.apiKeyValid;
+    } catch (error) {
+      status.apis.gnews.status = 'error';
+      status.apis.gnews.error = error.message;
+    }
+
+    // Test FMP API (try to get a quote)
+    try {
+      const quote = await fmpService.getStockQuote('AAPL');
+      status.apis.fmp.status = quote ? 'ok' : 'error';
+      status.apis.fmp.working = !!quote;
+      if (quote) {
+        status.apis.fmp.sample = `AAPL: $${quote.price}`;
+      }
+    } catch (error) {
+      status.apis.fmp.status = 'error';
+      status.apis.fmp.error = error.message;
+    }
+
+    // Overall status
+    const allWorking = 
+      status.apis.fmp.working && 
+      status.apis.gnews.working;
+
+    res.json({
+      success: true,
+      overall_status: allWorking ? 'all_systems_operational' : 'some_apis_not_working',
+      ...status,
+      help: {
+        message: allWorking 
+          ? '✅ All APIs are working correctly!' 
+          : '⚠️ Some APIs need configuration. Add missing keys in Railway Variables.',
+        fmp_signup: 'https://financialmodelingprep.com/developer/docs/',
+        gnews_signup: 'https://gnews.io/register'
+      }
+    });
+  } catch (error) {
+    console.error('Status check error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check API status',
+      error: error.message
+    });
+  }
+});
+
 // @route   GET /api/economic-calendar/today
 // @desc    Get today's economic events
 // @access  Public

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const economicCalendarService = require('../services/economicCalendarService');
 const fmpService = require('../services/fmpService');
+const gnewsService = require('../services/gnewsService');
 
 // @route   GET /api/economic-calendar/today
 // @desc    Get today's economic events
@@ -171,15 +172,74 @@ router.get('/summary', async (req, res) => {
 });
 
 // @route   GET /api/economic-calendar/news
-// @desc    Get market news
+// @desc    Get market news (aggregated from multiple sources)
 // @access  Public
 router.get('/news', async (req, res) => {
   try {
-    const { symbols, limit = 20 } = req.query;
+    const { symbols, limit = 20, source = 'all' } = req.query;
     const tickerArray = symbols ? symbols.split(',') : [];
-    const news = await fmpService.getMarketNews({
-      tickers: tickerArray,
-      limit: parseInt(limit)
+    
+    let news = [];
+    
+    // Try GNews first (real-time breaking news)
+    if (source === 'all' || source === 'gnews') {
+      try {
+        const gnewsArticles = await gnewsService.getFinancialNews({
+          limit: parseInt(limit)
+        });
+        news = news.concat(gnewsArticles.map(article => ({
+          ...article,
+          source_api: 'GNews'
+        })));
+      } catch (gnewsError) {
+        console.log('[News] GNews failed:', gnewsError.message);
+      }
+    }
+    
+    // Add FMP news
+    if (source === 'all' || source === 'fmp') {
+      try {
+        const fmpNews = await fmpService.getMarketNews({
+          tickers: tickerArray,
+          limit: parseInt(limit)
+        });
+        news = news.concat(fmpNews.map(article => ({
+          ...article,
+          source_api: 'FMP'
+        })));
+      } catch (fmpError) {
+        console.log('[News] FMP failed:', fmpError.message);
+      }
+    }
+    
+    // Sort by date and limit
+    news = news
+      .sort((a, b) => new Date(b.publishedAt || b.publishedDate) - new Date(a.publishedAt || a.publishedDate))
+      .slice(0, parseInt(limit));
+    
+    res.json({
+      success: true,
+      data: news,
+      total: news.length
+    });
+  } catch (error) {
+    console.error('Get news error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch market news'
+    });
+  }
+});
+
+// @route   GET /api/economic-calendar/breaking
+// @desc    Get breaking business news
+// @access  Public
+router.get('/breaking', async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    const news = await gnewsService.getBreakingNews({
+      limit: parseInt(limit),
+      category: 'business'
     });
     
     res.json({
@@ -187,10 +247,34 @@ router.get('/news', async (req, res) => {
       data: news
     });
   } catch (error) {
-    console.error('Get news error:', error);
+    console.error('Get breaking news error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch market news'
+      message: 'Failed to fetch breaking news'
+    });
+  }
+});
+
+// @route   GET /api/economic-calendar/stock-news/:symbols
+// @desc    Get news for specific stocks
+// @access  Public
+router.get('/stock-news/:symbols', async (req, res) => {
+  try {
+    const { symbols } = req.params;
+    const { limit = 10 } = req.query;
+    const symbolArray = symbols.split(',');
+    
+    const news = await gnewsService.getStockNews(symbolArray, parseInt(limit));
+    
+    res.json({
+      success: true,
+      data: news
+    });
+  } catch (error) {
+    console.error('Get stock news error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch stock news'
     });
   }
 });

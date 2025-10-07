@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 const databaseService = require('../services/databaseService');
 const supabaseStorage = require('../services/supabaseStorage');
 const { auth, requireSubscription, requireOwnership, updateActivity } = require('../middleware/auth');
+const logger = require('../utils/logger');
 const router = express.Router();
 
 // File upload configuration for EAs
@@ -618,29 +619,20 @@ router.put('/:id', [
     const isOwnerByName = existingEA.creator_name && existingEA.creator_name.trim() === constructedName.trim();
     const isOwner = isOwnerById || isOwnerByName;
     
-    console.log(`[EA Update] 🔐 Authorization check for EA ${req.params.id}:`);
-    console.log(`  EA Creator: ${existingEA.creator_id} (${existingEA.creator_name})`);
-    console.log(`  Current User: ${req.user.id} (${constructedName})`);
-    console.log(`  Role: ${req.user.role}`);
-    console.log(`  Is Admin: ${isAdmin}`);
-    console.log(`  Is Owner (by ID): ${isOwnerById}`);
-    console.log(`  Is Owner (by name): ${isOwnerByName}`);
-    console.log(`  Full user object:`, JSON.stringify(req.user, null, 2));
-    
     // Admin always has access, or must be the owner
     if (!isAdmin && !isOwner) {
-      console.log(`[EA Update] ❌ Access DENIED for EA ${req.params.id}`);
+      logger.debug(`Access denied for EA ${req.params.id} - User ${req.user.id} is not owner/admin`);
       return res.status(403).json({
         success: false,
         message: 'Access denied. Only EA creator or admin can edit this EA.'
       });
     }
     
-    console.log(`[EA Update] ✅ Access GRANTED for EA ${req.params.id} (${isAdmin ? 'Admin access' : 'Owner access'})`);
+    logger.debug(`Access granted for EA ${req.params.id} (${isAdmin ? 'Admin' : 'Owner'})`);
     
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('[EA Update] Validation failed:', errors.array());
+      logger.debug('[EA Update] Validation failed:', errors.array());
       // Clean up uploaded files if validation fails
       if (req.files) {
         const cleanupPromises = [];
@@ -804,7 +796,7 @@ router.put('/:id', [
       } else if (Array.isArray(req.body.supported_pairs)) {
         updates.supported_pairs = req.body.supported_pairs;
       }
-      console.log('[EA Update] Setting supported_pairs:', updates.supported_pairs);
+      logger.debug('[EA Update] Setting supported_pairs:', updates.supported_pairs);
     }
     
     if (req.body.timeframes) {
@@ -813,7 +805,7 @@ router.put('/:id', [
       } else if (Array.isArray(req.body.timeframes)) {
         updates.timeframes = req.body.timeframes;
       }
-      console.log('[EA Update] Setting timeframes:', updates.timeframes);
+      logger.debug('[EA Update] Setting timeframes:', updates.timeframes);
     }
     
     // Handle price field - map to price_weekly, price_monthly, and price_yearly

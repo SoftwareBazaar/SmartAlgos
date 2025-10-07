@@ -1,4 +1,5 @@
 const axios = require('axios');
+const logger = require('../utils/logger');
 
 /**
  * Financial Modeling Prep API Service
@@ -61,7 +62,7 @@ class FMPService {
 
       return stockData;
     } catch (error) {
-      console.error(`[FMP] Error fetching quote for ${symbol}:`, error.message);
+      logger.throttle(`fmp-quote-${symbol}`, 'error', `[FMP] Error fetching quote for ${symbol}:`, error.message);
       throw error;
     }
   }
@@ -96,7 +97,7 @@ class FMPService {
         timestamp: new Date().toISOString()
       }));
     } catch (error) {
-      console.error('[FMP] Error fetching batch quotes:', error.message);
+      logger.throttle('fmp-batch-quotes', 'error', '[FMP] Error fetching batch quotes:', error.message);
       throw error;
     }
   }
@@ -124,7 +125,7 @@ class FMPService {
         timestamp: new Date().toISOString()
       }));
     } catch (error) {
-      console.error('[FMP] Error fetching forex rates:', error.message);
+      logger.throttle('fmp-forex', 'error', '[FMP] Error fetching forex rates:', error.message);
       throw error;
     }
   }
@@ -153,7 +154,7 @@ class FMPService {
         timestamp: new Date().toISOString()
       }));
     } catch (error) {
-      console.error('[FMP] Error fetching crypto prices:', error.message);
+      logger.throttle('fmp-crypto', 'error', '[FMP] Error fetching crypto prices:', error.message);
       throw error;
     }
   }

@@ -4,6 +4,7 @@ const nseService = require('./nseService');
 const alphaVantageService = require('./alphaVantageService');
 const polygonMarketService = require('./polygonMarketService');
 const fmpService = require('./fmpService');
+const logger = require('../utils/logger');
 
 const DEFAULT_US_TICKERS = (process.env.US_MARKET_TICKERS || 'AAPL,TSLA,GOOGL,MSFT,AMZN')
   .split(',')
@@ -61,7 +62,7 @@ class MarketDataService extends EventEmitter {
       this.setCachedData(cacheKey, nseData.data, this.cacheDuration.overview);
       return nseData.data;
     } catch (error) {
-      console.error('Error fetching NSE market overview:', error);
+      logger.throttle('nse-overview', 'error', 'Error fetching NSE market overview:', error.message);
       return this.getMockNSEData();
     }
   }
@@ -76,7 +77,7 @@ class MarketDataService extends EventEmitter {
       this.setCachedData(cacheKey, stockData.data, this.cacheDuration.quotes);
       return stockData.data;
     } catch (error) {
-      console.error(`Error fetching NSE stock ${symbol}:`, error);
+      logger.throttle(`nse-stock-${symbol}`, 'error', `Error fetching NSE stock ${symbol}:`, error.message);
       return null;
     }
   }
@@ -977,11 +978,12 @@ class MarketDataService extends EventEmitter {
       try {
         await this.updateRealTimeData();
       } catch (error) {
-        console.error('Error in real-time updates:', error);
+        // Throttle error logging to once per minute
+        logger.throttle('realtime-updates', 'error', 'Error in real-time updates:', error.message);
       }
     }, 5000); // 5 seconds for near real-time updates
     
-    console.log('✅ Real-time market data updates started (5-second refresh)');
+    logger.info('✅ Real-time market data updates started (5-second refresh)');
   }
 
   async updateRealTimeData() {

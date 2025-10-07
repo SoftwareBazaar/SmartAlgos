@@ -1,4 +1,5 @@
 const axios = require('axios');
+const logger = require('../utils/logger');
 
 /**
  * GNews API Service
@@ -14,7 +15,7 @@ class GNewsService {
     this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
     
     if (!this.apiKey) {
-      console.warn('[GNews] No API key configured. Get one at: https://gnews.io/register');
+      logger.warn('[GNews] No API key configured. Get one at: https://gnews.io/register');
     }
   }
 
@@ -70,7 +71,7 @@ class GNewsService {
 
       return articles;
     } catch (error) {
-      console.error('[GNews] Error fetching financial news:', error.message);
+      logger.throttle('gnews-financial', 'error', '[GNews] Error fetching financial news:', error.message);
       throw error;
     }
   }
@@ -110,7 +111,7 @@ class GNewsService {
         }
       }));
     } catch (error) {
-      console.error('[GNews] Error fetching breaking news:', error.message);
+      logger.throttle('gnews-breaking', 'error', '[GNews] Error fetching breaking news:', error.message);
       throw error;
     }
   }
@@ -157,7 +158,7 @@ class GNewsService {
         }
       }));
     } catch (error) {
-      console.error('[GNews] Error searching news:', error.message);
+      logger.throttle('gnews-search', 'error', '[GNews] Error searching news:', error.message);
       throw error;
     }
   }
@@ -196,7 +197,7 @@ class GNewsService {
         )
       }));
     } catch (error) {
-      console.error('[GNews] Error fetching stock news:', error.message);
+      logger.throttle('gnews-stock-news', 'error', '[GNews] Error fetching stock news:', error.message);
       throw error;
     }
   }

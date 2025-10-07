@@ -222,15 +222,15 @@ const EADetail = () => {
               <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-1">
                   <Eye className="h-4 w-4" />
-                  {ea.views.toLocaleString()} views
+                  {(ea.views || 0).toLocaleString()} views
                 </div>
                 <div className="flex items-center gap-1">
                   <Download className="h-4 w-4" />
-                  {ea.downloads.toLocaleString()} downloads
+                  {(ea.downloads || 0).toLocaleString()} downloads
                 </div>
                 <div className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
-                  {ea.active_subscribers.toLocaleString()} active users
+                  {(ea.active_subscribers || 0).toLocaleString()} active users
                 </div>
               </div>
             </div>
@@ -354,11 +354,11 @@ const EADetail = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">Minimum Deposit:</span>
-                          <span className="ml-2 font-medium">${ea.min_deposit.toLocaleString()}</span>
+                          <span className="ml-2 font-medium">${(ea.min_deposit || 0).toLocaleString()}</span>
                         </div>
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">Recommended Deposit:</span>
-                          <span className="ml-2 font-medium">${ea.recommended_deposit.toLocaleString()}</span>
+                          <span className="ml-2 font-medium">${(ea.recommended_deposit || 0).toLocaleString()}</span>
                         </div>
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">Max Spread:</span>
@@ -378,64 +378,64 @@ const EADetail = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                          Backtest Results ({ea.backtest_results.period})
+                          Backtest Results ({ea.backtest_results?.period || 'N/A'})
                         </h4>
                         <div className="space-y-3">
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Total Return:</span>
-                            <span className="font-medium text-green-600">+{ea.backtest_results.total_return}%</span>
+                            <span className="font-medium text-green-600">+{ea.backtest_results?.total_return || 0}%</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Max Drawdown:</span>
-                            <span className="font-medium text-red-600">-{ea.backtest_results.max_drawdown}%</span>
+                            <span className="font-medium text-red-600">-{ea.backtest_results?.max_drawdown || 0}%</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Sharpe Ratio:</span>
-                            <span className="font-medium">{ea.backtest_results.sharpe_ratio}</span>
+                            <span className="font-medium">{ea.backtest_results?.sharpe_ratio || 'N/A'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Win Rate:</span>
-                            <span className="font-medium">{ea.backtest_results.win_rate}%</span>
+                            <span className="font-medium">{ea.backtest_results?.win_rate || 0}%</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Profit Factor:</span>
-                            <span className="font-medium">{ea.backtest_results.profit_factor}</span>
+                            <span className="font-medium">{ea.backtest_results?.profit_factor || 'N/A'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Total Trades:</span>
-                            <span className="font-medium">{ea.backtest_results.total_trades}</span>
+                            <span className="font-medium">{ea.backtest_results?.total_trades || 0}</span>
                           </div>
                         </div>
                       </div>
 
                       <div>
                         <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                          Live Results ({ea.live_results.period})
+                          Live Results ({ea.live_results?.period || 'N/A'})
                         </h4>
                         <div className="space-y-3">
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Total Return:</span>
-                            <span className="font-medium text-green-600">+{ea.live_results.total_return}%</span>
+                            <span className="font-medium text-green-600">+{ea.live_results?.total_return || 0}%</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Max Drawdown:</span>
-                            <span className="font-medium text-red-600">-{ea.live_results.max_drawdown}%</span>
+                            <span className="font-medium text-red-600">-{ea.live_results?.max_drawdown || 0}%</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Sharpe Ratio:</span>
-                            <span className="font-medium">{ea.live_results.sharpe_ratio}</span>
+                            <span className="font-medium">{ea.live_results?.sharpe_ratio || 'N/A'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Win Rate:</span>
-                            <span className="font-medium">{ea.live_results.win_rate}%</span>
+                            <span className="font-medium">{ea.live_results?.win_rate || 0}%</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Profit Factor:</span>
-                            <span className="font-medium">{ea.live_results.profit_factor}</span>
+                            <span className="font-medium">{ea.live_results?.profit_factor || 'N/A'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-400">Total Trades:</span>
-                            <span className="font-medium">{ea.live_results.total_trades}</span>
+                            <span className="font-medium">{ea.live_results?.total_trades || 0}</span>
                           </div>
                         </div>
                       </div>
@@ -466,27 +466,27 @@ const EADetail = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">Broker:</span>
-                          <span className="ml-2 font-medium">{ea.requirements.broker}</span>
+                          <span className="ml-2 font-medium">{ea.requirements?.broker || 'N/A'}</span>
                         </div>
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">VPS:</span>
-                          <span className="ml-2 font-medium">{ea.requirements.vps}</span>
+                          <span className="ml-2 font-medium">{ea.requirements?.vps || 'N/A'}</span>
                         </div>
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">Internet:</span>
-                          <span className="ml-2 font-medium">{ea.requirements.internet}</span>
+                          <span className="ml-2 font-medium">{ea.requirements?.internet || 'N/A'}</span>
                         </div>
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">CPU:</span>
-                          <span className="ml-2 font-medium">{ea.requirements.cpu}</span>
+                          <span className="ml-2 font-medium">{ea.requirements?.cpu || 'N/A'}</span>
                         </div>
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">RAM:</span>
-                          <span className="ml-2 font-medium">{ea.requirements.ram}</span>
+                          <span className="ml-2 font-medium">{ea.requirements?.ram || 'N/A'}</span>
                         </div>
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">OS:</span>
-                          <span className="ml-2 font-medium">{ea.requirements.os}</span>
+                          <span className="ml-2 font-medium">{ea.requirements?.os || 'N/A'}</span>
                         </div>
                       </div>
                     </div>
@@ -649,7 +649,7 @@ const EADetail = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 dark:text-gray-400">Total Trades</span>
-                    <span className="font-medium">{ea.total_trades.toLocaleString()}</span>
+                    <span className="font-medium">{(ea.total_trades || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -665,7 +665,7 @@ const EADetail = () => {
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
                     <span className="text-primary-600 dark:text-primary-400 font-medium">
-                      {ea.creator_name.charAt(0)}
+                      {(ea.creator_name || 'U').charAt(0)}
                     </span>
                   </div>
                   <div>

@@ -52,6 +52,7 @@ const EADetail = () => {
         if (response.data.success) {
           const eaData = response.data.data;
           console.log('[EADetail] ✅ Loaded EA:', eaData);
+          console.log('[EADetail] Screenshots:', eaData.screenshots);
           
           // Set EA with proper defaults for missing fields
           setEa({
@@ -99,6 +100,18 @@ const EADetail = () => {
     };
 
     fetchEA();
+    
+    // Listen for EA update events
+    const handleEAUpdate = () => {
+      console.log('[EADetail] EA updated, refetching...');
+      fetchEA();
+    };
+    
+    window.addEventListener('ea-updated', handleEAUpdate);
+    
+    return () => {
+      window.removeEventListener('ea-updated', handleEAUpdate);
+    };
   }, [id]);
 
   const pricingPlans = [
@@ -259,20 +272,28 @@ const EADetail = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   Screenshots
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(ea.screenshots || []).map((screenshot, index) => (
-                    <div key={index} className="relative group cursor-pointer">
-                      <img
-                        src={screenshot}
-                        alt={`Screenshot ${index + 1}`}
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                        <Eye className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                {ea.screenshots && ea.screenshots.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {ea.screenshots.map((screenshot, index) => (
+                      <div key={index} className="relative group cursor-pointer">
+                        <img
+                          src={screenshot}
+                          alt={`Screenshot ${index + 1}`}
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                          <Eye className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No screenshots available yet.
+                    </p>
+                  </div>
+                )}
               </div>
             </Card>
 

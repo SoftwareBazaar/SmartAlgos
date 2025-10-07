@@ -288,7 +288,7 @@ class DatabaseService {
       return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
     };
     
-    const useMockMode = this.mockMode || isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY) || true;
+    const useMockMode = this.mockMode || isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
     
     if (useMockMode) {
       console.log(`[database] Mock mode: simulating updateEA for ${id}`);

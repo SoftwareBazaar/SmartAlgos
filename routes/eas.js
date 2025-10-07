@@ -610,9 +610,13 @@ router.put('/:id', [
     }
 
     // Allow only EA creator or admin to edit
-    const constructedName = req.user.first_name + ' ' + req.user.last_name;
-    const isOwner = existingEA.creator_id === req.user.id || existingEA.creator_name === constructedName;
     const isAdmin = req.user.role === 'admin';
+    const constructedName = req.user.first_name + ' ' + req.user.last_name;
+    
+    // Check ownership - handle null creator_id gracefully
+    const isOwnerById = existingEA.creator_id && existingEA.creator_id === req.user.id;
+    const isOwnerByName = existingEA.creator_name && existingEA.creator_name === constructedName;
+    const isOwner = isOwnerById || isOwnerByName;
     
     console.log(`[EA Update] Ownership check debug:`, {
       eaId: req.params.id,
@@ -627,11 +631,14 @@ router.put('/:id', [
         role: req.user.role,
         constructed_name: constructedName
       },
+      isOwnerById,
+      isOwnerByName,
       isOwner,
       isAdmin
     });
     
-    if (!isOwner && !isAdmin) {
+    // Admin always has access, or must be the owner
+    if (!isAdmin && !isOwner) {
       console.log(`[EA Update] ❌ Access denied for EA ${req.params.id}`, {
         reason: 'Not owner and not admin',
         isOwner,
@@ -784,10 +791,15 @@ router.put('/:id', [
     // Build update object
     const updates = {};
     
-    // Add uploaded screenshots if any
+    // Add uploaded screenshots if any - MERGE with existing screenshots
     if (req.uploadedScreenshots) {
-      updates.screenshots = req.uploadedScreenshots;
-      console.log('[EA Update] Setting screenshots:', req.uploadedScreenshots);
+      // Get existing screenshots from the EA
+      const existingScreenshots = existingEA.screenshots || [];
+      updates.screenshots = [...existingScreenshots, ...req.uploadedScreenshots];
+      console.log('[EA Update] Merging screenshots:');
+      console.log('  - Existing:', existingScreenshots);
+      console.log('  - New:', req.uploadedScreenshots);
+      console.log('  - Merged:', updates.screenshots);
     }
     
     // Copy basic fields (excluding 'price' and 'tags' which need special handling)
@@ -886,24 +898,26 @@ router.put('/:id', [
       }
     }
     
-    // Handle screenshots array
-    if (req.body.screenshots) {
-      try {
-        updates.screenshots = typeof req.body.screenshots === 'string' 
-          ? JSON.parse(req.body.screenshots) 
-          : req.body.screenshots;
-      } catch (e) {
-        console.error('Error parsing screenshots:', e);
-        updates.screenshots = [];
-      }
-    } else {
-      // Check for screenshots[0], screenshots[1] format from FormData
-      const screenshotKeys = Object.keys(req.body).filter(key => key.startsWith('screenshots['));
-      if (screenshotKeys.length > 0) {
-        updates.screenshots = [];
-        screenshotKeys.forEach(key => {
-          updates.screenshots.push(req.body[key]);
-        });
+    // Handle screenshots array - only if not already set from file uploads
+    if (!req.uploadedScreenshots) {
+      if (req.body.screenshots) {
+        try {
+          updates.screenshots = typeof req.body.screenshots === 'string' 
+            ? JSON.parse(req.body.screenshots) 
+            : req.body.screenshots;
+        } catch (e) {
+          console.error('Error parsing screenshots:', e);
+          updates.screenshots = [];
+        }
+      } else {
+        // Check for screenshots[0], screenshots[1] format from FormData
+        const screenshotKeys = Object.keys(req.body).filter(key => key.startsWith('screenshots['));
+        if (screenshotKeys.length > 0) {
+          updates.screenshots = [];
+          screenshotKeys.forEach(key => {
+            updates.screenshots.push(req.body[key]);
+          });
+        }
       }
     }
 

@@ -53,6 +53,8 @@ function normalizeUser(rawUser) {
     email: rawUser.email,
     firstName: rawUser.first_name || rawUser.firstname || rawUser.firstName || '',
     lastName: rawUser.last_name || rawUser.lastname || rawUser.lastName || '',
+    first_name: rawUser.first_name || rawUser.firstname || rawUser.firstName || '',
+    last_name: rawUser.last_name || rawUser.lastname || rawUser.lastName || '',
     phone: rawUser.phone || null,
     country: rawUser.country || null,
     city: rawUser.city || null,

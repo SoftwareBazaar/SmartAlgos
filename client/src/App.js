@@ -44,6 +44,7 @@ import Settings from './pages/Settings/Settings';
 import Subscription from './pages/Subscription/Subscription';
 import Payments from './pages/Payments/Payments';
 import DesktopFeatures from './pages/DesktopFeatures/DesktopFeatures';
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import EscrowDashboard from './pages/Escrow/EscrowDashboard';
 
 // Admin Pages
@@ -118,8 +119,8 @@ function App() {
                   {/* EA Marketplace */}
                   <Route path="ea-marketplace" element={<ProtectedRoute><EAMarketplace /></ProtectedRoute>} />
                   <Route path="ea-marketplace/:id" element={<ProtectedRoute><EADetail /></ProtectedRoute>} />
-                  <Route path="create-ea" element={<ProtectedRoute><CreateEA /></ProtectedRoute>} />
-                  <Route path="edit-ea/:id" element={<ProtectedRoute><EditEA /></ProtectedRoute>} />
+                  <Route path="create-ea" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><CreateEA /></ErrorBoundary></ProtectedRoute>} />
+                  <Route path="edit-ea/:id" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><EditEA /></ErrorBoundary></ProtectedRoute>} />
                   
                   {/* Free Utilities */}
                   <Route path="utilities" element={<ProtectedRoute><UtilitiesPage /></ProtectedRoute>} />
@@ -137,7 +138,7 @@ function App() {
                   <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                   <Route path="subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
                   <Route path="payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
-                  <Route path="desktop-features" element={<ProtectedRoute><DesktopFeatures /></ProtectedRoute>} />
+                  <Route path="desktop-features" element={<ProtectedRoute><ErrorBoundary><DesktopFeatures /></ErrorBoundary></ProtectedRoute>} />
                   
                   {/* Escrow */}
                   <Route path="escrow" element={<ProtectedRoute><EscrowDashboard /></ProtectedRoute>} />

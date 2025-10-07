@@ -35,7 +35,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Profile', href: '/profile', icon: User },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
     { name: 'Desktop Features', href: '/desktop-features', icon: Monitor },
-    { name: 'Create Custom EA', href: '/create-ea', icon: Bot },
+    // Only show Create Custom EA for admins
+    ...(user?.role === 'admin' ? [{ name: 'Create Custom EA', href: '/create-ea', icon: Bot }] : []),
     { name: 'Subscription', href: '/subscription', icon: CreditCard },
     { name: 'Payments', href: '/payments', icon: DollarSign },
   ];

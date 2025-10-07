@@ -233,37 +233,54 @@ export const EAProvider = ({ children }) => {
   const updateEA = async (eaId, eaData) => {
     try {
       console.log('[EAContext] 🔄 Updating EA:', eaId);
-      console.log('[EAContext] EA data keys:', Object.keys(eaData));
+      console.log('[EAContext] EA data type:', eaData.constructor.name);
       
-      const formData = new FormData();
+      let formData;
       
-      // Append all EA data to FormData
-      Object.keys(eaData).forEach(key => {
-        if (key === 'image' && eaData[key] && eaData[key] instanceof File) {
-          console.log('[EAContext] 📸 Appending image file:', eaData[key].name);
-          formData.append('image', eaData[key]);
-        } else if (key === 'eaFile' && eaData[key] && eaData[key] instanceof File) {
-          console.log('[EAContext] 📦 Appending EA file:', eaData[key].name);
-          formData.append('eaFile', eaData[key]);
-        } else if (key === 'specifications' && eaData[key]) {
-          // Handle specifications object
-          Object.keys(eaData[key]).forEach(specKey => {
-            formData.append(`specifications.${specKey}`, eaData[key][specKey] || '');
-          });
-        } else if (key === 'features' && Array.isArray(eaData[key])) {
-          // Handle features array
-          eaData[key].forEach((feature, index) => {
-            formData.append(`features[${index}]`, feature);
-          });
-        } else if (key === 'screenshots' && Array.isArray(eaData[key])) {
-          // Handle screenshots array
-          eaData[key].forEach((screenshot, index) => {
-            formData.append(`screenshots[${index}]`, screenshot);
-          });
-        } else if (eaData[key] !== null && eaData[key] !== undefined && key !== 'image' && key !== 'eaFile') {
-          formData.append(key, eaData[key]);
+      // Check if eaData is already a FormData object
+      if (eaData instanceof FormData) {
+        console.log('[EAContext] 📋 Using existing FormData object');
+        formData = eaData;
+        
+        // Log FormData contents for debugging
+        console.log('[EAContext] FormData entries:');
+        for (let [key, value] of formData.entries()) {
+          console.log(`  ${key}:`, value);
         }
-      });
+      } else {
+        console.log('[EAContext] 📝 Creating new FormData object');
+        console.log('[EAContext] EA data keys:', Object.keys(eaData));
+        
+        formData = new FormData();
+        
+        // Append all EA data to FormData
+        Object.keys(eaData).forEach(key => {
+          if (key === 'image' && eaData[key] && eaData[key] instanceof File) {
+            console.log('[EAContext] 📸 Appending image file:', eaData[key].name);
+            formData.append('image', eaData[key]);
+          } else if (key === 'eaFile' && eaData[key] && eaData[key] instanceof File) {
+            console.log('[EAContext] 📦 Appending EA file:', eaData[key].name);
+            formData.append('eaFile', eaData[key]);
+          } else if (key === 'specifications' && eaData[key]) {
+            // Handle specifications object
+            Object.keys(eaData[key]).forEach(specKey => {
+              formData.append(`specifications.${specKey}`, eaData[key][specKey] || '');
+            });
+          } else if (key === 'features' && Array.isArray(eaData[key])) {
+            // Handle features array
+            eaData[key].forEach((feature, index) => {
+              formData.append(`features[${index}]`, feature);
+            });
+          } else if (key === 'screenshots' && Array.isArray(eaData[key])) {
+            // Handle screenshots array
+            eaData[key].forEach((screenshot, index) => {
+              formData.append(`screenshots[${index}]`, screenshot);
+            });
+          } else if (eaData[key] !== null && eaData[key] !== undefined && key !== 'image' && key !== 'eaFile') {
+            formData.append(key, eaData[key]);
+          }
+        });
+      }
 
       console.log('[EAContext] 📤 Sending PUT request...');
       

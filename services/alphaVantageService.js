@@ -2,10 +2,14 @@ const axios = require('axios');
 
 class AlphaVantageService {
   constructor() {
-    this.apiKey = process.env.ALPHA_VANTAGE_API_KEY || 'demo'; // Use demo key for testing
+    this.apiKey = process.env.ALPHA_VANTAGE_API_KEY;
     this.baseUrl = 'https://www.alphavantage.co/query';
     this.cache = new Map();
     this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+    
+    if (!this.apiKey || this.apiKey === 'demo') {
+      console.warn('[AlphaVantage] No valid API key configured. Get one at: https://www.alphavantage.co/support/#api-key');
+    }
   }
 
   /**

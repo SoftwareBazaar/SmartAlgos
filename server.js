@@ -288,6 +288,7 @@ app.use('/api/test', testRoutes); // Test routes for debugging
 app.use('/api/admin', adminRoutes); // Admin routes have their own auth middleware
 app.use('/api/admin', adminCMSRoutes); // Admin CMS routes
 app.use('/api/utilities', require('./routes/utilities')); // Utilities routes (public read, admin write)
+app.use('/api/economic-calendar', require('./routes/economic-calendar')); // Economic calendar routes (public)
 
 
 // Health check endpoints (must be defined before React catch-all)

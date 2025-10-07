@@ -3,6 +3,7 @@ const EventEmitter = require('events');
 const nseService = require('./nseService');
 const alphaVantageService = require('./alphaVantageService');
 const polygonMarketService = require('./polygonMarketService');
+const fmpService = require('./fmpService');
 
 const DEFAULT_US_TICKERS = (process.env.US_MARKET_TICKERS || 'AAPL,TSLA,GOOGL,MSFT,AMZN')
   .split(',')
@@ -20,7 +21,7 @@ class MarketDataService extends EventEmitter {
     this.subscriptions = new Map();
     this.realTimeConnections = new Map();
     this.cacheDuration = {
-      quotes: 3000,       // 3 seconds - for real-time trading
+      quotes: 5000, // 5 seconds for more real-time feel       // 3 seconds - for real-time trading
       overview: 10000,    // 10 seconds - faster market overview
       historical: 300000, // 5 minutes - historical data can be slower
       screener: 30000     // 30 seconds - screener updates
@@ -401,6 +402,18 @@ class MarketDataService extends EventEmitter {
     const cached = this.getCachedData(cacheKey);
     if (cached) return cached;
 
+    // Try FMP first (best real-time data)
+    try {
+      const quote = await fmpService.getStockQuote(symbol);
+      if (quote) {
+        this.setCachedData(cacheKey, quote, this.cacheDuration.quotes);
+        return quote;
+      }
+    } catch (fmpError) {
+      console.log('[MarketData] FMP failed, trying Polygon:', fmpError.message);
+    }
+
+    // Fallback to Polygon
     try {
       const quote = await polygonMarketService.getQuote(symbol);
       if (quote) {
@@ -413,6 +426,7 @@ class MarketDataService extends EventEmitter {
       }
     }
 
+    // Final fallback to Alpha Vantage
     try {
       const fallbackQuote = await alphaVantageService.getStockQuote(symbol);
       if (fallbackQuote) {

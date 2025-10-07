@@ -260,7 +260,7 @@ const EADetail = () => {
                   Screenshots
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {ea.screenshots.map((screenshot, index) => (
+                  {(ea.screenshots || []).map((screenshot, index) => (
                     <div key={index} className="relative group cursor-pointer">
                       <img
                         src={screenshot}
@@ -319,7 +319,7 @@ const EADetail = () => {
                           Supported Pairs
                         </h5>
                         <div className="flex flex-wrap gap-2">
-                          {ea.supported_pairs.map((pair) => (
+                          {(ea.supported_pairs || []).map((pair) => (
                             <span
                               key={pair}
                               className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded"
@@ -335,7 +335,7 @@ const EADetail = () => {
                           Timeframes
                         </h5>
                         <div className="flex flex-wrap gap-2">
-                          {ea.timeframes.map((tf) => (
+                          {(ea.timeframes || []).map((tf) => (
                             <span
                               key={tf}
                               className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded"
@@ -450,7 +450,7 @@ const EADetail = () => {
                         Key Features
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {ea.features.map((feature, index) => (
+                        {(ea.features || []).map((feature, index) => (
                           <div key={index} className="flex items-center gap-2">
                             <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                             <span className="text-gray-700 dark:text-gray-300">{feature}</span>

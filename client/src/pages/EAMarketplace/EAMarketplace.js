@@ -67,14 +67,14 @@ const EAMarketplace = () => {
   // Use real EAs from context only - no mock fallback
 
   const categories = [
-    { id: 'all', name: 'All EAs', count: eas.length },
-    { id: 'scalping', name: 'Scalping', count: eas.filter(ea => ea.category === 'scalping').length },
-    { id: 'trend', name: 'Trend', count: eas.filter(ea => ea.category === 'trend').length },
-    { id: 'news', name: 'News', count: eas.filter(ea => ea.category === 'news').length },
-    { id: 'grid', name: 'Grid', count: eas.filter(ea => ea.category === 'grid').length },
-    { id: 'arbitrage', name: 'Arbitrage', count: eas.filter(ea => ea.category === 'arbitrage').length },
-    { id: 'hedging', name: 'Hedging', count: eas.filter(ea => ea.category === 'hedging').length },
-    { id: 'institutional', name: 'Institutional', count: eas.filter(ea => ea.category === 'Institutional').length },
+    { id: 'all', name: 'All EAs', count: eas?.length || 0 },
+    { id: 'scalping', name: 'Scalping', count: eas?.filter(ea => ea.category === 'scalping').length || 0 },
+    { id: 'trend', name: 'Trend', count: eas?.filter(ea => ea.category === 'trend').length || 0 },
+    { id: 'news', name: 'News', count: eas?.filter(ea => ea.category === 'news').length || 0 },
+    { id: 'grid', name: 'Grid', count: eas?.filter(ea => ea.category === 'grid').length || 0 },
+    { id: 'arbitrage', name: 'Arbitrage', count: eas?.filter(ea => ea.category === 'arbitrage').length || 0 },
+    { id: 'hedging', name: 'Hedging', count: eas?.filter(ea => ea.category === 'hedging').length || 0 },
+    { id: 'institutional', name: 'Institutional', count: eas?.filter(ea => ea.category === 'Institutional').length || 0 },
   ];
 
   // Get EAs based on category and search
@@ -223,7 +223,7 @@ const EAMarketplace = () => {
             Featured EAs
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {eas.filter(ea => ea.isFeatured).map((ea, index) => (
+            {(eas || []).filter(ea => ea.isFeatured).map((ea, index) => (
               <motion.div
                 key={ea.id}
                 initial={{ opacity: 0, y: 20 }}

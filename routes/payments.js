@@ -1124,7 +1124,6 @@ router.get('/invoices/:id/download', [auth], async (req, res) => {
 
 
 // Crypto Payment Routes
-const cryptoPaymentService = require('../services/cryptoPaymentService');
 
 // @route   POST /api/payments/crypto/initialize
 // @desc    Initialize crypto payment

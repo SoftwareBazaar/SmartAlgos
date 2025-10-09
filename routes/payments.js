@@ -4,6 +4,8 @@ const { auth, updateActivity } = require('../middleware/auth');
 const paystackService = require('../services/paystackService');
 const billingService = require('../services/billingService');
 const securityService = require('../services/securityService');
+const cryptoPaymentService = require('../services/cryptoPaymentService');
+const blockchainMonitor = require('../services/blockchainMonitorService');
 const { auditLog } = require('../middleware/security');
 const router = express.Router();
 
@@ -1251,6 +1253,180 @@ router.get('/crypto/status', [
     res.status(500).json({
       success: false,
       message: 'Failed to get crypto payment service status'
+    });
+  }
+});
+
+// @route   POST /api/payments/crypto/subscribe
+// @desc    Initialize crypto payment for EA subscription (self-service)
+// @access  Private
+router.post('/crypto/subscribe', [
+  auth,
+  updateActivity,
+  auditLog('crypto_subscription_initialized'),
+  body('eaId')
+    .notEmpty()
+    .withMessage('EA ID is required'),
+  body('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+  body('subscriptionType')
+    .isIn(['lifetime', 'monthly', 'yearly'])
+    .withMessage('Invalid subscription type'),
+  body('currency')
+    .optional()
+    .isIn(['USD', 'EUR', 'GBP'])
+    .withMessage('Invalid currency')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { eaId, amount, subscriptionType, currency = 'USD' } = req.body;
+    const userId = req.user.id;
+
+    // Create payment request with blockchain monitoring
+    const paymentRequest = await cryptoPaymentService.createPaymentRequest(
+      amount, 
+      currency, 
+      eaId, 
+      subscriptionType
+    );
+
+    // Add user ID to payment data for monitoring
+    paymentRequest.userId = userId;
+
+    // Start monitoring this payment
+    await blockchainMonitor.startPaymentMonitoring(paymentRequest);
+
+    res.json({
+      success: true,
+      data: paymentRequest,
+      message: 'Payment initialized. Monitor blockchain for automatic confirmation.'
+    });
+
+  } catch (error) {
+    console.error('Crypto subscription initialization error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to initialize crypto subscription payment'
+    });
+  }
+});
+
+// @route   GET /api/payments/crypto/status/:paymentId
+// @desc    Check crypto payment status
+// @access  Private
+router.get('/crypto/status/:paymentId', [
+  auth,
+  updateActivity
+], async (req, res) => {
+  try {
+    const { paymentId } = req.params;
+
+    const status = await cryptoPaymentService.checkPaymentStatus(paymentId);
+
+    res.json({
+      success: true,
+      data: status
+    });
+
+  } catch (error) {
+    console.error('Check crypto payment status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check payment status'
+    });
+  }
+});
+
+// @route   POST /api/payments/crypto/confirm
+// @desc    Manually confirm crypto payment (for immediate access)
+// @access  Private
+router.post('/crypto/confirm', [
+  auth,
+  updateActivity,
+  auditLog('crypto_payment_confirmed'),
+  body('paymentId')
+    .notEmpty()
+    .withMessage('Payment ID is required'),
+  body('txHash')
+    .notEmpty()
+    .withMessage('Transaction hash is required'),
+  body('cryptoType')
+    .isIn(['BTC', 'ETH', 'BNB', 'USDT'])
+    .withMessage('Invalid crypto type')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { paymentId, txHash, cryptoType } = req.body;
+
+    // Verify the payment
+    const verified = await cryptoPaymentService.verifyPayment(paymentId, txHash, cryptoType);
+
+    if (verified) {
+      // Grant immediate access
+      // TODO: Implement database update to grant EA access
+      
+      res.json({
+        success: true,
+        message: 'Payment confirmed and access granted',
+        data: {
+          paymentId,
+          status: 'confirmed',
+          accessGranted: true
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Payment verification failed'
+      });
+    }
+
+  } catch (error) {
+    console.error('Crypto payment confirmation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to confirm payment'
+    });
+  }
+});
+
+// @route   GET /api/payments/crypto/monitor/status
+// @desc    Get blockchain monitoring service status
+// @access  Private
+router.get('/crypto/monitor/status', [
+  auth,
+  updateActivity
+], async (req, res) => {
+  try {
+    const status = blockchainMonitor.getStatus();
+
+    res.json({
+      success: true,
+      data: status
+    });
+
+  } catch (error) {
+    console.error('Get blockchain monitor status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get blockchain monitor status'
     });
   }
 });

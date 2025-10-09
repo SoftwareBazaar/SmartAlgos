@@ -33,6 +33,7 @@ import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import apiClient from '../../lib/apiClient';
 import { useEA } from '../../contexts/EAContext';
 import CryptoPaymentDialog from '../../components/Payments/CryptoPaymentDialog';
+import SelfServiceCryptoDialog from '../../components/Payments/SelfServiceCryptoDialog';
 
 const EADetail = () => {
   const { id } = useParams();
@@ -46,6 +47,7 @@ const EADetail = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showCryptoPayment, setShowCryptoPayment] = useState(false);
+  const [showSelfServiceCrypto, setShowSelfServiceCrypto] = useState(false);
 
   // Load EA from API
   useEffect(() => {
@@ -775,6 +777,17 @@ const EADetail = () => {
                 Pay with Crypto
               </Button>
               
+              <Button 
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
+                onClick={() => {
+                  setShowSelfServiceCrypto(true);
+                  setShowPurchaseModal(false);
+                }}
+              >
+                <span className="mr-2">🚀</span>
+                Self-Service Crypto (Auto-Detection)
+              </Button>
+              
               {/* Escrow Payment for Lifetime Access */}
               <div className="border-2 border-primary-500/30 rounded-lg p-3 bg-primary-500/5">
                 <div className="flex items-center justify-between mb-2">
@@ -881,6 +894,20 @@ const EADetail = () => {
         onPaymentSuccess={() => {
           setShowCryptoPayment(false);
           alert('Payment successful! EA will be available in your dashboard.');
+        }}
+      />
+      
+      <SelfServiceCryptoDialog
+        isOpen={showSelfServiceCrypto}
+        onClose={() => setShowSelfServiceCrypto(false)}
+        eaId={ea?.id}
+        eaName={ea?.name}
+        amount={pricingPlans.find(p => p.id === selectedPlan)?.price || 18}
+        currency="USD"
+        subscriptionType="lifetime"
+        onPaymentSuccess={() => {
+          setShowSelfServiceCrypto(false);
+          alert('Payment confirmed! Your EA is ready for download.');
         }}
       />
     </div>

@@ -31,6 +31,7 @@ const testRoutes = require('./routes/test');
 const adminRoutes = require('./admin-panel');
 const adminCMSRoutes = require('./routes/admin-cms');
 const customEARoutes = require('./routes/customEA');
+const aiAssistantRoutes = require('./routes/aiAssistant');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -291,6 +292,7 @@ app.use('/api/admin', adminCMSRoutes); // Admin CMS routes
 app.use('/api/utilities', require('./routes/utilities')); // Utilities routes (public read, admin write)
 app.use('/api/economic-calendar', require('./routes/economic-calendar')); // Economic calendar routes (public)
 app.use('/api/custom-ea', auth, customEARoutes); // Custom EA development service
+app.use('/api/ai-assistant', auth, aiAssistantRoutes); // AI EA Assistant
 
 
 // Health check endpoints (must be defined before React catch-all)

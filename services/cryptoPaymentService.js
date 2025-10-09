@@ -1,6 +1,7 @@
 
 const axios = require('axios');
 const crypto = require('crypto');
+const blockchainMonitor = require('./blockchainMonitorService');
 
 class CryptoPaymentService {
   constructor() {
@@ -17,7 +18,7 @@ class CryptoPaymentService {
   /**
    * Generate payment request with crypto options
    */
-  async createPaymentRequest(amount, currency = 'USD') {
+  async createPaymentRequest(amount, currency = 'USD', eaId = null, subscriptionType = 'lifetime') {
     try {
       if (this.isMockMode) {
         return this.getMockCryptoOptions(amount);
@@ -26,10 +27,12 @@ class CryptoPaymentService {
       // Get current crypto rates
       const rates = await this.getCryptoRates();
       
-        return {
+        const paymentData = {
           paymentId: this.generatePaymentId(),
           amount: amount,
           currency: currency,
+          eaId: eaId,
+          subscriptionType: subscriptionType,
           cryptoOptions: {
             bitcoin: {
               address: this.generateBitcoinAddress(),
@@ -54,6 +57,11 @@ class CryptoPaymentService {
           },
           expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
         };
+
+        // Start blockchain monitoring
+        await blockchainMonitor.startPaymentMonitoring(paymentData);
+
+        return paymentData;
     } catch (error) {
       console.error('Error creating crypto payment request:', error);
       throw error;
@@ -247,9 +255,26 @@ class CryptoPaymentService {
   }
 
   /**
+   * Check payment status
+   */
+  async checkPaymentStatus(paymentId) {
+    try {
+      return blockchainMonitor.getPaymentStatus(paymentId);
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      return {
+        status: 'error',
+        message: 'Failed to check payment status'
+      };
+    }
+  }
+
+  /**
    * Get service status
    */
   getStatus() {
+    const monitorStatus = blockchainMonitor.getStatus();
+    
     return {
       service: 'crypto-payments',
       configured: !this.isMockMode,
@@ -259,8 +284,11 @@ class CryptoPaymentService {
         'payment_generation',
         'qr_codes',
         'rate_conversion',
-        'payment_verification'
-      ]
+        'payment_verification',
+        'automatic_monitoring',
+        'blockchain_detection'
+      ],
+      monitoring: monitorStatus
     };
   }
 }

@@ -500,13 +500,13 @@ const CustomEA = () => {
                   
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary-200 mb-2">
                         Preferred Timeframe
                       </label>
                       <select
                         value={formData.timeframe}
                         onChange={(e) => handleInputChange('timeframe', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 bg-brand-800/50 border border-brand-700 text-primary-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       >
                         <option value="">Select timeframe</option>
                         {timeframes.map((tf) => (
@@ -516,7 +516,7 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                      <label className="block text-sm font-medium text-primary-200 mb-4">
                         Indicators to Include
                       </label>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -526,16 +526,16 @@ const CustomEA = () => {
                               type="checkbox"
                               checked={formData.indicators.includes(indicator)}
                               onChange={() => handleArrayToggle('indicators', indicator)}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-primary-500 border-brand-600 bg-brand-800 rounded focus:ring-primary-500"
                             />
-                            <span className="text-sm text-gray-700">{indicator}</span>
+                            <span className="text-sm text-primary-200">{indicator}</span>
                           </label>
                         ))}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                      <label className="block text-sm font-medium text-primary-200 mb-4">
                         Risk Management Features
                       </label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -545,16 +545,16 @@ const CustomEA = () => {
                               type="checkbox"
                               checked={formData.riskManagement.includes(feature)}
                               onChange={() => handleArrayToggle('riskManagement', feature)}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-primary-500 border-brand-600 bg-brand-800 rounded focus:ring-primary-500"
                             />
-                            <span className="text-sm text-gray-700">{feature}</span>
+                            <span className="text-sm text-primary-200">{feature}</span>
                           </label>
                         ))}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                      <label className="block text-sm font-medium text-primary-200 mb-4">
                         Custom Features
                       </label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -564,9 +564,9 @@ const CustomEA = () => {
                               type="checkbox"
                               checked={formData.customFeatures.includes(feature)}
                               onChange={() => handleArrayToggle('customFeatures', feature)}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-primary-500 border-brand-600 bg-brand-800 rounded focus:ring-primary-500"
                             />
-                            <span className="text-sm text-gray-700">{feature}</span>
+                            <span className="text-sm text-primary-200">{feature}</span>
                           </label>
                         ))}
                       </div>

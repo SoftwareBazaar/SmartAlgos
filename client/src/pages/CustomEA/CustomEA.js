@@ -1,0 +1,881 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Code, 
+  Palette, 
+  Clock, 
+  DollarSign, 
+  Upload, 
+  MessageSquare, 
+  CheckCircle,
+  ArrowRight,
+  Settings,
+  TrendingUp,
+  Shield,
+  Zap,
+  Target,
+  BarChart3,
+  Brain,
+  Rocket,
+  Star,
+  Users,
+  Award,
+  FileText,
+  Camera,
+  Download
+} from 'lucide-react';
+import apiClient from '../../lib/apiClient';
+
+const CustomEA = () => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({
+    // Service Type
+    serviceType: '', // 'new_ea', 'modify_ea', 'custom_indicator'
+    
+    // EA Details
+    eaName: '',
+    eaDescription: '',
+    tradingStyle: '', // 'scalping', 'swing', 'hedging', 'arbitrage', 'grid', 'martingale'
+    platform: '', // 'mt4', 'mt5', 'tradingview'
+    
+    // Technical Requirements
+    timeframe: '',
+    indicators: [],
+    riskManagement: [],
+    customFeatures: [],
+    
+    // Timeline & Budget
+    timeline: '',
+    budget: '',
+    urgency: '', // 'low', 'medium', 'high', 'urgent'
+    
+    // Additional Details
+    experience: '',
+    currentEA: null,
+    requirements: '',
+    files: []
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const tradingStyles = [
+    { id: 'scalping', name: 'Scalping', icon: Zap, description: 'Quick trades with small profits', color: 'bg-green-500' },
+    { id: 'swing', name: 'Swing Trading', icon: TrendingUp, description: 'Medium-term position trading', color: 'bg-blue-500' },
+    { id: 'hedging', name: 'Hedging', icon: Shield, description: 'Risk reduction strategies', color: 'bg-purple-500' },
+    { id: 'arbitrage', name: 'Arbitrage', icon: Target, description: 'Price difference exploitation', color: 'bg-orange-500' },
+    { id: 'grid', name: 'Grid Trading', icon: BarChart3, description: 'Systematic grid-based trading', color: 'bg-pink-500' },
+    { id: 'martingale', name: 'Martingale', icon: Brain, description: 'Progressive lot sizing', color: 'bg-red-500' }
+  ];
+
+  const platforms = [
+    { id: 'mt4', name: 'MetaTrader 4', icon: '📊', description: 'Most popular platform' },
+    { id: 'mt5', name: 'MetaTrader 5', icon: '📈', description: 'Advanced features' },
+    { id: 'tradingview', name: 'TradingView', icon: '📉', description: 'Modern interface' }
+  ];
+
+  const timeframes = [
+    'M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1', 'W1', 'MN1'
+  ];
+
+  const indicators = [
+    'Moving Averages', 'RSI', 'MACD', 'Bollinger Bands', 'Stochastic', 'CCI', 
+    'Williams %R', 'ADX', 'Ichimoku', 'Fibonacci', 'Pivot Points', 'Custom Indicators'
+  ];
+
+  const riskManagement = [
+    'Stop Loss', 'Take Profit', 'Trailing Stop', 'Position Sizing', 'Risk Percentage', 
+    'Maximum Drawdown', 'Daily Loss Limit', 'News Filter'
+  ];
+
+  const customFeatures = [
+    'Multi-Currency', 'Multi-Timeframe', 'News Trading', 'Breakout Detection', 
+    'Pattern Recognition', 'AI Integration', 'Mobile Alerts', 'Email Notifications'
+  ];
+
+  const timelineOptions = [
+    { value: '1-3 days', label: '1-3 Days', price: '+50%', color: 'text-red-600' },
+    { value: '1 week', label: '1 Week', price: 'Standard', color: 'text-green-600' },
+    { value: '2 weeks', label: '2 Weeks', price: '-10%', color: 'text-blue-600' },
+    { value: '1 month', label: '1 Month', price: '-20%', color: 'text-purple-600' }
+  ];
+
+  const budgetRanges = [
+    { min: 100, max: 500, label: '$100 - $500', description: 'Basic EA' },
+    { min: 500, max: 1000, label: '$500 - $1,000', description: 'Standard EA' },
+    { min: 1000, max: 2500, label: '$1,000 - $2,500', description: 'Advanced EA' },
+    { min: 2500, max: 5000, label: '$2,500 - $5,000', description: 'Professional EA' },
+    { min: 5000, max: 10000, label: '$5,000+', description: 'Enterprise EA' }
+  ];
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleArrayToggle = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].includes(value)
+        ? prev[field].filter(item => item !== value)
+        : [...prev[field], value]
+    }));
+  };
+
+  const handleFileUpload = (event) => {
+    const files = Array.from(event.target.files);
+    setFormData(prev => ({
+      ...prev,
+      files: [...prev.files, ...files]
+    }));
+  };
+
+  const calculatePrice = () => {
+    let basePrice = 500;
+    
+    // Trading style complexity
+    const styleMultipliers = {
+      'scalping': 1.5,
+      'swing': 1.0,
+      'hedging': 1.3,
+      'arbitrage': 1.8,
+      'grid': 1.2,
+      'martingale': 1.1
+    };
+    
+    basePrice *= styleMultipliers[formData.tradingStyle] || 1.0;
+    
+    // Feature complexity
+    basePrice += formData.indicators.length * 50;
+    basePrice += formData.customFeatures.length * 100;
+    
+    // Timeline adjustment
+    const timelineMultipliers = {
+      '1-3 days': 1.5,
+      '1 week': 1.0,
+      '2 weeks': 0.9,
+      '1 month': 0.8
+    };
+    
+    basePrice *= timelineMultipliers[formData.timeline] || 1.0;
+    
+    return Math.round(basePrice);
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const requestData = {
+        ...formData,
+        estimatedPrice: calculatePrice(),
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
+
+      const response = await apiClient.post('/api/custom-ea/request', requestData);
+      
+      if (response.data.success) {
+        setSubmitted(true);
+      } else {
+        throw new Error(response.data.message || 'Failed to submit request');
+      }
+    } catch (error) {
+      console.error('Error submitting EA request:', error);
+      alert('Failed to submit request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const nextStep = () => {
+    if (currentStep < 5) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full text-center"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+          >
+            <CheckCircle className="w-10 h-10 text-green-600" />
+          </motion.div>
+          
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Request Submitted Successfully!
+          </h1>
+          
+          <p className="text-lg text-gray-600 mb-8">
+            Your custom EA request has been received. Our team will review your requirements and get back to you within 24 hours with a detailed proposal.
+          </p>
+          
+          <div className="bg-blue-50 rounded-lg p-6 mb-8">
+            <h3 className="font-semibold text-blue-900 mb-2">What happens next?</h3>
+            <div className="space-y-2 text-blue-800">
+              <p>• Our expert developers will analyze your requirements</p>
+              <p>• You'll receive a detailed proposal with timeline and pricing</p>
+              <p>• We'll schedule a consultation call to discuss specifics</p>
+              <p>• Development begins once you approve the proposal</p>
+            </div>
+          </div>
+          
+          <button
+            onClick={() => {
+              setSubmitted(false);
+              setCurrentStep(1);
+              setFormData({
+                serviceType: '',
+                eaName: '',
+                eaDescription: '',
+                tradingStyle: '',
+                platform: '',
+                timeframe: '',
+                indicators: [],
+                riskManagement: [],
+                customFeatures: [],
+                timeline: '',
+                budget: '',
+                urgency: '',
+                experience: '',
+                currentEA: null,
+                requirements: '',
+                files: []
+              });
+            }}
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Submit Another Request
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Custom EA Design Service</h1>
+              <p className="text-gray-600 mt-2">Get a professional Expert Advisor built to your exact specifications</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <Users className="w-4 h-4" />
+                <span>500+ EAs Delivered</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <Award className="w-4 h-4" />
+                <span>4.9/5 Rating</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            {[1, 2, 3, 4, 5].map((step) => (
+              <div key={step} className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  step <= currentStep 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {step}
+                </div>
+                {step < 5 && (
+                  <div className={`w-16 h-1 mx-2 ${
+                    step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
+                  }`} />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Service Type</span>
+            <span>Requirements</span>
+            <span>Technical Details</span>
+            <span>Timeline & Budget</span>
+            <span>Review & Submit</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Form */}
+          <div className="lg:col-span-2">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="bg-white rounded-xl shadow-lg p-8"
+            >
+              {/* Step 1: Service Type */}
+              {currentStep === 1 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Choose Your Service</h2>
+                  
+                  <div className="space-y-4">
+                    <div className="border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
+                         onClick={() => handleInputChange('serviceType', 'new_ea')}>
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                          formData.serviceType === 'new_ea' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          <Rocket className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold">New EA Development</h3>
+                          <p className="text-gray-600">Create a custom Expert Advisor from scratch</p>
+                        </div>
+                        <div className={`w-6 h-6 rounded-full border-2 ${
+                          formData.serviceType === 'new_ea' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+                        }`}>
+                          {formData.serviceType === 'new_ea' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1" />}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
+                         onClick={() => handleInputChange('serviceType', 'modify_ea')}>
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                          formData.serviceType === 'modify_ea' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          <Settings className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold">EA Modification</h3>
+                          <p className="text-gray-600">Improve or customize your existing EA</p>
+                        </div>
+                        <div className={`w-6 h-6 rounded-full border-2 ${
+                          formData.serviceType === 'modify_ea' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+                        }`}>
+                          {formData.serviceType === 'modify_ea' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1" />}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
+                         onClick={() => handleInputChange('serviceType', 'custom_indicator')}>
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                          formData.serviceType === 'custom_indicator' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          <BarChart3 className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold">Custom Indicator</h3>
+                          <p className="text-gray-600">Develop a custom trading indicator</p>
+                        </div>
+                        <div className={`w-6 h-6 rounded-full border-2 ${
+                          formData.serviceType === 'custom_indicator' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+                        }`}>
+                          {formData.serviceType === 'custom_indicator' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1" />}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Requirements */}
+              {currentStep === 2 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">EA Requirements</h2>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        EA Name
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.eaName}
+                        onChange={(e) => handleInputChange('eaName', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., My Scalping EA Pro"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        value={formData.eaDescription}
+                        onChange={(e) => handleInputChange('eaDescription', e.target.value)}
+                        rows={4}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Describe what you want your EA to do..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Trading Style
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {tradingStyles.map((style) => {
+                          const Icon = style.icon;
+                          return (
+                            <div
+                              key={style.id}
+                              className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                                formData.tradingStyle === style.id
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                              onClick={() => handleInputChange('tradingStyle', style.id)}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${style.color}`}>
+                                  <Icon className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-sm">{style.name}</h4>
+                                  <p className="text-xs text-gray-600">{style.description}</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Platform
+                      </label>
+                      <div className="grid grid-cols-3 gap-4">
+                        {platforms.map((platform) => (
+                          <div
+                            key={platform.id}
+                            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                              formData.platform === platform.id
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => handleInputChange('platform', platform.id)}
+                          >
+                            <div className="text-center">
+                              <div className="text-2xl mb-2">{platform.icon}</div>
+                              <h4 className="font-semibold text-sm">{platform.name}</h4>
+                              <p className="text-xs text-gray-600">{platform.description}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Technical Details */}
+              {currentStep === 3 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Technical Requirements</h2>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Preferred Timeframe
+                      </label>
+                      <select
+                        value={formData.timeframe}
+                        onChange={(e) => handleInputChange('timeframe', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Select timeframe</option>
+                        {timeframes.map((tf) => (
+                          <option key={tf} value={tf}>{tf}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Indicators to Include
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {indicators.map((indicator) => (
+                          <label key={indicator} className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.indicators.includes(indicator)}
+                              onChange={() => handleArrayToggle('indicators', indicator)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">{indicator}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Risk Management Features
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {riskManagement.map((feature) => (
+                          <label key={feature} className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.riskManagement.includes(feature)}
+                              onChange={() => handleArrayToggle('riskManagement', feature)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">{feature}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Custom Features
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {customFeatures.map((feature) => (
+                          <label key={feature} className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.customFeatures.includes(feature)}
+                              onChange={() => handleArrayToggle('customFeatures', feature)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">{feature}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Timeline & Budget */}
+              {currentStep === 4 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Timeline & Budget</h2>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Delivery Timeline
+                      </label>
+                      <div className="space-y-3">
+                        {timelineOptions.map((option) => (
+                          <div
+                            key={option.value}
+                            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                              formData.timeline === option.value
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => handleInputChange('timeline', option.value)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <Clock className="w-5 h-5 text-gray-600" />
+                                <span className="font-medium">{option.label}</span>
+                              </div>
+                              <span className={`font-semibold ${option.color}`}>{option.price}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Budget Range
+                      </label>
+                      <div className="space-y-3">
+                        {budgetRanges.map((range) => (
+                          <div
+                            key={range.label}
+                            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                              formData.budget === range.label
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => handleInputChange('budget', range.label)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <span className="font-medium">{range.label}</span>
+                                <p className="text-sm text-gray-600">{range.description}</p>
+                              </div>
+                              <DollarSign className="w-5 h-5 text-gray-600" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Experience Level
+                      </label>
+                      <select
+                        value={formData.experience}
+                        onChange={(e) => handleInputChange('experience', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Select your experience</option>
+                        <option value="beginner">Beginner (New to trading)</option>
+                        <option value="intermediate">Intermediate (Some trading experience)</option>
+                        <option value="advanced">Advanced (Experienced trader)</option>
+                        <option value="expert">Expert (Professional trader)</option>
+                      </select>
+                    </div>
+
+                    {formData.serviceType === 'modify_ea' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Upload Current EA File
+                        </label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600 mb-2">
+                            Drag and drop your EA file here, or click to browse
+                          </p>
+                          <input
+                            type="file"
+                            accept=".ex4,.ex5,.mq4,.mq5"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            id="ea-upload"
+                          />
+                          <label
+                            htmlFor="ea-upload"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700"
+                          >
+                            Choose File
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Additional Requirements
+                      </label>
+                      <textarea
+                        value={formData.requirements}
+                        onChange={(e) => handleInputChange('requirements', e.target.value)}
+                        rows={4}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Any specific requirements, preferences, or questions..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 5: Review & Submit */}
+              {currentStep === 5 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Review Your Request</h2>
+                  
+                  <div className="space-y-6">
+                    <div className="bg-gray-50 rounded-lg p-6">
+                      <h3 className="font-semibold text-lg mb-4">Request Summary</h3>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Service:</span>
+                          <span className="font-medium">
+                            {formData.serviceType === 'new_ea' && 'New EA Development'}
+                            {formData.serviceType === 'modify_ea' && 'EA Modification'}
+                            {formData.serviceType === 'custom_indicator' && 'Custom Indicator'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">EA Name:</span>
+                          <span className="font-medium">{formData.eaName || 'Not specified'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Trading Style:</span>
+                          <span className="font-medium">
+                            {tradingStyles.find(s => s.id === formData.tradingStyle)?.name || 'Not selected'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Platform:</span>
+                          <span className="font-medium">
+                            {platforms.find(p => p.id === formData.platform)?.name || 'Not selected'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Timeline:</span>
+                          <span className="font-medium">{formData.timeline || 'Not specified'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Budget:</span>
+                          <span className="font-medium">{formData.budget || 'Not specified'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 rounded-lg p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold text-lg text-blue-900">Estimated Price</h3>
+                          <p className="text-blue-700">Based on your requirements</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-3xl font-bold text-blue-900">
+                            ${calculatePrice().toLocaleString()}
+                          </div>
+                          <p className="text-blue-700 text-sm">Final price will be confirmed</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-green-50 rounded-lg p-6">
+                      <div className="flex items-center space-x-3">
+                        <Shield className="w-6 h-6 text-green-600" />
+                        <div>
+                          <h3 className="font-semibold text-green-900">Quality Guarantee</h3>
+                          <p className="text-green-700 text-sm">
+                            We guarantee the quality of our work. If you're not satisfied, we'll make it right.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation */}
+              <div className="flex justify-between mt-8">
+                <button
+                  onClick={prevStep}
+                  disabled={currentStep === 1}
+                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                
+                {currentStep < 5 ? (
+                  <button
+                    onClick={nextStep}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                  >
+                    <span>Next</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Submit Request</span>
+                        <Rocket className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Why Choose Us?</h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <Star className="w-5 h-5 text-yellow-500 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-gray-900">Expert Developers</h4>
+                    <p className="text-sm text-gray-600">10+ years experience in MQL programming</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <Shield className="w-5 h-5 text-green-500 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-gray-900">Quality Guarantee</h4>
+                    <p className="text-sm text-gray-600">100% satisfaction or money back</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <Clock className="w-5 h-5 text-blue-500 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-gray-900">Fast Delivery</h4>
+                    <p className="text-sm text-gray-600">Most EAs delivered within 1 week</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <MessageSquare className="w-5 h-5 text-purple-500 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-gray-900">24/7 Support</h4>
+                    <p className="text-sm text-gray-600">Ongoing support and maintenance</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="font-medium text-gray-900 mb-3">Popular Services</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Scalping EA</span>
+                    <span className="font-medium">$750</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Swing Trading EA</span>
+                    <span className="font-medium">$500</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Grid Trading EA</span>
+                    <span className="font-medium">$600</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Custom Indicator</span>
+                    <span className="font-medium">$300</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CustomEA;

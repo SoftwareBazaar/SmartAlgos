@@ -13,7 +13,8 @@ import {
   DollarSign,
   Monitor,
   X,
-  Wrench
+  Wrench,
+  Code
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -26,6 +27,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Markets', href: '/markets', icon: TrendingUp },
     { name: 'News & Analysis', href: '/news', icon: Newspaper },
     { name: 'EA Marketplace', href: '/ea-marketplace', icon: Bot },
+    { name: 'Custom EA Service', href: '/custom-ea', icon: Code },
     { name: 'Free Utilities', href: '/utilities', icon: Wrench },
     { name: 'HFT Bots', href: '/hft-bots', icon: Zap },
     { name: 'Portfolio', href: '/portfolio', icon: PieChart },

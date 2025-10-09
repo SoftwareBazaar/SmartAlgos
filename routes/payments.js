@@ -1120,4 +1120,139 @@ router.get('/invoices/:id/download', [auth], async (req, res) => {
   }
 });
 
+
+// Crypto Payment Routes
+const cryptoPaymentService = require('../services/cryptoPaymentService');
+
+// @route   POST /api/payments/crypto/initialize
+// @desc    Initialize crypto payment
+// @access  Private
+router.post('/crypto/initialize', [
+  auth,
+  updateActivity,
+  body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
+  body('currency').isIn(['USD', 'EUR', 'GBP']).withMessage('Invalid currency')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { amount, currency } = req.body;
+    
+    const cryptoPayment = await cryptoPaymentService.createPaymentRequest(amount, currency);
+    
+    // Log crypto payment initialization
+    securityService.logSecurityEvent('crypto_payment_initialized', {
+      userId: req.user._id,
+      amount,
+      currency,
+      paymentId: cryptoPayment.paymentId,
+      ip: securityService.getClientIP(req)
+    });
+
+    res.json({
+      success: true,
+      data: cryptoPayment,
+      message: 'Crypto payment request created'
+    });
+
+  } catch (error) {
+    console.error('Crypto payment initialization error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to initialize crypto payment'
+    });
+  }
+});
+
+// @route   POST /api/payments/crypto/verify
+// @desc    Verify crypto payment
+// @access  Private
+router.post('/crypto/verify', [
+  auth,
+  body('paymentId').isString().withMessage('Payment ID is required'),
+  body('txHash').isString().withMessage('Transaction hash is required'),
+  body('cryptoType').isIn(['BTC', 'ETH', 'BNB', 'USDT']).withMessage('Invalid crypto type')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { paymentId, txHash, cryptoType } = req.body;
+    
+    const verified = await cryptoPaymentService.verifyPayment(paymentId, txHash, cryptoType);
+    
+    if (verified) {
+      // Log successful verification
+      securityService.logSecurityEvent('crypto_payment_verified', {
+        userId: req.user._id,
+        paymentId,
+        txHash,
+        cryptoType,
+        ip: securityService.getClientIP(req)
+      });
+      
+      res.json({
+        success: true,
+        message: 'Payment verified successfully',
+        data: {
+          paymentId,
+          txHash,
+          cryptoType,
+          verifiedAt: new Date().toISOString()
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Payment verification failed'
+      });
+    }
+
+  } catch (error) {
+    console.error('Crypto payment verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify crypto payment'
+    });
+  }
+});
+
+// @route   GET /api/payments/crypto/status
+// @desc    Get crypto payment service status
+// @access  Private
+router.get('/crypto/status', [
+  auth,
+  updateActivity
+], async (req, res) => {
+  try {
+    const status = cryptoPaymentService.getStatus();
+    
+    res.json({
+      success: true,
+      data: status,
+      message: 'Crypto payment service status retrieved'
+    });
+
+  } catch (error) {
+    console.error('Get crypto payment status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get crypto payment service status'
+    });
+  }
+});
+
 module.exports = router;

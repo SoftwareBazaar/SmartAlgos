@@ -46,6 +46,8 @@ import Payments from './pages/Payments/Payments';
 import DesktopFeatures from './pages/DesktopFeatures/DesktopFeatures';
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import EscrowDashboard from './pages/Escrow/EscrowDashboard';
+import CustomEA from './pages/CustomEA/CustomEA';
+import CustomEAManagement from './pages/Admin/CustomEAManagement';
 
 // Admin Pages
 import AdminDashboard from './pages/Admin/AdminDashboard';
@@ -122,6 +124,9 @@ function App() {
                   <Route path="create-ea" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><CreateEA /></ErrorBoundary></ProtectedRoute>} />
                   <Route path="edit-ea/:id" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><EditEA /></ErrorBoundary></ProtectedRoute>} />
                   
+                  {/* Custom EA Service */}
+                  <Route path="custom-ea" element={<ProtectedRoute><CustomEA /></ProtectedRoute>} />
+                  
                   {/* Free Utilities */}
                   <Route path="utilities" element={<ProtectedRoute><UtilitiesPage /></ProtectedRoute>} />
                   
@@ -146,6 +151,7 @@ function App() {
                   {/* Admin Routes */}
                   <Route path="admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
                   <Route path="admin/panel" element={<ProtectedRoute requireAdmin={true}><AdminPanel /></ProtectedRoute>} />
+                  <Route path="admin/custom-ea" element={<ProtectedRoute requireAdmin={true}><CustomEAManagement /></ProtectedRoute>} />
                   
                   {/* Test Routes - For Development */}
                   <Route path="test" element={<TestPage />} />

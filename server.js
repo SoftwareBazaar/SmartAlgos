@@ -30,6 +30,7 @@ const portfolioRoutes = require('./routes/portfolio');
 const testRoutes = require('./routes/test');
 const adminRoutes = require('./admin-panel');
 const adminCMSRoutes = require('./routes/admin-cms');
+const customEARoutes = require('./routes/customEA');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -289,6 +290,7 @@ app.use('/api/admin', adminRoutes); // Admin routes have their own auth middlewa
 app.use('/api/admin', adminCMSRoutes); // Admin CMS routes
 app.use('/api/utilities', require('./routes/utilities')); // Utilities routes (public read, admin write)
 app.use('/api/economic-calendar', require('./routes/economic-calendar')); // Economic calendar routes (public)
+app.use('/api/custom-ea', auth, customEARoutes); // Custom EA development service
 
 
 // Health check endpoints (must be defined before React catch-all)

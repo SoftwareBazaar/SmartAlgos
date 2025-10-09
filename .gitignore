@@ -122,4 +122,12 @@ pnpm-lock.yaml
 
 # Local development
 .local
-.cache
+.cache.env.*.local
+
+# Testing
+
+# OS files
+
+# Uploads (optional - comment out if you want to commit uploads)
+# uploads/*
+# !uploads/.gitkeep

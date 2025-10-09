@@ -32,6 +32,7 @@ import Card from '../../components/UI/Card';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import apiClient from '../../lib/apiClient';
 import { useEA } from '../../contexts/EAContext';
+import CryptoPaymentDialog from '../../components/Payments/CryptoPaymentDialog';
 
 const EADetail = () => {
   const { id } = useParams();
@@ -44,6 +45,7 @@ const EADetail = () => {
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showCryptoPayment, setShowCryptoPayment] = useState(false);
 
   // Load EA from API
   useEffect(() => {
@@ -761,10 +763,35 @@ const EADetail = () => {
                 <DollarSign className="h-4 w-4 mr-2" />
                 Pay with Credit Card
               </Button>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  setShowCryptoPayment(true);
+                  setShowPurchaseModal(false);
+                }}
+              >
                 <Shield className="h-4 w-4 mr-2" />
                 Pay with Crypto
               </Button>
+              
+              {/* Escrow Payment for Lifetime Access */}
+              <div className="border-2 border-primary-500/30 rounded-lg p-3 bg-primary-500/5">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <Shield className="h-4 w-4 mr-2 text-primary-500" />
+                    <span className="font-semibold text-sm">Secure Escrow Payment</span>
+                  </div>
+                  <span className="text-xs bg-primary-500 text-white px-2 py-0.5 rounded-full">Lifetime</span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                  Use Escrow for <strong>lifetime access</strong> purchase. Your payment is held securely until you confirm EA delivery.
+                </p>
+                <Button variant="outline" className="w-full" size="sm">
+                  <Shield className="h-3 w-3 mr-2" />
+                  Pay via Escrow (Lifetime Access)
+                </Button>
+              </div>
             </div>
 
             <div className="flex gap-3 mt-4">
@@ -844,6 +871,18 @@ const EADetail = () => {
           </div>
         </div>
       )}
+
+      {/* Crypto Payment Dialog */}
+      <CryptoPaymentDialog
+        isOpen={showCryptoPayment}
+        onClose={() => setShowCryptoPayment(false)}
+        amount={pricingPlans.find(p => p.id === selectedPlan)?.price || 18}
+        currency="USD"
+        onPaymentSuccess={() => {
+          setShowCryptoPayment(false);
+          alert('Payment successful! EA will be available in your dashboard.');
+        }}
+      />
     </div>
   );
 };

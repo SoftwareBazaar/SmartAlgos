@@ -269,60 +269,60 @@ const CustomEA = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-black via-brand-900 to-black">
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Custom EA Design Service</h1>
-              <p className="text-gray-600 mt-2">Get a professional Expert Advisor built to your exact specifications</p>
+      <div className="bg-gradient-to-r from-black via-brand-900 to-black border-b border-brand-800/70 shadow-lg">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary-200">Custom EA Design Service</h1>
+              <p className="text-brand-300 mt-1 sm:mt-2 text-xs sm:text-sm md:text-base">Get a professional Expert Advisor built to your exact specifications</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <Users className="w-4 h-4" />
-                <span>500+ EAs Delivered</span>
+            <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-brand-300">
+                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-primary-400" />
+                <span className="whitespace-nowrap">500+ EAs</span>
               </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <Award className="w-4 h-4" />
-                <span>4.9/5 Rating</span>
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-brand-300">
+                <Award className="w-3 h-3 sm:w-4 sm:h-4 text-primary-400" />
+                <span className="whitespace-nowrap">4.9/5 Rating</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center justify-between mb-3 sm:mb-4 overflow-x-auto pb-2">
             {[1, 2, 3, 4, 5].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              <div key={step} className="flex items-center flex-shrink-0">
+                <div className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
                   step <= currentStep 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-600'
+                    ? 'bg-primary-500 text-white' 
+                    : 'bg-brand-800 text-brand-400'
                 }`}>
                   {step}
                 </div>
                 {step < 5 && (
-                  <div className={`w-16 h-1 mx-2 ${
-                    step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
+                  <div className={`w-8 sm:w-12 md:w-16 h-0.5 sm:h-1 mx-1 sm:mx-2 ${
+                    step < currentStep ? 'bg-primary-500' : 'bg-brand-800'
                   }`} />
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Service Type</span>
-            <span>Requirements</span>
-            <span>Technical Details</span>
-            <span>Timeline & Budget</span>
-            <span>Review & Submit</span>
+          <div className="hidden sm:flex justify-between text-xs md:text-sm text-brand-300 mt-2">
+            <span className="text-center flex-1">Service Type</span>
+            <span className="text-center flex-1">Requirements</span>
+            <span className="text-center flex-1">Technical</span>
+            <span className="text-center flex-1">Timeline</span>
+            <span className="text-center flex-1">Review</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {/* Main Form */}
           <div className="lg:col-span-2">
             <motion.div
@@ -330,12 +330,12 @@ const CustomEA = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="bg-white rounded-xl shadow-lg p-8"
+              className="bg-gradient-to-br from-brand-900 to-black rounded-lg sm:rounded-xl shadow-soft border border-brand-800/70 p-4 sm:p-6 md:p-8"
             >
               {/* Step 1: Service Type */}
               {currentStep === 1 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Choose Your Service</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">Choose Your Service</h2>
                   
                   <div className="space-y-4">
                     <div className="border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
@@ -404,40 +404,40 @@ const CustomEA = () => {
               {/* Step 2: Requirements */}
               {currentStep === 2 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">EA Requirements</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">EA Requirements</h2>
                   
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-brand-300 mb-2">
                         EA Name
                       </label>
                       <input
                         type="text"
                         value={formData.eaName}
                         onChange={(e) => handleInputChange('eaName', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-brand-800/50 border border-brand-700 text-primary-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
                         placeholder="e.g., My Scalping EA Pro"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-brand-300 mb-2">
                         Description
                       </label>
                       <textarea
                         value={formData.eaDescription}
                         onChange={(e) => handleInputChange('eaDescription', e.target.value)}
-                        rows={4}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        rows={3}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-brand-800/50 border border-brand-700 text-primary-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
                         placeholder="Describe what you want your EA to do..."
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                      <label className="block text-xs sm:text-sm font-medium text-brand-300 mb-3 sm:mb-4">
                         Trading Style
                       </label>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {tradingStyles.map((style) => {
                           const Icon = style.icon;
                           return (
@@ -496,7 +496,7 @@ const CustomEA = () => {
               {/* Step 3: Technical Details */}
               {currentStep === 3 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Technical Requirements</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">Technical Requirements</h2>
                   
                   <div className="space-y-6">
                     <div>
@@ -578,7 +578,7 @@ const CustomEA = () => {
               {/* Step 4: Timeline & Budget */}
               {currentStep === 4 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Timeline & Budget</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">Timeline & Budget</h2>
                   
                   <div className="space-y-6">
                     <div>
@@ -698,7 +698,7 @@ const CustomEA = () => {
               {/* Step 5: Review & Submit */}
               {currentStep === 5 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Review Your Request</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">Review Your Request</h2>
                   
                   <div className="space-y-6">
                     <div className="bg-gray-50 rounded-lg p-6">
@@ -770,11 +770,11 @@ const CustomEA = () => {
               )}
 
               {/* Navigation */}
-              <div className="flex justify-between mt-8">
+              <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8">
                 <button
                   onClick={prevStep}
                   disabled={currentStep === 1}
-                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 sm:px-6 py-2 sm:py-3 border border-brand-700 rounded-lg text-brand-300 hover:bg-brand-800 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base order-2 sm:order-1"
                 >
                   Previous
                 </button>
@@ -782,26 +782,26 @@ const CustomEA = () => {
                 {currentStep < 5 ? (
                   <button
                     onClick={nextStep}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                    className="px-4 sm:px-6 py-2 sm:py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 flex items-center justify-center space-x-2 text-sm sm:text-base order-1 sm:order-2"
                   >
                     <span>Next</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
                 ) : (
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
+                    className="px-6 sm:px-8 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center space-x-2 text-sm sm:text-base order-1 sm:order-2"
                   >
                     {isSubmitting ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         <span>Submitting...</span>
                       </>
                     ) : (
                       <>
                         <span>Submit Request</span>
-                        <Rocket className="w-4 h-4" />
+                        <Rocket className="w-3 h-3 sm:w-4 sm:h-4" />
                       </>
                     )}
                   </button>
@@ -812,61 +812,61 @@ const CustomEA = () => {
 
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Why Choose Us?</h3>
+            <div className="bg-gradient-to-br from-brand-900 to-black rounded-lg sm:rounded-xl shadow-soft border border-brand-800/70 p-4 sm:p-6 sticky top-4 sm:top-8">
+              <h3 className="text-base sm:text-lg font-semibold text-primary-200 mb-3 sm:mb-4">Why Choose Us?</h3>
               
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <Star className="w-5 h-5 text-yellow-500 mt-0.5" />
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-start space-x-2 sm:space-x-3">
+                  <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium text-gray-900">Expert Developers</h4>
-                    <p className="text-sm text-gray-600">10+ years experience in MQL programming</p>
+                    <h4 className="text-sm sm:text-base font-medium text-primary-200">Expert Developers</h4>
+                    <p className="text-xs sm:text-sm text-brand-300">10+ years experience in MQL programming</p>
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-3">
-                  <Shield className="w-5 h-5 text-green-500 mt-0.5" />
+                <div className="flex items-start space-x-2 sm:space-x-3">
+                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium text-gray-900">Quality Guarantee</h4>
-                    <p className="text-sm text-gray-600">100% satisfaction or money back</p>
+                    <h4 className="text-sm sm:text-base font-medium text-primary-200">Quality Guarantee</h4>
+                    <p className="text-xs sm:text-sm text-brand-300">100% satisfaction or money back</p>
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-3">
-                  <Clock className="w-5 h-5 text-blue-500 mt-0.5" />
+                <div className="flex items-start space-x-2 sm:space-x-3">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium text-gray-900">Fast Delivery</h4>
-                    <p className="text-sm text-gray-600">Most EAs delivered within 1 week</p>
+                    <h4 className="text-sm sm:text-base font-medium text-primary-200">Fast Delivery</h4>
+                    <p className="text-xs sm:text-sm text-brand-300">Most EAs delivered within 1 week</p>
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-3">
-                  <MessageSquare className="w-5 h-5 text-purple-500 mt-0.5" />
+                <div className="flex items-start space-x-2 sm:space-x-3">
+                  <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium text-gray-900">24/7 Support</h4>
-                    <p className="text-sm text-gray-600">Ongoing support and maintenance</p>
+                    <h4 className="text-sm sm:text-base font-medium text-primary-200">24/7 Support</h4>
+                    <p className="text-xs sm:text-sm text-brand-300">Ongoing support and maintenance</p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h4 className="font-medium text-gray-900 mb-3">Popular Services</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Scalping EA</span>
-                    <span className="font-medium">$750</span>
+              <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-brand-800/70">
+                <h4 className="text-sm sm:text-base font-medium text-primary-200 mb-2 sm:mb-3">Popular Services</h4>
+                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-brand-300">Scalping EA</span>
+                    <span className="font-medium text-primary-400">$750</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Swing Trading EA</span>
-                    <span className="font-medium">$500</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-brand-300">Swing Trading EA</span>
+                    <span className="font-medium text-primary-400">$500</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Grid Trading EA</span>
-                    <span className="font-medium">$600</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-brand-300">Grid Trading EA</span>
+                    <span className="font-medium text-primary-400">$600</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Custom Indicator</span>
-                    <span className="font-medium">$300</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-brand-300">Custom Indicator</span>
+                    <span className="font-medium text-primary-400">$300</span>
                   </div>
                 </div>
               </div>

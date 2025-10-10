@@ -148,6 +148,28 @@ const shouldLogRequestBodies = process.env.LOG_REQUEST_BODIES === "true" && !isP
 
 app.set("trust proxy", 1);
 
+// ========================================
+// HEALTH CHECK - Must be FIRST (before any middleware)
+// ========================================
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    message: 'Railway healthcheck endpoint - responding immediately'
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Baseline security headers with relaxed CSP for images and external resources
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -297,25 +319,7 @@ app.use('/api/custom-ea', auth, customEARoutes); // Custom EA development servic
 app.use('/api/ai-assistant', auth, aiAssistantRoutes); // AI EA Assistant
 
 
-// Health check endpoints (must be defined before React catch-all)
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    message: 'Railway healthcheck endpoint'
-  });
-});
-
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
+// Health check endpoints moved to top of file (before middleware)
 
 
 // API root endpoint

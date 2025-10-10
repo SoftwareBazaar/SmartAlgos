@@ -51,6 +51,29 @@ const databaseService = require('./services/databaseService');
 const { setupWebSocketHandlers } = require('./websocket/handlers');
 
 const app = express();
+
+// ========================================
+// CRITICAL: HEALTH CHECK MUST BE ABSOLUTE FIRST
+// Railway needs this to respond IMMEDIATELY
+// ========================================
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    port: process.env.PORT || 5000,
+    message: 'Health check responding immediately'
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
@@ -148,27 +171,7 @@ const shouldLogRequestBodies = process.env.LOG_REQUEST_BODIES === "true" && !isP
 
 app.set("trust proxy", 1);
 
-// ========================================
-// HEALTH CHECK - Must be FIRST (before any middleware)
-// ========================================
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    message: 'Railway healthcheck endpoint - responding immediately'
-  });
-});
-
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
+// Health check already registered at the top of the file (before server creation)
 
 // Baseline security headers with relaxed CSP for images and external resources
 app.use(helmet({
@@ -372,39 +375,7 @@ app.use('/api/*', (req, res) => {
   });
 });
 
-// Supabase connection health-check
-try {
-  const supabaseClient = databaseService.getClient();
-
-  if (!supabaseClient) {
-    throw new Error('Supabase client unavailable');
-  }
-
-  supabaseClient
-    .from('users_accounts')
-    .select('id', { count: 'exact', head: true })
-    .limit(1)
-    .then(() => {
-      console.log('? Connected to Supabase');
-    })
-    .catch((error) => {
-      console.error('??  Supabase connection error:', error.message);
-      console.warn('Database operations may be degraded until connectivity is restored.');
-    });
-
-  global.supabase = supabaseClient;
-} catch (error) {
-  console.error('? Supabase initialization failed:', error.message);
-  if (process.env.NODE_ENV === 'production') {
-    process.exit(1);
-  }
-}
-
-// Setup WebSocket handlers
-setupWebSocketHandlers(io);
-
-
-// Railway startup fix - ensure server starts even with missing env vars
+// Railway startup fix - START SERVER FIRST before any heavy initialization
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost');
 
@@ -413,20 +384,64 @@ server.on('error', (error) => {
   console.error('Server error:', error);
   if (error.code === 'EADDRINUSE') {
     console.error(`Port ${PORT} is already in use`);
+    process.exit(1);
   }
 });
 
 if (!process.env.VERCEL) {
   try {
+    // Start server FIRST so health check can respond immediately
     server.listen(PORT, HOST, () => {
       console.log(`[startup] Smart Algos API running on http://${HOST}:${PORT}`);
       console.log(`[startup] WebSocket server ready on ws://${HOST}:${PORT}`);
       console.log(`[startup] Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`[startup] Railway deployment ready`);
+      console.log(`[startup] Health check available at /health`);
+      console.log(`[startup] Railway deployment ready - health check should respond immediately`);
+      
+      // Now initialize database and other services AFTER server is listening
+      initializeServices();
     });
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
+  }
+}
+
+// Initialize services after server is up (non-blocking for health checks)
+function initializeServices() {
+  // Supabase connection health-check
+  try {
+    const supabaseClient = databaseService.getClient();
+
+    if (!supabaseClient) {
+      throw new Error('Supabase client unavailable');
+    }
+
+    supabaseClient
+      .from('users_accounts')
+      .select('id', { count: 'exact', head: true })
+      .limit(1)
+      .then(() => {
+        console.log('✅ Connected to Supabase');
+      })
+      .catch((error) => {
+        console.error('⚠️  Supabase connection error:', error.message);
+        console.warn('Database operations may be degraded until connectivity is restored.');
+      });
+
+    global.supabase = supabaseClient;
+  } catch (error) {
+    console.error('❌ Supabase initialization failed:', error.message);
+    // Don't exit in production - let service run with degraded functionality
+    console.warn('Service will continue with limited functionality');
+  }
+
+  // Setup WebSocket handlers
+  try {
+    setupWebSocketHandlers(io);
+    console.log('✅ WebSocket handlers initialized');
+  } catch (error) {
+    console.error('⚠️  WebSocket initialization error:', error.message);
   }
 }
 

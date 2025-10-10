@@ -4,8 +4,8 @@
   "description": "Comprehensive algorithmic trading and investment solutions platform",
   "main": "server.js",
   "scripts": {
-    "start": "cross-env MOCK_AUTH=true NODE_ENV=development node server.js",
-    "dev": "cross-env MOCK_AUTH=true NODE_ENV=development nodemon server.js",
+    "start": "node server.js",
+    "dev": "node ensure-upload-dirs.js && nodemon server.js",
     "dev-all": "node start-dev.js",
     "build": "cd client && npm install && npm run build && cd .. && node -e \"const fs=require('fs'); const path=require('path'); const src='client/build'; const files=['index.html','manifest.json','asset-manifest.json']; files.forEach(f=>fs.copyFileSync(path.join(src,f),f)); const copyDir=(s,d)=>{fs.mkdirSync(d,{recursive:true}); fs.readdirSync(s,{withFileTypes:true}).forEach(e=>e.isDirectory()?copyDir(path.join(s,e.name),path.join(d,e.name)):fs.copyFileSync(path.join(s,e.name),path.join(d,e.name)))}; copyDir('client/build/static','static');\"",
     "build:client": "cd client && npm install && npm run build",
@@ -15,9 +15,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "start:railway": "node server.js",
-    "prestart": "node ensure-upload-dirs.js",
-    "start": "node server.js",
-    "dev": "node ensure-upload-dirs.js && nodemon server.js"
+    "prestart": "node ensure-upload-dirs.js"
   },
   "keywords": [
     "trading",
@@ -55,6 +53,7 @@
     "multer": "^1.4.5-lts.1",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.9.4",
+    "qrcode": "^1.5.4",
     "react-confetti": "^6.4.0",
     "react-hot-toast": "^2.6.0",
     "recharts": "^3.2.1",
@@ -62,6 +61,7 @@
     "socket.io": "^4.7.2",
     "stripe": "^13.5.0",
     "technicalindicators": "^3.1.0",
+    "uuid": "^9.0.1",
     "validator": "^13.11.0",
     "web3": "^4.1.1",
     "ws": "^8.14.2",

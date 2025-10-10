@@ -20,6 +20,7 @@ import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
 import EscrowIntegration from '../../components/EscrowIntegration';
+import FloatingChatButton from '../../components/FloatingChatButton';
 import { useAuth } from '../../contexts/AuthContext';
 import { useEA } from '../../contexts/EAContext';
 import apiClient from '../../lib/apiClient';
@@ -355,10 +356,10 @@ const EAMarketplace = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        <h2 className="text-2xl font-semibold text-white tracking-wide mb-4">
+        <h2 className="text-xl font-semibold text-white tracking-wide mb-3">
           {activeCategory === 'all' ? 'All EAs' : categories.find(c => c.id === activeCategory)?.name}
         </h2>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredEAs.map((ea, index) => (
             <motion.div
               key={ea.id}
@@ -368,7 +369,7 @@ const EAMarketplace = () => {
             >
               <Card hover className="h-full">
                 <div className="relative">
-                  <div className="h-48 bg-gradient-to-br from-primary-500 to-primary-600 rounded-t-lg flex items-center justify-center overflow-hidden">
+                  <div className="h-32 bg-gradient-to-br from-primary-500 to-primary-600 rounded-t-lg flex items-center justify-center overflow-hidden">
                     {ea.image ? (
                       <img 
                         src={ea.image} 
@@ -376,7 +377,7 @@ const EAMarketplace = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Bot className="h-16 w-16 text-white" />
+                      <Bot className="h-10 w-10 text-white" />
                     )}
                   </div>
                   <div className="absolute top-4 left-4">
@@ -400,23 +401,23 @@ const EAMarketplace = () => {
                   </div>
                 </div>
                 
-                <Card.Body>
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="text-lg font-semibold text-white">
+                <Card.Body className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-semibold text-white truncate">
                         {ea.name}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                         by {ea.creator_name || 'AlgoSmart'}
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                     {ea.description}
                   </p>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-2 gap-2 mb-3">
                     <div className="text-center">
                       <p className="text-xs text-gray-500 dark:text-gray-400">Win Rate</p>
                       <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -424,29 +425,26 @@ const EAMarketplace = () => {
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Monthly Return</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Return</p>
                       <p className="text-sm font-semibold text-success-600 dark:text-success-400">
                         +{ea.monthly_return || 0}%
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="relative">
-                      <div className="text-4xl font-extrabold text-white drop-shadow-lg">
+                      <div className="text-xl font-bold text-white">
                         ${ea.price_weekly || 6.99}
                       </div>
-                      <div className="text-xs font-medium text-brand-200 mt-1 tracking-wider">
-                        per week • Start Today
-                      </div>
-                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
-                        LOW ENTRY
+                      <div className="text-xs font-medium text-brand-200">
+                        /week
                       </div>
                     </div>
                     <div className="flex items-center space-x-1">
                       <div className="flex items-center">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="ml-1 text-sm font-medium text-white">
+                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                        <span className="ml-1 text-xs font-medium text-white">
                           {ea.average_rating || 0}
                         </span>
                         <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
@@ -457,13 +455,12 @@ const EAMarketplace = () => {
                   </div>
 
                   {/* Rental Timeline Options */}
-                  <div className="mb-4">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Rental Period:</p>
-                    <div className="flex space-x-2">
+                  <div className="mb-3">
+                    <div className="flex space-x-1">
                       {['monthly', 'quarterly', 'yearly'].map((period) => (
                         <button
                           key={period}
-                          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
                             (ea.currentPeriod || 'monthly') === period
                               ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200'
                               : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -475,12 +472,13 @@ const EAMarketplace = () => {
                     </div>
                   </div>
 
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-1">
                     <Button 
                       size="sm" 
                       variant="primary" 
                       fullWidth
                       onClick={() => handleSubscribe(ea)}
+                      className="text-xs"
                     >
                       Subscribe
                     </Button>
@@ -488,16 +486,18 @@ const EAMarketplace = () => {
                       size="sm" 
                       variant="outline"
                       onClick={() => navigate(`/ea-marketplace/${ea.id}`)}
+                      className="px-2"
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3 w-3" />
                     </Button>
                     <Button 
                       size="sm" 
                       variant="outline"
                       onClick={() => navigate(`/edit-ea/${ea.id}`)}
                       title="Edit EA"
+                      className="px-2"
                     >
-                      <Settings className="h-4 w-4" />
+                      <Settings className="h-3 w-3" />
                     </Button>
                   </div>
                 </Card.Body>
@@ -807,6 +807,9 @@ const EAMarketplace = () => {
           </motion.div>
         </motion.div>
       )}
+      
+      {/* Floating Chat Assistant */}
+      <FloatingChatButton context="general" />
     </div>
   );
 };

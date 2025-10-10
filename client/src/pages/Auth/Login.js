@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { Eye, EyeOff } from 'lucide-react';
 
 const VISME_SCRIPT_URL = 'https://static-bundles.visme.co/forms/vismeforms-embed.js';
 
@@ -51,6 +52,7 @@ const animationStyles = `
 export default function SmartAlgosLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [eyePosition, setEyePosition] = useState({ x: 0, y: 0 });
@@ -297,17 +299,29 @@ export default function SmartAlgosLogin() {
                 </label>
                 <div className="relative group">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     onFocus={handlePasswordFocus}
                     onBlur={handlePasswordBlur}
                     placeholder="**********"
-                    className="w-full px-3 py-2 pl-9 bg-slate-700/50 border border-slate-600 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-slate-500"
+                    className="w-full px-3 py-2 pl-9 pr-9 bg-slate-700/50 border border-slate-600 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-slate-500"
                   />
                   <svg className="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400 group-hover:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 hover:text-purple-400 transition-colors focus:outline-none"
+                    title={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
                 </div>
               </div>
 

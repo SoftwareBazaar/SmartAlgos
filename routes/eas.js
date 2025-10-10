@@ -10,6 +10,93 @@ const { auth, requireSubscription, requireOwnership, updateActivity } = require(
 const logger = require('../utils/logger');
 const router = express.Router();
 
+// Custom EA Request endpoint
+router.post('/custom-request', [
+  auth,
+  body('eaName').trim().isLength({ min: 3, max: 100 }).withMessage('EA name must be between 3 and 100 characters'),
+  body('description').trim().isLength({ min: 10 }).withMessage('Description must be at least 10 characters'),
+  body('eaType').notEmpty().withMessage('EA type is required'),
+  body('strategy').notEmpty().withMessage('Strategy is required'),
+  body('contact.name').trim().notEmpty().withMessage('Contact name is required'),
+  body('contact.email').isEmail().withMessage('Valid email is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const supabase = databaseService.getClient();
+    
+    // Create custom EA request record
+    const requestData = {
+      id: uuidv4(),
+      user_id: req.user.id,
+      ea_name: req.body.eaName,
+      description: req.body.description,
+      trading_experience: req.body.tradingExperience,
+      ea_type: req.body.eaType,
+      strategy: req.body.strategy,
+      indicators: req.body.indicators || [],
+      timeframes: req.body.timeframes || [],
+      risk_level: req.body.riskLevel,
+      stat_arb: req.body.statArb || {},
+      quant: req.body.quant || {},
+      idea: req.body.idea || {},
+      timeline: req.body.timeline || {},
+      budget: req.body.budget || {},
+      contact: req.body.contact || {},
+      status: req.body.status || 'pending',
+      estimated_price: req.body.estimatedPrice || 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from('custom_ea_requests')
+      .insert(requestData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Custom EA request creation error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create custom EA request'
+      });
+    }
+
+    // Log the request creation
+    logger.info('Custom EA request created', {
+      requestId: data.id,
+      userId: req.user.id,
+      eaName: req.body.eaName,
+      estimatedPrice: req.body.estimatedPrice
+    });
+
+    res.json({
+      success: true,
+      message: 'Custom EA request submitted successfully',
+      data: {
+        requestId: data.id,
+        estimatedPrice: req.body.estimatedPrice,
+        status: 'pending'
+      }
+    });
+
+  } catch (error) {
+    console.error('Custom EA request error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
 // File upload configuration for EAs
 const EA_UPLOADS_PATH = path.join(__dirname, '../uploads/ea-files');
 const EA_IMAGES_PATH = path.join(__dirname, '../uploads/ea-images');

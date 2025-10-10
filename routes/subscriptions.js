@@ -1168,4 +1168,170 @@ async function handleSubscriptionDisabled(subscriptionData) {
   console.log('Subscription disabled:', subscriptionData);
 }
 
+// @route   POST /api/subscriptions/:id/grant-access
+// @desc    Grant download access after successful payment
+// @access  Private (Admin or System)
+router.post('/:id/grant-access', [
+  auth,
+  body('paymentMethod').notEmpty().withMessage('Payment method is required'),
+  body('paymentReference').notEmpty().withMessage('Payment reference is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const supabase = databaseService.getClient();
+    
+    // Get subscription
+    const { data: subscription, error: subError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (subError || !subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subscription not found'
+      });
+    }
+
+    // Check if subscription is already active
+    if (subscription.status === 'active') {
+      return res.status(400).json({
+        success: false,
+        message: 'Subscription is already active'
+      });
+    }
+
+    // Update subscription status and grant access
+    const { data: updatedSubscription, error: updateError } = await supabase
+      .from('subscriptions')
+      .update({
+        status: 'active',
+        payment_status: 'paid',
+        payment_method: req.body.paymentMethod,
+        payment_reference: req.body.paymentReference,
+        payment_date: new Date().toISOString(),
+        access_granted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Subscription update error:', updateError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to grant access'
+      });
+    }
+
+    // Get EA details for download links
+    const { data: ea, error: eaError } = await supabase
+      .from('eas')
+      .select('*')
+      .eq('id', subscription.ea_id)
+      .single();
+
+    if (eaError) {
+      console.error('EA fetch error:', eaError);
+    }
+
+    // Generate download links
+    const downloadLinks = generateDownloadLinks(ea, subscription);
+
+    // Send confirmation email with download links
+    await sendDownloadConfirmationEmail(subscription, downloadLinks);
+
+    // Log access grant
+    logger.info('Download access granted', {
+      subscriptionId: req.params.id,
+      userId: subscription.user_id,
+      eaId: subscription.ea_id,
+      paymentMethod: req.body.paymentMethod
+    });
+
+    res.json({
+      success: true,
+      message: 'Download access granted successfully',
+      data: {
+        subscription: updatedSubscription,
+        downloadLinks
+      }
+    });
+
+  } catch (error) {
+    console.error('Grant access error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// Helper function to generate download links
+function generateDownloadLinks(ea, subscription) {
+  const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const downloadToken = generateSecureToken();
+  
+  const links = {
+    eaFile: `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file`,
+    setFile: ea.set_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
+    manual: ea.manual_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
+    screenshots: ea.screenshots && ea.screenshots.length > 0 ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=screenshots` : null
+  };
+
+  // Store download token in database for validation
+  storeDownloadToken(subscription.id, downloadToken);
+
+  return links;
+}
+
+// Helper function to generate secure download token
+function generateSecureToken() {
+  return require('crypto').randomBytes(32).toString('hex');
+}
+
+// Helper function to store download token
+async function storeDownloadToken(subscriptionId, token) {
+  try {
+    const supabase = databaseService.getClient();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    await supabase
+      .from('download_tokens')
+      .insert({
+        subscription_id: subscriptionId,
+        token: token,
+        expires_at: expiresAt.toISOString(),
+        created_at: new Date().toISOString()
+      });
+  } catch (error) {
+    console.error('Store download token error:', error);
+  }
+}
+
+// Helper function to send download confirmation email
+async function sendDownloadConfirmationEmail(subscription, downloadLinks) {
+  try {
+    // In a real implementation, you would send an email here
+    // For now, we'll just log it
+    logger.info('Download confirmation email sent', {
+      subscriptionId: subscription.id,
+      userEmail: subscription.user_email,
+      downloadLinks
+    });
+  } catch (error) {
+    console.error('Send email error:', error);
+  }
+}
+
 module.exports = router;

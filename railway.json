@@ -1,12 +1,13 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "buildCommand": "npm install && cd client && npm install && npm run build && cd .."
   },
   "deploy": {
-    "startCommand": "cross-env MOCK_AUTH=false NODE_ENV=production npm run build && cross-env MOCK_AUTH=false NODE_ENV=production node server.js",
+    "startCommand": "node server.js",
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 300,
+    "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }

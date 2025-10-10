@@ -338,78 +338,108 @@ const CustomEA = () => {
                   <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">Choose Your Service</h2>
                   
                   <div className="space-y-4">
-                    <div className={`border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer ${
-                      formData.serviceType === 'new_ea' ? 'border-blue-500 bg-blue-50' : ''
+                    <div className={`border-2 rounded-lg p-6 hover:border-primary-500 transition-all cursor-pointer ${
+                      formData.serviceType === 'new_ea' 
+                        ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20' 
+                        : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                     }`}
                          onClick={() => handleInputChange('serviceType', 'new_ea')}>
                       <div className="flex items-center space-x-4">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                          formData.serviceType === 'new_ea' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                          formData.serviceType === 'new_ea' 
+                            ? 'bg-primary-100 text-primary-600' 
+                            : 'bg-brand-700 text-brand-300'
                         }`}>
                           <Rocket className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
                           <h3 className={`text-lg font-semibold ${
-                            formData.serviceType === 'new_ea' ? 'text-gray-900' : 'text-gray-900'
+                            formData.serviceType === 'new_ea' 
+                              ? 'text-gray-900' 
+                              : 'text-white'
                           }`}>New EA Development</h3>
-                          <p className={`${
-                            formData.serviceType === 'new_ea' ? 'text-gray-700' : 'text-gray-600'
+                          <p className={`text-sm ${
+                            formData.serviceType === 'new_ea' 
+                              ? 'text-gray-700' 
+                              : 'text-brand-300'
                           }`}>Create a custom Expert Advisor from scratch</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${
-                          formData.serviceType === 'new_ea' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+                          formData.serviceType === 'new_ea' 
+                            ? 'border-primary-600 bg-primary-600' 
+                            : 'border-brand-600'
                         }`}>
                           {formData.serviceType === 'new_ea' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1" />}
                         </div>
                       </div>
                     </div>
 
-                    <div className={`border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer ${
-                      formData.serviceType === 'modify_ea' ? 'border-blue-500 bg-blue-50' : ''
+                    <div className={`border-2 rounded-lg p-6 hover:border-primary-500 transition-all cursor-pointer ${
+                      formData.serviceType === 'modify_ea' 
+                        ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20' 
+                        : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                     }`}
                          onClick={() => handleInputChange('serviceType', 'modify_ea')}>
                       <div className="flex items-center space-x-4">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                          formData.serviceType === 'modify_ea' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                          formData.serviceType === 'modify_ea' 
+                            ? 'bg-primary-100 text-primary-600' 
+                            : 'bg-brand-700 text-brand-300'
                         }`}>
                           <Settings className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
                           <h3 className={`text-lg font-semibold ${
-                            formData.serviceType === 'modify_ea' ? 'text-gray-900' : 'text-gray-900'
+                            formData.serviceType === 'modify_ea' 
+                              ? 'text-gray-900' 
+                              : 'text-white'
                           }`}>EA Modification</h3>
-                          <p className={`${
-                            formData.serviceType === 'modify_ea' ? 'text-gray-700' : 'text-gray-600'
+                          <p className={`text-sm ${
+                            formData.serviceType === 'modify_ea' 
+                              ? 'text-gray-700' 
+                              : 'text-brand-300'
                           }`}>Improve or customize your existing EA</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${
-                          formData.serviceType === 'modify_ea' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+                          formData.serviceType === 'modify_ea' 
+                            ? 'border-primary-600 bg-primary-600' 
+                            : 'border-brand-600'
                         }`}>
                           {formData.serviceType === 'modify_ea' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1" />}
                         </div>
                       </div>
                     </div>
 
-                    <div className={`border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer ${
-                      formData.serviceType === 'custom_indicator' ? 'border-blue-500 bg-blue-50' : ''
+                    <div className={`border-2 rounded-lg p-6 hover:border-primary-500 transition-all cursor-pointer ${
+                      formData.serviceType === 'custom_indicator' 
+                        ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20' 
+                        : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                     }`}
                          onClick={() => handleInputChange('serviceType', 'custom_indicator')}>
                       <div className="flex items-center space-x-4">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                          formData.serviceType === 'custom_indicator' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                          formData.serviceType === 'custom_indicator' 
+                            ? 'bg-primary-100 text-primary-600' 
+                            : 'bg-brand-700 text-brand-300'
                         }`}>
                           <BarChart3 className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
                           <h3 className={`text-lg font-semibold ${
-                            formData.serviceType === 'custom_indicator' ? 'text-gray-900' : 'text-gray-900'
+                            formData.serviceType === 'custom_indicator' 
+                              ? 'text-gray-900' 
+                              : 'text-white'
                           }`}>Custom Indicator</h3>
-                          <p className={`${
-                            formData.serviceType === 'custom_indicator' ? 'text-gray-700' : 'text-gray-600'
+                          <p className={`text-sm ${
+                            formData.serviceType === 'custom_indicator' 
+                              ? 'text-gray-700' 
+                              : 'text-brand-300'
                           }`}>Develop a custom trading indicator</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${
-                          formData.serviceType === 'custom_indicator' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+                          formData.serviceType === 'custom_indicator' 
+                            ? 'border-primary-600 bg-primary-600' 
+                            : 'border-brand-600'
                         }`}>
                           {formData.serviceType === 'custom_indicator' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1" />}
                         </div>
@@ -452,7 +482,7 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-brand-300 mb-3 sm:mb-4">
+                      <label className="block text-xs sm:text-sm font-medium text-white mb-3 sm:mb-4">
                         Trading Style
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -463,8 +493,8 @@ const CustomEA = () => {
                               key={style.id}
                               className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
                                 formData.tradingStyle === style.id
-                                  ? 'border-blue-500 bg-blue-50'
-                                  : 'border-gray-200 hover:border-gray-300'
+                                  ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20'
+                                  : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                               }`}
                               onClick={() => handleInputChange('tradingStyle', style.id)}
                             >
@@ -474,10 +504,10 @@ const CustomEA = () => {
                                 </div>
                                 <div>
                                   <h4 className={`font-semibold text-sm ${
-                                    formData.tradingStyle === style.id ? 'text-gray-900' : 'text-gray-900'
+                                    formData.tradingStyle === style.id ? 'text-gray-900' : 'text-white'
                                   }`}>{style.name}</h4>
                                   <p className={`text-xs ${
-                                    formData.tradingStyle === style.id ? 'text-gray-700' : 'text-gray-600'
+                                    formData.tradingStyle === style.id ? 'text-gray-700' : 'text-brand-300'
                                   }`}>{style.description}</p>
                                 </div>
                               </div>
@@ -488,7 +518,7 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                      <label className="block text-sm font-medium text-white mb-4">
                         Platform
                       </label>
                       <div className="grid grid-cols-3 gap-4">
@@ -497,18 +527,18 @@ const CustomEA = () => {
                             key={platform.id}
                             className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
                               formData.platform === platform.id
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20'
+                                : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                             }`}
                             onClick={() => handleInputChange('platform', platform.id)}
                           >
                             <div className="text-center">
                               <div className="text-2xl mb-2">{platform.icon}</div>
                               <h4 className={`font-semibold text-sm ${
-                                formData.platform === platform.id ? 'text-gray-900' : 'text-gray-900'
+                                formData.platform === platform.id ? 'text-gray-900' : 'text-white'
                               }`}>{platform.name}</h4>
                               <p className={`text-xs ${
-                                formData.platform === platform.id ? 'text-gray-700' : 'text-gray-600'
+                                formData.platform === platform.id ? 'text-gray-700' : 'text-brand-300'
                               }`}>{platform.description}</p>
                             </div>
                           </div>
@@ -608,7 +638,7 @@ const CustomEA = () => {
                   
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                      <label className="block text-sm font-medium text-white mb-4">
                         Delivery Timeline
                       </label>
                       <div className="space-y-3">
@@ -617,18 +647,18 @@ const CustomEA = () => {
                             key={option.value}
                             className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
                               formData.timeline === option.value
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20'
+                                : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                             }`}
                             onClick={() => handleInputChange('timeline', option.value)}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-3">
                                 <Clock className={`w-5 h-5 ${
-                                  formData.timeline === option.value ? 'text-gray-700' : 'text-gray-600'
+                                  formData.timeline === option.value ? 'text-gray-700' : 'text-brand-300'
                                 }`} />
                                 <span className={`font-medium ${
-                                  formData.timeline === option.value ? 'text-gray-900' : 'text-gray-900'
+                                  formData.timeline === option.value ? 'text-gray-900' : 'text-white'
                                 }`}>{option.label}</span>
                               </div>
                               <span className={`font-semibold ${option.color}`}>{option.price}</span>
@@ -639,7 +669,7 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                      <label className="block text-sm font-medium text-white mb-4">
                         Budget Range
                       </label>
                       <div className="space-y-3">
@@ -648,22 +678,22 @@ const CustomEA = () => {
                             key={range.label}
                             className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
                               formData.budget === range.label
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20'
+                                : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                             }`}
                             onClick={() => handleInputChange('budget', range.label)}
                           >
                             <div className="flex items-center justify-between">
                               <div>
                                 <span className={`font-medium ${
-                                  formData.budget === range.label ? 'text-gray-900' : 'text-gray-900'
+                                  formData.budget === range.label ? 'text-gray-900' : 'text-white'
                                 }`}>{range.label}</span>
                                 <p className={`text-sm ${
-                                  formData.budget === range.label ? 'text-gray-700' : 'text-gray-600'
+                                  formData.budget === range.label ? 'text-gray-700' : 'text-brand-300'
                                 }`}>{range.description}</p>
                               </div>
                               <DollarSign className={`w-5 h-5 ${
-                                formData.budget === range.label ? 'text-gray-700' : 'text-gray-600'
+                                formData.budget === range.label ? 'text-gray-700' : 'text-brand-300'
                               }`} />
                             </div>
                           </div>

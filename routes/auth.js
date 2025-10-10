@@ -148,6 +148,15 @@ router.post('/register', [
     // For development: Create user directly in database (bypass Supabase Auth email confirmation)
     const supabase = databaseService.getClient();
     
+    // Check if we're in mock mode
+    if (!supabase) {
+      console.log('[Auth] Mock mode: Skipping user registration');
+      return res.status(400).json({
+        success: false,
+        message: 'User registration not available in mock mode. Please set up Supabase credentials.'
+      });
+    }
+    
     // Generate a UUID for the user
     const userId = uuidv4();
     
@@ -248,6 +257,15 @@ router.post('/login', [
 
     // For development: Use direct database authentication
     const supabase = databaseService.getClient();
+    
+    // Check if we're in mock mode
+    if (!supabase) {
+      console.log('[Auth] Mock mode: Skipping database lookup for login');
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication not available in mock mode. Please set up Supabase credentials.'
+      });
+    }
     
     // Get user profile from database
     const { data: profile, error: profileError } = await supabase

@@ -338,7 +338,9 @@ const CustomEA = () => {
                   <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">Choose Your Service</h2>
                   
                   <div className="space-y-4">
-                    <div className="border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
+                    <div className={`border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer ${
+                      formData.serviceType === 'new_ea' ? 'border-blue-500 bg-blue-50' : ''
+                    }`}
                          onClick={() => handleInputChange('serviceType', 'new_ea')}>
                       <div className="flex items-center space-x-4">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
@@ -347,8 +349,12 @@ const CustomEA = () => {
                           <Rocket className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold">New EA Development</h3>
-                          <p className="text-gray-600">Create a custom Expert Advisor from scratch</p>
+                          <h3 className={`text-lg font-semibold ${
+                            formData.serviceType === 'new_ea' ? 'text-gray-900' : 'text-gray-900'
+                          }`}>New EA Development</h3>
+                          <p className={`${
+                            formData.serviceType === 'new_ea' ? 'text-gray-700' : 'text-gray-600'
+                          }`}>Create a custom Expert Advisor from scratch</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${
                           formData.serviceType === 'new_ea' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
@@ -358,7 +364,9 @@ const CustomEA = () => {
                       </div>
                     </div>
 
-                    <div className="border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
+                    <div className={`border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer ${
+                      formData.serviceType === 'modify_ea' ? 'border-blue-500 bg-blue-50' : ''
+                    }`}
                          onClick={() => handleInputChange('serviceType', 'modify_ea')}>
                       <div className="flex items-center space-x-4">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
@@ -367,8 +375,12 @@ const CustomEA = () => {
                           <Settings className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold">EA Modification</h3>
-                          <p className="text-gray-600">Improve or customize your existing EA</p>
+                          <h3 className={`text-lg font-semibold ${
+                            formData.serviceType === 'modify_ea' ? 'text-gray-900' : 'text-gray-900'
+                          }`}>EA Modification</h3>
+                          <p className={`${
+                            formData.serviceType === 'modify_ea' ? 'text-gray-700' : 'text-gray-600'
+                          }`}>Improve or customize your existing EA</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${
                           formData.serviceType === 'modify_ea' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
@@ -378,7 +390,9 @@ const CustomEA = () => {
                       </div>
                     </div>
 
-                    <div className="border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer"
+                    <div className={`border-2 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer ${
+                      formData.serviceType === 'custom_indicator' ? 'border-blue-500 bg-blue-50' : ''
+                    }`}
                          onClick={() => handleInputChange('serviceType', 'custom_indicator')}>
                       <div className="flex items-center space-x-4">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
@@ -387,8 +401,12 @@ const CustomEA = () => {
                           <BarChart3 className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold">Custom Indicator</h3>
-                          <p className="text-gray-600">Develop a custom trading indicator</p>
+                          <h3 className={`text-lg font-semibold ${
+                            formData.serviceType === 'custom_indicator' ? 'text-gray-900' : 'text-gray-900'
+                          }`}>Custom Indicator</h3>
+                          <p className={`${
+                            formData.serviceType === 'custom_indicator' ? 'text-gray-700' : 'text-gray-600'
+                          }`}>Develop a custom trading indicator</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${
                           formData.serviceType === 'custom_indicator' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
@@ -455,8 +473,12 @@ const CustomEA = () => {
                                   <Icon className="w-5 h-5 text-white" />
                                 </div>
                                 <div>
-                                  <h4 className="font-semibold text-sm">{style.name}</h4>
-                                  <p className="text-xs text-gray-600">{style.description}</p>
+                                  <h4 className={`font-semibold text-sm ${
+                                    formData.tradingStyle === style.id ? 'text-gray-900' : 'text-gray-900'
+                                  }`}>{style.name}</h4>
+                                  <p className={`text-xs ${
+                                    formData.tradingStyle === style.id ? 'text-gray-700' : 'text-gray-600'
+                                  }`}>{style.description}</p>
                                 </div>
                               </div>
                             </div>
@@ -482,8 +504,12 @@ const CustomEA = () => {
                           >
                             <div className="text-center">
                               <div className="text-2xl mb-2">{platform.icon}</div>
-                              <h4 className="font-semibold text-sm">{platform.name}</h4>
-                              <p className="text-xs text-gray-600">{platform.description}</p>
+                              <h4 className={`font-semibold text-sm ${
+                                formData.platform === platform.id ? 'text-gray-900' : 'text-gray-900'
+                              }`}>{platform.name}</h4>
+                              <p className={`text-xs ${
+                                formData.platform === platform.id ? 'text-gray-700' : 'text-gray-600'
+                              }`}>{platform.description}</p>
                             </div>
                           </div>
                         ))}
@@ -598,8 +624,12 @@ const CustomEA = () => {
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-3">
-                                <Clock className="w-5 h-5 text-gray-600" />
-                                <span className="font-medium">{option.label}</span>
+                                <Clock className={`w-5 h-5 ${
+                                  formData.timeline === option.value ? 'text-gray-700' : 'text-gray-600'
+                                }`} />
+                                <span className={`font-medium ${
+                                  formData.timeline === option.value ? 'text-gray-900' : 'text-gray-900'
+                                }`}>{option.label}</span>
                               </div>
                               <span className={`font-semibold ${option.color}`}>{option.price}</span>
                             </div>
@@ -625,10 +655,16 @@ const CustomEA = () => {
                           >
                             <div className="flex items-center justify-between">
                               <div>
-                                <span className="font-medium">{range.label}</span>
-                                <p className="text-sm text-gray-600">{range.description}</p>
+                                <span className={`font-medium ${
+                                  formData.budget === range.label ? 'text-gray-900' : 'text-gray-900'
+                                }`}>{range.label}</span>
+                                <p className={`text-sm ${
+                                  formData.budget === range.label ? 'text-gray-700' : 'text-gray-600'
+                                }`}>{range.description}</p>
                               </div>
-                              <DollarSign className="w-5 h-5 text-gray-600" />
+                              <DollarSign className={`w-5 h-5 ${
+                                formData.budget === range.label ? 'text-gray-700' : 'text-gray-600'
+                              }`} />
                             </div>
                           </div>
                         ))}

@@ -776,7 +776,7 @@ const CustomEA = () => {
                         value={formData.requirements}
                         onChange={(e) => handleInputChange('requirements', e.target.value)}
                         rows={4}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 bg-brand-800 border border-brand-600 rounded-lg text-white placeholder-brand-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         placeholder="Any specific requirements, preferences, or questions..."
                       />
                     </div>

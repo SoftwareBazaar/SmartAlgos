@@ -69,7 +69,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         </button>
       </div>
 
-      <nav className="mt-6 flex-1 px-3 pb-6 space-y-8">
+      <nav className="mt-6 flex-1 px-3 pb-6 space-y-8 overflow-y-auto scrollbar-thin scrollbar-thumb-brand-700 scrollbar-track-transparent hover:scrollbar-thumb-brand-600 scroll-smooth">
         <div className="space-y-1">
           <p className="px-1 text-xs font-semibold uppercase tracking-wider text-brand-300">
             Navigation

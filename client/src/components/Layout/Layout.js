@@ -20,7 +20,7 @@ const Layout = () => {
         />
         <div className="relative flex-1 flex flex-col min-h-screen">
           <Header onMenuClick={() => setSidebarOpen(true)} />
-          <main className="flex-1 overflow-y-auto p-6">
+          <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-brand-700 scrollbar-track-transparent hover:scrollbar-thumb-brand-600 scroll-smooth p-6">
             <div className="max-w-7xl mx-auto">
               <Outlet />
             </div>

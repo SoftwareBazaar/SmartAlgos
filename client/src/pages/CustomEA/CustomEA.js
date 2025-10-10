@@ -47,6 +47,7 @@ const CustomEA = () => {
     // Timeline & Budget
     timeline: '',
     budget: '',
+    customBudget: '',
     urgency: '', // 'low', 'medium', 'high', 'urgent'
     
     // Additional Details
@@ -252,6 +253,7 @@ const CustomEA = () => {
                 customFeatures: [],
                 timeline: '',
                 budget: '',
+                customBudget: '',
                 urgency: '',
                 experience: '',
                 currentEA: null,
@@ -292,9 +294,9 @@ const CustomEA = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 overflow-y-auto scrollbar-thin scrollbar-thumb-brand-700 scrollbar-track-transparent hover:scrollbar-thumb-brand-600 scroll-smooth max-h-screen">
         {/* Progress Bar */}
-        <div className="mb-6 sm:mb-8">
+        <div className="mb-6 sm:mb-8 sticky top-0 bg-gradient-to-br from-black via-brand-900 to-black pb-4 z-10">
           <div className="flex items-center justify-between mb-3 sm:mb-4 overflow-x-auto pb-2">
             {[1, 2, 3, 4, 5].map((step) => (
               <div key={step} className="flex items-center flex-shrink-0">
@@ -703,6 +705,27 @@ const CustomEA = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-white mb-2">
+                        💰 Custom Budget (Optional)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white">$</span>
+                        <input
+                          type="number"
+                          placeholder="Enter your custom budget amount"
+                          value={formData.customBudget || ''}
+                          onChange={(e) => handleInputChange('customBudget', e.target.value)}
+                          className="w-full pl-8 pr-3 py-3 bg-brand-800 border border-brand-600 rounded-lg text-white placeholder-brand-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          min="100"
+                          step="50"
+                        />
+                      </div>
+                      <p className="text-xs text-brand-300 mt-1">
+                        Leave empty to use the selected budget range above
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
                         Experience Level
                       </label>
                       <select
@@ -767,55 +790,55 @@ const CustomEA = () => {
                   <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">Review Your Request</h2>
                   
                   <div className="space-y-6">
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="font-semibold text-lg mb-4">Request Summary</h3>
+                    <div className="bg-brand-800 rounded-lg p-6 border border-brand-700">
+                      <h3 className="font-semibold text-lg mb-4 text-white">📋 Request Summary</h3>
                       <div className="space-y-3 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Service:</span>
-                          <span className="font-medium">
+                          <span className="text-brand-300">Service:</span>
+                          <span className="font-medium text-white">
                             {formData.serviceType === 'new_ea' && 'New EA Development'}
                             {formData.serviceType === 'modify_ea' && 'EA Modification'}
                             {formData.serviceType === 'custom_indicator' && 'Custom Indicator'}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">EA Name:</span>
-                          <span className="font-medium">{formData.eaName || 'Not specified'}</span>
+                          <span className="text-brand-300">EA Name:</span>
+                          <span className="font-medium text-white">{formData.eaName || 'Not specified'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Trading Style:</span>
-                          <span className="font-medium">
+                          <span className="text-brand-300">Trading Style:</span>
+                          <span className="font-medium text-white">
                             {tradingStyles.find(s => s.id === formData.tradingStyle)?.name || 'Not selected'}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Platform:</span>
-                          <span className="font-medium">
+                          <span className="text-brand-300">Platform:</span>
+                          <span className="font-medium text-white">
                             {platforms.find(p => p.id === formData.platform)?.name || 'Not selected'}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Timeline:</span>
-                          <span className="font-medium">{formData.timeline || 'Not specified'}</span>
+                          <span className="text-brand-300">Timeline:</span>
+                          <span className="font-medium text-white">{formData.timeline || 'Not specified'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Budget:</span>
-                          <span className="font-medium">{formData.budget || 'Not specified'}</span>
+                          <span className="text-brand-300">Budget:</span>
+                          <span className="font-medium text-white">{formData.budget || 'Not specified'}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 rounded-lg p-6">
+                    <div className="bg-primary-900 rounded-lg p-6 border border-primary-700">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-lg text-blue-900">Estimated Price</h3>
-                          <p className="text-blue-700">Based on your requirements</p>
+                          <h3 className="font-semibold text-lg text-primary-200">💰 Estimated Price</h3>
+                          <p className="text-primary-300">Based on your requirements</p>
                         </div>
                         <div className="text-right">
-                          <div className="text-3xl font-bold text-blue-900">
+                          <div className="text-3xl font-bold text-primary-200">
                             ${calculatePrice().toLocaleString()}
                           </div>
-                          <p className="text-blue-700 text-sm">Final price will be confirmed</p>
+                          <p className="text-primary-300 text-sm">Final price will be confirmed</p>
                         </div>
                       </div>
                     </div>

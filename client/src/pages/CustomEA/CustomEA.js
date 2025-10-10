@@ -572,57 +572,57 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-primary-200 mb-4">
-                        Indicators to Include
+                      <label className="block text-lg font-bold text-white mb-4 border-b-2 border-primary-500 pb-2">
+                        📊 Indicators to Include
                       </label>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {indicators.map((indicator) => (
-                          <label key={indicator} className="flex items-center space-x-2 cursor-pointer">
+                          <label key={indicator} className="flex items-center space-x-3 cursor-pointer p-2 rounded-lg hover:bg-brand-800/50 transition-colors">
                             <input
                               type="checkbox"
                               checked={formData.indicators.includes(indicator)}
                               onChange={() => handleArrayToggle('indicators', indicator)}
                               className="w-4 h-4 text-primary-500 border-brand-600 bg-brand-800 rounded focus:ring-primary-500"
                             />
-                            <span className="text-sm text-primary-200">{indicator}</span>
+                            <span className="text-sm text-white font-medium">{indicator}</span>
                           </label>
                         ))}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-primary-200 mb-4">
-                        Risk Management Features
+                      <label className="block text-lg font-bold text-white mb-4 border-b-2 border-primary-500 pb-2">
+                        🛡️ Risk Management Features
                       </label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {riskManagement.map((feature) => (
-                          <label key={feature} className="flex items-center space-x-2 cursor-pointer">
+                          <label key={feature} className="flex items-center space-x-3 cursor-pointer p-2 rounded-lg hover:bg-brand-800/50 transition-colors">
                             <input
                               type="checkbox"
                               checked={formData.riskManagement.includes(feature)}
                               onChange={() => handleArrayToggle('riskManagement', feature)}
                               className="w-4 h-4 text-primary-500 border-brand-600 bg-brand-800 rounded focus:ring-primary-500"
                             />
-                            <span className="text-sm text-primary-200">{feature}</span>
+                            <span className="text-sm text-white font-medium">{feature}</span>
                           </label>
                         ))}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-primary-200 mb-4">
-                        Custom Features
+                      <label className="block text-lg font-bold text-white mb-4 border-b-2 border-primary-500 pb-2">
+                        ⚡ Custom Features
                       </label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {customFeatures.map((feature) => (
-                          <label key={feature} className="flex items-center space-x-2 cursor-pointer">
+                          <label key={feature} className="flex items-center space-x-3 cursor-pointer p-2 rounded-lg hover:bg-brand-800/50 transition-colors">
                             <input
                               type="checkbox"
                               checked={formData.customFeatures.includes(feature)}
                               onChange={() => handleArrayToggle('customFeatures', feature)}
                               className="w-4 h-4 text-primary-500 border-brand-600 bg-brand-800 rounded focus:ring-primary-500"
                             />
-                            <span className="text-sm text-primary-200">{feature}</span>
+                            <span className="text-sm text-white font-medium">{feature}</span>
                           </label>
                         ))}
                       </div>
@@ -702,25 +702,25 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-white mb-2">
                         Experience Level
                       </label>
                       <select
                         value={formData.experience}
                         onChange={(e) => handleInputChange('experience', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 bg-brand-800 border border-brand-600 rounded-lg text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       >
-                        <option value="">Select your experience</option>
-                        <option value="beginner">Beginner (New to trading)</option>
-                        <option value="intermediate">Intermediate (Some trading experience)</option>
-                        <option value="advanced">Advanced (Experienced trader)</option>
-                        <option value="expert">Expert (Professional trader)</option>
+                        <option value="" className="bg-brand-800 text-brand-300">Select your experience</option>
+                        <option value="beginner" className="bg-brand-800 text-white">Beginner (New to trading)</option>
+                        <option value="intermediate" className="bg-brand-800 text-white">Intermediate (Some trading experience)</option>
+                        <option value="advanced" className="bg-brand-800 text-white">Advanced (Experienced trader)</option>
+                        <option value="expert" className="bg-brand-800 text-white">Expert (Professional trader)</option>
                       </select>
                     </div>
 
                     {formData.serviceType === 'modify_ea' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-white mb-2">
                           Upload Current EA File
                         </label>
                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
@@ -746,7 +746,7 @@ const CustomEA = () => {
                     )}
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-white mb-2">
                         Additional Requirements
                       </label>
                       <textarea

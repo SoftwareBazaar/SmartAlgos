@@ -21,6 +21,10 @@ import { useAuth } from '../../contexts/AuthContext';
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const location = useLocation();
+  
+  // Debug: Log user role
+  console.log('[Sidebar] User role:', user?.role);
+  console.log('[Sidebar] User data:', user);
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -112,6 +116,13 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
         </div>
 
+        {/* Debug: Show current role */}
+        {user && (
+          <div className="px-4 py-2 text-xs text-yellow-400 bg-yellow-900/20 rounded">
+            DEBUG: Role = "{user.role}" | Email = {user.email}
+          </div>
+        )}
+
         {/* Admin Section - Only for Admins */}
         {user?.role === 'admin' && (
           <div>
@@ -134,14 +145,6 @@ const Sidebar = ({ isOpen, onClose }) => {
               >
                 <Monitor className="mr-3 h-5 w-5" />
                 <span>Control Panel</span>
-              </NavLink>
-              <NavLink
-                to="/create-ea"
-                onClick={onClose}
-                className={linkClassNames('/create-ea')}
-              >
-                <Bot className="mr-3 h-5 w-5" />
-                <span>Create Custom EA</span>
               </NavLink>
             </div>
           </div>

@@ -34,6 +34,7 @@ import apiClient from '../../lib/apiClient';
 import { useEA } from '../../contexts/EAContext';
 import CryptoPaymentDialog from '../../components/Payments/CryptoPaymentDialog';
 import SelfServiceCryptoDialog from '../../components/Payments/SelfServiceCryptoDialog';
+import EADownloadSection from '../../components/Downloads/EADownloadSection';
 
 const EADetail = () => {
   const { id } = useParams();
@@ -48,6 +49,23 @@ const EADetail = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showCryptoPayment, setShowCryptoPayment] = useState(false);
   const [showSelfServiceCrypto, setShowSelfServiceCrypto] = useState(false);
+  const [userSubscription, setUserSubscription] = useState(null);
+
+  // Fetch user subscription for this EA
+  const fetchUserSubscription = async () => {
+    try {
+      const response = await apiClient.get('/api/subscriptions');
+      if (response.data.success && response.data.data) {
+        // Find subscription for this EA
+        const subscription = response.data.data.find(sub => 
+          sub.ea_id === id && sub.status === 'active'
+        );
+        setUserSubscription(subscription);
+      }
+    } catch (error) {
+      console.error('Error fetching user subscription:', error);
+    }
+  };
 
   // Load EA from API
   useEffect(() => {
@@ -109,6 +127,7 @@ const EADetail = () => {
     };
 
     fetchEA();
+    fetchUserSubscription();
     
     // Listen for EA update events
     const handleEAUpdate = () => {
@@ -330,7 +349,8 @@ const EADetail = () => {
                     { id: 'overview', label: 'Overview' },
                     { id: 'performance', label: 'Performance' },
                     { id: 'features', label: 'Features' },
-                    { id: 'reviews', label: 'Reviews' }
+                    { id: 'reviews', label: 'Reviews' },
+                    { id: 'downloads', label: 'Downloads' }
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -606,6 +626,20 @@ const EADetail = () => {
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {selectedTab === 'downloads' && (
+                  <div className="space-y-6">
+                    <EADownloadSection 
+                      ea={ea} 
+                      subscription={userSubscription}
+                      onDownloadSuccess={(fileType) => {
+                        console.log(`Download successful: ${fileType}`);
+                        // Optionally refresh subscription data
+                        fetchUserSubscription();
+                      }}
+                    />
                   </div>
                 )}
               </div>

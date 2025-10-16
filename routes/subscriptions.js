@@ -131,10 +131,10 @@ router.get('/:id', [auth, updateActivity], async (req, res) => {
 // @access  Private
 router.post('/', [
   auth,
-  requireSubscription('basic'),
+  // Note: Don't require subscription here - this endpoint CREATES subscriptions
   body('eaId')
-    .isMongoId()
-    .withMessage('Valid EA ID is required'),
+    .notEmpty()
+    .withMessage('EA ID is required'),
   body('subscriptionType')
     .isIn(['weekly', 'monthly', 'quarterly', 'yearly'])
     .withMessage('Invalid subscription type'),
@@ -157,9 +157,23 @@ router.post('/', [
 
     const { eaId, subscriptionType, paymentMethod, paymentReference } = req.body;
 
-    // Get EA details
-    const ea = await EA.findById(eaId);
-    if (!ea) {
+    // Get Supabase client
+    const supabase = databaseService.getClient();
+    if (!supabase) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection not available'
+      });
+    }
+
+    // Get EA details from Supabase
+    const { data: ea, error: eaError } = await supabase
+      .from('expert_advisors')
+      .select('*')
+      .eq('id', eaId)
+      .single();
+
+    if (eaError || !ea) {
       return res.status(404).json({
         success: false,
         message: 'EA not found'
@@ -167,7 +181,7 @@ router.post('/', [
     }
 
     // Check if EA is available
-    if (!ea.isActive || ea.status !== 'approved') {
+    if (!ea.is_active) {
       return res.status(400).json({
         success: false,
         message: 'EA is not available for subscription'
@@ -175,13 +189,14 @@ router.post('/', [
     }
 
     // Check if user already has an active subscription to this EA
-    const existingSubscription = await Subscription.findOne({
-      user: req.user._id,
-      ea: eaId,
-      status: { $in: ['active', 'pending'] }
-    });
+    const { data: existingSubscriptions } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', req.user.id)
+      .eq('ea_id', eaId)
+      .in('status', ['active', 'pending']);
 
-    if (existingSubscription) {
+    if (existingSubscriptions && existingSubscriptions.length > 0) {
       return res.status(400).json({
         success: false,
         message: 'You already have an active subscription to this EA'
@@ -189,7 +204,8 @@ router.post('/', [
     }
 
     // Calculate pricing and dates
-    const price = ea.pricing[subscriptionType];
+    const priceField = `price_${subscriptionType}`;
+    const price = ea[priceField];
     if (!price) {
       return res.status(400).json({
         success: false,
@@ -215,54 +231,53 @@ router.post('/', [
         break;
     }
 
-    // Create subscription
-    const subscription = new Subscription({
-      user: req.user._id,
-      ea: eaId,
-      subscriptionType,
+    // Create subscription in Supabase
+    const subscriptionData = {
+      user_id: req.user.id,
+      ea_id: eaId,
+      subscription_type: subscriptionType,
       price,
-      currency: ea.pricing.currency,
-      startDate,
-      endDate,
-      paymentMethod,
-      paymentReference,
-      paymentStatus: 'completed', // Assuming payment is already processed
-      escrowAmount: price,
-      creator: ea.creator
-    });
+      currency: 'USD',
+      start_date: startDate.toISOString(),
+      end_date: endDate.toISOString(),
+      payment_method: paymentMethod,
+      payment_reference: paymentReference,
+      payment_status: 'completed',
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-    await subscription.save();
+    const { data: subscription, error: subscriptionError } = await supabase
+      .from('subscriptions')
+      .insert(subscriptionData)
+      .select()
+      .single();
 
-    // Create escrow
-    const escrow = new Escrow({
-      subscription: subscription._id,
-      user: req.user._id,
-      ea: eaId,
-      creator: ea.creator,
-      amount: price,
-      currency: ea.pricing.currency,
-      multisigAddress: `0x${Math.random().toString(16).substr(2, 40)}`, // Mock address
-      transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`, // Mock hash
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
-    });
+    if (subscriptionError) {
+      console.error('Subscription creation error:', subscriptionError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create subscription',
+        error: subscriptionError.message,
+        details: subscriptionError.details || subscriptionError.hint
+      });
+    }
 
-    await escrow.save();
-
-    // Update EA subscription stats
-    ea.subscriptionStats.totalSubscribers += 1;
-    ea.subscriptionStats.activeSubscribers += 1;
-    ea.subscriptionStats.totalRevenue += price;
-    ea.subscriptionStats.monthlyRevenue += subscriptionType === 'monthly' ? price : 0;
-    await ea.save();
-
-    // Populate subscription for response
-    await subscription.populate('ea', 'name description pricing');
-    await subscription.populate('creator', 'firstName lastName avatar');
+    // Get subscription with EA details for response
+    const { data: subscriptionWithEA } = await supabase
+      .from('subscriptions')
+      .select(`
+        *,
+        ea:expert_advisors(*)
+      `)
+      .eq('id', subscription.id)
+      .single();
 
     res.status(201).json({
       success: true,
       message: 'Subscription created successfully',
-      data: subscription
+      data: subscriptionWithEA || subscription
     });
 
   } catch (error) {
@@ -435,14 +450,25 @@ router.put('/:id/renew', [
 });
 
 // @route   GET /api/subscriptions/:id/files
-// @desc    Get subscription files
+// @desc    Get subscription files with download links
 // @access  Private
 router.get('/:id/files', [auth, updateActivity], async (req, res) => {
   try {
-    const subscription = await Subscription.findById(req.params.id)
-      .populate('ea', 'files name');
+    // Get subscription from Supabase
+    const { data: subscription, error: subError } = await supabase
+      .from('subscriptions')
+      .select(`
+        id,
+        user_id,
+        ea_id,
+        status,
+        end_date
+      `)
+      .eq('id', req.params.id)
+      .single();
 
-    if (!subscription) {
+    if (subError || !subscription) {
+      console.error('Get subscription error:', subError);
       return res.status(404).json({
         success: false,
         message: 'Subscription not found'
@@ -450,7 +476,7 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
     }
 
     // Check if user owns this subscription
-    if (subscription.user.toString() !== req.user._id.toString()) {
+    if (subscription.user_id !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: 'Access denied'
@@ -458,18 +484,64 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
     }
 
     // Check if subscription is active
-    if (subscription.status !== 'active' || !subscription.hasAccess) {
+    if (subscription.status !== 'active') {
       return res.status(403).json({
         success: false,
         message: 'Subscription is not active'
       });
     }
 
+    // Check if subscription has expired
+    if (new Date(subscription.end_date) < new Date()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Subscription has expired'
+      });
+    }
+
+    // Get EA details
+    const { data: ea, error: eaError } = await supabase
+      .from('expert_advisors')
+      .select('id, name, ea_file_path, manual_file_path, screenshots')
+      .eq('id', subscription.ea_id)
+      .single();
+
+    if (eaError || !ea) {
+      console.error('Get EA error:', eaError);
+      return res.status(404).json({
+        success: false,
+        message: 'EA not found'
+      });
+    }
+
+    // Generate download token (valid for 24 hours)
+    const jwt = require('jsonwebtoken');
+    const downloadToken = jwt.sign(
+      {
+        subscriptionId: subscription.id,
+        userId: req.user.id,
+        eaId: ea.id
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    
+    // Generate download links
+    const downloadLinks = {
+      ea_file: ea.ea_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
+      set_file: null, // No set_file in expert_advisors table
+      manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
+      screenshots: ea.screenshots && ea.screenshots.length > 0 ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=screenshots` : null
+    };
+
     res.json({
       success: true,
       data: {
-        files: subscription.ea.files,
-        downloads: subscription.downloadedFiles
+        files: downloadLinks,
+        downloads: subscription.downloaded_files || {},
+        tokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
       }
     });
 

@@ -33,6 +33,7 @@ const adminRoutes = require('./admin-panel');
 const adminCMSRoutes = require('./routes/admin-cms');
 const customEARoutes = require('./routes/customEA');
 const aiAssistantRoutes = require('./routes/aiAssistant');
+const downloadsRoutes = require('./routes/downloads');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -298,7 +299,7 @@ app.use((req, res, next) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', auth, userRoutes);
-app.use('/api/eas', auth, eaRoutes);
+app.use('/api/eas', eaRoutes); // Public routes - auth handled per-endpoint
 app.use('/api/hft', auth, hftRoutes);
 app.use('/api/signals', auth, signalRoutes);
 app.use('/api/markets', auth, marketRoutes);
@@ -320,6 +321,7 @@ app.use('/api/utilities', require('./routes/utilities')); // Utilities routes (p
 app.use('/api/economic-calendar', require('./routes/economic-calendar')); // Economic calendar routes (public)
 app.use('/api/custom-ea', auth, customEARoutes); // Custom EA development service
 app.use('/api/ai-assistant', auth, aiAssistantRoutes); // AI EA Assistant
+app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
 
 
 // Health check endpoints moved to top of file (before middleware)
@@ -446,9 +448,6 @@ function initializeServices() {
 }
 
 // Graceful shutdown
-// Graceful shutdown
-// Graceful shutdown
-// Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
   server.close(() => {
@@ -461,6 +460,27 @@ process.on('SIGINT', () => {
   server.close(() => {
     console.log('Process terminated');
   });
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Promise Rejection:', reason);
+  console.error('Promise:', promise);
+  // In production, you might want to log to monitoring service
+  if (process.env.NODE_ENV === 'production') {
+    // Don't exit in production, log and continue
+    console.error('Application will continue running, but this should be investigated');
+  }
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Exit process after logging - uncaught exceptions are serious
+  if (process.env.NODE_ENV === 'production') {
+    console.error('Exiting due to uncaught exception...');
+    process.exit(1);
+  }
 });
 
 module.exports = app;

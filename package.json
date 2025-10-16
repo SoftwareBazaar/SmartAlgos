@@ -14,7 +14,7 @@
     "heroku-postbuild": "cd client && npm install && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
-    "start:railway": "node railway-server.js",
+    "start:railway": "node railway-full-server.js",
     "prestart": "node ensure-upload-dirs.js"
   },
   "keywords": [

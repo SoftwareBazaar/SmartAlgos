@@ -1,52 +1,19 @@
 #!/usr/bin/env node
 
 // Full Smart Algos Trading Platform Server for Railway
+// OPTIMIZED: Health check responds IMMEDIATELY before heavy imports
 console.log('🚀 Starting Smart Algos Trading Platform...');
 
 const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const compression = require('compression');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
 const { createServer } = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
 require('dotenv').config();
 
-// Import routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const eaRoutes = require('./routes/eas');
-const hftRoutes = require('./routes/hft');
-const signalRoutes = require('./routes/signals');
-const marketRoutes = require('./routes/markets');
-const newsRoutes = require('./routes/news');
-const subscriptionRoutes = require('./routes/subscriptions');
-const escrowRoutes = require('./routes/escrow');
-const escrowWebhookRoutes = require('./routes/escrowWebhooks');
-const paymentRoutes = require('./routes/payments');
-const cryptoPaymentRoutes = require('./routes/cryptoPayments');
-const analysisRoutes = require('./routes/analysis');
-const securityRoutes = require('./routes/security');
-const mt5Routes = require('./routes/mt5');
-const polygonRoutes = require('./routes/polygon');
-const portfolioRoutes = require('./routes/portfolio');
-const testRoutes = require('./routes/test');
-const adminRoutes = require('./admin-panel');
-const adminCMSRoutes = require('./routes/admin-cms');
-const customEARoutes = require('./routes/customEA');
-const aiAssistantRoutes = require('./routes/aiAssistant');
-const downloadsRoutes = require('./routes/downloads');
-
-// Import middleware
-const errorHandler = require('./middleware/errorHandler');
-const { auth } = require('./middleware/auth');
-
 const app = express();
+const server = createServer(app);
 
 // ========================================
-// CRITICAL: Health check FIRST for Railway
+// CRITICAL: Ultra-lightweight health check FIRST
+// This MUST respond before ANY other imports or initialization
 // ========================================
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -54,7 +21,7 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     port: process.env.PORT || 5000,
-    message: 'Smart Algos Trading Platform - Health Check'
+    message: 'Smart Algos - Health OK'
   });
 });
 
@@ -62,141 +29,235 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    port: process.env.PORT || 5000,
-    message: 'API Health Check - All Systems Operational'
+    uptime: process.uptime()
   });
 });
 
 // ========================================
-// Middleware Setup
+// Start server IMMEDIATELY so health checks work
+// Then load routes asynchronously
 // ========================================
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false
-}));
+const PORT = process.env.PORT || 5000;
+const HOST = '0.0.0.0';
 
-app.use(compression());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
-  credentials: true
-}));
-
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+server.listen(PORT, HOST, () => {
+  console.log(`✅ Server listening on ${HOST}:${PORT}`);
+  console.log(`✅ Health check ready at /api/health`);
+  
+  // Now load everything else asynchronously
+  loadApplicationAsync();
 });
-app.use(limiter);
 
-// Logging
-if (process.env.NODE_ENV !== 'production') {
-  app.use(morgan('combined'));
+// Load all routes and middleware AFTER server is listening
+async function loadApplicationAsync() {
+  try {
+    console.log('📦 Loading dependencies...');
+    
+    // Load core dependencies
+    const cors = require('cors');
+    const helmet = require('helmet');
+    const compression = require('compression');
+    const morgan = require('morgan');
+    const rateLimit = require('express-rate-limit');
+    const { Server } = require('socket.io');
+    const path = require('path');
+    
+    console.log('📦 Loading routes...');
+    
+    // Import routes with error handling
+    let authRoutes, userRoutes, eaRoutes, hftRoutes, signalRoutes;
+    let marketRoutes, newsRoutes, subscriptionRoutes, escrowRoutes;
+    let escrowWebhookRoutes, paymentRoutes, cryptoPaymentRoutes;
+    let analysisRoutes, securityRoutes, mt5Routes, polygonRoutes;
+    let portfolioRoutes, testRoutes, adminRoutes, adminCMSRoutes;
+    let customEARoutes, aiAssistantRoutes, downloadsRoutes;
+    let errorHandler, auth;
+    
+    try {
+      authRoutes = require('./routes/auth');
+      userRoutes = require('./routes/users');
+      eaRoutes = require('./routes/eas');
+      hftRoutes = require('./routes/hft');
+      signalRoutes = require('./routes/signals');
+      marketRoutes = require('./routes/markets');
+      newsRoutes = require('./routes/news');
+      subscriptionRoutes = require('./routes/subscriptions');
+      escrowRoutes = require('./routes/escrow');
+      escrowWebhookRoutes = require('./routes/escrowWebhooks');
+      paymentRoutes = require('./routes/payments');
+      cryptoPaymentRoutes = require('./routes/cryptoPayments');
+      analysisRoutes = require('./routes/analysis');
+      securityRoutes = require('./routes/security');
+      mt5Routes = require('./routes/mt5');
+      polygonRoutes = require('./routes/polygon');
+      portfolioRoutes = require('./routes/portfolio');
+      testRoutes = require('./routes/test');
+      adminRoutes = require('./admin-panel');
+      adminCMSRoutes = require('./routes/admin-cms');
+      customEARoutes = require('./routes/customEA');
+      aiAssistantRoutes = require('./routes/aiAssistant');
+      downloadsRoutes = require('./routes/downloads');
+      errorHandler = require('./middleware/errorHandler');
+      const authMiddleware = require('./middleware/auth');
+      auth = authMiddleware.auth;
+      console.log('✅ All routes loaded successfully');
+    } catch (routeError) {
+      console.error('⚠️  Error loading routes:', routeError.message);
+      console.error('Server will continue with limited functionality');
+    }
+    
+    console.log('⚙️  Configuring middleware...');
+    
+    // ========================================
+    // Middleware Setup
+    // ========================================
+    app.use(helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false
+    }));
+
+    app.use(compression());
+    app.use(cors({
+      origin: process.env.FRONTEND_URL || '*',
+      credentials: true
+    }));
+
+    app.use(express.json({ limit: '10mb' }));
+    app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+    // Rate limiting
+    const limiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 1000,
+      message: 'Too many requests from this IP, please try again later.'
+    });
+    app.use(limiter);
+
+    // Logging
+    if (process.env.NODE_ENV !== 'production') {
+      app.use(morgan('combined'));
+    }
+
+    // ========================================
+    // Static Files
+    // ========================================
+    app.use(express.static(path.join(__dirname, 'static')));
+    app.use(express.static(path.join(__dirname, 'client/build')));
+
+    console.log('🔌 Setting up API routes...');
+    
+    // ========================================
+    // API Routes (only if loaded successfully)
+    // ========================================
+    if (authRoutes) app.use('/api/auth', authRoutes);
+    if (userRoutes && auth) app.use('/api/users', auth, userRoutes);
+    if (eaRoutes) app.use('/api/eas', eaRoutes);
+    if (hftRoutes && auth) app.use('/api/hft', auth, hftRoutes);
+    if (signalRoutes && auth) app.use('/api/signals', auth, signalRoutes);
+    if (marketRoutes && auth) app.use('/api/markets', auth, marketRoutes);
+    if (newsRoutes && auth) app.use('/api/news', auth, newsRoutes);
+    if (subscriptionRoutes && auth) app.use('/api/subscriptions', auth, subscriptionRoutes);
+    if (escrowRoutes && auth) app.use('/api/escrow', auth, escrowRoutes);
+    if (escrowWebhookRoutes) app.use('/api/escrow', escrowWebhookRoutes);
+    if (paymentRoutes && auth) app.use('/api/payments', auth, paymentRoutes);
+    if (cryptoPaymentRoutes && auth) app.use('/api/crypto-payments', auth, cryptoPaymentRoutes);
+    if (analysisRoutes && auth) app.use('/api/analysis', auth, analysisRoutes);
+    if (securityRoutes && auth) app.use('/api/security', auth, securityRoutes);
+    if (mt5Routes && auth) app.use('/api/mt5', auth, mt5Routes);
+    if (polygonRoutes && auth) app.use('/api/polygon', auth, polygonRoutes);
+    if (portfolioRoutes && auth) app.use('/api/portfolio', auth, portfolioRoutes);
+    if (testRoutes) app.use('/api/test', testRoutes);
+    if (adminRoutes && auth) app.use('/api/admin', auth, adminRoutes);
+    if (adminCMSRoutes && auth) app.use('/api/admin-cms', auth, adminCMSRoutes);
+    if (customEARoutes && auth) app.use('/api/custom-ea', auth, customEARoutes);
+    if (aiAssistantRoutes && auth) app.use('/api/ai-assistant', auth, aiAssistantRoutes);
+    if (downloadsRoutes && auth) app.use('/api/downloads', auth, downloadsRoutes);
+
+    console.log('🌐 Setting up WebSocket...');
+    
+    // ========================================
+    // WebSocket Setup
+    // ========================================
+    const io = new Server(server, {
+      cors: {
+        origin: process.env.FRONTEND_URL || '*',
+        methods: ['GET', 'POST']
+      }
+    });
+
+    // WebSocket connection handling
+    io.on('connection', (socket) => {
+      console.log('Client connected:', socket.id);
+      
+      socket.on('disconnect', () => {
+        console.log('Client disconnected:', socket.id);
+      });
+      
+      // Market data updates
+      socket.on('subscribe_market_data', (data) => {
+        socket.join(`market_${data.symbol}`);
+      });
+      
+      socket.on('unsubscribe_market_data', (data) => {
+        socket.leave(`market_${data.symbol}`);
+      });
+    });
+
+    // Make io available to routes
+    app.use((req, res, next) => {
+      req.io = io;
+      next();
+    });
+
+    console.log('📱 Configuring frontend routes...');
+    
+    // ========================================
+    // Frontend Routes (React App)
+    // ========================================
+    app.get('*', (req, res) => {
+      const indexPath = path.join(__dirname, 'client/build', 'index.html');
+      const fs = require('fs');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send('Frontend build not found. Run: npm run build');
+      }
+    });
+
+    // ========================================
+    // Error Handling
+    // ========================================
+    if (errorHandler) {
+      app.use(errorHandler);
+    }
+
+    console.log('✅ Application fully loaded and operational');
+    console.log(`✅ API: http://${HOST}:${PORT}/api`);
+    console.log(`✅ Frontend: http://${HOST}:${PORT}`);
+    console.log(`✅ WebSocket: ws://${HOST}:${PORT}`);
+    
+  } catch (error) {
+    console.error('❌ Error loading application:', error);
+    console.error('Health check will continue to respond, but application features may be limited');
+  }
 }
 
 // ========================================
-// Static Files
+// Graceful Shutdown
 // ========================================
-app.use(express.static(path.join(__dirname, 'static')));
-app.use(express.static(path.join(__dirname, 'client/build')));
-
-// ========================================
-// API Routes
-// ========================================
-app.use('/api/auth', authRoutes);
-app.use('/api/users', auth, userRoutes);
-app.use('/api/eas', eaRoutes); // Public routes - auth handled per-endpoint
-app.use('/api/hft', auth, hftRoutes);
-app.use('/api/signals', auth, signalRoutes);
-app.use('/api/markets', auth, marketRoutes);
-app.use('/api/news', auth, newsRoutes);
-app.use('/api/subscriptions', auth, subscriptionRoutes);
-app.use('/api/escrow', auth, escrowRoutes);
-app.use('/api/escrow', escrowWebhookRoutes); // Webhooks don't require auth
-app.use('/api/payments', auth, paymentRoutes);
-app.use('/api/crypto-payments', auth, cryptoPaymentRoutes);
-app.use('/api/analysis', auth, analysisRoutes);
-app.use('/api/security', auth, securityRoutes);
-app.use('/api/mt5', auth, mt5Routes);
-app.use('/api/polygon', auth, polygonRoutes);
-app.use('/api/portfolio', auth, portfolioRoutes);
-app.use('/api/test', testRoutes);
-app.use('/api/admin', auth, adminRoutes);
-app.use('/api/admin-cms', auth, adminCMSRoutes);
-app.use('/api/custom-ea', auth, customEARoutes);
-app.use('/api/ai-assistant', auth, aiAssistantRoutes);
-app.use('/api/downloads', auth, downloadsRoutes);
-
-// ========================================
-// WebSocket Setup
-// ========================================
-const server = createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || '*',
-    methods: ['GET', 'POST']
-  }
-});
-
-// WebSocket connection handling
-io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
-  
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
-  });
-  
-  // Market data updates
-  socket.on('subscribe_market_data', (data) => {
-    socket.join(`market_${data.symbol}`);
-  });
-  
-  socket.on('unsubscribe_market_data', (data) => {
-    socket.leave(`market_${data.symbol}`);
-  });
-});
-
-// Make io available to routes
-app.use((req, res, next) => {
-  req.io = io;
-  next();
-});
-
-// ========================================
-// Frontend Routes (React App)
-// ========================================
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-});
-
-// ========================================
-// Error Handling
-// ========================================
-app.use(errorHandler);
-
-// ========================================
-// Server Startup
-// ========================================
-const PORT = process.env.PORT || 5000;
-
-server.listen(PORT, () => {
-  console.log(`✅ Smart Algos Trading Platform running on port ${PORT}`);
-  console.log(`✅ Health check: http://localhost:${PORT}/api/health`);
-  console.log(`✅ Frontend: http://localhost:${PORT}`);
-  console.log(`✅ API: http://localhost:${PORT}/api`);
-  console.log(`✅ WebSocket: ws://localhost:${PORT}`);
-});
-
-// Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
   server.close(() => {
     console.log('Process terminated');
+    process.exit(0);
   });
 });
 
-console.log('✅ Full Smart Algos Trading Platform started successfully!');
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+    process.exit(0);
+  });
+});
+

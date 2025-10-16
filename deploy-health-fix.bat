@@ -1,44 +1,36 @@
 @echo off
-echo ========================================
-echo Deploying Health Check Fix to Railway
-echo ========================================
+echo ================================
+echo Railway Health Check Fix Deployment
+echo ================================
 echo.
 
-echo Step 1: Checking git status...
+echo Stage 1: Checking git status...
 git status
-echo.
 
-echo Step 2: Adding modified files...
-git add server.js
+echo.
+echo Stage 2: Adding fixed files...
+git add railway-full-server.js
+git add RAILWAY_HEALTH_CHECK_FINAL_FIX.md
 git add railway.json
-git add test-health-endpoint.js
-git add RAILWAY_HEALTH_CHECK_PERMANENT_FIX.md
-git add RAILWAY_BUILD_FIX_V2.md
-git add RAILWAY_HEALTH_CHECK_FIX_FINAL.md
-echo.
 
-echo Step 3: Committing changes...
-git commit -m "CRITICAL FIX: Reorder startup sequence to fix Railway health check - health endpoint now responds immediately before any service initialization"
 echo.
+echo Stage 3: Committing changes...
+git commit -m "Fix: Immediate health check response for Railway deployment"
 
-echo Step 4: Pushing to Railway (main branch)...
+echo.
+echo Stage 4: Pushing to Railway...
 git push origin master
+
+echo.
+echo ================================
+echo Deployment pushed to Railway!
+echo ================================
+echo.
+echo Next steps:
+echo 1. Go to Railway dashboard: https://railway.app/
+echo 2. Watch deployment logs
+echo 3. Health check should pass within 30 seconds
+echo 4. Test: https://your-app.railway.app/api/health
 echo.
 
-echo ========================================
-echo Deployment Complete!
-echo ========================================
-echo.
-echo Railway will now rebuild and redeploy.
-echo.
-echo Monitor the deployment at:
-echo https://railway.app/dashboard
-echo.
-echo The health check should now pass within 5-10 seconds!
-echo.
-echo To test locally first, run:
-echo   npm run start:railway
-echo   node test-health-endpoint.js
-echo.
 pause
-

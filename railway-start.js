@@ -1,36 +1,13 @@
-// Simple Railway startup script
-const express = require('express');
+#!/usr/bin/env node
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+// Railway startup script - optimized for quick health checks
+console.log('🚀 Starting Smart Algos server for Railway...');
 
-// Basic middleware
-app.use(express.json());
+// Set environment variables for Railway
+process.env.NODE_ENV = process.env.NODE_ENV || 'production';
+process.env.PORT = process.env.PORT || 5000;
 
-// Simple health endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    message: 'Railway healthcheck endpoint'
-  });
-});
+// Start the server
+require('./server.js');
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.status(200).json({
-    message: 'Smart Algos Trading Platform API',
-    status: 'running',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[railway] Server running on port ${PORT}`);
-  console.log(`[railway] Health check available at /health`);
-});
-
-console.log('Railway startup script loaded');
+console.log('✅ Server startup initiated');

@@ -1,1 +1,1 @@
-web: cross-env MOCK_AUTH=true NODE_ENV=development npm start
+web: node railway-start.js

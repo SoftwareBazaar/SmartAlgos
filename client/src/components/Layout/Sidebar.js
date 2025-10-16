@@ -37,8 +37,6 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Profile', href: '/profile', icon: User },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
     { name: 'Desktop Features', href: '/desktop-features', icon: Monitor },
-    // Only show Create Custom EA for admins
-    ...(user?.role === 'admin' ? [{ name: 'Create Custom EA', href: '/create-ea', icon: Bot }] : []),
     { name: 'Subscription', href: '/subscription', icon: CreditCard },
     { name: 'Payments', href: '/payments', icon: DollarSign },
   ];
@@ -136,6 +134,14 @@ const Sidebar = ({ isOpen, onClose }) => {
               >
                 <Monitor className="mr-3 h-5 w-5" />
                 <span>Control Panel</span>
+              </NavLink>
+              <NavLink
+                to="/create-ea"
+                onClick={onClose}
+                className={linkClassNames('/create-ea')}
+              >
+                <Bot className="mr-3 h-5 w-5" />
+                <span>Create Custom EA</span>
               </NavLink>
             </div>
           </div>

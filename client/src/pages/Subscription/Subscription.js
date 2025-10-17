@@ -61,12 +61,24 @@ const Subscription = () => {
 
   const handleDownloadFile = async (subscriptionId, fileType) => {
     try {
-      await apiClient.post(`/api/subscriptions/${subscriptionId}/download`, {
-        fileType
-      });
-      alert('Download recorded successfully');
+      // First, get the download links for this subscription
+      const response = await apiClient.get(`/api/subscriptions/${subscriptionId}/files`);
+      
+      if (response.data.success && response.data.data.files) {
+        const downloadUrl = response.data.data.files[fileType];
+        
+        if (downloadUrl) {
+          // Open download link in new tab
+          window.open(downloadUrl, '_blank');
+        } else {
+          alert(`${fileType} file is not available for this subscription`);
+        }
+      } else {
+        alert('Unable to get download links');
+      }
     } catch (error) {
-      console.error('Error recording download:', error);
+      console.error('Error downloading file:', error);
+      alert('Failed to download file. Please try again.');
     }
   };
 
@@ -215,14 +227,35 @@ const Subscription = () => {
                       <div className="flex items-center space-x-2">
                         {subscription.status === 'active' && (
                           <>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleDownloadFile(subscription._id, 'ea_file')}
-                            >
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
-                            </Button>
+                            <div className="flex items-center space-x-1">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleDownloadFile(subscription._id, 'ea_file')}
+                                title="Download EA File"
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                EA
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleDownloadFile(subscription._id, 'set_file')}
+                                title="Download Settings File"
+                              >
+                                <Settings className="h-4 w-4 mr-1" />
+                                Settings
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleDownloadFile(subscription._id, 'manual')}
+                                title="Download Manual"
+                              >
+                                <Bot className="h-4 w-4 mr-1" />
+                                Manual
+                              </Button>
+                            </div>
                             <Button 
                               size="sm" 
                               variant="outline"

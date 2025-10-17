@@ -454,21 +454,11 @@ router.put('/:id/renew', [
 // @access  Private
 router.get('/:id/files', [auth, updateActivity], async (req, res) => {
   try {
-    // Get subscription from Supabase
-    const { data: subscription, error: subError } = await supabase
-      .from('subscriptions')
-      .select(`
-        id,
-        user_id,
-        ea_id,
-        status,
-        end_date
-      `)
-      .eq('id', req.params.id)
-      .single();
+    // Get subscription using database service (handles mock mode)
+    const subscription = await databaseService.getSubscriptionById(req.params.id);
 
-    if (subError || !subscription) {
-      console.error('Get subscription error:', subError);
+    if (!subscription) {
+      console.error('Get subscription error: Subscription not found');
       return res.status(404).json({
         success: false,
         message: 'Subscription not found'
@@ -499,15 +489,11 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
       });
     }
 
-    // Get EA details
-    const { data: ea, error: eaError } = await supabase
-      .from('expert_advisors')
-      .select('id, name, ea_file_path, manual_file_path, screenshots')
-      .eq('id', subscription.ea_id)
-      .single();
+    // Get EA details using database service (handles mock mode)
+    const ea = await databaseService.getEAById(subscription.ea_id);
 
-    if (eaError || !ea) {
-      console.error('Get EA error:', eaError);
+    if (!ea) {
+      console.error('Get EA error: EA not found');
       return res.status(404).json({
         success: false,
         message: 'EA not found'
@@ -530,9 +516,9 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
     
     // Generate download links
     const downloadLinks = {
-      ea_file: ea.ea_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
-      set_file: null, // No set_file in expert_advisors table
-      manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
+      ea_file: ea.ea_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
+      set_file: ea.set_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
+      manual: ea.manual_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
       screenshots: ea.screenshots && ea.screenshots.length > 0 ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=screenshots` : null
     };
 

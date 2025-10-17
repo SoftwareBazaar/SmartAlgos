@@ -266,6 +266,11 @@ class DatabaseService {
   }
 
   async getEAById(id) {
+    if (this.mockMode) {
+      const mockDataStore = require('./mockAuthStore').mockDataStore;
+      return await mockDataStore.getEAById(id);
+    }
+
     const { data, error } = await this.supabase
       .from('expert_advisors')
       .select('*')

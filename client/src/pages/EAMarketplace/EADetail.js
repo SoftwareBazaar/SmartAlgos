@@ -686,20 +686,40 @@ const EADetail = () => {
                   ))}
                 </div>
 
-                <Button
-                  className="w-full mt-4"
-                  onClick={() => setShowPurchaseModal(true)}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Purchase Now
-                </Button>
-
-                <div className="mt-4 text-center">
-                  <Button variant="outline" className="w-full">
-                    <Download className="h-4 w-4 mr-2" />
-                    Free Trial (7 days)
-                  </Button>
-                </div>
+                {userSubscription && userSubscription.status === 'active' ? (
+                  <div className="space-y-3">
+                    <Button
+                      className="w-full"
+                      onClick={() => setSelectedTab('downloads')}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Files
+                    </Button>
+                    <div className="text-center">
+                      <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                        ✓ Active Subscription
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <Button
+                      className="w-full"
+                      onClick={() => setShowPurchaseModal(true)}
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Subscribe Now
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setSelectedTab('downloads')}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      View Downloads
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
 

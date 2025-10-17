@@ -14,7 +14,8 @@ import {
   AlertCircle,
   Lock,
   Unlock,
-  RefreshCw
+  RefreshCw,
+  Download
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
@@ -38,12 +39,46 @@ const EAMarketplace = () => {
   const [subscribing, setSubscribing] = useState(false);
   const [useEscrow, setUseEscrow] = useState(true);
   const [escrowTransaction, setEscrowTransaction] = useState(null);
+  const [userSubscriptions, setUserSubscriptions] = useState([]);
 
   // EAs are now managed by the EA context
+
+  // Fetch user subscriptions
+  useEffect(() => {
+    fetchUserSubscriptions();
+  }, []);
+
+  const fetchUserSubscriptions = async () => {
+    try {
+      const response = await apiClient.get('/api/subscriptions');
+      setUserSubscriptions(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error);
+    }
+  };
+
+  // Check if user has active subscription for an EA
+  const hasActiveSubscription = (eaId) => {
+    return userSubscriptions.some(sub => 
+      sub.ea_id === eaId && 
+      sub.status === 'active' && 
+      new Date(sub.end_date) > new Date()
+    );
+  };
 
   const handleSubscribe = (ea) => {
     setSelectedEA(ea);
     setShowSubscriptionModal(true);
+  };
+
+  const handleDownload = async (ea) => {
+    if (hasActiveSubscription(ea.id)) {
+      // User has subscription, redirect to EA detail page where they can download
+      navigate(`/ea-marketplace/${ea.id}`);
+    } else {
+      // User doesn't have subscription, redirect to subscription page
+      navigate('/subscription');
+    }
   };
 
   const handleSubscriptionSubmit = async () => {
@@ -473,15 +508,28 @@ const EAMarketplace = () => {
                   </div>
 
                   <div className="flex space-x-1">
-                    <Button 
-                      size="sm" 
-                      variant="primary" 
-                      fullWidth
-                      onClick={() => handleSubscribe(ea)}
-                      className="text-xs"
-                    >
-                      Subscribe
-                    </Button>
+                    {hasActiveSubscription(ea.id) ? (
+                      <Button 
+                        size="sm" 
+                        variant="primary" 
+                        fullWidth
+                        onClick={() => handleDownload(ea)}
+                        className="text-xs"
+                      >
+                        <Download className="h-3 w-3 mr-1" />
+                        Download
+                      </Button>
+                    ) : (
+                      <Button 
+                        size="sm" 
+                        variant="primary" 
+                        fullWidth
+                        onClick={() => handleSubscribe(ea)}
+                        className="text-xs"
+                      >
+                        Subscribe
+                      </Button>
+                    )}
                     <Button 
                       size="sm" 
                       variant="outline"

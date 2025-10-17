@@ -60,15 +60,42 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
     console.log('[Download] EA file download request:', { eaId, type, subscriptionId, userId });
 
     // Verify the subscription is active and belongs to the user
-    const { data: subscription, error: subError } = await supabase
-      .from('subscriptions')
-      .select('id, user_id, status, has_access, end_date')
-      .eq('id', subscriptionId)
-      .eq('user_id', userId)
-      .single();
+    let subscription;
+    
+    // Check if we're in mock mode
+    const isPlaceholderKey = (value = '') => {
+      if (!value) return true;
+      const normalized = value.toLowerCase();
+      return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
+    };
+    const explicitMockFlag = (process.env.MOCK_AUTH || '').toLowerCase();
+    const useMockAuth = explicitMockFlag === 'true' || (explicitMockFlag !== 'false' && isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY));
+    
+    if (useMockAuth) {
+      // Use mock data store
+      const mockDataStore = require('../services/mockAuthStore').mockDataStore;
+      subscription = await mockDataStore.getSubscriptionById(subscriptionId);
+    } else {
+      // Use Supabase
+      const { data, error: subError } = await supabase
+        .from('subscriptions')
+        .select('id, user_id, status, has_access, end_date')
+        .eq('id', subscriptionId)
+        .eq('user_id', userId)
+        .single();
 
-    if (subError || !subscription) {
-      console.error('[Download] Subscription not found:', subError);
+      if (subError) {
+        console.error('[Download] Subscription not found:', subError);
+        return res.status(404).json({
+          success: false,
+          message: 'Subscription not found'
+        });
+      }
+      subscription = data;
+    }
+
+    if (!subscription) {
+      console.error('[Download] Subscription not found');
       return res.status(404).json({
         success: false,
         message: 'Subscription not found'
@@ -92,14 +119,32 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
     }
 
     // Get EA details
-    const { data: ea, error: eaError } = await supabase
-      .from('eas')
-      .select('id, name, ea_file, set_file, manual_file, screenshots')
-      .eq('id', eaId)
-      .single();
+    let ea;
+    
+    if (useMockAuth) {
+      // Use mock data store
+      const mockDataStore = require('../services/mockAuthStore').mockDataStore;
+      ea = await mockDataStore.getEAById(eaId);
+    } else {
+      // Use Supabase
+      const { data, error: eaError } = await supabase
+        .from('eas')
+        .select('id, name, ea_file, set_file, manual_file, screenshots')
+        .eq('id', eaId)
+        .single();
 
-    if (eaError || !ea) {
-      console.error('[Download] EA not found:', eaError);
+      if (eaError) {
+        console.error('[Download] EA not found:', eaError);
+        return res.status(404).json({
+          success: false,
+          message: 'EA not found'
+        });
+      }
+      ea = data;
+    }
+
+    if (!ea) {
+      console.error('[Download] EA not found');
       return res.status(404).json({
         success: false,
         message: 'EA not found'

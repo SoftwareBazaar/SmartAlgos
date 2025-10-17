@@ -292,10 +292,136 @@ class MockAuthStore {
 }
 
 // Mock EA storage for development
+
+const mockDataPath = path.join(__dirname, '..', 'uploads', 'mock-data.json');
 let mockEAs = [];
+let mockSubscriptions = [];
+
+// Load mock data from file
+function loadMockData() {
+  try {
+    if (fs.existsSync(mockDataPath)) {
+      const raw = fs.readFileSync(mockDataPath, 'utf8');
+      const data = raw ? JSON.parse(raw) : { eas: [], subscriptions: [] };
+      mockEAs = data.eas || [];
+      mockSubscriptions = data.subscriptions || [];
+    }
+  } catch (error) {
+    console.warn('[mock-auth] Failed to load mock data, starting fresh:', error.message);
+    mockEAs = [];
+    mockSubscriptions = [];
+  }
+}
+
+// Save mock data to file
+function saveMockData() {
+  try {
+    const data = {
+      eas: mockEAs,
+      subscriptions: mockSubscriptions
+    };
+    fs.writeFileSync(mockDataPath, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error('[mock-auth] Failed to save mock data:', error.message);
+  }
+}
+
+// Load data on startup
+loadMockData();
+
+// Add methods to handle EAs and subscriptions
+class MockDataStore {
+  constructor() {
+    this.eas = mockEAs;
+    this.subscriptions = mockSubscriptions;
+  }
+
+  // EA methods
+  async getEAs(filters = {}) {
+    let filteredEAs = [...this.eas];
+    
+    if (filters.category) {
+      filteredEAs = filteredEAs.filter(ea => ea.category === filters.category);
+    }
+    if (filters.status) {
+      filteredEAs = filteredEAs.filter(ea => ea.status === filters.status);
+    }
+    if (filters.is_active !== undefined) {
+      filteredEAs = filteredEAs.filter(ea => ea.is_active === filters.is_active);
+    }
+    
+    return filteredEAs;
+  }
+
+  async getEAById(id) {
+    return this.eas.find(ea => ea.id === id) || null;
+  }
+
+  async createEA(eaData) {
+    const newEA = {
+      id: randomUUID(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ...eaData
+    };
+    this.eas.push(newEA);
+    saveMockData();
+    return newEA;
+  }
+
+  // Subscription methods
+  async getSubscriptions(filters = {}) {
+    let filteredSubscriptions = [...this.subscriptions];
+    
+    if (filters.user_id) {
+      filteredSubscriptions = filteredSubscriptions.filter(sub => sub.user_id === filters.user_id);
+    }
+    if (filters.status) {
+      filteredSubscriptions = filteredSubscriptions.filter(sub => sub.status === filters.status);
+    }
+    if (filters.ea_id) {
+      filteredSubscriptions = filteredSubscriptions.filter(sub => sub.ea_id === filters.ea_id);
+    }
+    
+    return filteredSubscriptions;
+  }
+
+  async getSubscriptionById(id) {
+    return this.subscriptions.find(sub => sub.id === id) || null;
+  }
+
+  async createSubscription(subscriptionData) {
+    const newSubscription = {
+      id: randomUUID(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ...subscriptionData
+    };
+    this.subscriptions.push(newSubscription);
+    saveMockData();
+    return newSubscription;
+  }
+
+  async updateSubscription(id, updates) {
+    const index = this.subscriptions.findIndex(sub => sub.id === id);
+    if (index === -1) return null;
+    
+    this.subscriptions[index] = {
+      ...this.subscriptions[index],
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+    saveMockData();
+    return this.subscriptions[index];
+  }
+}
+
+const mockDataStore = new MockDataStore();
 
 const mockAuthStoreInstance = new MockAuthStore();
 
 module.exports = mockAuthStoreInstance;
 module.exports.mockEAs = mockEAs;
+module.exports.mockSubscriptions = mockSubscriptions;
+module.exports.mockDataStore = mockDataStore;
 

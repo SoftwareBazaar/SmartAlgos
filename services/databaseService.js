@@ -778,6 +778,11 @@ class DatabaseService {
   }
 
   async getSubscriptions(filters = {}) {
+    if (this.mockMode) {
+      const mockDataStore = require('./mockAuthStore').mockDataStore;
+      return await mockDataStore.getSubscriptions(filters);
+    }
+
     let query = this.supabase
       .from('subscriptions')
       .select('*');
@@ -804,6 +809,11 @@ class DatabaseService {
   }
 
   async getSubscriptionById(id) {
+    if (this.mockMode) {
+      const mockDataStore = require('./mockAuthStore').mockDataStore;
+      return await mockDataStore.getSubscriptionById(id);
+    }
+
     const { data, error } = await this.supabase
       .from('subscriptions')
       .select('*')
@@ -815,6 +825,11 @@ class DatabaseService {
   }
 
   async updateSubscription(id, updates) {
+    if (this.mockMode) {
+      const mockDataStore = require('./mockAuthStore').mockDataStore;
+      return await mockDataStore.updateSubscription(id, updates);
+    }
+
     const { data, error } = await this.supabase
       .from('subscriptions')
       .update(updates)

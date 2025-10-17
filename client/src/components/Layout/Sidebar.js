@@ -22,9 +22,6 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const location = useLocation();
   
-  // Debug: Log user role
-  console.log('[Sidebar] User role:', user?.role);
-  console.log('[Sidebar] User data:', user);
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -116,39 +113,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Debug: Show current role */}
-        {user && (
-          <div className="px-4 py-2 text-xs text-yellow-400 bg-yellow-900/20 rounded">
-            DEBUG: Role = "{user.role}" | Email = {user.email}
-          </div>
-        )}
-
-        {/* Admin Section - Only for Admins */}
-        {user?.role === 'admin' && (
-          <div>
-            <p className="px-1 text-xs font-semibold uppercase tracking-wider text-brand-300">
-              Admin
-            </p>
-            <div className="mt-3 space-y-1">
-              <NavLink
-                to="/admin"
-                onClick={onClose}
-                className={linkClassNames('/admin')}
-              >
-                <SettingsIcon className="mr-3 h-5 w-5" />
-                <span>Admin Dashboard</span>
-              </NavLink>
-              <NavLink
-                to="/admin/panel"
-                onClick={onClose}
-                className={linkClassNames('/admin/panel')}
-              >
-                <Monitor className="mr-3 h-5 w-5" />
-                <span>Control Panel</span>
-              </NavLink>
-            </div>
-          </div>
-        )}
       </nav>
 
       <div className="p-4 border-t border-brand-800/70 bg-brand-900/80 backdrop-blur">

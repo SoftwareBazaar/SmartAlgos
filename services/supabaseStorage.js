@@ -118,6 +118,47 @@ class SupabaseStorageService {
 
     return data.publicUrl;
   }
+
+  /**
+   * Download file from Supabase Storage
+   * @param {string} fileUrl - Public URL or file path
+   * @returns {Promise<Buffer>}
+   */
+  async downloadFile(fileUrl) {
+    try {
+      // Extract bucket and file path from URL
+      // URL format: https://[PROJECT].supabase.co/storage/v1/object/public/[BUCKET]/[PATH]
+      const urlParts = fileUrl.split('/storage/v1/object/public/');
+      
+      if (urlParts.length !== 2) {
+        throw new Error('Invalid Supabase Storage URL format');
+      }
+
+      const [bucket, ...pathParts] = urlParts[1].split('/');
+      const filePath = pathParts.join('/');
+
+      console.log(`[Storage] Downloading from bucket: ${bucket}, path: ${filePath}`);
+
+      const { data, error } = await this.supabase.storage
+        .from(bucket)
+        .download(filePath);
+
+      if (error) {
+        console.error('[Storage] Download failed:', error);
+        throw error;
+      }
+
+      // Convert Blob to Buffer
+      const arrayBuffer = await data.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      console.log(`[Storage] ✅ Downloaded ${buffer.length} bytes`);
+      return buffer;
+    } catch (error) {
+      console.error('[Storage] Error downloading file:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new SupabaseStorageService();

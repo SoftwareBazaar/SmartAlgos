@@ -772,6 +772,11 @@ class DatabaseService {
 
   // Subscription operations
   async createSubscription(subscriptionData) {
+    if (this.mockMode) {
+      const mockDataStore = require('./mockAuthStore').mockDataStore;
+      return await mockDataStore.createSubscription(subscriptionData);
+    }
+
     const { data, error } = await this.supabase
       .from('subscriptions')
       .insert([subscriptionData])

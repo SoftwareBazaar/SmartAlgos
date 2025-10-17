@@ -157,23 +157,10 @@ router.post('/', [
 
     const { eaId, subscriptionType, paymentMethod, paymentReference } = req.body;
 
-    // Get Supabase client
-    const supabase = databaseService.getClient();
-    if (!supabase) {
-      return res.status(500).json({
-        success: false,
-        message: 'Database connection not available'
-      });
-    }
+    // Get EA details using database service (handles mock mode)
+    const ea = await databaseService.getEAById(eaId);
 
-    // Get EA details from Supabase
-    const { data: ea, error: eaError } = await supabase
-      .from('expert_advisors')
-      .select('*')
-      .eq('id', eaId)
-      .single();
-
-    if (eaError || !ea) {
+    if (!ea) {
       return res.status(404).json({
         success: false,
         message: 'EA not found'
@@ -189,14 +176,12 @@ router.post('/', [
     }
 
     // Check if user already has an active subscription to this EA
-    const { data: existingSubscriptions } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', req.user.id)
-      .eq('ea_id', eaId)
-      .in('status', ['active', 'pending']);
+    const existingSubscriptions = await databaseService.getSubscriptions(req.user.id);
+    const hasActiveSubscription = existingSubscriptions.some(sub => 
+      sub.ea_id === eaId && ['active', 'pending'].includes(sub.status)
+    );
 
-    if (existingSubscriptions && existingSubscriptions.length > 0) {
+    if (hasActiveSubscription) {
       return res.status(400).json({
         success: false,
         message: 'You already have an active subscription to this EA'
@@ -231,7 +216,7 @@ router.post('/', [
         break;
     }
 
-    // Create subscription in Supabase
+    // Create subscription using database service (handles mock mode)
     const subscriptionData = {
       user_id: req.user.id,
       ea_id: eaId,
@@ -248,37 +233,22 @@ router.post('/', [
       updated_at: new Date().toISOString()
     };
 
-    const { data: subscription, error: subscriptionError } = await supabase
-      .from('subscriptions')
-      .insert(subscriptionData)
-      .select()
-      .single();
-
-    if (subscriptionError) {
-      console.error('Subscription creation error:', subscriptionError);
+    try {
+      const subscription = await databaseService.createSubscription(subscriptionData);
+      
+      res.status(201).json({
+        success: true,
+        message: 'Subscription created successfully',
+        data: subscription
+      });
+    } catch (error) {
+      console.error('Subscription creation error:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to create subscription',
-        error: subscriptionError.message,
-        details: subscriptionError.details || subscriptionError.hint
+        error: error.message
       });
     }
-
-    // Get subscription with EA details for response
-    const { data: subscriptionWithEA } = await supabase
-      .from('subscriptions')
-      .select(`
-        *,
-        ea:expert_advisors(*)
-      `)
-      .eq('id', subscription.id)
-      .single();
-
-    res.status(201).json({
-      success: true,
-      message: 'Subscription created successfully',
-      data: subscriptionWithEA || subscription
-    });
 
   } catch (error) {
     console.error('Create subscription error:', error);

@@ -86,12 +86,28 @@ const EAMarketplace = () => {
     
     try {
       setSubscribing(true);
-      // For now, simulate successful subscription
-      // TODO: Connect to real API when authentication is working
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Subscription created successfully!');
-      setShowSubscriptionModal(false);
-      setSelectedEA(null);
+      
+      // Create actual subscription via API
+      const subscriptionData = {
+        eaId: selectedEA.id,
+        subscriptionType: subscriptionType,
+        paymentMethod: paymentMethod,
+        paymentReference: `sub_${Date.now()}_${selectedEA.id}`, // Generate a unique reference
+        useEscrow: useEscrow
+      };
+      
+      const response = await apiClient.post('/api/subscriptions', subscriptionData);
+      
+      if (response.data.success) {
+        alert('Subscription created successfully!');
+        setShowSubscriptionModal(false);
+        setSelectedEA(null);
+        
+        // Refresh user subscriptions to update the UI
+        await fetchUserSubscriptions();
+      } else {
+        alert('Failed to create subscription. Please try again.');
+      }
     } catch (error) {
       console.error('Subscription error:', error);
       alert('Failed to create subscription. Please try again.');

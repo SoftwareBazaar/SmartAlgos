@@ -135,10 +135,18 @@ const EADetail = () => {
       fetchEA();
     };
     
+    // Listen for page focus to refresh subscription data
+    const handlePageFocus = () => {
+      console.log('[EADetail] Page focused, refreshing subscription data...');
+      fetchUserSubscription();
+    };
+    
     window.addEventListener('ea-updated', handleEAUpdate);
+    window.addEventListener('focus', handlePageFocus);
     
     return () => {
       window.removeEventListener('ea-updated', handleEAUpdate);
+      window.removeEventListener('focus', handlePageFocus);
     };
   }, [id]);
 

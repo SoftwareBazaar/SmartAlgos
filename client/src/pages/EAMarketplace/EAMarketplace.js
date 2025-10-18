@@ -157,8 +157,7 @@ const EAMarketplace = () => {
         eaId: selectedEA.id,
         subscriptionType: subscriptionType,
         paymentMethod: paymentMethod,
-        paymentReference: `sub_${Date.now()}_${selectedEA.id}`, // Generate a unique reference
-        useEscrow: useEscrow
+        paymentReference: `sub_${Date.now()}_${selectedEA.id}` // Generate a unique reference
       };
       
       console.log('Creating subscription with data:', subscriptionData);

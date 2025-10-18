@@ -529,7 +529,7 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
 router.post('/:id/download', [
   auth,
   body('fileType')
-    .isIn(['ea_file', 'set_file', 'manual', 'screenshot'])
+    .isIn(['ea_file', 'set_file', 'manual', 'screenshot', 'screenshots'])
     .withMessage('Invalid file type')
 ], async (req, res) => {
   try {

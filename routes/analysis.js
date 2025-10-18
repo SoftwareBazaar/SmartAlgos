@@ -731,7 +731,7 @@ router.get('/market-sentiment', [auth, requireSubscription('basic'), updateActiv
 // @route   GET /api/analysis/economic-calendar
 // @desc    Get economic calendar
 // @access  Private
-router.get('/economic-calendar', [auth, requireSubscription('basic'), updateActivity], async (req, res) => {
+router.get('/economic-calendar', [auth, updateActivity], async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
     

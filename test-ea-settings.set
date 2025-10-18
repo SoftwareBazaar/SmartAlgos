@@ -1,0 +1,26 @@
+; Test EA Settings File
+; This is a test settings file for the subscription/download flow testing
+
+; Basic Settings
+TestLotSize=0.01
+TestMagicNumber=12345
+TestComment=Test EA for Subscription Flow
+
+; Risk Management
+MaxRisk=2.0
+StopLoss=50
+TakeProfit=100
+
+; Time Settings
+StartHour=8
+EndHour=18
+StartMinute=0
+EndMinute=0
+
+; Additional Test Parameters
+TestParameter1=100
+TestParameter2=200
+TestParameter3=300
+
+; This is a test settings file for flow testing
+; In production, this would contain actual EA parameters

@@ -1,0 +1,35 @@
+Test EA Manual
+
+This is a test manual file for the subscription/download flow testing.
+
+Table of Contents:
+1. Introduction
+2. Installation
+3. Configuration
+4. Usage
+5. Troubleshooting
+
+1. Introduction
+This is a test EA designed to verify the subscription and download flow works correctly.
+
+2. Installation
+- Download the EA file
+- Copy to your MetaTrader 4/5 Experts folder
+- Restart your trading platform
+
+3. Configuration
+- Set your preferred lot size
+- Configure risk management parameters
+- Set trading hours
+
+4. Usage
+- Attach to chart
+- Configure parameters
+- Enable auto trading
+
+5. Troubleshooting
+- Ensure auto trading is enabled
+- Check your broker's trading conditions
+- Verify internet connection
+
+This is a test manual for flow testing purposes.

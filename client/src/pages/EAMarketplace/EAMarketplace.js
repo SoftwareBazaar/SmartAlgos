@@ -15,7 +15,8 @@ import {
   Lock,
   Unlock,
   RefreshCw,
-  Download
+  Download,
+  XCircle
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
@@ -40,6 +41,9 @@ const EAMarketplace = () => {
   const [useEscrow, setUseEscrow] = useState(true);
   const [escrowTransaction, setEscrowTransaction] = useState(null);
   const [userSubscriptions, setUserSubscriptions] = useState([]);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [downloadLinks, setDownloadLinks] = useState(null);
+  const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
 
   // EAs are now managed by the EA context
 
@@ -66,6 +70,29 @@ const EAMarketplace = () => {
     );
   };
 
+  // Handle file download
+  const handleDownloadFile = async (fileType) => {
+    if (!downloadLinks || !downloadLinks[fileType]) {
+      alert('Download link not available for this file type.');
+      return;
+    }
+
+    try {
+      // Open download link in new tab
+      window.open(downloadLinks[fileType], '_blank');
+      
+      // Record the download
+      if (currentSubscriptionId) {
+        await apiClient.post(`/api/subscriptions/${currentSubscriptionId}/download`, {
+          fileType: fileType
+        });
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to initiate download. Please try again.');
+    }
+  };
+
   const handleSubscribe = (ea) => {
     setSelectedEA(ea);
     setShowSubscriptionModal(true);
@@ -73,8 +100,29 @@ const EAMarketplace = () => {
 
   const handleDownload = async (ea) => {
     if (hasActiveSubscription(ea.id)) {
-      // User has subscription, redirect to EA detail page where they can download
-      navigate(`/ea-marketplace/${ea.id}`);
+      // User has subscription, get download links and show modal
+      try {
+        const subscription = userSubscriptions.find(sub => 
+          sub.ea_id === ea.id && 
+          sub.status === 'active' && 
+          new Date(sub.end_date) > new Date()
+        );
+        
+        if (subscription) {
+          const downloadResponse = await apiClient.get(`/api/subscriptions/${subscription.id}/files`);
+          
+          if (downloadResponse.data.success && downloadResponse.data.data.files) {
+            setShowDownloadModal(true);
+            setDownloadLinks(downloadResponse.data.data.files);
+            setCurrentSubscriptionId(subscription.id);
+          } else {
+            alert('Download links not available. Please try again later.');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching download links:', error);
+        alert('Failed to load download options. Please try again.');
+      }
     } else {
       // User doesn't have subscription, redirect to subscription page
       navigate('/subscription');
@@ -99,12 +147,37 @@ const EAMarketplace = () => {
       const response = await apiClient.post('/api/subscriptions', subscriptionData);
       
       if (response.data.success) {
-        alert('Subscription created successfully!');
+        // Show success message with download options
+        const subscriptionId = response.data.data.id;
+        
+        // Get download links for the newly created subscription
+        try {
+          const downloadResponse = await apiClient.get(`/api/subscriptions/${subscriptionId}/files`);
+          
+          if (downloadResponse.data.success && downloadResponse.data.data.files) {
+            // Show download modal with available files
+            setShowDownloadModal(true);
+            setDownloadLinks(downloadResponse.data.data.files);
+            setCurrentSubscriptionId(subscriptionId);
+          }
+        } catch (downloadError) {
+          console.error('Error fetching download links:', downloadError);
+        }
+        
         setShowSubscriptionModal(false);
         setSelectedEA(null);
         
         // Refresh user subscriptions to update the UI
         await fetchUserSubscriptions();
+        
+        // Show success notification with download prompt
+        const shouldShowDownload = window.confirm(
+          'Subscription created successfully! Would you like to download the files now?'
+        );
+        
+        if (!shouldShowDownload) {
+          setShowDownloadModal(false);
+        }
       } else {
         alert('Failed to create subscription. Please try again.');
       }
@@ -866,6 +939,130 @@ const EAMarketplace = () => {
                     {subscribing ? 'Processing...' : useEscrow ? 'Create Escrow Transaction' : 'Subscribe Now'}
                   </Button>
                 )}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Download Modal */}
+      {showDownloadModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Download Files
+                </h3>
+                <button
+                  onClick={() => setShowDownloadModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <XCircle className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Your subscription is active! Download the files you need:
+                </p>
+
+                <div className="space-y-3">
+                  {downloadLinks?.ea_file && (
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Download className="h-5 w-5 text-primary-600" />
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">EA File</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Expert Advisor (.ex4)</p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => handleDownloadFile('ea_file')}
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  )}
+
+                  {downloadLinks?.set_file && (
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Settings className="h-5 w-5 text-primary-600" />
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">Settings File</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Configuration (.set)</p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => handleDownloadFile('set_file')}
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  )}
+
+                  {downloadLinks?.manual && (
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Eye className="h-5 w-5 text-primary-600" />
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">Manual</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">User Guide (.pdf)</p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => handleDownloadFile('manual')}
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  )}
+
+                  {downloadLinks?.screenshots && (
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Star className="h-5 w-5 text-primary-600" />
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">Screenshots</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Performance Images</p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => handleDownloadFile('screenshots')}
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4 border-t dark:border-gray-600">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDownloadModal(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
               </div>
             </div>
           </motion.div>

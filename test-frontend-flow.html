@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Subscription/Download Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-step {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            background-color: #f8f9fa;
+        }
+        .success { border-left-color: #28a745; background-color: #d4edda; }
+        .error { border-left-color: #dc3545; background-color: #f8d7da; }
+        .warning { border-left-color: #ffc107; background-color: #fff3cd; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .code {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Subscription/Download Flow Test</h1>
+    
+    <div class="test-container">
+        <h2>Test Steps</h2>
+        <div id="test-steps">
+            <div class="test-step">
+                <strong>Step 1:</strong> Start the server
+                <div class="code">npm start</div>
+            </div>
+            <div class="test-step">
+                <strong>Step 2:</strong> Open the application
+                <div class="code">http://localhost:3000</div>
+            </div>
+            <div class="test-step">
+                <strong>Step 3:</strong> Navigate to EA Marketplace
+                <div class="code">/ea-marketplace</div>
+            </div>
+            <div class="test-step">
+                <strong>Step 4:</strong> Click "Subscribe" on any EA
+            </div>
+            <div class="test-step">
+                <strong>Step 5:</strong> Complete subscription process
+            </div>
+            <div class="test-step">
+                <strong>Step 6:</strong> Verify download modal appears
+            </div>
+            <div class="test-step">
+                <strong>Step 7:</strong> Test download functionality
+            </div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>Expected Behavior</h2>
+        <ul>
+            <li>✅ After successful subscription, download modal should appear automatically</li>
+            <li>✅ Download modal should show available files (EA, Settings, Manual, Screenshots)</li>
+            <li>✅ Each file should have a download button</li>
+            <li>✅ Clicking download should initiate file download</li>
+            <li>✅ Users with active subscriptions should see "Download" button instead of "Subscribe"</li>
+            <li>✅ Clicking "Download" should show download modal directly</li>
+            <li>✅ No loopholes - users without subscription cannot access downloads</li>
+        </ul>
+    </div>
+
+    <div class="test-container">
+        <h2>Test Commands</h2>
+        <button onclick="runBackendTest()">Run Backend Test</button>
+        <button onclick="checkServer()">Check Server Status</button>
+        <button onclick="openApp()">Open Application</button>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Manual Test Checklist</h2>
+        <form id="checklist">
+            <label><input type="checkbox" id="check1"> Server is running</label><br>
+            <label><input type="checkbox" id="check2"> Can access EA Marketplace</label><br>
+            <label><input type="checkbox" id="check3"> Can see EA cards with Subscribe buttons</label><br>
+            <label><input type="checkbox" id="check4"> Subscription modal opens when clicking Subscribe</label><br>
+            <label><input type="checkbox" id="check5"> Can complete subscription process</label><br>
+            <label><input type="checkbox" id="check6"> Download modal appears after subscription</label><br>
+            <label><input type="checkbox" id="check7"> Download buttons work correctly</label><br>
+            <label><input type="checkbox" id="check8"> Files download successfully</label><br>
+            <label><input type="checkbox" id="check9"> Users with subscriptions see Download button</label><br>
+            <label><input type="checkbox" id="check10"> Download modal opens when clicking Download</label><br>
+        </form>
+        
+        <button onclick="validateChecklist()">Validate Checklist</button>
+        <div id="checklist-results"></div>
+    </div>
+
+    <script>
+        async function runBackendTest() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<div class="test-step">Running backend test...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/health');
+                if (response.ok) {
+                    resultsDiv.innerHTML = '<div class="test-step success">✅ Backend test passed - server is running</div>';
+                } else {
+                    resultsDiv.innerHTML = '<div class="test-step error">❌ Backend test failed - server not responding</div>';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = '<div class="test-step error">❌ Backend test failed - ' + error.message + '</div>';
+            }
+        }
+
+        async function checkServer() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<div class="test-step">Checking server status...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/health');
+                if (response.ok) {
+                    resultsDiv.innerHTML = '<div class="test-step success">✅ Server is running and healthy</div>';
+                } else {
+                    resultsDiv.innerHTML = '<div class="test-step error">❌ Server is not responding properly</div>';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = '<div class="test-step error">❌ Server is not running - ' + error.message + '</div>';
+            }
+        }
+
+        function openApp() {
+            window.open('http://localhost:3000', '_blank');
+        }
+
+        function validateChecklist() {
+            const checkboxes = document.querySelectorAll('#checklist input[type="checkbox"]');
+            const checked = Array.from(checkboxes).filter(cb => cb.checked);
+            const total = checkboxes.length;
+            
+            const resultsDiv = document.getElementById('checklist-results');
+            
+            if (checked.length === total) {
+                resultsDiv.innerHTML = '<div class="test-step success">✅ All checklist items completed! Flow is working correctly.</div>';
+            } else {
+                resultsDiv.innerHTML = `<div class="test-step warning">⚠️ ${checked.length}/${total} checklist items completed. Please complete the remaining items.</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

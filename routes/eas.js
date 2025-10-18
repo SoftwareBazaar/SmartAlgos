@@ -234,23 +234,24 @@ router.get('/', [
 
     let eas, total;
     
-    if (useMockAuth) {
-      // In mock mode, return empty array or mock data
-      eas = [];
-      total = 0;
-      console.log('✅ Using mock mode for EA retrieval');
-    } else {
-      // Execute query using Supabase
-      eas = await databaseService.getEAs({
-        ...filter,
-        limit: parseInt(limit),
-        offset: skip,
-        orderBy: sortBy,
-        ascending: sortOrder === 'asc'
-      });
+    // Execute query using database service (handles mock mode)
+    console.log('[EAs Route] Calling database service with filters:', filter);
+    eas = await databaseService.getEAs({
+      ...filter,
+      limit: parseInt(limit),
+      offset: skip,
+      orderBy: sortBy,
+      ascending: sortOrder === 'asc'
+    });
+    console.log('[EAs Route] Database service returned:', eas.length, 'EAs');
+    console.log('[EAs Route] First EA files:', eas[0] ? {
+      name: eas[0].name,
+      ea_file: !!eas[0].ea_file,
+      set_file: !!eas[0].set_file,
+      manual_file: !!eas[0].manual_file
+    } : 'No EAs');
 
-      total = await databaseService.countEAs(filter);
-    }
+    total = eas.length; // For mock mode, use array length
 
     res.json({
       success: true,

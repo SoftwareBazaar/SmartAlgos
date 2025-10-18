@@ -172,6 +172,14 @@ class DatabaseService {
   }
 
   async getEAs(filters = {}) {
+    if (this.mockMode) {
+      console.log('[DatabaseService] Using mock store for EAs');
+      const mockDataStore = require('./mockAuthStore').mockDataStore;
+      const eas = await mockDataStore.getEAs(filters);
+      console.log('[DatabaseService] Mock EAs found:', eas.length);
+      return eas;
+    }
+
     let query = this.supabase
       .from('expert_advisors')
       .select('*');

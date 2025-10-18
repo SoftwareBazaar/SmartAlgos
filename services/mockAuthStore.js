@@ -384,6 +384,27 @@ class MockDataStore {
   constructor() {
     this.eas = mockEAs;
     this.subscriptions = mockSubscriptions;
+    this.storagePath = path.join(__dirname, '..', 'uploads', 'mock-data.json');
+    this._ensureUploadsDir();
+  }
+
+  _ensureUploadsDir() {
+    const uploadsDir = path.join(__dirname, '..', 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+  }
+
+  _persist() {
+    try {
+      const data = {
+        eas: this.eas,
+        subscriptions: this.subscriptions
+      };
+      fs.writeFileSync(this.storagePath, JSON.stringify(data, null, 2));
+    } catch (error) {
+      console.error('[MockDataStore] Failed to persist data:', error.message);
+    }
   }
 
   // EA methods
@@ -453,7 +474,9 @@ class MockDataStore {
         updated_at: new Date().toISOString()
       };
       this._persist();
-      console.log('[MockAuthStore] Updated EA:', id, 'with files:', {
+      console.log('[MockAuthStore] Updated EA:', {
+        id,
+        name: this.eas[eaIndex].name,
         ea_file: !!this.eas[eaIndex].ea_file,
         set_file: !!this.eas[eaIndex].set_file,
         manual_file: !!this.eas[eaIndex].manual_file,
@@ -493,7 +516,13 @@ class MockDataStore {
       ...subscriptionData
     };
     this.subscriptions.push(newSubscription);
-    saveMockData();
+    this._persist();
+    console.log('[MockAuthStore] Created subscription:', {
+      id: newSubscription.id,
+      user_id: newSubscription.user_id,
+      ea_id: newSubscription.ea_id,
+      status: newSubscription.status
+    });
     return newSubscription;
   }
 

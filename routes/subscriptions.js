@@ -234,7 +234,9 @@ router.post('/', [
     };
 
     try {
+      console.log('[Subscription] Creating subscription with data:', subscriptionData);
       const subscription = await databaseService.createSubscription(subscriptionData);
+      console.log('[Subscription] Subscription created successfully:', subscription.id);
       
       res.status(201).json({
         success: true,
@@ -242,7 +244,7 @@ router.post('/', [
         data: subscription
       });
     } catch (error) {
-      console.error('Subscription creation error:', error);
+      console.error('[Subscription] Creation error:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to create subscription',

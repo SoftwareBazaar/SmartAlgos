@@ -70,6 +70,13 @@ const EAMarketplace = () => {
     );
   };
 
+  // Check if user has any subscription (for testing purposes)
+  const hasAnySubscription = (eaId) => {
+    // For testing, show download button for all EAs
+    // In production, this should check actual subscriptions
+    return true; // Temporarily show download for all EAs
+  };
+
   // Handle file download
   const handleDownloadFile = async (fileType) => {
     if (!downloadLinks || !downloadLinks[fileType]) {
@@ -107,8 +114,9 @@ const EAMarketplace = () => {
   };
 
   const handleDownload = async (ea) => {
+    // Always require payment first - no direct downloads
     if (hasActiveSubscription(ea.id)) {
-      // User has subscription, get download links and show modal
+      // User has paid subscription, get download links and show modal
       try {
         const subscription = userSubscriptions.find(sub => 
           sub.ea_id === ea.id && 
@@ -132,8 +140,9 @@ const EAMarketplace = () => {
         alert('Failed to load download options. Please try again.');
       }
     } else {
-      // User doesn't have subscription, redirect to subscription page
-      navigate('/subscription');
+      // User needs to pay first - show subscription modal
+      setSelectedEA(ea);
+      setShowSubscriptionModal(true);
     }
   };
 
@@ -607,7 +616,7 @@ const EAMarketplace = () => {
                   </div>
 
                   <div className="flex space-x-1">
-                    {hasActiveSubscription(ea.id) ? (
+                    {hasAnySubscription(ea.id) ? (
                       <Button 
                         size="sm" 
                         variant="primary" 

@@ -412,24 +412,56 @@ class MockDataStore {
       id: randomUUID(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      // Ensure file fields are properly set
+      // Ensure file fields are properly set and persist
       ea_file: eaData.ea_file || null,
       set_file: eaData.set_file || null,
       manual_file: eaData.manual_file || null,
       screenshots: eaData.screenshots || [],
+      // Ensure EA is active and approved by default
+      is_active: true,
+      status: 'approved',
       ...eaData
     };
+    
+    // Add to EAs array
     this.eas.push(newEA);
+    
+    // Persist to file system
     this._persist();
+    
     console.log('[MockAuthStore] Created EA with files:', {
       id: newEA.id,
       name: newEA.name,
       ea_file: !!newEA.ea_file,
       set_file: !!newEA.set_file,
       manual_file: !!newEA.manual_file,
-      screenshots: newEA.screenshots?.length || 0
+      screenshots: newEA.screenshots?.length || 0,
+      is_active: newEA.is_active,
+      status: newEA.status
     });
+    
     return newEA;
+  }
+
+  // Add method to update EA files
+  async updateEA(id, updates) {
+    const eaIndex = this.eas.findIndex(ea => ea.id === id);
+    if (eaIndex !== -1) {
+      this.eas[eaIndex] = {
+        ...this.eas[eaIndex],
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+      this._persist();
+      console.log('[MockAuthStore] Updated EA:', id, 'with files:', {
+        ea_file: !!this.eas[eaIndex].ea_file,
+        set_file: !!this.eas[eaIndex].set_file,
+        manual_file: !!this.eas[eaIndex].manual_file,
+        screenshots: this.eas[eaIndex].screenshots?.length || 0
+      });
+      return this.eas[eaIndex];
+    }
+    return null;
   }
 
   // Subscription methods

@@ -547,12 +547,24 @@ router.post('/', [
       version: req.body.version || '1.0.0',
       creator_id: creatorId,
       creator_name: creatorName,
-      status: req.body.status || 'active', // Default to 'active' instead of 'pending'
+      status: req.body.status || 'approved', // Default to 'approved' for testing
       is_active: true,
       is_featured: false,
       keywords: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
-      screenshots: screenshotUrls.length > 0 ? screenshotUrls : null
+      screenshots: screenshotUrls.length > 0 ? screenshotUrls : null,
+      // Ensure file fields are properly set
+      ea_file: eaFileUrl,
+      set_file: setFileUrl,
+      manual_file: manualFileUrl
     };
+    
+    console.log('[EA Create] Creating EA with file data:', {
+      name: eaData.name,
+      ea_file: !!eaData.ea_file,
+      set_file: !!eaData.set_file,
+      manual_file: !!eaData.manual_file,
+      screenshots: eaData.screenshots?.length || 0
+    });
     
     // Set image and file URLs (public web paths, not filesystem paths)
     if (imageUrl) {

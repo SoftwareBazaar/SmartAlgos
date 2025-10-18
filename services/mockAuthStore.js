@@ -225,6 +225,56 @@ class MockAuthStore {
     if (this._ensureDefaultAccounts()) {
       this._persist();
     }
+    
+    // Add test EAs with files for download testing
+    this.eas = [
+      {
+        id: 'test-ea-1',
+        name: 'Test Download EA',
+        description: 'Test EA for verifying download functionality',
+        category: 'scalping',
+        price_weekly: 6.99,
+        price_monthly: 18.00,
+        price_quarterly: 45.00,
+        price_yearly: 97.00,
+        win_rate: 75,
+        max_drawdown: 5.2,
+        supported_pairs: ['EURUSD', 'GBPUSD'],
+        timeframes: ['M1', 'M5'],
+        is_active: true,
+        status: 'approved',
+        ea_file: 'https://example.com/test-ea.ex4',
+        set_file: 'https://example.com/test-ea.set',
+        manual_file: 'https://example.com/test-ea.pdf',
+        screenshots: ['https://example.com/screenshot1.png'],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: 'test-ea-2',
+        name: 'Multi Indicator Scalping EA',
+        description: 'Advanced scalping EA with visual arrow indicator',
+        category: 'scalping',
+        price_weekly: 6.99,
+        price_monthly: 18.00,
+        price_quarterly: 45.00,
+        price_yearly: 97.00,
+        win_rate: 72,
+        max_drawdown: 4.8,
+        supported_pairs: ['EURUSD', 'GBPUSD', 'USDJPY'],
+        timeframes: ['M1', 'M5', 'M15'],
+        is_active: true,
+        status: 'approved',
+        ea_file: 'https://example.com/multi-indicator.ex4',
+        set_file: 'https://example.com/multi-indicator.set',
+        manual_file: 'https://example.com/multi-indicator.pdf',
+        screenshots: ['https://example.com/multi-screenshot1.png', 'https://example.com/multi-screenshot2.png'],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ];
+    
+    this._persist();
   }
 
   _sanitize(user) {
@@ -362,10 +412,23 @@ class MockDataStore {
       id: randomUUID(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      // Ensure file fields are properly set
+      ea_file: eaData.ea_file || null,
+      set_file: eaData.set_file || null,
+      manual_file: eaData.manual_file || null,
+      screenshots: eaData.screenshots || [],
       ...eaData
     };
     this.eas.push(newEA);
-    saveMockData();
+    this._persist();
+    console.log('[MockAuthStore] Created EA with files:', {
+      id: newEA.id,
+      name: newEA.name,
+      ea_file: !!newEA.ea_file,
+      set_file: !!newEA.set_file,
+      manual_file: !!newEA.manual_file,
+      screenshots: newEA.screenshots?.length || 0
+    });
     return newEA;
   }
 

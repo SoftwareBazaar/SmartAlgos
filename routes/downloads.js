@@ -18,7 +18,10 @@ const verifyDownloadToken = async (req, res, next) => {
   try {
     const { token } = req.query;
     
+    console.log('[Download Token] Received token:', token ? 'Present' : 'Missing');
+    
     if (!token) {
+      console.log('[Download Token] No token provided');
       return res.status(401).json({
         success: false,
         message: 'Download token is required'
@@ -27,9 +30,11 @@ const verifyDownloadToken = async (req, res, next) => {
 
     // Verify JWT token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    console.log('[Download Token] Token decoded successfully:', { subscriptionId: decoded.subscriptionId, userId: decoded.userId, eaId: decoded.eaId });
     
     // Check token expiration
     if (decoded.exp && decoded.exp < Date.now() / 1000) {
+      console.log('[Download Token] Token expired');
       return res.status(401).json({
         success: false,
         message: 'Download token has expired'
@@ -40,7 +45,7 @@ const verifyDownloadToken = async (req, res, next) => {
     req.downloadToken = decoded;
     next();
   } catch (error) {
-    console.error('Download token verification error:', error);
+    console.error('[Download Token] Verification error:', error.message);
     return res.status(401).json({
       success: false,
       message: 'Invalid download token'

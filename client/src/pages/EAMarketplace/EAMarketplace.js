@@ -78,14 +78,22 @@ const EAMarketplace = () => {
     }
 
     try {
+      console.log('Downloading file type:', fileType);
+      console.log('Download URL:', downloadLinks[fileType]);
+      
       // Open download link in new tab
       window.open(downloadLinks[fileType], '_blank');
       
       // Record the download
       if (currentSubscriptionId) {
-        await apiClient.post(`/api/subscriptions/${currentSubscriptionId}/download`, {
-          fileType: fileType
-        });
+        try {
+          await apiClient.post(`/api/subscriptions/${currentSubscriptionId}/download`, {
+            fileType: fileType
+          });
+          console.log('Download recorded successfully');
+        } catch (recordError) {
+          console.warn('Failed to record download:', recordError.message);
+        }
       }
     } catch (error) {
       console.error('Download error:', error);
@@ -143,6 +151,8 @@ const EAMarketplace = () => {
         paymentReference: `sub_${Date.now()}_${selectedEA.id}`, // Generate a unique reference
         useEscrow: useEscrow
       };
+      
+      console.log('Creating subscription with data:', subscriptionData);
       
       const response = await apiClient.post('/api/subscriptions', subscriptionData);
       

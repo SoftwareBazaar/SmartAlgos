@@ -481,6 +481,8 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
+    
+    console.log('[Subscription Files] Generated download token for subscription:', subscription.id);
 
     const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
     
@@ -491,6 +493,15 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
       manual: ea.manual_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
       screenshots: ea.screenshots && ea.screenshots.length > 0 ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=screenshots` : null
     };
+    
+    console.log('[Subscription Files] EA files available:', {
+      ea_file: !!ea.ea_file,
+      set_file: !!ea.set_file,
+      manual: !!ea.manual_file,
+      screenshots: !!(ea.screenshots && ea.screenshots.length > 0)
+    });
+    
+    console.log('[Subscription Files] Download links generated:', Object.keys(downloadLinks).filter(key => downloadLinks[key]));
 
     res.json({
       success: true,

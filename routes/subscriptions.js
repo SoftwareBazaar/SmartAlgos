@@ -478,7 +478,8 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
       {
         subscriptionId: subscription.id,
         userId: req.user.id,
-        eaId: ea.id
+        eaId: ea.id,
+        timestamp: Date.now()
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
@@ -1375,5 +1376,6 @@ async function sendDownloadConfirmationEmail(subscription, downloadLinks) {
   }
 }
 
-module.exports = router;/ /   T e s t   C o d e R a b b i t  
+module.exports = router;/ /   T e s t   C o d e R a b b i t 
+ 
  

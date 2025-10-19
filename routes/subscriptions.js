@@ -1376,7 +1376,7 @@ function generateSecureToken() {
 async function storeDownloadToken(subscriptionId, token) {
   try {
     const supabase = databaseService.getClient();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours to match JWT TTL
 
     await supabase
       .from('download_tokens')

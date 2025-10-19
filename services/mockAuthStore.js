@@ -226,49 +226,55 @@ class MockAuthStore {
       this._persist();
     }
     
-    // Add test EAs with files for download testing
+    // Add test EAs with files matching production database IDs and structure
     this.eas = [
       {
-        id: 'test-ea-1',
-        name: 'Test Download EA',
-        description: 'Test EA for verifying download functionality',
+        id: 1,
+        name: 'Gold Scalper Pro v2.0',
+        description: 'Advanced scalping EA for gold trading with high win rate',
         category: 'scalping',
         price_weekly: 6.99,
         price_monthly: 18.00,
         price_quarterly: 45.00,
         price_yearly: 97.00,
-        win_rate: 75,
-        max_drawdown: 5.2,
-        supported_pairs: ['EURUSD', 'GBPUSD'],
+        win_rate: 68,
+        max_drawdown: 12,
+        supported_pairs: ['XAUUSD'],
         timeframes: ['M1', 'M5'],
         is_active: true,
         status: 'approved',
-        ea_file: 'https://example.com/test-ea.ex4',
-        set_file: 'https://example.com/test-ea.set',
-        manual_file: 'https://example.com/test-ea.pdf',
-        screenshots: ['https://example.com/screenshot1.png'],
+        ea_file_path: 'https://example.com/gold-scalper-pro-v2.ex4',
+        set_file_path: 'https://example.com/gold-scalper-pro-v2.set',
+        manual_file_path: 'https://example.com/gold-scalper-pro-v2.pdf',
+        screenshots: ['https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-screenshots/image-1759871730248-24446785.jpg'],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       },
       {
-        id: 'test-ea-2',
-        name: 'Multi Indicator Scalping EA',
-        description: 'Advanced scalping EA with visual arrow indicator',
+        id: 5,
+        name: 'Multi Indicator Scalping Arrows EA v6.0 - Enhanced Profit Maximization',
+        description: 'Advanced scalping EA with visual arrow indicator integration',
         category: 'scalping',
-        price_weekly: 6.99,
-        price_monthly: 18.00,
-        price_quarterly: 45.00,
-        price_yearly: 97.00,
-        win_rate: 72,
-        max_drawdown: 4.8,
+        price_weekly: 8.99,
+        price_monthly: 25.00,
+        price_quarterly: 60.00,
+        price_yearly: 120.00,
+        win_rate: 75,
+        max_drawdown: 5.2,
         supported_pairs: ['EURUSD', 'GBPUSD', 'USDJPY'],
         timeframes: ['M1', 'M5', 'M15'],
         is_active: true,
         status: 'approved',
-        ea_file: 'https://example.com/multi-indicator.ex4',
-        set_file: 'https://example.com/multi-indicator.set',
-        manual_file: 'https://example.com/multi-indicator.pdf',
-        screenshots: ['https://example.com/multi-screenshot1.png', 'https://example.com/multi-screenshot2.png'],
+        ea_file_path: 'https://example.com/multi-indicator-scalping.ex4',
+        set_file_path: 'https://example.com/multi-indicator-scalping.set',
+        manual_file_path: 'https://example.com/multi-indicator-scalping.pdf',
+        screenshots: [
+          'https://example.com/multi-indicator-screenshot1.png',
+          'https://example.com/multi-indicator-screenshot2.png',
+          'https://example.com/multi-indicator-screenshot3.png',
+          'https://example.com/multi-indicator-screenshot4.png',
+          'https://example.com/multi-indicator-screenshot5.png'
+        ],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }
@@ -433,10 +439,10 @@ class MockDataStore {
       id: randomUUID(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      // Ensure file fields are properly set and persist
-      ea_file: eaData.ea_file || null,
-      set_file: eaData.set_file || null,
-      manual_file: eaData.manual_file || null,
+      // Ensure file fields are properly set and persist using database column names
+      ea_file_path: eaData.ea_file_path || eaData.ea_file || null,
+      set_file_path: eaData.set_file_path || eaData.set_file || null,
+      manual_file_path: eaData.manual_file_path || eaData.manual_file || null,
       screenshots: eaData.screenshots || [],
       // Ensure EA is active and approved by default
       is_active: true,
@@ -453,9 +459,9 @@ class MockDataStore {
     console.log('[MockAuthStore] Created EA with files:', {
       id: newEA.id,
       name: newEA.name,
-      ea_file: !!newEA.ea_file,
-      set_file: !!newEA.set_file,
-      manual_file: !!newEA.manual_file,
+      ea_file_path: !!newEA.ea_file_path,
+      set_file_path: !!newEA.set_file_path,
+      manual_file_path: !!newEA.manual_file_path,
       screenshots: newEA.screenshots?.length || 0,
       is_active: newEA.is_active,
       status: newEA.status
@@ -477,9 +483,9 @@ class MockDataStore {
       console.log('[MockAuthStore] Updated EA:', {
         id,
         name: this.eas[eaIndex].name,
-        ea_file: !!this.eas[eaIndex].ea_file,
-        set_file: !!this.eas[eaIndex].set_file,
-        manual_file: !!this.eas[eaIndex].manual_file,
+        ea_file_path: !!this.eas[eaIndex].ea_file_path,
+        set_file_path: !!this.eas[eaIndex].set_file_path,
+        manual_file_path: !!this.eas[eaIndex].manual_file_path,
         screenshots: this.eas[eaIndex].screenshots?.length || 0
       });
       return this.eas[eaIndex];

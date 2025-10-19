@@ -246,9 +246,9 @@ router.get('/', [
     console.log('[EAs Route] Database service returned:', eas.length, 'EAs');
     console.log('[EAs Route] First EA files:', eas[0] ? {
       name: eas[0].name,
-      ea_file: !!eas[0].ea_file,
-      set_file: !!eas[0].set_file,
-      manual_file: !!eas[0].manual_file
+      ea_file_path: !!eas[0].ea_file_path,
+      set_file_path: !!eas[0].set_file_path,
+      manual_file_path: !!eas[0].manual_file_path
     } : 'No EAs');
 
     total = eas.length; // For mock mode, use array length
@@ -553,17 +553,17 @@ router.post('/', [
       is_featured: false,
       keywords: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
       screenshots: screenshotUrls.length > 0 ? screenshotUrls : null,
-      // Ensure file fields are properly set
-      ea_file: eaFileUrl,
-      set_file: setFileUrl,
-      manual_file: manualFileUrl
+      // Ensure file fields are properly set using database column names
+      ea_file_path: eaFileUrl,
+      set_file_path: setFileUrl,
+      manual_file_path: manualFileUrl
     };
     
     console.log('[EA Create] Creating EA with file data:', {
       name: eaData.name,
-      ea_file: !!eaData.ea_file,
-      set_file: !!eaData.set_file,
-      manual_file: !!eaData.manual_file,
+      ea_file_path: !!eaData.ea_file_path,
+      set_file_path: !!eaData.set_file_path,
+      manual_file_path: !!eaData.manual_file_path,
       screenshots: eaData.screenshots?.length || 0
     });
     

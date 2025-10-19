@@ -196,7 +196,7 @@ const Dashboard = () => {
         </div>
         
         {/* Admin Access Buttons - Only visible to admins */}
-        {user?.role === 'admin' && user?.role !== 'user' && (
+        {user?.role === 'admin' && (
           <div className="flex space-x-2">
             <Button
               onClick={() => window.open('/admin', '_blank')}

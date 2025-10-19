@@ -488,18 +488,18 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
 
     const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
     
-    // Generate download links
+    // Generate download links using correct database column names
     const downloadLinks = {
-      ea_file: ea.ea_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
-      set_file: ea.set_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
-      manual: ea.manual_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
+      ea_file: ea.ea_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
+      set_file: ea.set_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
+      manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
       screenshots: ea.screenshots && ea.screenshots.length > 0 ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=screenshots` : null
     };
     
     console.log('[Subscription Files] EA files available:', {
-      ea_file: !!ea.ea_file,
-      set_file: !!ea.set_file,
-      manual: !!ea.manual_file,
+      ea_file: !!ea.ea_file_path,
+      set_file: !!ea.set_file_path,
+      manual: !!ea.manual_file_path,
       screenshots: !!(ea.screenshots && ea.screenshots.length > 0)
     });
     

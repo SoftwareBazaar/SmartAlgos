@@ -168,18 +168,24 @@ const EAMarketplace = () => {
         // Show success message with download options
         const subscriptionId = response.data.data.id;
         
-        // Get download links for the newly created subscription
+        // Automatically trigger download modal after successful subscription
         try {
           const downloadResponse = await apiClient.get(`/api/subscriptions/${subscriptionId}/files`);
           
           if (downloadResponse.data.success && downloadResponse.data.data.files) {
-            // Show download modal with available files
+            // Automatically show download modal with available files
             setShowDownloadModal(true);
             setDownloadLinks(downloadResponse.data.data.files);
             setCurrentSubscriptionId(subscriptionId);
+            
+            // Show success toast notification
+            console.log('✅ Subscription successful! Download modal opened automatically.');
+          } else {
+            alert('Subscription created successfully, but download links are not available yet.');
           }
         } catch (downloadError) {
           console.error('Error fetching download links:', downloadError);
+          alert('Subscription created successfully, but failed to get download links. Please contact support.');
         }
         
         setShowSubscriptionModal(false);
@@ -187,15 +193,6 @@ const EAMarketplace = () => {
         
         // Refresh user subscriptions to update the UI
         await fetchUserSubscriptions();
-        
-        // Show success notification with download prompt
-        const shouldShowDownload = window.confirm(
-          'Subscription created successfully! Would you like to download the files now?'
-        );
-        
-        if (!shouldShowDownload) {
-          setShowDownloadModal(false);
-        }
       } else {
         alert('Failed to create subscription. Please try again.');
       }

@@ -1,0 +1,107 @@
+# CodeRabbit Configuration File
+# For more information, visit: https://docs.coderabbit.ai/
+
+# Language settings
+language: en-US
+
+# Review settings
+reviews:
+  # Enable automatic reviews on PRs
+  auto_review: true
+  
+  # Review level: 'simple' | 'detailed' | 'comprehensive'
+  review_level: comprehensive
+  
+  # Enable code suggestions
+  suggestions: true
+  
+  # Enable security checks
+  security: true
+  
+  # Enable performance checks
+  performance: true
+  
+  # Enable best practices checks
+  best_practices: true
+
+# Tone settings
+tone_instructions: |
+  - Be constructive and helpful
+  - Focus on critical issues first
+  - Provide actionable suggestions
+  - Be concise but thorough
+  - Highlight security and performance issues
+
+# Path-specific instructions
+path_instructions:
+  - path: "**/*.js"
+    instructions: |
+      - Check for common JavaScript pitfalls
+      - Verify error handling
+      - Look for security vulnerabilities
+      - Check for performance issues
+      - Verify async/await usage
+      
+  - path: "**/routes/**"
+    instructions: |
+      - Verify authentication and authorization
+      - Check input validation
+      - Review error responses
+      - Ensure proper status codes
+      - Check for SQL injection vulnerabilities
+      
+  - path: "**/client/**"
+    instructions: |
+      - Check React best practices
+      - Verify state management
+      - Look for memory leaks
+      - Check accessibility
+      - Verify responsive design
+
+  - path: "**/services/**"
+    instructions: |
+      - Verify error handling
+      - Check database queries
+      - Review API calls
+      - Ensure proper data validation
+      - Check for race conditions
+
+# Excluded paths
+exclude_paths:
+  - "node_modules/**"
+  - "build/**"
+  - "dist/**"
+  - "*.min.js"
+  - "package-lock.json"
+
+# Focus areas for Smart Algos Trading Platform
+focus_areas:
+  - Authentication and authorization
+  - Payment processing security
+  - Database transactions
+  - File upload/download security
+  - API input validation
+  - Error handling
+  - Subscription management
+  - Download token security
+
+# Custom checks
+custom_checks:
+  - name: "Subscription Security"
+    description: "Ensure subscriptions are properly validated and authorized"
+    paths: ["**/subscriptions.js", "**/EAMarketplace.js"]
+    
+  - name: "Download Security"
+    description: "Ensure downloads are properly authenticated with valid tokens"
+    paths: ["**/downloads.js", "**/download*.js"]
+    
+  - name: "Payment Security"
+    description: "Ensure payment processing is secure and validated"
+    paths: ["**/payment*.js", "**/paystack*.js", "**/crypto*.js"]
+
+# Summary settings
+summary:
+  enabled: true
+  include_file_list: true
+  max_issues_per_file: 10
+

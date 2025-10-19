@@ -44,7 +44,8 @@ router.get('/', [
       offset: skip
     });
 
-    const total = subscriptions.length; // For now, return array length
+    // Get total count for proper pagination
+    const total = await databaseService.getSubscriptionsCount({ user_id: req.user.id });
 
     res.json({
       success: true,
@@ -176,9 +177,12 @@ router.post('/', [
     }
 
     // Check if user already has an active subscription to this EA
-    const existingSubscriptions = await databaseService.getSubscriptions(req.user.id);
-    const hasActiveSubscription = existingSubscriptions.some(sub => 
-      sub.ea_id === eaId && ['active', 'pending'].includes(sub.status)
+    const existingSubscriptions = await databaseService.getSubscriptions({
+      user_id: req.user.id,
+      ea_id: eaId
+    });
+    const hasActiveSubscription = existingSubscriptions.some(
+      (sub) => ['active', 'pending'].includes(sub.status)
     );
 
     if (hasActiveSubscription) {
@@ -730,16 +734,35 @@ router.post('/create', [
     
     if (product_type === 'expert_advisor') {
       product = await databaseService.getEAById(product_id);
-      pricing = product.price_monthly; // Simplified pricing
+      const pricingMap = {
+        weekly: product.price_weekly,
+        monthly: product.price_monthly,
+        quarterly: product.price_quarterly,
+        yearly: product.price_yearly
+      };
+      pricing = pricingMap[subscription_type];
     } else if (product_type === 'hft_bot') {
       product = await databaseService.getHFTBotById(product_id);
-      pricing = product.price_monthly;
+      const pricingMap = {
+        weekly: product.price_weekly,
+        monthly: product.price_monthly,
+        quarterly: product.price_quarterly,
+        yearly: product.price_yearly
+      };
+      pricing = pricingMap[subscription_type];
     }
 
     if (!product) {
       return res.status(404).json({
         success: false,
         message: 'Product not found'
+      });
+    }
+
+    if (!pricing) {
+      return res.status(400).json({
+        success: false,
+        message: 'Selected subscription type not available'
       });
     }
 
@@ -1219,6 +1242,11 @@ router.post('/:id/grant-access', [
   body('paymentReference').notEmpty().withMessage('Payment reference is required')
 ], async (req, res) => {
   try {
+    // Enforce Admin/System access
+    if (!req.user || !['admin', 'system'].includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -1294,7 +1322,7 @@ router.post('/:id/grant-access', [
     await sendDownloadConfirmationEmail(subscription, downloadLinks);
 
     // Log access grant
-    logger.info('Download access granted', {
+    console.info('Download access granted', {
       subscriptionId: req.params.id,
       userId: subscription.user_id,
       eaId: subscription.ea_id,
@@ -1321,14 +1349,16 @@ router.post('/:id/grant-access', [
 
 // Helper function to generate download links
 function generateDownloadLinks(ea, subscription) {
-  const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
   const downloadToken = generateSecureToken();
   
   const links = {
-    eaFile: `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file`,
-    setFile: ea.set_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
-    manual: ea.manual_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
-    screenshots: ea.screenshots && ea.screenshots.length > 0 ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=screenshots` : null
+    eaFile: ea.ea_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
+    setFile: ea.set_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
+    manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
+    screenshots: ea.screenshots && ea.screenshots.length > 0
+      ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=screenshots`
+      : null
   };
 
   // Store download token in database for validation
@@ -1366,7 +1396,7 @@ async function sendDownloadConfirmationEmail(subscription, downloadLinks) {
   try {
     // In a real implementation, you would send an email here
     // For now, we'll just log it
-    logger.info('Download confirmation email sent', {
+    console.info('Download confirmation email sent', {
       subscriptionId: subscription.id,
       userEmail: subscription.user_email,
       downloadLinks
@@ -1376,6 +1406,4 @@ async function sendDownloadConfirmationEmail(subscription, downloadLinks) {
   }
 }
 
-module.exports = router;/ /   T e s t   C o d e R a b b i t 
- 
- 
+module.exports = router;

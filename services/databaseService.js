@@ -826,6 +826,38 @@ class DatabaseService {
     return data;
   }
 
+  async getSubscriptionsCount(filters = {}) {
+    if (this.mockMode) {
+      const mockDataStore = require('./mockAuthStore').mockDataStore;
+      const subscriptions = await mockDataStore.getSubscriptions(filters);
+      return subscriptions.length;
+    }
+
+    let query = this.supabase
+      .from('subscriptions')
+      .select('*', { count: 'exact', head: true });
+    
+    if (filters.user_id) {
+      query = query.eq('user_id', filters.user_id);
+    }
+    if (filters.product_id) {
+      query = query.eq('product_id', filters.product_id);
+    }
+    if (filters.product_type) {
+      query = query.eq('product_type', filters.product_type);
+    }
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    }
+    if (filters.subscription_type) {
+      query = query.eq('subscription_type', filters.subscription_type);
+    }
+    
+    const { count, error } = await query;
+    if (error) throw error;
+    return count;
+  }
+
   async getSubscriptionById(id) {
     if (this.mockMode) {
       const mockDataStore = require('./mockAuthStore').mockDataStore;

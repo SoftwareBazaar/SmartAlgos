@@ -4,7 +4,9 @@
   "description": "Smart Algos Trading Platform - Corrected for Railway",
   "main": "railway-full-server.js",
   "scripts": {
-    "start": "node railway-full-server.js"
+    "start": "node railway-full-server.js",
+    "build": "cd client && npm install && npm run build",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0",

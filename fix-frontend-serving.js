@@ -1,5 +1,14 @@
 #!/usr/bin/env node
 
+// Fix frontend serving for Railway deployment
+const fs = require('fs');
+const path = require('path');
+
+console.log('🔧 Fixing frontend serving for Railway...');
+
+// 1. Create a proper railway-full-server.js that serves the frontend
+const fixedServer = `#!/usr/bin/env node
+
 // Complete Smart Algos Trading Platform Server for Railway
 console.log('🚀 Starting Smart Algos Trading Platform...');
 
@@ -132,7 +141,7 @@ try {
     
     // Fallback: serve basic HTML if no React build
     app.get('/', (req, res) => {
-      res.send(`
+      res.send(\`
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -164,7 +173,7 @@ try {
           </div>
         </body>
         </html>
-      `);
+      \`);
     });
   }
 
@@ -192,7 +201,7 @@ try {
   
   // Fallback minimal server
   app.get('/', (req, res) => {
-    res.send(`
+    res.send(\`
       <!DOCTYPE html>
       <html>
       <head><title>Smart Algos - Maintenance</title></head>
@@ -202,7 +211,7 @@ try {
         <p>Status: <a href="/api/health">Health Check</a></p>
       </body>
       </html>
-    `);
+    \`);
   });
 }
 
@@ -210,8 +219,57 @@ const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
 
 server.listen(PORT, HOST, () => {
-  console.log(`✅ Smart Algos API running on http://${HOST}:${PORT}`);
-  console.log(`📁 Health check available at /api/health`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🚀 Railway deployment ready - health check should respond immediately`);
+  console.log(\`✅ Smart Algos API running on http://\${HOST}:\${PORT}\`);
+  console.log(\`📁 Health check available at /api/health\`);
+  console.log(\`🌐 Environment: \${process.env.NODE_ENV || 'development'}\`);
+  console.log(\`🚀 Railway deployment ready - health check should respond immediately\`);
 });
+`;
+
+fs.writeFileSync('railway-full-server.js', fixedServer);
+console.log('✅ Updated railway-full-server.js to serve frontend');
+
+// 2. Update package.json to include build script
+const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+packageJson.scripts.build = "cd client && npm install && npm run build";
+packageJson.scripts.postinstall = "npm run build";
+
+fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
+console.log('✅ Updated package.json with build script');
+
+// 3. Update nixpacks.toml to build React app
+const nixpacksConfig = `[phases.setup]
+nixPkgs = ["nodejs_22", "npm-9_x"]
+
+[phases.install]
+cmds = ["npm install --production --silent --no-audit --no-fund"]
+
+[phases.build]
+cmds = ["cd client && npm install && npm run build"]
+
+[start]
+cmd = "node railway-full-server.js"
+
+[variables]
+NODE_ENV = "production"
+NPM_CONFIG_PRODUCTION = "true"
+NPM_CONFIG_AUDIT = "false"
+NPM_CONFIG_FUND = "false"
+NPM_CONFIG_LOGLEVEL = "error"
+`;
+
+fs.writeFileSync('nixpacks.toml', nixpacksConfig);
+console.log('✅ Updated nixpacks.toml to build React app');
+
+console.log('🎉 Frontend serving fixed!');
+console.log('');
+console.log('Changes made:');
+console.log('✅ Updated server to serve React app');
+console.log('✅ Added build script to package.json');
+console.log('✅ Updated nixpacks.toml to build React app');
+console.log('✅ Added fallback HTML if build fails');
+console.log('');
+console.log('Next steps:');
+console.log('1. Commit: git add . && git commit -m "Fix frontend serving"');
+console.log('2. Push: git push origin master');
+console.log('3. Railway will build and serve the full React app');

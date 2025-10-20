@@ -4,8 +4,17 @@
   "description": "Comprehensive algorithmic trading and investment solutions platform",
   "main": "server.js",
   "scripts": {
-    "start": "node railway-full-server.js",
-    "build": "echo 'Build step skipped for Railway'",
+    "start": "node server.js",
+    "dev": "node ensure-upload-dirs.js && nodemon server.js",
+    "dev-all": "node start-dev.js",
+    "build": "cd client && npm install && npm run build && cd .. && node -e \"const fs=require('fs'); const path=require('path'); const src='client/build'; const files=['index.html','manifest.json','asset-manifest.json']; files.forEach(f=>fs.copyFileSync(path.join(src,f),f)); const copyDir=(s,d)=>{fs.mkdirSync(d,{recursive:true}); fs.readdirSync(s,{withFileTypes:true}).forEach(e=>e.isDirectory()?copyDir(path.join(s,e.name),path.join(d,e.name)):fs.copyFileSync(path.join(s,e.name),path.join(d,e.name)))}; copyDir('client/build/static','static');\"",
+    "build:client": "cd client && npm install && npm run build",
+    "install:all": "npm install && cd client && npm install",
+    "setup-env": "node setup-env.js",
+    "heroku-postbuild": "cd client && npm install && npm run build",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "start:railway": "node railway-full-server.js",
     "prestart": "node ensure-upload-dirs.js"
   },
   "keywords": [
@@ -42,6 +51,11 @@
     "uuid": "^9.0.1",
     "validator": "^13.11.0",
     "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "nodemon": "^3.0.1"
   },
   "engines": {
     "node": ">=16.0.0",

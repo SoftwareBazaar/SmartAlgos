@@ -2,10 +2,10 @@
 nixPkgs = ["nodejs_22", "npm-9_x"]
 
 [phases.install]
-cmds = ["npm ci --only=production --silent --no-audit --no-fund"]
+cmds = ["npm install --production --silent --no-audit --no-fund"]
 
 [phases.build]
-cmds = ["echo 'Build step completed'"]
+cmds = ["echo 'Build completed successfully'"]
 
 [start]
 cmd = "node railway-full-server.js"

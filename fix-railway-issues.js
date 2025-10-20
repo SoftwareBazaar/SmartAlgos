@@ -1,5 +1,49 @@
 #!/usr/bin/env node
 
+// Fix Railway deployment issues
+const fs = require('fs');
+
+console.log('🔧 Fixing Railway deployment issues...');
+
+// 1. Add axios back to package.json (it's still used in paystackService)
+const correctedPackage = {
+  "name": "smart-algos-trading-platform",
+  "version": "1.0.0",
+  "description": "Smart Algos Trading Platform - Corrected for Railway",
+  "main": "railway-full-server.js",
+  "scripts": {
+    "start": "node railway-full-server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "axios": "^1.5.0",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.10.0",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.29.4",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.7.2",
+    "uuid": "^9.0.1",
+    "validator": "^13.11.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+};
+
+fs.writeFileSync('package.json', JSON.stringify(correctedPackage, null, 2));
+console.log('✅ Added axios back to package.json');
+
+// 2. Create fixed railway-full-server.js with trust proxy and utilities route
+const fixedServer = `#!/usr/bin/env node
+
 // Fixed Smart Algos Trading Platform Server for Railway
 console.log('🚀 Starting Smart Algos Trading Platform...');
 
@@ -145,8 +189,25 @@ const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
 
 server.listen(PORT, HOST, () => {
-  console.log(`✅ Smart Algos API running on http://${HOST}:${PORT}`);
-  console.log(`📁 Health check available at /api/health`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🚀 Railway deployment ready - health check should respond immediately`);
+  console.log(\`✅ Smart Algos API running on http://\${HOST}:\${PORT}\`);
+  console.log(\`📁 Health check available at /api/health\`);
+  console.log(\`🌐 Environment: \${process.env.NODE_ENV || 'development'}\`);
+  console.log(\`🚀 Railway deployment ready - health check should respond immediately\`);
 });
+`;
+
+fs.writeFileSync('railway-full-server.js', fixedServer);
+console.log('✅ Fixed railway-full-server.js with trust proxy and utilities route');
+
+console.log('🎉 Railway issues fixed!');
+console.log('');
+console.log('Issues resolved:');
+console.log('✅ Added axios back (used in paystackService)');
+console.log('✅ Fixed Express trust proxy setting for Railway');
+console.log('✅ Added utilities route to fix 404');
+console.log('✅ Configured rate limiting for Railway proxy');
+console.log('');
+console.log('Next steps:');
+console.log('1. Commit: git add . && git commit -m "Fix Railway deployment issues"');
+console.log('2. Push: git push origin master');
+console.log('3. Railway should now work without errors');

@@ -5,12 +5,18 @@ console.log('🚀 Starting Smart Algos Trading Platform...');
 
 const express = require('express');
 const { createServer } = require('http');
+const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
 const server = createServer(app);
+
+// ===============================
+// Socket.IO - realtime connection
+// ===============================
+let io;
 
 // ========================================
 // CRITICAL: Ultra-lightweight health check FIRST
@@ -54,6 +60,27 @@ try {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  // Initialize Socket.IO with CORS allowing our frontend
+  io = new Server(server, {
+    cors: {
+      origin: [
+        process.env.CLIENT_URL || 'http://localhost:3000',
+        'https://web-production-fdb58.up.railway.app'
+      ],
+      methods: ['GET', 'POST'],
+      credentials: true
+    }
+  });
+
+  io.on('connection', (socket) => {
+    // Basic heartbeat event
+    socket.emit('connected', { time: Date.now() });
+
+    socket.on('disconnect', () => {
+      // no-op; useful for future metrics
+    });
+  });
+
   // Rate limiting with proper proxy configuration
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -64,8 +91,20 @@ try {
   });
   app.use(limiter);
 
-  // Serve static files from uploads
-  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+  // Serve static files from uploads with fallback to placeholder
+  const uploadsDir = path.join(__dirname, 'uploads');
+  app.use('/uploads', express.static(uploadsDir));
+  app.get('/uploads/*', (req, res, next) => {
+    // If file not found, serve a lightweight placeholder image
+    const requested = path.join(uploadsDir, req.params[0] || '');
+    if (!fs.existsSync(requested)) {
+      const placeholder = path.join(__dirname, 'static', 'placeholder.png');
+      if (fs.existsSync(placeholder)) {
+        return res.sendFile(placeholder);
+      }
+    }
+    return next();
+  });
 
   // Import routes (only the essential ones)
   console.log('Loading essential routes...');

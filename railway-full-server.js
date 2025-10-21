@@ -6,6 +6,7 @@ console.log('🚀 Starting Smart Algos Trading Platform...');
 const express = require('express');
 const { createServer } = require('http');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();

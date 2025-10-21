@@ -2,10 +2,10 @@
 nixPkgs = ["nodejs_22", "npm-9_x"]
 
 [phases.install]
-cmds = ["npm install --production --silent --no-audit --no-fund"]
+cmds = ["npm install --production --silent --no-audit --no-fund", "cd client && npm install --silent --no-audit --no-fund"]
 
 [phases.build]
-cmds = ["cd client && npm install && npm run build"]
+cmds = ["cd client && npm run build", "node verify-build.js"]
 
 [start]
 cmd = "node railway-full-server.js"

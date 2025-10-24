@@ -243,6 +243,7 @@ class MockAuthStore {
         timeframes: ['M1', 'M5'],
         is_active: true,
         status: 'approved',
+        image: 'https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-images/image-1759784880962-4551087.png',
         ea_file_path: 'https://example.com/gold-scalper-pro-v2.ex4',
         set_file_path: 'https://example.com/gold-scalper-pro-v2.set',
         manual_file_path: 'https://example.com/gold-scalper-pro-v2.pdf',
@@ -265,15 +266,16 @@ class MockAuthStore {
         timeframes: ['M1', 'M5', 'M15'],
         is_active: true,
         status: 'approved',
+        image: 'https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-images/image-1759785590771-59259230.png',
         ea_file_path: 'https://example.com/multi-indicator-scalping.ex4',
         set_file_path: 'https://example.com/multi-indicator-scalping.set',
         manual_file_path: 'https://example.com/multi-indicator-scalping.pdf',
         screenshots: [
-          'https://example.com/multi-indicator-screenshot1.png',
-          'https://example.com/multi-indicator-screenshot2.png',
-          'https://example.com/multi-indicator-screenshot3.png',
-          'https://example.com/multi-indicator-screenshot4.png',
-          'https://example.com/multi-indicator-screenshot5.png'
+          'https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-screenshots/image-1759870579023-917603937.jpg',
+          'https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-screenshots/image-1759985739334-681257897.jpg',
+          'https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-screenshots/image-1760133545034-767469930.jpg',
+          'https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-screenshots/image-1760133545465-863691638.jpg',
+          'https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-screenshots/image-1760133545677-501140547.jpg'
         ],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()

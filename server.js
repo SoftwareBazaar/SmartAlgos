@@ -193,38 +193,21 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// Global rate limiting (more lenient for production)
-const globalLimiter = securityService.createRateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: isProduction ? (parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 5000) : 10000, // Very high limits to prevent blocking
-  skip: (req) => {
-    // Skip rate limiting for localhost in development
-    if (!isProduction && (req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === 'localhost')) {
-      return true;
-    }
-    // Skip rate limiting for admin routes
-    if (req.path.startsWith('/api/admin')) {
-      return true;
-    }
-    // Skip for health checks
-    if (req.path === '/health' || req.path === '/api/health') {
-      return true;
-    }
-    // Skip for static files
-    if (req.path.startsWith('/static') || req.path.startsWith('/uploads')) {
-      return true;
-    }
-    return false;
-  }
-});
-app.use(globalLimiter);
+// Global rate limiting (DISABLED for debugging)
+// const globalLimiter = securityService.createRateLimit({
+//   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+//   max: isProduction ? (parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 5000) : 10000,
+//   skip: (req) => true  // Skip ALL rate limiting
+// });
+// app.use(globalLimiter);
 
-// Authentication rate limiting (more lenient)
-const authLimiter = securityService.createAuthRateLimit();
-// Don't apply auth limiter in production to avoid blocking legitimate users
-if (!isProduction) {
-  app.use('/api/auth', authLimiter);
-}
+// TEMPORARY: Rate limiting completely disabled to fix admin login
+console.log('⚠️  Rate limiting is DISABLED for debugging');
+
+// Authentication rate limiting (DISABLED for debugging)
+// const authLimiter = securityService.createAuthRateLimit();
+// TEMPORARY: Auth limiter completely disabled
+console.log('⚠️  Auth rate limiting is DISABLED for debugging');
 
 // Input sanitization
 app.use(sanitizeInput);

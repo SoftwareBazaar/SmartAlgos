@@ -179,21 +179,18 @@ app.set("trust proxy", 1);
 // NOTE: CSP is now set in client/public/index.html meta tag to avoid conflicts
 const supabaseUrl = process.env.SUPABASE_URL || 'https://ncikobfahncdgwvkfivz.supabase.co';
 
+// Set CSP header for all routes to allow Supabase images
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; script-src 'self'; style-src 'self'; connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co;"
+  );
+  next();
+});
+
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      imgSrc: ["'self'", "data:", "blob:", "https:", "http:", supabaseUrl, "https://*.supabase.co"],
-      connectSrc: ["'self'", "ws:", "wss:", "https:", "http:", supabaseUrl],
-      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'self'"]
-    }
-  },
+  contentSecurityPolicy: false, // Disabled - using manual header above
   crossOriginEmbedderPolicy: false
 }));
 

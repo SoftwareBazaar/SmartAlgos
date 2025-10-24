@@ -9,13 +9,7 @@ const databaseService = require('./services/databaseService');
 
 const router = express.Router();
 
-// Set CSP header for admin panel to allow Supabase images
-router.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', 
-    "default-src 'self'; img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; script-src 'self'; style-src 'self'; connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co;"
-  );
-  next();
-});
+// CSP disabled for admin panel - will be set globally
 
 const ADMIN_UPLOAD_DIR = path.join(__dirname, 'uploads/admin');
 const CONTENT_STORE_PATH = path.join(ADMIN_UPLOAD_DIR, 'content.json');

@@ -1,0 +1,115 @@
+╔════════════════════════════════════════════════════════════════╗
+║                  📋 IMAGE FIX CHECKLIST                        ║
+║              Follow these steps in order                        ║
+╚════════════════════════════════════════════════════════════════╝
+
+□ STEP 1: Open Supabase
+  └─ Go to: https://app.supabase.com
+  └─ Click your project (ncikobfahncdgwvkfivz)
+
+□ STEP 2: Open SQL Editor
+  └─ Click "SQL Editor" in left sidebar
+  └─ Click "+ New Query" button
+
+□ STEP 3: Copy SQL
+  └─ Open file: ✅_SIMPLE_SQL_FIX.sql
+  └─ Select ALL (Ctrl+A)
+  └─ Copy (Ctrl+C)
+
+□ STEP 4: Paste & Run SQL
+  └─ Paste in Supabase SQL Editor (Ctrl+V)
+  └─ Click green "Run" button
+  └─ Wait for "Success" message
+
+□ STEP 5: Verify Results
+  └─ Should see: public = true for all 3 buckets
+  └─ ea-images: true ✅
+  └─ ea-screenshots: true ✅
+  └─ ea-files: true ✅
+
+□ STEP 6: Test in Browser
+  └─ Go to: https://web-production-fdb58.up.railway.app/ea-marketplace
+  └─ Press Ctrl+Shift+R (hard refresh)
+  └─ Images should display! 🎉
+
+□ STEP 7: Verify in Console (Optional)
+  └─ Press F12 (open DevTools)
+  └─ Click "Console" tab
+  └─ Should see: "Image loaded successfully"
+  └─ Should NOT see: "403 Forbidden"
+
+□ STEP 8: Test Diagnostic Tool (Optional)
+  └─ Open: test-image-loading.html
+  └─ All tests should pass ✅
+
+╔════════════════════════════════════════════════════════════════╗
+║                        🔧 TROUBLESHOOTING                      ║
+╚════════════════════════════════════════════════════════════════╝
+
+If images STILL don't show after Step 6:
+
+□ Check if buckets exist:
+  └─ In Supabase, go to Storage tab
+  └─ Should see: ea-images, ea-screenshots, ea-files
+  └─ Each should have 🌍 (public) icon
+
+□ Check browser console for errors:
+  └─ Press F12
+  └─ Look for red error messages
+  └─ Copy the error text
+
+□ Check database has images:
+  └─ In Supabase SQL Editor, run:
+      SELECT id, name, image FROM expert_advisors LIMIT 5;
+  └─ Should see URLs starting with:
+      https://ncikobfahncdgwvkfivz.supabase.co/...
+
+If any of these fail, share the error message!
+
+╔════════════════════════════════════════════════════════════════╗
+║                         ⏱️ TIME ESTIMATE                        ║
+╚════════════════════════════════════════════════════════════════╝
+
+Steps 1-4: 2 minutes ⏱️
+Step 5-6:  1 minute ⏱️
+Step 7-8:  1 minute ⏱️
+Total:     4 minutes ⏱️
+
+╔════════════════════════════════════════════════════════════════╗
+║                      🎯 SUCCESS CRITERIA                       ║
+╚════════════════════════════════════════════════════════════════╝
+
+✅ Supabase SQL shows "Success"
+✅ All 3 buckets show public = true
+✅ Browser shows images in marketplace
+✅ Console shows no 403/404 errors
+✅ test-image-loading.html passes all tests
+
+╔════════════════════════════════════════════════════════════════╝
+║                         📁 FILES NEEDED                        ║
+╚════════════════════════════════════════════════════════════════╝
+
+Essential:
+  • ✅_SIMPLE_SQL_FIX.sql (the SQL to run)
+
+Optional:
+  • 🚨_IMAGE_FIX_STEP_BY_STEP.md (detailed guide)
+  • ⚡_ACTION_PLAN_FIX_IMAGES.md (action plan)
+  • test-image-loading.html (diagnostic tool)
+
+╔════════════════════════════════════════════════════════════════╝
+║                    💡 IMPORTANT NOTES                          ║
+╚════════════════════════════════════════════════════════════════╝
+
+• This is a ONE-TIME fix
+• Once done, images work FOREVER
+• No code changes needed
+• No redeployment needed
+• Fix takes effect IMMEDIATELY
+
+╔════════════════════════════════════════════════════════════════╝
+║                        🚀 LET'S GO!                            ║
+╚════════════════════════════════════════════════════════════════╝
+
+Start with STEP 1 above ☝️
+

@@ -176,23 +176,12 @@ app.set("trust proxy", 1);
 
 // Baseline security headers with relaxed CSP for images and external resources
 // SUPABASE STORAGE: Allow images from Supabase storage buckets
+// NOTE: CSP is now set in client/public/index.html meta tag to avoid conflicts
 const supabaseUrl = process.env.SUPABASE_URL || 'https://ncikobfahncdgwvkfivz.supabase.co';
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      imgSrc: ["'self'", "data:", "blob:", "https:", "http:", supabaseUrl, "https://images.unsplash.com", "https://*.supabase.co"],
-      connectSrc: ["'self'", "ws:", "wss:", "https:", "http:", supabaseUrl],
-      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'self'"]
-    }
-  },
+  contentSecurityPolicy: false, // Disabled - using meta tag in HTML instead
   crossOriginEmbedderPolicy: false
 }));
 

@@ -29,6 +29,7 @@ import apiClient from '../../lib/apiClient';
 import { EACardImage, ScreenshotGrid } from '../../utils/imageUtils';
 import { EACardImageProxy } from '../../utils/imageProxy';
 import { EAImageDisplay } from '../../components/ImageDisplay';
+import { SimpleEAImage } from '../../components/SimpleImage';
 import { subscribeAndDownload, getErrorMessage } from '../../utils/subscriptionUtils';
 
 const EAMarketplace = () => {
@@ -497,7 +498,7 @@ const EAMarketplace = () => {
                 <div className="relative">
                   <div className="h-32 bg-gradient-to-br from-primary-500 to-primary-600 rounded-t-lg flex items-center justify-center overflow-hidden">
                     {ea.image ? (
-                      <EAImageDisplay 
+                      <SimpleEAImage 
                         ea={ea}
                         className="w-full h-full object-cover"
                       />

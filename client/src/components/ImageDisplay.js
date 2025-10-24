@@ -14,31 +14,19 @@ export const ImageDisplay = ({
   onLoad = null 
 }) => {
   const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   const handleError = (e) => {
     console.log('Image failed to load:', src);
     setError(true);
-    setLoading(false);
     if (onError) onError(e);
   };
 
   const handleLoad = (e) => {
     console.log('Image loaded successfully:', src);
-    setLoading(false);
     if (onLoad) onLoad(e);
   };
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className={`bg-gray-200 dark:bg-gray-700 animate-pulse flex items-center justify-center ${className}`}>
-        <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  // Show error fallback
+  // Show error fallback immediately if error
   if (error) {
     if (fallback) {
       return fallback;
@@ -103,6 +91,7 @@ export const ScreenshotDisplay = ({ screenshots, className = '' }) => {
 export const EAImageDisplay = ({ ea, className = '' }) => {
   const imageUrl = ea.image || ea.image_url;
   
+  // Show fallback immediately if no URL
   if (!imageUrl) {
     return (
       <div className={`bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center ${className}`}>
@@ -113,19 +102,30 @@ export const EAImageDisplay = ({ ea, className = '' }) => {
     );
   }
 
+  // Try to load image, but show fallback quickly if it fails
   return (
-    <ImageDisplay
-      src={imageUrl}
-      alt={ea.name}
-      className={`w-full h-full object-cover ${className}`}
-      fallback={
-        <div className={`bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center ${className}`}>
-          <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-      }
-    />
+    <div className={`relative ${className}`}>
+      <img
+        src={imageUrl}
+        alt={ea.name}
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          console.log('EA image failed to load:', imageUrl);
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'flex';
+        }}
+        crossOrigin="anonymous"
+        loading="lazy"
+      />
+      <div 
+        className="absolute inset-0 bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center"
+        style={{ display: 'none' }}
+      >
+        <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+    </div>
   );
 };
 

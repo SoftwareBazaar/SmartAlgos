@@ -26,6 +26,8 @@ import FloatingChatButton from '../../components/FloatingChatButton';
 import { useAuth } from '../../contexts/AuthContext';
 import { useEA } from '../../contexts/EAContext';
 import apiClient from '../../lib/apiClient';
+import { EACardImage, ScreenshotGrid } from '../../utils/imageUtils';
+import { subscribeAndDownload, getErrorMessage } from '../../utils/subscriptionUtils';
 
 const EAMarketplace = () => {
   const navigate = useNavigate();
@@ -152,53 +154,36 @@ const EAMarketplace = () => {
     try {
       setSubscribing(true);
       
-      // Create actual subscription via API
-      const subscriptionData = {
-        eaId: selectedEA.id,
-        subscriptionType: subscriptionType,
-        paymentMethod: paymentMethod,
-        paymentReference: `sub_${Date.now()}_${selectedEA.id}` // Generate a unique reference
-      };
+      console.log('Starting subscription flow...');
       
-      console.log('Creating subscription with data:', subscriptionData);
+      // Use enhanced subscription flow
+      const result = await subscribeAndDownload(
+        selectedEA.id,
+        subscriptionType,
+        paymentMethod
+      );
       
-      const response = await apiClient.post('/api/subscriptions', subscriptionData);
+      console.log('✅ Subscription successful!', result);
       
-      if (response.data.success) {
-        // Show success message with download options
-        const subscriptionId = response.data.data.id;
-        
-        // Automatically trigger download modal after successful subscription
-        try {
-          const downloadResponse = await apiClient.get(`/api/subscriptions/${subscriptionId}/files`);
-          
-          if (downloadResponse.data.success && downloadResponse.data.data.files) {
-            // Automatically show download modal with available files
-            setShowDownloadModal(true);
-            setDownloadLinks(downloadResponse.data.data.files);
-            setCurrentSubscriptionId(subscriptionId);
-            
-            // Show success toast notification
-            console.log('✅ Subscription successful! Download modal opened automatically.');
-          } else {
-            alert('Subscription created successfully, but download links are not available yet.');
-          }
-        } catch (downloadError) {
-          console.error('Error fetching download links:', downloadError);
-          alert('Subscription created successfully, but failed to get download links. Please contact support.');
-        }
-        
-        setShowSubscriptionModal(false);
-        setSelectedEA(null);
-        
-        // Refresh user subscriptions to update the UI
-        await fetchUserSubscriptions();
-      } else {
-        alert('Failed to create subscription. Please try again.');
-      }
+      // Show download modal with available files
+      setShowDownloadModal(true);
+      setDownloadLinks(result.downloadLinks);
+      setCurrentSubscriptionId(result.subscription.id);
+      
+      // Close subscription modal
+      setShowSubscriptionModal(false);
+      setSelectedEA(null);
+      
+      // Refresh user subscriptions to update the UI
+      await fetchUserSubscriptions();
+      
+      // Show success message
+      console.log('✅ Subscription and download setup complete!');
+      
     } catch (error) {
       console.error('Subscription error:', error);
-      alert('Failed to create subscription. Please try again.');
+      const errorMessage = getErrorMessage(error);
+      alert(errorMessage);
     } finally {
       setSubscribing(false);
     }
@@ -510,9 +495,8 @@ const EAMarketplace = () => {
                 <div className="relative">
                   <div className="h-32 bg-gradient-to-br from-primary-500 to-primary-600 rounded-t-lg flex items-center justify-center overflow-hidden">
                     {ea.image ? (
-                      <img 
-                        src={ea.image} 
-                        alt={ea.name}
+                      <EACardImage 
+                        ea={ea}
                         className="w-full h-full object-cover"
                       />
                     ) : (

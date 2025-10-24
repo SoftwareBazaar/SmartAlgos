@@ -296,6 +296,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Image proxy for CORS issues
+const { addImageProxy, addFallbackImage } = require('./fix-image-display');
+addImageProxy(app);
+addFallbackImage(app);
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', auth, userRoutes);

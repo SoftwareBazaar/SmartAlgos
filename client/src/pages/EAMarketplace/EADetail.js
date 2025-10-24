@@ -28,6 +28,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import Button from '../../components/UI/Button';
+import { ScreenshotDisplay } from '../../components/ImageDisplay';
 import Card from '../../components/UI/Card';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import apiClient from '../../lib/apiClient';
@@ -320,10 +321,9 @@ const EADetail = () => {
                             setLightboxOpen(true);
                           }}
                         >
-                          <img
-                            src={screenshot}
-                            alt={`Screenshot ${index + 1}`}
-                            className="w-full h-48 object-cover rounded-lg"
+                          <ScreenshotDisplay
+                            screenshots={[screenshot]}
+                            className="w-full h-48"
                           />
                           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
                             <Eye className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />

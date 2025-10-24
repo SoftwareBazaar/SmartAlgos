@@ -3,6 +3,7 @@ import { X, Upload, Trash2, Plus, Image as ImageIcon } from 'lucide-react';
 import Button from '../UI/Button';
 import Input from '../UI/Input';
 import Card from '../UI/Card';
+import { ScreenshotDisplay } from '../ImageDisplay';
 
 const EnhancedEAEditor = ({ ea, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -585,10 +586,9 @@ const EnhancedEAEditor = ({ ea, onSave, onCancel }) => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {existingScreenshots.map((screenshot, index) => (
                         <div key={`existing-${index}`} className="relative group">
-                          <img
-                            src={screenshot}
-                            alt={`Screenshot ${index + 1}`}
-                            className="h-24 w-full rounded-lg object-cover"
+                          <ScreenshotDisplay
+                            screenshots={[screenshot]}
+                            className="h-24"
                           />
                           <button
                             type="button"

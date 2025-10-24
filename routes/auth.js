@@ -106,7 +106,7 @@ const passwordResetRateLimit = createActionRateLimit(200, 10 * 60 * 1000, 'passw
 // @desc    Register a new user
 // @access  Public
 router.post('/register', [
-  registerRateLimit,
+  // registerRateLimit REMOVED - no rate limiting
   body('firstName')
     .trim()
     .isLength({ min: 2, max: 50 })
@@ -233,7 +233,7 @@ router.post('/register', [
 // @desc    Login user using Supabase
 // @access  Public
 router.post('/login', [
-  loginRateLimit,
+  // loginRateLimit REMOVED - no rate limiting
   body('email')
     .isEmail()
     .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
@@ -374,7 +374,7 @@ router.get('/me', auth, async (req, res) => {
 // @desc    Send password reset email
 // @access  Public
 router.post('/forgot-password', [
-  passwordResetRateLimit,
+  // passwordResetRateLimit REMOVED - no rate limiting
   body('email')
     .isEmail()
     .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
@@ -739,7 +739,7 @@ router.post('/admin/login', [
 // @desc    Register a new admin user
 // @access  Public (but requires admin code)
 router.post('/admin/register', [
-  registerRateLimit,
+  // registerRateLimit REMOVED - no rate limiting
   body('firstName')
     .trim()
     .isLength({ min: 2, max: 50 })

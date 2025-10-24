@@ -193,10 +193,10 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// Global rate limiting (more lenient in development)
+// Global rate limiting (more lenient for production)
 const globalLimiter = securityService.createRateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: isProduction ? (parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100) : 1000, // 1000 requests in dev
+  max: isProduction ? (parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000) : 1000, // Increased to 1000 for production
   skip: (req) => {
     // Skip rate limiting for localhost in development
     return !isProduction && (req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === 'localhost');

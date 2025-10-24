@@ -89,6 +89,10 @@ export const ScreenshotDisplay = ({ screenshots, className = '' }) => {
 };
 
 export const EAImageDisplay = ({ ea, className = '' }) => {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  
+  // Get image URL from EA object
   const imageUrl = ea.image || ea.image_url;
   
   // Show fallback immediately if no URL
@@ -102,29 +106,42 @@ export const EAImageDisplay = ({ ea, className = '' }) => {
     );
   }
 
-  // Try to load image, but show fallback quickly if it fails
-  return (
-    <div className={`relative ${className}`}>
-      <img
-        src={imageUrl}
-        alt={ea.name}
-        className="w-full h-full object-cover"
-        onError={(e) => {
-          console.log('EA image failed to load:', imageUrl);
-          e.target.style.display = 'none';
-          e.target.nextSibling.style.display = 'flex';
-        }}
-        crossOrigin="anonymous"
-        loading="lazy"
-      />
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center"
-        style={{ display: 'none' }}
-      >
+  // Show fallback if image failed to load
+  if (imageError) {
+    return (
+      <div className={`bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center ${className}`}>
         <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
+    );
+  }
+
+  // Try to load image
+  return (
+    <div className={`relative ${className}`}>
+      {imageLoading && (
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
+      )}
+      <img
+        src={imageUrl}
+        alt={ea.name || 'EA Image'}
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          console.error('Image failed to load:', imageUrl);
+          console.error('EA:', ea.name, 'ID:', ea.id);
+          setImageError(true);
+          setImageLoading(false);
+        }}
+        onLoad={() => {
+          console.log('Image loaded successfully:', imageUrl);
+          setImageLoading(false);
+        }}
+        loading="lazy"
+        style={{ display: imageLoading ? 'none' : 'block' }}
+      />
     </div>
   );
 };

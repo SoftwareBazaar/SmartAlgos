@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Test</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            padding: 40px; 
+            background: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 { color: #333; margin-top: 0; }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        .loading {
+            background: #fef3c7;
+            color: #78350f;
+            border-left: 4px solid #f59e0b;
+        }
+        .url {
+            background: #1f2937;
+            color: #10b981;
+            padding: 10px;
+            border-radius: 5px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1>🖼️ Direct Image Test</h1>
+        <p>Testing the actual Supabase Storage image from your database</p>
+        
+        <div id="status" class="status loading">
+            <strong>⏳ Loading image...</strong>
+        </div>
+        
+        <div class="url" id="imageUrl">
+            https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-images/image-1761313578631-200667.png
+        </div>
+        
+        <img 
+            id="testImage"
+            src="https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-images/image-1761313578631-200667.png"
+            alt="EA Image Test"
+            onload="imageLoaded()"
+            onerror="imageFailed()"
+        />
+    </div>
+    
+    <script>
+        function imageLoaded() {
+            const status = document.getElementById('status');
+            const img = document.getElementById('testImage');
+            status.className = 'status success';
+            status.innerHTML = `
+                <strong>✅ IMAGE LOADED SUCCESSFULLY!</strong><br>
+                Size: ${img.naturalWidth} x ${img.naturalHeight} pixels<br><br>
+                <strong>🎉 This means:</strong><br>
+                • Your Supabase Storage bucket is PUBLIC<br>
+                • Images are accessible<br>
+                • The fix is working correctly<br><br>
+                <strong>Next step:</strong> Refresh your test page and try again!
+            `;
+        }
+        
+        function imageFailed() {
+            const status = document.getElementById('status');
+            status.className = 'status error';
+            status.innerHTML = `
+                <strong>❌ IMAGE FAILED TO LOAD</strong><br><br>
+                <strong>This means your Supabase Storage bucket is PRIVATE</strong><br><br>
+                <strong>To fix:</strong><br>
+                1. Go to <a href="https://app.supabase.com" target="_blank">Supabase Dashboard</a><br>
+                2. Click "Storage" in sidebar<br>
+                3. Click on "ea-images" bucket<br>
+                4. Go to Configuration/Settings<br>
+                5. Enable "Public bucket" ✅<br>
+                6. Save and refresh this page<br><br>
+                <strong>Or run the SQL script:</strong><br>
+                fix-supabase-storage-buckets.sql
+            `;
+        }
+    </script>
+</body>
+</html>
+

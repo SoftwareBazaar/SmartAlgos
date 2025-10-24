@@ -29,12 +29,20 @@ export const SimpleImage = ({ src, alt, className = '' }) => {
 };
 
 export const SimpleEAImage = ({ ea, className = '' }) => {
+  // Get image URL - check both possible fields
   const imageUrl = ea.image || ea.image_url;
+  
+  // Log for debugging
+  if (!imageUrl) {
+    console.warn('EA has no image:', ea.name, 'ID:', ea.id);
+  } else {
+    console.log('Displaying EA image:', ea.name, 'URL:', imageUrl.substring(0, 60));
+  }
   
   return (
     <SimpleImage
       src={imageUrl}
-      alt={ea.name}
+      alt={ea.name || 'EA Image'}
       className={`w-full h-full object-cover ${className}`}
     />
   );

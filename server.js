@@ -175,6 +175,9 @@ app.set("trust proxy", 1);
 // Health check already registered at the top of the file (before server creation)
 
 // Baseline security headers with relaxed CSP for images and external resources
+// SUPABASE STORAGE: Allow images from Supabase storage buckets
+const supabaseUrl = process.env.SUPABASE_URL || 'https://ncikobfahncdgwvkfivz.supabase.co';
+
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: {
@@ -182,8 +185,8 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      imgSrc: ["'self'", "data:", "blob:", "https:", "http:", "https://images.unsplash.com"],
-      connectSrc: ["'self'", "ws:", "wss:", "https:", "http:"],
+      imgSrc: ["'self'", "data:", "blob:", "https:", "http:", supabaseUrl, "https://images.unsplash.com", "https://*.supabase.co"],
+      connectSrc: ["'self'", "ws:", "wss:", "https:", "http:", supabaseUrl],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],

@@ -181,7 +181,19 @@ const supabaseUrl = process.env.SUPABASE_URL || 'https://ncikobfahncdgwvkfivz.su
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: false, // Disabled - using meta tag in HTML instead
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      imgSrc: ["'self'", "data:", "blob:", "https:", "http:", supabaseUrl, "https://*.supabase.co"],
+      connectSrc: ["'self'", "ws:", "wss:", "https:", "http:", supabaseUrl],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'self'"]
+    }
+  },
   crossOriginEmbedderPolicy: false
 }));
 

@@ -179,10 +179,18 @@ app.set("trust proxy", 1);
 // NOTE: CSP is now set in client/public/index.html meta tag to avoid conflicts
 const supabaseUrl = process.env.SUPABASE_URL || 'https://ncikobfahncdgwvkfivz.supabase.co';
 
-// Set simple CSP header for all routes
+// Set comprehensive CSP header for all routes - FIXED VERSION
 app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy', 
-    "default-src 'self'; img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co;"
+    "default-src 'self'; " +
+    "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+    "style-src 'self' 'unsafe-inline'; " +
+    "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co; " +
+    "font-src 'self' data:; " +
+    "object-src 'none'; " +
+    "base-uri 'self'; " +
+    "frame-src 'self';"
   );
   next();
 });

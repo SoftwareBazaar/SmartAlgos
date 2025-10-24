@@ -642,7 +642,7 @@ router.post('/logout', auth, async (req, res) => {
 // @desc    Admin login using database authentication
 // @access  Public
 router.post('/admin/login', [
-  loginRateLimit,
+  // loginRateLimit removed for admin login to prevent blocking
   body('email')
     .isEmail()
     .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)

@@ -196,17 +196,35 @@ app.use(helmet({
 // Global rate limiting (more lenient for production)
 const globalLimiter = securityService.createRateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: isProduction ? (parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000) : 1000, // Increased to 1000 for production
+  max: isProduction ? (parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 5000) : 10000, // Very high limits to prevent blocking
   skip: (req) => {
     // Skip rate limiting for localhost in development
-    return !isProduction && (req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === 'localhost');
+    if (!isProduction && (req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === 'localhost')) {
+      return true;
+    }
+    // Skip rate limiting for admin routes
+    if (req.path.startsWith('/api/admin')) {
+      return true;
+    }
+    // Skip for health checks
+    if (req.path === '/health' || req.path === '/api/health') {
+      return true;
+    }
+    // Skip for static files
+    if (req.path.startsWith('/static') || req.path.startsWith('/uploads')) {
+      return true;
+    }
+    return false;
   }
 });
 app.use(globalLimiter);
 
-// Authentication rate limiting
+// Authentication rate limiting (more lenient)
 const authLimiter = securityService.createAuthRateLimit();
-app.use('/api/auth', authLimiter);
+// Don't apply auth limiter in production to avoid blocking legitimate users
+if (!isProduction) {
+  app.use('/api/auth', authLimiter);
+}
 
 // Input sanitization
 app.use(sanitizeInput);

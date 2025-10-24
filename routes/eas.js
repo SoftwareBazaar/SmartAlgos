@@ -995,6 +995,15 @@ router.put('/:id', [
       }
     }
 
+    // Handle image - preserve existing if no new upload
+    if (imageUrl) {
+      updates.image = imageUrl;
+      console.log(`📸 [EA Update] New image URL set: ${imageUrl}`);
+    } else if (existingEA.image) {
+      updates.image = existingEA.image;
+      console.log(`📸 [EA Update] Preserving existing image: ${existingEA.image}`);
+    }
+    
     // Update files if new ones were uploaded
     if (imageFile || eaFile) {
       updates.files = {};
@@ -1031,10 +1040,13 @@ router.put('/:id', [
         updated_at: new Date().toISOString()
       };
       
-      // Set image URL if uploaded
+      // Set image URL if uploaded, otherwise preserve existing image
       if (imageUrl) {
         updatedEA.image = imageUrl;
-        console.log(`📸 [EA Update] Image set: ${imageUrl}`);
+        console.log(`📸 [EA Update] New image set: ${imageUrl}`);
+      } else if (existingEA.image) {
+        updatedEA.image = existingEA.image;
+        console.log(`📸 [EA Update] Preserving existing image: ${existingEA.image}`);
       }
       if (eaFileUrl) {
         updatedEA.ea_file_path = eaFileUrl;

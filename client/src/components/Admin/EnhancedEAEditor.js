@@ -72,7 +72,7 @@ const EnhancedEAEditor = ({ ea, onSave, onCancel }) => {
         max_spread: ea.max_spread || '',
         risk_level: ea.risk_level || 'medium',
         keywords: Array.isArray(ea.keywords) ? ea.keywords.join(', ') : '',
-        image: null,
+        image: ea.image || null, // Keep existing image URL
         eaFile: null,
         screenshots: [],
       });
@@ -160,8 +160,10 @@ const EnhancedEAEditor = ({ ea, onSave, onCancel }) => {
     // Add keywords
     if (formData.keywords) submitData.append('tags', formData.keywords);
     
-    // Add files
-    if (formData.image) submitData.append('image', formData.image);
+    // Add files - only append if it's a File object (new upload)
+    if (formData.image && formData.image instanceof File) {
+      submitData.append('image', formData.image);
+    }
     if (formData.eaFile) submitData.append('eaFile', formData.eaFile);
     
     // Add screenshots
@@ -519,9 +521,9 @@ const EnhancedEAEditor = ({ ea, onSave, onCancel }) => {
                   EA Main Image
                 </label>
                 <div className="flex items-center space-x-4">
-                  {imagePreview ? (
+                  {(imagePreview || formData.image) ? (
                     <img
-                      src={imagePreview}
+                      src={imagePreview || (formData.image instanceof File ? URL.createObjectURL(formData.image) : formData.image)}
                       alt="EA Preview"
                       className="h-32 w-32 rounded-lg object-cover"
                     />

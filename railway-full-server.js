@@ -81,15 +81,17 @@ try {
     });
   });
 
-  // Rate limiting with proper proxy configuration
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    trustProxy: true, // Trust Railway proxy
-    standardHeaders: true,
-    legacyHeaders: false
-  });
-  app.use(limiter);
+  // Rate limiting DISABLED for debugging
+  // const limiter = rateLimit({
+  //   windowMs: 15 * 60 * 1000, // 15 minutes
+  //   max: 100, // limit each IP to 100 requests per windowMs
+  //   trustProxy: true, // Trust Railway proxy
+  //   standardHeaders: true,
+  //   legacyHeaders: false
+  // });
+  // app.use(limiter);
+  
+  console.log('⚠️  Rate limiting DISABLED in railway-full-server.js');
 
   // Serve static files from uploads with fallback to placeholder
   const uploadsDir = path.join(__dirname, 'uploads');

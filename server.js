@@ -186,7 +186,7 @@ app.use((req, res, next) => {
     "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
     "style-src 'self' 'unsafe-inline'; " +
-    "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co; " +
+    "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app; " +
     "font-src 'self' data:; " +
     "object-src 'none'; " +
     "base-uri 'self'; " +

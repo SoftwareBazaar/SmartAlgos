@@ -37,7 +37,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 50 * 1024 * 1024 // 50MB limit (matches server limit)
   },
   fileFilter: (req, file, cb) => {
     const allowedMimeTypes = /^image\/(jpeg|jpg|png|gif|webp)$/i;
@@ -404,6 +404,95 @@ router.put('/:id', [
     });
   } catch (error) {
     console.error('Update utility error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   GET /api/utilities/:id/download
+// @desc    Download utility file
+// @access  Public (Free download for all authenticated users)
+router.get('/:id/download', [
+  auth, // Require authentication but not admin
+  updateActivity
+], async (req, res) => {
+  try {
+    console.log('[Utility Download] Request for utility ID:', req.params.id);
+    
+    // Get utility details
+    const { data: utility, error: utilError } = await databaseService.supabase
+      .from('utilities')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+    
+    if (utilError || !utility) {
+      console.error('[Utility Download] Utility not found:', utilError);
+      return res.status(404).json({
+        success: false,
+        message: 'Utility not found'
+      });
+    }
+    
+    if (!utility.is_active) {
+      return res.status(403).json({
+        success: false,
+        message: 'Utility is not available'
+      });
+    }
+    
+    console.log('[Utility Download] Utility found:', {
+      name: utility.name,
+      download_url: utility.download_url
+    });
+    
+    // Check if it's a Supabase Storage URL or external URL
+    if (utility.download_url && (utility.download_url.includes('supabase.co/storage') || utility.download_url.startsWith('http'))) {
+      // Redirect to external URL
+      console.log('[Utility Download] Redirecting to external URL:', utility.download_url);
+      return res.redirect(utility.download_url);
+    } else if (utility.download_url && utility.download_url.startsWith('/uploads/')) {
+      // Serve local file
+      const filePath = path.join(__dirname, '..', utility.download_url);
+      console.log('[Utility Download] Serving local file:', filePath);
+      
+      try {
+        const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
+        if (!fileExists) {
+          console.error('[Utility Download] File not found:', filePath);
+          return res.status(404).json({
+            success: false,
+            message: 'File not found on server'
+          });
+        }
+        
+        // Update download count
+        await databaseService.supabase
+          .from('utilities')
+          .update({ 
+            downloads: (utility.downloads || 0) + 1,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', req.params.id);
+        
+        return res.download(filePath, utility.name + '.exe');
+      } catch (error) {
+        console.error('[Utility Download] File serving error:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to serve file'
+        });
+      }
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: 'No download file available'
+      });
+    }
+  } catch (error) {
+    console.error('[Utility Download] Error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

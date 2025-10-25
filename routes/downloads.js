@@ -220,24 +220,10 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
     console.log('[Download] Fetching file from:', fileUrl);
 
     // Check if file is from Supabase Storage or external URL
-    if (fileUrl.includes('supabase.co/storage')) {
-      // Download from Supabase Storage
-      try {
-        const fileBuffer = await supabaseStorage.downloadFile(fileUrl);
-        
-        // Set response headers for file download
-        res.setHeader('Content-Type', 'application/octet-stream');
-        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-        res.setHeader('Content-Length', fileBuffer.length);
-        
-        return res.send(fileBuffer);
-      } catch (downloadError) {
-        console.error('[Download] Supabase storage download error:', downloadError);
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to download file from storage'
-        });
-      }
+    if (fileUrl.includes('supabase.co/storage') || fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
+      // Redirect to Supabase Storage or external URL
+      console.log('[Download] Redirecting to external URL:', fileUrl);
+      return res.redirect(fileUrl);
     } else if (fileUrl.startsWith('/uploads/')) {
       // Download from local filesystem
       try {

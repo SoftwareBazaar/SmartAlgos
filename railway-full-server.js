@@ -171,9 +171,23 @@ try {
     app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
     
     console.log('✅ Essential routes loaded');
+    console.log('   - /api/auth');
+    console.log('   - /api/eas');
+    console.log('   - /api/subscriptions');
+    console.log('   - /api/downloads');
   } catch (error) {
-    console.warn('⚠️ Some routes failed to load:', error.message);
+    console.error('❌ Routes loading error:', error.message);
+    console.error('Stack:', error.stack);
   }
+
+  // Test downloads route
+  app.get('/api/downloads/test', (req, res) => {
+    res.json({
+      success: true,
+      message: 'Downloads route is working!',
+      timestamp: new Date().toISOString()
+    });
+  });
 
   // Add utilities route to fix 404
   app.get('/api/utilities', (req, res) => {

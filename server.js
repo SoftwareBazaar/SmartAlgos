@@ -179,7 +179,14 @@ app.set("trust proxy", 1);
 // NOTE: CSP is now set in client/public/index.html meta tag to avoid conflicts
 const supabaseUrl = process.env.SUPABASE_URL || 'https://ncikobfahncdgwvkfivz.supabase.co';
 
-// Set comprehensive CSP header for all routes - FIXED VERSION
+// Apply helmet FIRST with CSP disabled
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: false, // Disable helmet's CSP
+  crossOriginEmbedderPolicy: false
+}));
+
+// Then apply CUSTOM CSP (this will be the final CSP sent)
 app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy', 
     "default-src 'self'; " +
@@ -194,12 +201,6 @@ app.use((req, res, next) => {
   );
   next();
 });
-
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: false, // Disabled - using manual header above
-  crossOriginEmbedderPolicy: false
-}));
 
 // Global rate limiting (DISABLED for debugging)
 // const globalLimiter = securityService.createRateLimit({

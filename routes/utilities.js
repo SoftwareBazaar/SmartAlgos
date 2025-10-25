@@ -210,6 +210,11 @@ router.post('/upload-image', [
 router.post('/', [
   auth,
   updateActivity,
+  upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'uploadedFile', maxCount: 1 },
+    { name: 'previews', maxCount: 5 }
+  ]),
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('description').trim().notEmpty().withMessage('Description is required'),
   body('category').isIn(['Risk Management', 'Market Analysis', 'Trading Tools', 'EA Tools'])
@@ -248,6 +253,62 @@ router.post('/', [
       guide
     } = req.body;
     
+    // Handle uploaded files
+    let finalDownloadUrl = download_url;
+    let finalImage = image;
+    let finalImageTimestamp = image_timestamp;
+    let finalPreviews = previews;
+    
+    if (req.files) {
+      // Handle image upload
+      if (req.files.image && req.files.image[0]) {
+        finalImage = `/uploads/utilities/${req.files.image[0].filename}`;
+        finalImageTimestamp = Date.now();
+      }
+      
+      // Handle utility file upload
+      if (req.files.uploadedFile && req.files.uploadedFile[0]) {
+        const uploadedFile = req.files.uploadedFile[0];
+        console.log('📤 Utility file uploaded:', uploadedFile.filename, uploadedFile.size, 'bytes');
+        
+        // Upload to Supabase Storage
+        try {
+          const fileBuffer = require('fs').readFileSync(uploadedFile.path);
+          const fileName = `utility-${Date.now()}-${uploadedFile.originalname}`;
+          
+          const { data: uploadData, error: uploadError } = await databaseService.supabase.storage
+            .from('utilities')
+            .upload(fileName, fileBuffer, {
+              contentType: uploadedFile.mimetype,
+              upsert: true
+            });
+          
+          if (uploadError) {
+            console.error('❌ Error uploading to Supabase Storage:', uploadError);
+            throw uploadError;
+          }
+          
+          // Update download URL to point to Supabase Storage
+          finalDownloadUrl = `https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/utilities/${uploadData.path}`;
+          console.log('✅ Utility file uploaded to Supabase Storage:', finalDownloadUrl);
+          
+          // Clean up local file
+          require('fs').unlinkSync(uploadedFile.path);
+        } catch (uploadError) {
+          console.error('❌ Error processing utility file:', uploadError);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to upload utility file: ' + uploadError.message
+          });
+        }
+      }
+      
+      // Handle preview images
+      if (req.files.previews && req.files.previews.length > 0) {
+        finalPreviews = req.files.previews.map(file => `/uploads/utilities/${file.filename}`);
+      }
+    }
+    
     // Process features array if it's a string
     let processedFeatures = features;
     if (typeof features === 'string') {
@@ -278,12 +339,12 @@ router.post('/', [
         description,
         category,
         features: processedFeatures || [],
-        download_url,
+        download_url: finalDownloadUrl,
         version,
         size,
-        image,
-        image_timestamp: image_timestamp || Date.now(),
-        previews: previews || [],
+        image: finalImage,
+        image_timestamp: finalImageTimestamp || Date.now(),
+        previews: finalPreviews || [],
         guide: processedGuide || {},
         downloads: 0,
         is_active: true
@@ -326,7 +387,11 @@ router.post('/', [
 router.put('/:id', [
   auth,
   updateActivity,
-  upload.single('image'),
+  upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'uploadedFile', maxCount: 1 },
+    { name: 'previews', maxCount: 5 }
+  ]),
   body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),
   body('description').optional().trim().notEmpty().withMessage('Description cannot be empty'),
   body('category').optional().isIn(['Risk Management', 'Market Analysis', 'Trading Tools', 'EA Tools'])
@@ -355,10 +420,56 @@ router.put('/:id', [
     delete updates.created_at;
     delete updates.downloads; // Don't allow manual download count updates
     
-    // Handle uploaded image file
-    if (req.file) {
-      updates.image = `/uploads/utilities/${req.file.filename}`;
-      updates.image_timestamp = Date.now();
+    // Handle uploaded files
+    if (req.files) {
+      // Handle image upload
+      if (req.files.image && req.files.image[0]) {
+        updates.image = `/uploads/utilities/${req.files.image[0].filename}`;
+        updates.image_timestamp = Date.now();
+      }
+      
+      // Handle utility file upload
+      if (req.files.uploadedFile && req.files.uploadedFile[0]) {
+        const uploadedFile = req.files.uploadedFile[0];
+        console.log('📤 Utility file uploaded:', uploadedFile.filename, uploadedFile.size, 'bytes');
+        
+        // Upload to Supabase Storage
+        try {
+          const fileBuffer = require('fs').readFileSync(uploadedFile.path);
+          const fileName = `utility-${Date.now()}-${uploadedFile.originalname}`;
+          
+          const { data: uploadData, error: uploadError } = await databaseService.supabase.storage
+            .from('utilities')
+            .upload(fileName, fileBuffer, {
+              contentType: uploadedFile.mimetype,
+              upsert: true
+            });
+          
+          if (uploadError) {
+            console.error('❌ Error uploading to Supabase Storage:', uploadError);
+            throw uploadError;
+          }
+          
+          // Update download URL to point to Supabase Storage
+          updates.download_url = `https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/utilities/${uploadData.path}`;
+          console.log('✅ Utility file uploaded to Supabase Storage:', updates.download_url);
+          
+          // Clean up local file
+          require('fs').unlinkSync(uploadedFile.path);
+        } catch (uploadError) {
+          console.error('❌ Error processing utility file:', uploadError);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to upload utility file: ' + uploadError.message
+          });
+        }
+      }
+      
+      // Handle preview images
+      if (req.files.previews && req.files.previews.length > 0) {
+        const previewUrls = req.files.previews.map(file => `/uploads/utilities/${file.filename}`);
+        updates.previews = previewUrls;
+      }
     }
     
     // Process features array if it's a string

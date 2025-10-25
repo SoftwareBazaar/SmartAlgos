@@ -58,10 +58,18 @@ const UtilitiesPage = () => {
   ];
 
   const [activeCategory, setActiveCategory] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const utilitiesPerPage = 2; // Show only 2 utilities per page
 
   const filteredUtilities = activeCategory === 'all' 
     ? utilities 
     : utilities.filter(utility => utility.category === activeCategory);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUtilities.length / utilitiesPerPage);
+  const startIndex = (currentPage - 1) * utilitiesPerPage;
+  const endIndex = startIndex + utilitiesPerPage;
+  const currentUtilities = filteredUtilities.slice(startIndex, endIndex);
 
   const getCategoryColor = (category) => {
     const colors = {
@@ -73,15 +81,45 @@ const UtilitiesPage = () => {
     return colors[category] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
   };
 
-  const handleDownload = (utility) => {
-    // Simulate download
-    console.log(`Downloading ${utility.name}...`);
-    // In a real app, this would trigger the actual download
-    alert(`Downloading ${utility.name} v${utility.version}...`);
+  const handleDownload = async (utility) => {
+    try {
+      console.log(`Downloading ${utility.name}...`);
+      
+      // Call the actual download API
+      const response = await fetch(`/api/utilities/${utility.id}/download`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (response.ok) {
+        // If it's a redirect, the browser will handle it
+        if (response.redirected) {
+          window.location.href = response.url;
+        } else {
+          // If it's a file download, create a blob and download it
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${utility.name}-v${utility.version}.exe`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }
+      } else {
+        throw new Error('Download failed');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      alert(`Failed to download ${utility.name}. Please try again.`);
+    }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -132,9 +170,9 @@ const UtilitiesPage = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        className="grid grid-cols-1 md:grid-cols-2 gap-8"
       >
-        {filteredUtilities.map((utility, index) => {
+        {currentUtilities.map((utility, index) => {
           const Icon = getUtilityIcon(utility.category);
           return (
           <motion.div
@@ -236,6 +274,48 @@ const UtilitiesPage = () => {
           );
         })}
       </motion.div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="flex justify-center items-center space-x-2 mt-8"
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          
+          <div className="flex space-x-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "primary" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+                className="w-8 h-8 p-0"
+              >
+                {page}
+              </Button>
+            ))}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </motion.div>
+      )}
 
       {/* ROI Guarantee Section */}
       <motion.div

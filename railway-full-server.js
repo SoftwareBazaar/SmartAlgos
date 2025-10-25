@@ -162,11 +162,13 @@ try {
     const authRoutes = require('./routes/auth');
     const eaRoutes = require('./routes/eas');
     const subscriptionRoutes = require('./routes/subscriptions');
+    const downloadsRoutes = require('./routes/downloads');
     
     // API Routes
     app.use('/api/auth', authRoutes);
     app.use('/api/eas', eaRoutes);
     app.use('/api/subscriptions', subscriptionRoutes);
+    app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
     
     console.log('✅ Essential routes loaded');
   } catch (error) {

@@ -272,13 +272,6 @@ const EAMarketplace = () => {
               <Settings className="h-4 w-4 mr-2" />
               My EAs
             </Button>
-            <Button 
-              variant="primary"
-              onClick={() => navigate('/create-ea')}
-            >
-              <Bot className="h-4 w-4 mr-2" />
-              Create EA
-            </Button>
           </div>
         </div>
       </motion.div>

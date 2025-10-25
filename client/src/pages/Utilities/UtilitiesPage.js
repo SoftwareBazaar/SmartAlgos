@@ -59,7 +59,7 @@ const UtilitiesPage = () => {
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const utilitiesPerPage = 2; // Show only 2 utilities per page
+  const utilitiesPerPage = 6; // Show 6 utilities per page for more compact view
 
   const filteredUtilities = activeCategory === 'all' 
     ? utilities 
@@ -158,7 +158,7 @@ const UtilitiesPage = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-8"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
       >
         {currentUtilities.map((utility, index) => {
           const Icon = getUtilityIcon(utility.category);
@@ -170,69 +170,72 @@ const UtilitiesPage = () => {
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
             <Card hover className="h-full">
-              <div className="p-6">
+              <div className="p-4">
                 {/* Utility Image */}
-                <div className="mb-4">
+                <div className="mb-3">
                   <img 
                     key={`utility-${utility.id}-${utility.imageTimestamp || utility.updated_at || 0}`}
                     src={utility.image} 
                     alt={utility.name}
-                    className="w-full h-32 object-cover rounded-lg"
+                    className="w-full h-24 object-cover rounded-lg"
                   />
                 </div>
 
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-primary-100 dark:bg-primary-900 rounded-lg">
-                      <Icon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="p-1.5 bg-primary-100 dark:bg-primary-900 rounded-lg">
+                      <Icon className="h-4 w-4 text-primary-600 dark:text-primary-400" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
                         {utility.name}
                       </h3>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(utility.category)}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(utility.category)}`}>
                         {utility.category}
                       </span>
                     </div>
                   </div>
-                  <div className="text-right text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-right text-xs text-gray-500 dark:text-gray-400">
                     <div>v{utility.version}</div>
                     <div>{utility.size}</div>
                   </div>
                 </div>
 
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {utility.description}
+                <p className="text-gray-600 dark:text-gray-400 mb-3 text-sm line-clamp-2">
+                  {utility.description.length > 100 ? utility.description.substring(0, 100) + '...' : utility.description}
                 </p>
 
-                <div className="space-y-2 mb-4">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Features:</h4>
-                  <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                    {utility.features.map((feature, idx) => (
+                <div className="space-y-1 mb-3">
+                  <h4 className="text-xs font-medium text-gray-900 dark:text-gray-100">Key Features:</h4>
+                  <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-0.5">
+                    {utility.features.slice(0, 3).map((feature, idx) => (
                       <li key={idx} className="flex items-center">
-                        <span className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-2"></span>
-                        {feature}
+                        <span className="w-1 h-1 bg-primary-500 rounded-full mr-1.5"></span>
+                        {feature.length > 30 ? feature.substring(0, 30) + '...' : feature}
                       </li>
                     ))}
+                    {utility.features.length > 3 && (
+                      <li className="text-xs text-gray-500">+{utility.features.length - 3} more features</li>
+                    )}
                   </ul>
                 </div>
 
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    <TrendingUp className="h-4 w-4 inline mr-1" />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    <TrendingUp className="h-3 w-3 inline mr-1" />
                     {utility.downloads.toLocaleString()} downloads
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex space-x-2">
+                <div className="flex space-x-1">
                   <Button
                     variant="primary"
                     size="sm"
                     onClick={() => handleDownload(utility)}
-                    className="flex-1"
+                    className="flex-1 text-xs"
                   >
-                    <Download className="h-4 w-4 mr-2" />
+                    <Download className="h-3 w-3 mr-1" />
                     Download
                   </Button>
                   <Button
@@ -242,8 +245,9 @@ const UtilitiesPage = () => {
                       setSelectedUtility(utility);
                       setShowGuide(true);
                     }}
+                    className="px-2"
                   >
-                    <BookOpen className="h-4 w-4" />
+                    <BookOpen className="h-3 w-3" />
                   </Button>
                   <Button
                     variant="outline"
@@ -252,8 +256,9 @@ const UtilitiesPage = () => {
                       setSelectedUtility(utility);
                       setShowGuide(true);
                     }}
+                    className="px-2"
                   >
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
@@ -305,166 +310,17 @@ const UtilitiesPage = () => {
         </motion.div>
       )}
 
-      {/* ROI Guarantee Section */}
+      {/* Compact Info Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        className="bg-gradient-to-r from-green-600 to-emerald-700 rounded-lg p-6 text-white"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="bg-white bg-opacity-20 rounded-full p-3">
-              <Shield className="h-8 w-8" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold">40% ROI Guarantee</h3>
-              <p className="text-green-100">
-                We guarantee a 40% return on investment when using our tools properly. 
-                If you don't see results, we'll refund your subscription.
-              </p>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-4xl font-bold">40%</div>
-            <div className="text-sm text-green-100">ROI Guaranteed</div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Trading Disclaimer */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-        className="bg-red-900/20 border border-red-500/30 rounded-lg p-6"
-      >
-        <div className="flex items-start space-x-3">
-          <AlertTriangle className="h-6 w-6 text-red-400 flex-shrink-0 mt-1" />
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-red-400 mb-2">
-              Trading Risk Disclaimer
-            </h3>
-            <div className="text-sm text-gray-300 space-y-2">
-              <p>
-                <strong>Trading involves substantial risk of loss and is not suitable for all investors.</strong> 
-                The high degree of leverage can work against you as well as for you. Before deciding to trade, 
-                you should carefully consider your investment objectives, level of experience, and risk appetite.
-              </p>
-              <p>
-                Past performance is not indicative of future results. No representation is being made that 
-                any account will or is likely to achieve profits or losses similar to those shown. 
-                The possibility exists that you could sustain a loss of some or all of your initial investment.
-              </p>
-              <p>
-                <strong>Never trade with money you cannot afford to lose.</strong> Only invest capital that 
-                you can afford to lose without affecting your lifestyle or financial security.
-              </p>
-            </div>
-            
-            {/* Disclaimer Acceptance */}
-            <div className="mt-4 p-4 bg-red-800/30 rounded-lg border border-red-500/50">
-              <div className="flex items-start space-x-3">
-                <input
-                  type="checkbox"
-                  id="disclaimer-accept"
-                  className="mt-1 h-4 w-4 text-red-600 focus:ring-red-500 border-red-300 rounded"
-                />
-                <label htmlFor="disclaimer-accept" className="text-sm text-gray-300">
-                  <strong className="text-red-300">I acknowledge and accept the trading risks:</strong>
-                  <ul className="mt-2 ml-4 space-y-1 text-xs">
-                    <li>• I understand that trading involves substantial risk of loss</li>
-                    <li>• I will only trade with money I can afford to lose</li>
-                    <li>• I understand that past performance does not guarantee future results</li>
-                    <li>• I have read and understood all the risk warnings above</li>
-                  </ul>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Feedback Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="bg-gray-800 rounded-lg p-6"
-      >
-        <div className="text-center mb-6">
-          <h3 className="text-xl font-semibold text-white mb-2">
-            We Appreciate Your Feedback
-          </h3>
-          <p className="text-gray-300">
-            Help us improve by sharing your experience with our tools
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="text-lg font-medium text-white mb-4">Rate Our Tools</h4>
-            <div className="flex space-x-1 mb-4">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => setRating(star)}
-                  className={`p-1 ${
-                    star <= rating ? 'text-yellow-400' : 'text-gray-400'
-                  }`}
-                >
-                  <Star className="h-6 w-6" />
-                </button>
-              ))}
-            </div>
-            <p className="text-sm text-gray-400">
-              {rating === 0 ? 'Click to rate' : 
-               rating === 1 ? 'Poor' :
-               rating === 2 ? 'Fair' :
-               rating === 3 ? 'Good' :
-               rating === 4 ? 'Very Good' : 'Excellent'}
-            </p>
-          </div>
-
-          <div>
-            <h4 className="text-lg font-medium text-white mb-4">Share Your Experience</h4>
-            <textarea
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Tell us about your experience with our tools..."
-              className="w-full h-24 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-            <Button 
-              variant="primary" 
-              className="mt-3"
-              onClick={() => {
-                alert('Thank you for your feedback! We appreciate your input.');
-                setFeedback('');
-                setRating(0);
-              }}
-            >
-              <ThumbsUp className="h-4 w-4 mr-2" />
-              Submit Feedback
-            </Button>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Info Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-        className="bg-gray-800 rounded-lg p-6"
+        className="bg-gray-800 rounded-lg p-4"
       >
         <div className="text-center">
-          <h3 className="text-xl font-semibold text-white mb-2">
-            Why Our Free Utilities?
+          <h3 className="text-lg font-semibold text-white mb-2">
+            Professional Trading Tools - Completely Free
           </h3>
-          <p className="text-gray-300 mb-4">
-            We believe in providing professional-grade tools to help traders succeed. 
-            These utilities are completely free and regularly updated with new features.
-          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div className="flex items-center justify-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>

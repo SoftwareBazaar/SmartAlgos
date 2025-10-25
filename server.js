@@ -75,6 +75,16 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// CSP Verification endpoint
+app.get('/api/verify-csp', (req, res) => {
+  const cspHeader = res.getHeader('Content-Security-Policy');
+  res.json({
+    cspHeader: cspHeader || 'NO CSP HEADER SET',
+    supabaseIncluded: cspHeader ? cspHeader.includes('ncikobfahncdgwvkfivz.supabase.co') : false,
+    timestamp: new Date().toISOString()
+  });
+});
+
 const server = createServer(app);
 
 // Set server timeout for large file uploads
@@ -195,8 +205,7 @@ app.use(helmet({
 
 // Keep ONLY this CSP - no helmet interference
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', 
-    "default-src 'self'; " +
+  const csp = "default-src 'self'; " +
     "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
     "style-src 'self' 'unsafe-inline'; " +
@@ -204,8 +213,17 @@ app.use((req, res, next) => {
     "font-src 'self' data:; " +
     "object-src 'none'; " +
     "base-uri 'self'; " +
-    "frame-src 'self';"
-  );
+    "frame-src 'self';";
+  
+  res.setHeader('Content-Security-Policy', csp);
+  
+  // Log CSP on first request only
+  if (!global.cspLogged) {
+    console.log('🔒 CSP Header Set:', csp);
+    console.log('✅ Supabase URL included:', csp.includes('ncikobfahncdgwvkfivz.supabase.co'));
+    global.cspLogged = true;
+  }
+  
   next();
 });
 

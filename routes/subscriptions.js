@@ -498,6 +498,7 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
 
     // Check if subscription is active
     if (subscription.status !== 'active') {
+      console.log('[Subscription Files] Subscription not active:', subscription.status);
       return res.status(403).json({
         success: false,
         message: 'Subscription is not active'
@@ -505,10 +506,22 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
     }
 
     // Check if subscription has expired
-    if (new Date(subscription.end_date) < new Date()) {
+    const now = new Date();
+    const endDate = new Date(subscription.end_date);
+    console.log('[Subscription Files] Date check:', {
+      now: now.toISOString(),
+      endDate: endDate.toISOString(),
+      hasExpired: endDate < now
+    });
+    
+    if (endDate < now) {
       return res.status(403).json({
         success: false,
-        message: 'Subscription has expired'
+        message: 'Subscription has expired',
+        debug: {
+          endDate: subscription.end_date,
+          currentDate: now.toISOString()
+        }
       });
     }
 

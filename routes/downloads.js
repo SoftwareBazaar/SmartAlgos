@@ -84,7 +84,7 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
       // Use Supabase
       const { data, error: subError } = await supabase
         .from('subscriptions')
-        .select('id, user_id, status, has_access, end_date')
+        .select('id, user_id, status, end_date')
         .eq('id', subscriptionId)
         .eq('user_id', userId)
         .single();
@@ -108,7 +108,7 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
     }
 
     // Check if subscription is active
-    if (subscription.status !== 'active' || !subscription.has_access) {
+    if (subscription.status !== 'active') {
       return res.status(403).json({
         success: false,
         message: 'Subscription is not active'

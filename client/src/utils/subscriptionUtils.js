@@ -14,6 +14,7 @@ export const createSubscriptionWithRetry = async (subscriptionData, maxRetries =
   for (let i = 0; i < maxRetries; i++) {
     try {
       console.log(`Creating subscription (attempt ${i + 1}/${maxRetries})...`);
+      console.log('📤 Subscription data being sent:', subscriptionData);
       
       const response = await fetch('/api/subscriptions', {
         method: 'POST',
@@ -25,6 +26,7 @@ export const createSubscriptionWithRetry = async (subscriptionData, maxRetries =
       });
       
       const result = await response.json();
+      console.log('📥 Server response:', result);
       
       if (response.ok && result.success) {
         console.log('✅ Subscription created successfully:', result.data);

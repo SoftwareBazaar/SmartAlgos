@@ -396,27 +396,82 @@ export const UtilitiesProvider = ({ children }) => {
     try {
       console.log("Adding new utility:", utilityData);
 
-      const payload = prepareUtilityPayload(utilityData);
+      // Check if there's an uploaded file
+      if (utilityData.uploadedFile) {
+        console.log("📤 Uploading file with utility:", utilityData.uploadedFile.name);
+        
+        // Create FormData for file upload
+        const formData = new FormData();
+        
+        // Add the file
+        formData.append('uploadedFile', utilityData.uploadedFile);
+        
+        // Add other utility data
+        const payload = prepareUtilityPayload(utilityData);
+        Object.keys(payload).forEach(key => {
+          if (key !== 'uploadedFile') {
+            if (Array.isArray(payload[key])) {
+              payload[key].forEach((item, index) => {
+                formData.append(`${key}[${index}]`, item);
+              });
+            } else if (typeof payload[key] === 'object' && payload[key] !== null) {
+              formData.append(key, JSON.stringify(payload[key]));
+            } else {
+              formData.append(key, payload[key]);
+            }
+          }
+        });
+        
+        // Add previews if they exist
+        if (utilityData.previews && utilityData.previews.length > 0) {
+          utilityData.previews.forEach((preview, index) => {
+            formData.append(`previews[${index}]`, preview);
+          });
+        }
+        
+        const response = await apiClient.post("/api/utilities", formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        
+        if (response.data?.success) {
+          const normalizedUtility = transformUtilityFromApi(response.data.data);
+          
+          if (normalizedUtility) {
+            dispatch({ type: "ADD_UTILITY", payload: normalizedUtility });
+            console.log("Utility added successfully with file:", normalizedUtility);
+          }
+          
+          await fetchUtilities();
+          setError(null);
+          return normalizedUtility;
+        }
+        
+        throw new Error(response.data?.message || "Failed to add utility");
+      } else {
+        // No file upload, use regular payload
+        const payload = prepareUtilityPayload(utilityData);
+        const response = await apiClient.post("/api/utilities", payload);
 
-      const response = await apiClient.post("/api/utilities", payload);
+        if (response.data?.success) {
+          const normalizedUtility = transformUtilityFromApi(response.data.data);
 
-      if (response.data?.success) {
-        const normalizedUtility = transformUtilityFromApi(response.data.data);
+          if (normalizedUtility) {
+            dispatch({ type: "ADD_UTILITY", payload: normalizedUtility });
 
-        if (normalizedUtility) {
-          dispatch({ type: "ADD_UTILITY", payload: normalizedUtility });
+            console.log("Utility added successfully:", normalizedUtility);
+          }
 
-          console.log("Utility added successfully:", normalizedUtility);
+          await fetchUtilities();
+
+          setError(null);
+
+          return normalizedUtility;
         }
 
-        await fetchUtilities();
-
-        setError(null);
-
-        return normalizedUtility;
+        throw new Error(response.data?.message || "Failed to add utility");
       }
-
-      throw new Error(response.data?.message || "Failed to add utility");
     } catch (error) {
       console.error("Error adding utility:", error);
 
@@ -461,31 +516,86 @@ export const UtilitiesProvider = ({ children }) => {
 
       console.log("Image timestamp:", utilityData.imageTimestamp);
 
-      const payload = prepareUtilityPayload(utilityData);
+      // Check if there's an uploaded file
+      if (utilityData.uploadedFile) {
+        console.log("📤 Updating utility with new file:", utilityData.uploadedFile.name);
+        
+        // Create FormData for file upload
+        const formData = new FormData();
+        
+        // Add the file
+        formData.append('uploadedFile', utilityData.uploadedFile);
+        
+        // Add other utility data
+        const payload = prepareUtilityPayload(utilityData);
+        Object.keys(payload).forEach(key => {
+          if (key !== 'uploadedFile') {
+            if (Array.isArray(payload[key])) {
+              payload[key].forEach((item, index) => {
+                formData.append(`${key}[${index}]`, item);
+              });
+            } else if (typeof payload[key] === 'object' && payload[key] !== null) {
+              formData.append(key, JSON.stringify(payload[key]));
+            } else {
+              formData.append(key, payload[key]);
+            }
+          }
+        });
+        
+        // Add previews if they exist
+        if (utilityData.previews && utilityData.previews.length > 0) {
+          utilityData.previews.forEach((preview, index) => {
+            formData.append(`previews[${index}]`, preview);
+          });
+        }
+        
+        const response = await apiClient.put(`/api/utilities/${utilityId}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        
+        if (response.data?.success) {
+          const normalizedUtility = transformUtilityFromApi(response.data.data);
+          
+          if (normalizedUtility) {
+            dispatch({ type: "UPDATE_UTILITY", payload: normalizedUtility });
+            console.log("Utility updated successfully with file:", normalizedUtility);
+          }
+          
+          await fetchUtilities();
+          setError(null);
+          return normalizedUtility;
+        }
+        
+        throw new Error(response.data?.message || "Failed to update utility");
+      } else {
+        // No file upload, use regular payload
+        const payload = prepareUtilityPayload(utilityData);
 
-      const response = await apiClient.put(
-        `/api/utilities/${utilityId}`,
+        const response = await apiClient.put(
+          `/api/utilities/${utilityId}`,
+          payload,
+        );
 
-        payload,
-      );
+        if (response.data?.success) {
+          const normalizedUtility = transformUtilityFromApi(response.data.data);
 
-      if (response.data?.success) {
-        const normalizedUtility = transformUtilityFromApi(response.data.data);
+          if (normalizedUtility) {
+            dispatch({ type: "UPDATE_UTILITY", payload: normalizedUtility });
 
-        if (normalizedUtility) {
-          dispatch({ type: "UPDATE_UTILITY", payload: normalizedUtility });
+            console.log("Utility updated successfully:", normalizedUtility);
+          }
 
-          console.log("Utility updated successfully:", normalizedUtility);
+          await fetchUtilities();
+
+          setError(null);
+
+          return normalizedUtility;
         }
 
-        await fetchUtilities();
-
-        setError(null);
-
-        return normalizedUtility;
+        throw new Error(response.data?.message || "Failed to update utility");
       }
-
-      throw new Error(response.data?.message || "Failed to update utility");
     } catch (error) {
       console.error("Error updating utility:", error);
 

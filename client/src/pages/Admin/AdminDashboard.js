@@ -129,6 +129,8 @@ const AdminDashboard = () => {
 
     image: null,
 
+    uploadedFile: null,
+
     previews: [],
 
     guide: {
@@ -1722,6 +1724,55 @@ const AdminDashboard = () => {
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
                     placeholder="/downloads/utility.exe"
                   />
+                </div>
+
+                {/* File Upload Section */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Upload Utility File (Optional)
+                  </label>
+                  
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      accept=".exe,.zip,.rar,.7z"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          // Auto-fill the download URL with the uploaded file name
+                          setUtilityFormData((prev) => ({
+                            ...prev,
+                            downloadUrl: `/uploads/utilities/${file.name}`,
+                            uploadedFile: file
+                          }));
+                        }
+                      }}
+                      className="hidden"
+                      id="utility-file-upload"
+                    />
+                    <label
+                      htmlFor="utility-file-upload"
+                      className="cursor-pointer flex flex-col items-center"
+                    >
+                      <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Click to upload utility file (.exe, .zip, .rar, .7z)
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        Max size: 50MB
+                      </span>
+                    </label>
+                  </div>
+                  
+                  {utilityFormData.uploadedFile && (
+                    <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                      <p className="text-sm text-green-800 dark:text-green-200">
+                        ✓ File selected: {utilityFormData.uploadedFile.name}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

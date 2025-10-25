@@ -22,6 +22,19 @@ let io;
 // CRITICAL: Ultra-lightweight health check FIRST
 // ========================================
 app.get('/health', (req, res) => {
+  // FORCE SET CSP HEADER HERE
+  const csp = "default-src 'self'; " +
+    "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+    "style-src 'self' 'unsafe-inline'; " +
+    "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app; " +
+    "font-src 'self' data:; " +
+    "object-src 'none'; " +
+    "base-uri 'self'; " +
+    "frame-src 'self';";
+  
+  res.setHeader('Content-Security-Policy', csp);
+  
   const cspHeader = res.getHeader('Content-Security-Policy');
   res.status(200).json({
     status: 'OK',
@@ -61,19 +74,26 @@ try {
 
   // EMERGENCY CSP FIX - Apply CSP FIRST, before other middleware
   app.use((req, res, next) => {
-    const csp = "default-src 'self'; " +
-      "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-      "style-src 'self' 'unsafe-inline'; " +
-      "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app; " +
-      "font-src 'self' data:; " +
-      "object-src 'none'; " +
-      "base-uri 'self'; " +
-      "frame-src 'self';";
-    
-    res.setHeader('Content-Security-Policy', csp);
-    console.log('🔒 CSP Header Set for:', req.url);
-    next();
+    try {
+      const csp = "default-src 'self'; " +
+        "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app; " +
+        "font-src 'self' data:; " +
+        "object-src 'none'; " +
+        "base-uri 'self'; " +
+        "frame-src 'self';";
+      
+      res.setHeader('Content-Security-Policy', csp);
+      console.log('🔒 CSP Header Set for:', req.url);
+      console.log('🔒 CSP Value:', csp);
+      console.log('🔒 Headers after set:', res.getHeaders());
+      next();
+    } catch (error) {
+      console.error('❌ CSP Error:', error);
+      next();
+    }
   });
 
   // Basic middleware

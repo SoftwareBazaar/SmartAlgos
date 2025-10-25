@@ -812,6 +812,9 @@ class DatabaseService {
     if (filters.user_id) {
       query = query.eq('user_id', filters.user_id);
     }
+    if (filters.ea_id) {
+      query = query.eq('ea_id', filters.ea_id);
+    }
     if (filters.product_id) {
       query = query.eq('product_id', filters.product_id);
     }

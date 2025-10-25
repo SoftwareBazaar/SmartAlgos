@@ -76,6 +76,10 @@ app.get('/api/health', (req, res) => {
 });
 
 const server = createServer(app);
+
+// Set server timeout for large file uploads
+server.timeout = 120000; // 2 minutes
+
 const io = new Server(server, {
   cors: {
     origin: [
@@ -229,7 +233,7 @@ app.use(cors(corsOptions));
 
 // Body parsing middleware with better error handling
 app.use(express.json({
-  limit: '10mb',
+  limit: '50mb', // Increased from 10mb for large image uploads
   strict: false,
   type: 'application/json',
   verify: (req, res, buf) => {
@@ -273,7 +277,7 @@ app.use((error, req, res, next) => {
   }
   next(error);
 });
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Increased from 10mb for large image uploads
 
 // Compression and logging
 app.use(compression());

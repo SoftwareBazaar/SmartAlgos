@@ -22,10 +22,17 @@ let io;
 // CRITICAL: Ultra-lightweight health check FIRST
 // ========================================
 app.get('/health', (req, res) => {
+  const cspHeader = res.getHeader('Content-Security-Policy');
   res.status(200).json({
     status: 'OK',
+    version: 'v2.0-CSP-FIX-EMERGENCY',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    csp: {
+      header: cspHeader || 'NO CSP SET',
+      supabaseIncluded: cspHeader ? cspHeader.includes('ncikobfahncdgwvkfivz.supabase.co') : false,
+      helmetDisabled: true
+    }
   });
 });
 
@@ -54,7 +61,26 @@ try {
 
   // Basic middleware
   app.use(cors());
-  app.use(helmet());
+  
+  // EMERGENCY CSP FIX - Replace helmet with custom CSP
+  // app.use(helmet()); // DISABLED - was blocking Supabase images
+  
+  // Custom CSP that allows Supabase images
+  app.use((req, res, next) => {
+    const csp = "default-src 'self'; " +
+      "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+      "style-src 'self' 'unsafe-inline'; " +
+      "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app; " +
+      "font-src 'self' data:; " +
+      "object-src 'none'; " +
+      "base-uri 'self'; " +
+      "frame-src 'self';";
+    
+    res.setHeader('Content-Security-Policy', csp);
+    next();
+  });
+  
   app.use(compression());
   app.use(morgan('combined'));
   app.use(express.json());

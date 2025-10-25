@@ -205,18 +205,36 @@ router.post('/', [
     }
 
     // Check if user already has an active subscription to this EA
+    console.log('[Create Subscription] Checking for existing subscriptions:', {
+      user_id: req.user.id,
+      ea_id: eaId,
+      ea_id_type: typeof eaId
+    });
+    
     const existingSubscriptions = await databaseService.getSubscriptions({
       user_id: req.user.id,
       ea_id: eaId
     });
+    
+    console.log('[Create Subscription] Found existing subscriptions:', existingSubscriptions);
+    
     const hasActiveSubscription = existingSubscriptions.some(
       (sub) => ['active', 'pending'].includes(sub.status)
     );
 
     if (hasActiveSubscription) {
+      console.log('[Create Subscription] User already has active subscription to EA:', eaId);
       return res.status(400).json({
         success: false,
-        message: 'You already have an active subscription to this EA'
+        message: 'You already have an active subscription to this EA',
+        debug: {
+          requested_ea_id: eaId,
+          existing_subscriptions: existingSubscriptions.map(s => ({
+            id: s.id,
+            ea_id: s.ea_id,
+            status: s.status
+          }))
+        }
       });
     }
 

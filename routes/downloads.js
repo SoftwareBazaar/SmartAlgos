@@ -131,9 +131,9 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
       const mockDataStore = require('../services/mockAuthStore').mockDataStore;
       ea = await mockDataStore.getEAById(eaId);
     } else {
-      // Use Supabase
+      // Use Supabase - table is 'expert_advisors' not 'eas'
       const { data, error: eaError } = await supabase
-        .from('eas')
+        .from('expert_advisors')
         .select('id, name, ea_file_path, set_file_path, manual_file_path, screenshots')
         .eq('id', eaId)
         .single();
@@ -142,7 +142,11 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
         console.error('[Download] EA not found:', eaError);
         return res.status(404).json({
           success: false,
-          message: 'EA not found'
+          message: 'EA not found',
+          debug: {
+            eaId,
+            error: eaError.message
+          }
         });
       }
       ea = data;

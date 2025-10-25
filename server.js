@@ -179,28 +179,37 @@ app.set("trust proxy", 1);
 // NOTE: CSP is now set in client/public/index.html meta tag to avoid conflicts
 const supabaseUrl = process.env.SUPABASE_URL || 'https://ncikobfahncdgwvkfivz.supabase.co';
 
-// Apply helmet FIRST with CSP disabled
+// Use helmet with proper CSP configuration (WORKING VERSION)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: false, // Disable helmet's CSP
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "blob:",
+        "https:",
+        "http:",
+        supabaseUrl,
+        "https://*.supabase.co"
+      ],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: [
+        "'self'",
+        supabaseUrl,
+        "wss://ncikobfahncdgwvkfivz.supabase.co",
+        "https://web-production-fdb58.up.railway.app"
+      ],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      frameSrc: ["'self'"]
+    }
+  },
   crossOriginEmbedderPolicy: false
 }));
-
-// Then apply CUSTOM CSP (this will be the final CSP sent)
-app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', 
-    "default-src 'self'; " +
-    "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-    "style-src 'self' 'unsafe-inline'; " +
-    "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app; " +
-    "font-src 'self' data:; " +
-    "object-src 'none'; " +
-    "base-uri 'self'; " +
-    "frame-src 'self';"
-  );
-  next();
-});
 
 // Global rate limiting (DISABLED for debugging)
 // const globalLimiter = securityService.createRateLimit({

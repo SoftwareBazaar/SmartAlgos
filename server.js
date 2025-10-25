@@ -68,12 +68,19 @@ console.log('');
 // Railway needs this to respond IMMEDIATELY
 // ========================================
 app.get('/health', (req, res) => {
+  const cspHeader = res.getHeader('Content-Security-Policy');
   res.status(200).json({
     status: 'OK',
+    version: 'v2.0-CSP-FIX-EMERGENCY',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     port: process.env.PORT || 5000,
-    message: 'Health check responding immediately'
+    message: 'Health check responding immediately',
+    csp: {
+      header: cspHeader || 'NO CSP SET',
+      supabaseIncluded: cspHeader ? cspHeader.includes('ncikobfahncdgwvkfivz.supabase.co') : false,
+      helmetDisabled: true
+    }
   });
 });
 

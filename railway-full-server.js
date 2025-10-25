@@ -189,18 +189,10 @@ try {
     });
   });
 
-  // Add utilities route to fix 404
-  app.get('/api/utilities', (req, res) => {
-    res.json({
-      success: true,
-      message: 'Utilities endpoint',
-      data: {
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        version: '1.0.0'
-      }
-    });
-  });
+  // Load utilities routes
+  const utilitiesRoutes = require('./routes/utilities');
+  app.use('/api/utilities', utilitiesRoutes);
+  console.log('✅ Utilities routes loaded');
 
   // ========================================
   // FRONTEND SERVING - Serve React app

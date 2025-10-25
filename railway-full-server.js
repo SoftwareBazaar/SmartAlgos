@@ -59,13 +59,7 @@ try {
   // Configure Express for Railway (trust proxy)
   app.set('trust proxy', 1);
 
-  // Basic middleware
-  app.use(cors());
-  
-  // EMERGENCY CSP FIX - Replace helmet with custom CSP
-  // app.use(helmet()); // DISABLED - was blocking Supabase images
-  
-  // Custom CSP that allows Supabase images
+  // EMERGENCY CSP FIX - Apply CSP FIRST, before other middleware
   app.use((req, res, next) => {
     const csp = "default-src 'self'; " +
       "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
@@ -78,8 +72,15 @@ try {
       "frame-src 'self';";
     
     res.setHeader('Content-Security-Policy', csp);
+    console.log('🔒 CSP Header Set for:', req.url);
     next();
   });
+
+  // Basic middleware
+  app.use(cors());
+  
+  // EMERGENCY CSP FIX - Replace helmet with custom CSP
+  // app.use(helmet()); // DISABLED - was blocking Supabase images
   
   app.use(compression());
   app.use(morgan('combined'));

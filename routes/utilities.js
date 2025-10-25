@@ -414,10 +414,7 @@ router.put('/:id', [
 // @route   GET /api/utilities/:id/download
 // @desc    Download utility file
 // @access  Public (Free download for all authenticated users)
-router.get('/:id/download', [
-  auth, // Require authentication but not admin
-  updateActivity
-], async (req, res) => {
+router.get('/:id/download', async (req, res) => {
   try {
     console.log('[Utility Download] Request for utility ID:', req.params.id);
     
@@ -452,6 +449,16 @@ router.get('/:id/download', [
     if (utility.download_url && (utility.download_url.includes('supabase.co/storage') || utility.download_url.startsWith('http'))) {
       // Redirect to external URL
       console.log('[Utility Download] Redirecting to external URL:', utility.download_url);
+      
+      // Update download count
+      await databaseService.supabase
+        .from('utilities')
+        .update({ 
+          downloads: (utility.downloads || 0) + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', req.params.id);
+      
       return res.redirect(utility.download_url);
     } else if (utility.download_url && utility.download_url.startsWith('/uploads/')) {
       // Serve local file

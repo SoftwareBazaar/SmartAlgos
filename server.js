@@ -53,6 +53,16 @@ const { setupWebSocketHandlers } = require('./websocket/handlers');
 
 const app = express();
 
+// Log server version on startup
+console.log('');
+console.log('🚀 ============================================');
+console.log('🚀 SERVER VERSION: v2.0-CSP-FIX-EMERGENCY');
+console.log('🚀 HELMET: DISABLED');
+console.log('🚀 CSP: CUSTOM HEADER WITH SUPABASE');
+console.log('🚀 Deploy Time:', new Date().toISOString());
+console.log('🚀 ============================================');
+console.log('');
+
 // ========================================
 // CRITICAL: HEALTH CHECK MUST BE ABSOLUTE FIRST
 // Railway needs this to respond IMMEDIATELY
@@ -75,14 +85,30 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// CSP Verification endpoint
+// CSP Verification endpoint - FORCE REBUILD v2
 app.get('/api/verify-csp', (req, res) => {
   const cspHeader = res.getHeader('Content-Security-Policy');
   res.json({
+    serverVersion: 'v2.0-CSP-FIX',
+    deployTime: new Date().toISOString(),
     cspHeader: cspHeader || 'NO CSP HEADER SET',
     supabaseIncluded: cspHeader ? cspHeader.includes('ncikobfahncdgwvkfivz.supabase.co') : false,
-    timestamp: new Date().toISOString()
+    helmetDisabled: true
   });
+});
+
+// Debug endpoint to check all routes
+app.get('/api/debug-routes', (req, res) => {
+  const routes = [];
+  app._router.stack.forEach((middleware) => {
+    if (middleware.route) {
+      routes.push({
+        path: middleware.route.path,
+        methods: Object.keys(middleware.route.methods)
+      });
+    }
+  });
+  res.json({ routes, timestamp: new Date().toISOString() });
 });
 
 const server = createServer(app);

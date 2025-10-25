@@ -43,13 +43,41 @@ router.get('/', [
       limit: parseInt(limit),
       offset: skip
     });
+    
+    console.log('[Get Subscriptions] Raw subscriptions from database:', subscriptions);
+
+    // Enrich subscriptions with EA data
+    const enrichedSubscriptions = await Promise.all(
+      subscriptions.map(async (sub) => {
+        let ea = null;
+        if (sub.ea_id) {
+          try {
+            ea = await databaseService.getEAById(sub.ea_id);
+          } catch (error) {
+            console.error(`[Get Subscriptions] Failed to fetch EA ${sub.ea_id}:`, error);
+          }
+        }
+        
+        return {
+          ...sub,
+          ea: ea ? {
+            name: ea.name,
+            description: ea.description,
+            creatorName: ea.creator_name || 'Unknown Creator',
+            image: ea.image
+          } : null
+        };
+      })
+    );
+    
+    console.log('[Get Subscriptions] Enriched subscriptions:', enrichedSubscriptions);
 
     // Get total count for proper pagination
     const total = await databaseService.getSubscriptionsCount({ user_id: req.user.id });
 
     res.json({
       success: true,
-      data: subscriptions,
+      data: enrichedSubscriptions,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
@@ -430,16 +458,35 @@ router.put('/:id/renew', [
 // @access  Private
 router.get('/:id/files', [auth, updateActivity], async (req, res) => {
   try {
+    console.log('[Subscription Files] Request for subscription ID:', req.params.id);
+    console.log('[Subscription Files] User ID:', req.user.id);
+    
+    // Validate subscription ID
+    if (!req.params.id || req.params.id === 'undefined' || req.params.id === 'null') {
+      console.error('[Subscription Files] Invalid subscription ID:', req.params.id);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid subscription ID'
+      });
+    }
+
     // Get subscription using database service (handles mock mode)
     const subscription = await databaseService.getSubscriptionById(req.params.id);
 
     if (!subscription) {
-      console.error('Get subscription error: Subscription not found');
+      console.error('[Subscription Files] Subscription not found for ID:', req.params.id);
       return res.status(404).json({
         success: false,
         message: 'Subscription not found'
       });
     }
+    
+    console.log('[Subscription Files] Found subscription:', {
+      id: subscription.id,
+      user_id: subscription.user_id,
+      status: subscription.status,
+      ea_id: subscription.ea_id
+    });
 
     // Check if user owns this subscription
     if (subscription.user_id !== req.user.id) {

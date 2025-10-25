@@ -5,6 +5,7 @@
 
 const databaseService = require('./databaseService');
 const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 
 class SupabaseStorageService {
   constructor() {
@@ -78,7 +79,46 @@ class SupabaseStorageService {
    * @returns {Promise<{url: string, path: string}>}
    */
   async uploadEAFile(fileBuffer, originalFilename, mimetype) {
-    return this.uploadImage(fileBuffer, originalFilename, mimetype, 'ea-files');
+    try {
+      console.log(`[SupabaseStorage] Uploading EA file: ${originalFilename}`);
+      
+      // Generate unique filename
+      const timestamp = Date.now();
+      const randomSuffix = Math.round(Math.random() * 1E9);
+      const fileExtension = path.extname(originalFilename);
+      const fileName = `ea-${timestamp}-${randomSuffix}${fileExtension}`;
+      const filePath = `ea-files/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { data, error } = await this.supabase.storage
+        .from('ea-files')
+        .upload(filePath, fileBuffer, {
+          contentType: mimetype,
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('[SupabaseStorage] EA file upload error:', error);
+        throw error;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = this.supabase.storage
+        .from('ea-files')
+        .getPublicUrl(filePath);
+
+      console.log(`[SupabaseStorage] ✅ EA file uploaded: ${publicUrl}`);
+
+      return {
+        url: publicUrl,
+        path: filePath
+      };
+
+    } catch (error) {
+      console.error('[SupabaseStorage] EA file upload failed:', error);
+      throw error;
+    }
   }
 
   /**

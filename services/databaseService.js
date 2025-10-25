@@ -796,9 +796,13 @@ class DatabaseService {
   }
 
   async getSubscriptions(filters = {}) {
+    console.log('[DatabaseService] Getting subscriptions with filters:', filters);
+    
     if (this.mockMode) {
       const mockDataStore = require('./mockAuthStore').mockDataStore;
-      return await mockDataStore.getSubscriptions(filters);
+      const result = await mockDataStore.getSubscriptions(filters);
+      console.log('[DatabaseService] Mock subscriptions result:', result);
+      return result;
     }
 
     let query = this.supabase
@@ -822,7 +826,12 @@ class DatabaseService {
     }
     
     const { data, error } = await query;
-    if (error) throw error;
+    if (error) {
+      console.error('[DatabaseService] Supabase error:', error);
+      throw error;
+    }
+    
+    console.log('[DatabaseService] Supabase subscriptions result:', data);
     return data;
   }
 

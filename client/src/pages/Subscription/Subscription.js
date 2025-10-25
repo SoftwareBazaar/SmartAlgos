@@ -38,7 +38,47 @@ const Subscription = () => {
     try {
       setLoading(true);
       const response = await apiClient.get('/api/subscriptions');
-      setSubscriptions(response.data.data || []);
+      const subscriptions = response.data.data || [];
+      
+      // Fix subscription data structure - ensure we have proper IDs
+      const fixedSubscriptions = subscriptions.map(sub => {
+        const fixedSub = {
+          ...sub,
+          id: sub.id || sub._id || sub.subscription_id,
+          _id: sub._id || sub.id || sub.subscription_id
+        };
+        
+        // Debug log for each subscription
+        console.log('🔍 Subscription data:', {
+          original: sub,
+          fixed: fixedSub,
+          idField: fixedSub.id,
+          _idField: fixedSub._id
+        });
+        
+        // Validate that we have a proper ID
+        if (!fixedSub.id && !fixedSub._id) {
+          console.error('❌ Subscription missing ID:', sub);
+        }
+        
+        return fixedSub;
+      }).filter(sub => {
+        // Filter out subscriptions without valid IDs
+        const hasValidId = sub.id || sub._id;
+        if (!hasValidId) {
+          console.warn('⚠️ Filtering out subscription without valid ID:', sub);
+        }
+        return hasValidId;
+      });
+      
+      console.log('📋 Loaded subscriptions:', fixedSubscriptions);
+      
+      if (fixedSubscriptions.length === 0 && subscriptions.length > 0) {
+        console.warn('⚠️ All subscriptions were filtered out due to missing IDs');
+        alert('Some subscriptions could not be loaded due to missing data. Please contact support if this persists.');
+      }
+      
+      setSubscriptions(fixedSubscriptions);
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
     } finally {
@@ -61,24 +101,43 @@ const Subscription = () => {
 
   const handleDownloadFile = async (subscriptionId, fileType) => {
     try {
+      console.log('🔽 Download request:', { subscriptionId, fileType });
+      console.log('🔽 Subscription ID type:', typeof subscriptionId);
+      console.log('🔽 Subscription ID value:', subscriptionId);
+      
+      // Check if subscriptionId is valid
+      if (!subscriptionId || subscriptionId === 'undefined' || subscriptionId === undefined || subscriptionId === null) {
+        console.error('❌ Invalid subscription ID:', subscriptionId);
+        alert('Invalid subscription ID. Please refresh the page and try again.');
+        return;
+      }
+      
+      console.log('✅ Subscription ID is valid, proceeding with download...');
+      
       // First, get the download links for this subscription
       const response = await apiClient.get(`/api/subscriptions/${subscriptionId}/files`);
+      console.log('📥 Download response:', response.data);
       
       if (response.data.success && response.data.data.files) {
         const downloadUrl = response.data.data.files[fileType];
+        console.log('🔗 Download URL:', downloadUrl);
         
         if (downloadUrl) {
           // Open download link in new tab
           window.open(downloadUrl, '_blank');
+          console.log('✅ Download initiated successfully');
         } else {
+          console.warn(`⚠️ No download URL for file type: ${fileType}`);
           alert(`${fileType} file is not available for this subscription`);
         }
       } else {
+        console.error('❌ Invalid response structure:', response.data);
         alert('Unable to get download links');
       }
     } catch (error) {
-      console.error('Error downloading file:', error);
-      alert('Failed to download file. Please try again.');
+      console.error('❌ Error downloading file:', error);
+      console.error('❌ Error details:', error.response?.data);
+      alert(`Failed to download file: ${error.message}`);
     }
   };
 
@@ -231,7 +290,11 @@ const Subscription = () => {
                               <Button 
                                 size="sm" 
                                 variant="outline"
-                                onClick={() => handleDownloadFile(subscription._id, 'ea_file')}
+                                onClick={() => {
+                                  const subId = subscription.id || subscription._id || subscription.subscription_id;
+                                  console.log('🔽 EA Download - Subscription ID:', subId, 'Type:', typeof subId);
+                                  handleDownloadFile(subId, 'ea_file');
+                                }}
                                 title="Download EA File"
                               >
                                 <Download className="h-4 w-4 mr-1" />
@@ -240,7 +303,11 @@ const Subscription = () => {
                               <Button 
                                 size="sm" 
                                 variant="outline"
-                                onClick={() => handleDownloadFile(subscription._id, 'set_file')}
+                                onClick={() => {
+                                  const subId = subscription.id || subscription._id || subscription.subscription_id;
+                                  console.log('🔽 Settings Download - Subscription ID:', subId, 'Type:', typeof subId);
+                                  handleDownloadFile(subId, 'set_file');
+                                }}
                                 title="Download Settings File"
                               >
                                 <Settings className="h-4 w-4 mr-1" />
@@ -249,7 +316,11 @@ const Subscription = () => {
                               <Button 
                                 size="sm" 
                                 variant="outline"
-                                onClick={() => handleDownloadFile(subscription._id, 'manual')}
+                                onClick={() => {
+                                  const subId = subscription.id || subscription._id || subscription.subscription_id;
+                                  console.log('🔽 Manual Download - Subscription ID:', subId, 'Type:', typeof subId);
+                                  handleDownloadFile(subId, 'manual');
+                                }}
                                 title="Download Manual"
                               >
                                 <Bot className="h-4 w-4 mr-1" />
@@ -259,7 +330,7 @@ const Subscription = () => {
                             <Button 
                               size="sm" 
                               variant="outline"
-                              onClick={() => handleCancelSubscription(subscription._id)}
+                              onClick={() => handleCancelSubscription(subscription.id || subscription._id)}
                             >
                               <Pause className="h-4 w-4 mr-1" />
                               Cancel

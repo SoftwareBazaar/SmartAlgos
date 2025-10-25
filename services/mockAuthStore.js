@@ -497,6 +497,9 @@ class MockDataStore {
 
   // Subscription methods
   async getSubscriptions(filters = {}) {
+    console.log('[MockDataStore] Getting subscriptions with filters:', filters);
+    console.log('[MockDataStore] Available subscriptions:', this.subscriptions);
+    
     let filteredSubscriptions = [...this.subscriptions];
     
     if (filters.user_id) {
@@ -509,6 +512,7 @@ class MockDataStore {
       filteredSubscriptions = filteredSubscriptions.filter(sub => sub.ea_id === filters.ea_id);
     }
     
+    console.log('[MockDataStore] Filtered subscriptions:', filteredSubscriptions);
     return filteredSubscriptions;
   }
 

@@ -134,7 +134,7 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
       // Use Supabase
       const { data, error: eaError } = await supabase
         .from('eas')
-        .select('id, name, ea_file, set_file, manual_file, screenshots')
+        .select('id, name, ea_file_path, set_file_path, manual_file_path, screenshots')
         .eq('id', eaId)
         .single();
 
@@ -162,15 +162,15 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
 
     switch (type) {
       case 'ea_file':
-        fileUrl = ea.ea_file;
+        fileUrl = ea.ea_file_path;
         fileName = `${ea.name.replace(/[^a-z0-9]/gi, '_')}.ex4`;
         break;
       case 'set_file':
-        fileUrl = ea.set_file;
+        fileUrl = ea.set_file_path;
         fileName = `${ea.name.replace(/[^a-z0-9]/gi, '_')}.set`;
         break;
       case 'manual':
-        fileUrl = ea.manual_file;
+        fileUrl = ea.manual_file_path;
         fileName = `${ea.name.replace(/[^a-z0-9]/gi, '_')}_Manual.pdf`;
         break;
       case 'screenshots':

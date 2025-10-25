@@ -236,24 +236,17 @@ app.use(helmet({
 }));
 */
 
-// Keep ONLY this CSP - no helmet interference
+// TEMPORARY WILDCARD CSP - TEST IF CSP IS THE ISSUE
 app.use((req, res, next) => {
-  const csp = "default-src 'self'; " +
-    "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-    "style-src 'self' 'unsafe-inline'; " +
-    "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app; " +
-    "font-src 'self' data:; " +
-    "object-src 'none'; " +
-    "base-uri 'self'; " +
-    "frame-src 'self';";
+  // WILDCARD CSP - ALLOWS EVERYTHING (TEMPORARY TEST)
+  const csp = "default-src *; img-src * data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; connect-src *; font-src * data:; object-src *; base-uri *; frame-src *;";
   
   res.setHeader('Content-Security-Policy', csp);
   
   // Log CSP on first request only
   if (!global.cspLogged) {
-    console.log('🔒 CSP Header Set:', csp);
-    console.log('✅ Supabase URL included:', csp.includes('ncikobfahncdgwvkfivz.supabase.co'));
+    console.log('🔒 WILDCARD CSP SET (TEMPORARY):', csp);
+    console.log('⚠️  WARNING: This allows ALL sources - for testing only!');
     global.cspLogged = true;
   }
   

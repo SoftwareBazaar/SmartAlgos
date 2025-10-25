@@ -144,6 +144,26 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
+// Error handling middleware for multer
+const handleMulterError = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    console.log(`[Multer Error] ${err.code}: ${err.message}`);
+    return res.status(400).json({
+      success: false,
+      message: `File upload error: ${err.message}`,
+      code: err.code
+    });
+  } else if (err) {
+    console.log(`[File Upload Error] ${err.message}`);
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+      details: 'File upload validation failed'
+    });
+  }
+  next();
+};
+
 // @route   GET /api/eas
 // @desc    Get all EAs with filtering and pagination
 // @access  Public (no auth required for viewing marketplace)
@@ -367,6 +387,7 @@ router.post('/', [
     { name: 'eaFile', maxCount: 1 },
     { name: 'screenshots', maxCount: 10 }
   ]),
+  handleMulterError,
   body('name')
     .trim()
     .isLength({ min: 3, max: 100 })
@@ -682,6 +703,7 @@ router.put('/:id', [
     { name: 'eaFile', maxCount: 1 },
     { name: 'screenshots', maxCount: 10 }
   ]),
+  handleMulterError,
   body('name')
     .optional()
     .trim()
@@ -694,6 +716,16 @@ router.put('/:id', [
     .withMessage('Description must be between 1 and 1000 characters')
 ], async (req, res) => {
   try {
+    // Handle multer file upload errors
+    if (req.fileValidationError) {
+      console.log(`[EA Update] ❌ File validation error:`, req.fileValidationError);
+      return res.status(400).json({
+        success: false,
+        message: req.fileValidationError,
+        details: 'File upload validation failed'
+      });
+    }
+
     console.log(`[EA Update] ===== STARTING UPDATE FOR EA ${req.params.id} =====`);
     console.log(`[EA Update] User:`, req.user?.id, req.user?.role);
     console.log(`[EA Update] Request body keys:`, Object.keys(req.body));
@@ -865,15 +897,61 @@ router.put('/:id', [
     // Build update object
     const updates = {};
     
-    // Add uploaded screenshots if any - MERGE with existing screenshots
-    if (req.uploadedScreenshots) {
-      // Get existing screenshots from the EA
+    // Handle screenshots - use frontend screenshots array (includes deletions)
+    // Frontend now sends existingScreenshots[0], existingScreenshots[1], etc. for existing screenshots
+    // and screenshots[0], screenshots[1], etc. for new uploads
+    let existingScreenshotsFromFrontend = [];
+    let newScreenshotsFromFrontend = [];
+    
+    // Parse existing screenshots (after deletions)
+    const existingScreenshotKeys = Object.keys(req.body).filter(key => key.startsWith('existingScreenshots['));
+    if (existingScreenshotKeys.length > 0) {
+      existingScreenshotKeys.forEach(key => {
+        const index = parseInt(key.match(/\[(\d+)\]/)[1]);
+        existingScreenshotsFromFrontend[index] = req.body[key];
+      });
+      // Remove undefined entries
+      existingScreenshotsFromFrontend = existingScreenshotsFromFrontend.filter(screenshot => screenshot !== undefined);
+    }
+    
+    // Parse new screenshot uploads
+    const newScreenshotKeys = Object.keys(req.body).filter(key => key.startsWith('screenshots['));
+    if (newScreenshotKeys.length > 0) {
+      newScreenshotKeys.forEach(key => {
+        const index = parseInt(key.match(/\[(\d+)\]/)[1]);
+        newScreenshotsFromFrontend[index] = req.body[key];
+      });
+      // Remove undefined entries
+      newScreenshotsFromFrontend = newScreenshotsFromFrontend.filter(screenshot => screenshot !== undefined);
+    }
+    
+    // Combine existing (after deletions) and new screenshots
+    const allScreenshots = [...existingScreenshotsFromFrontend, ...newScreenshotsFromFrontend];
+    
+    if (allScreenshots.length > 0 || existingScreenshotsFromFrontend.length > 0) {
+      
+      // Use the combined screenshots from frontend (existing after deletions + new uploads)
+      let finalScreenshots = [...existingScreenshotsFromFrontend];
+      
+      // Add any new uploaded screenshots
+      if (req.uploadedScreenshots && req.uploadedScreenshots.length > 0) {
+        finalScreenshots.push(...req.uploadedScreenshots);
+      }
+      
+      updates.screenshots = finalScreenshots;
+      console.log('[EA Update] Screenshot handling:');
+      console.log('  - Existing screenshots from frontend (after deletions):', existingScreenshotsFromFrontend);
+      console.log('  - New screenshots from frontend:', newScreenshotsFromFrontend);
+      console.log('  - New uploaded screenshots:', req.uploadedScreenshots || []);
+      console.log('  - Final screenshots:', finalScreenshots);
+    } else if (req.uploadedScreenshots) {
+      // Fallback: if no frontend screenshots but new uploads, merge with existing
       const existingScreenshots = existingEA.screenshots || [];
       updates.screenshots = [...existingScreenshots, ...req.uploadedScreenshots];
-      console.log('[EA Update] Merging screenshots:');
+      console.log('[EA Update] Fallback: Merging screenshots:');
       console.log('  - Existing:', existingScreenshots);
       console.log('  - New:', req.uploadedScreenshots);
-      console.log('  - Merged:', updates.screenshots);
+      console.log('  - Final:', updates.screenshots);
     }
     
     // Copy basic fields (excluding 'price' and 'tags' which need special handling)

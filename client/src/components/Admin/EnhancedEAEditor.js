@@ -166,7 +166,13 @@ const EnhancedEAEditor = ({ ea, onSave, onCancel }) => {
     }
     if (formData.eaFile) submitData.append('eaFile', formData.eaFile);
     
-    // Add screenshots
+    // Add screenshots - send both existing (after deletions) and new uploads
+    // First, send the current state of existing screenshots (after any deletions)
+    existingScreenshots.forEach((screenshot, index) => {
+      submitData.append(`existingScreenshots[${index}]`, screenshot);
+    });
+    
+    // Then add new screenshot uploads
     formData.screenshots.forEach(screenshot => {
       submitData.append('screenshots', screenshot);
     });

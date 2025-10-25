@@ -85,33 +85,21 @@ const UtilitiesPage = () => {
     try {
       console.log(`Downloading ${utility.name}...`);
       
-      // Call the actual download API
-      const response = await fetch(`/api/utilities/${utility.id}/download`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (response.ok) {
-        // If it's a redirect, the browser will handle it
-        if (response.redirected) {
-          window.location.href = response.url;
-        } else {
-          // If it's a file download, create a blob and download it
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${utility.name}-v${utility.version}.exe`;
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-        }
-      } else {
-        throw new Error('Download failed');
-      }
+      // Create a download link that goes through our server
+      const downloadUrl = `/api/utilities/${utility.id}/download`;
+      
+      // Open the download URL in a new tab/window
+      // This will trigger the server-side download logic
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${utility.name}-v${utility.version}.exe`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log('Download initiated for:', utility.name);
+      
     } catch (error) {
       console.error('Download error:', error);
       alert(`Failed to download ${utility.name}. Please try again.`);

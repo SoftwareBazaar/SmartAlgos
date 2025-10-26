@@ -11,11 +11,38 @@
   }
   
   body {
-    @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
   }
 
   * {
     @apply border-gray-200 dark:border-gray-700;
+  }
+  
+  /* High contrast text for better visibility */
+  .text-primary-contrast {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+  
+  .text-secondary-contrast {
+    @apply text-gray-700 dark:text-gray-300;
+  }
+  
+  .text-muted-contrast {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+  
+  /* Ensure headings have proper contrast */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+  
+  /* Ensure links have proper contrast */
+  a {
+    @apply text-primary-600 dark:text-primary-400;
+  }
+  
+  a:hover {
+    @apply text-primary-700 dark:text-primary-300;
   }
 
   /* Custom scrollbar */
@@ -123,21 +150,36 @@
     @apply input border-danger-300 focus:ring-danger-500 focus:border-danger-500 dark:border-danger-600 dark:focus:ring-danger-400 dark:focus:border-danger-400;
   }
 
-  /* Card variants */
+  /* Card variants - improved contrast */
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-soft border border-gray-200 dark:border-gray-700;
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-soft border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100;
   }
 
   .card-header {
-    @apply px-6 py-4 border-b border-gray-200 dark:border-gray-700;
+    @apply px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50;
   }
 
   .card-body {
-    @apply px-6 py-4;
+    @apply px-6 py-4 text-gray-800 dark:text-gray-200;
   }
 
   .card-footer {
-    @apply px-6 py-4 border-t border-gray-200 dark:border-gray-700;
+    @apply px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50;
+  }
+  
+  /* Card title - high contrast */
+  .card-title {
+    @apply text-gray-900 dark:text-gray-100 font-semibold;
+  }
+  
+  /* Card text - readable contrast */
+  .card-text {
+    @apply text-gray-700 dark:text-gray-300;
+  }
+  
+  /* Card muted text - still readable */
+  .card-text-muted {
+    @apply text-gray-600 dark:text-gray-400;
   }
 
   /* Badge variants */
@@ -325,6 +367,53 @@
 
   .text-shadow-lg {
     text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* High contrast text utilities for accessibility */
+  .text-high-contrast {
+    @apply text-gray-900 dark:text-white;
+  }
+  
+  .text-medium-contrast {
+    @apply text-gray-800 dark:text-gray-200;
+  }
+  
+  .text-readable {
+    @apply text-gray-700 dark:text-gray-300;
+  }
+  
+  .text-subtle {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+  
+  /* Background with proper text contrast */
+  .bg-card {
+    @apply bg-white dark:bg-gray-800;
+  }
+  
+  .bg-card-header {
+    @apply bg-gray-50 dark:bg-gray-800/50;
+  }
+  
+  .bg-card-hover {
+    @apply bg-gray-50 dark:bg-gray-700/50;
+  }
+  
+  /* Status text with good visibility */
+  .text-status-positive {
+    @apply text-success-700 dark:text-success-400;
+  }
+  
+  .text-status-negative {
+    @apply text-danger-700 dark:text-danger-400;
+  }
+  
+  .text-status-warning {
+    @apply text-warning-700 dark:text-warning-400;
+  }
+  
+  .text-status-info {
+    @apply text-primary-700 dark:text-primary-400;
   }
 
   .backdrop-blur-xs {

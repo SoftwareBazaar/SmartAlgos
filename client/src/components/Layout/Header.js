@@ -100,7 +100,7 @@ const Header = ({ onMenuClick }) => {
             {/* Connection status */}
             <div className="flex items-center space-x-2">
               <div className={`w-2 h-2 rounded-full ${connected ? 'bg-success-500' : 'bg-danger-500'}`} />
-              <span className="text-xs text-brand-200">
+              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
                 {connected ? 'Connected' : 'Disconnected'}
               </span>
             </div>
@@ -111,7 +111,7 @@ const Header = ({ onMenuClick }) => {
               size="sm"
               icon={theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               onClick={toggleTheme}
-              className="p-2 text-gray-300 hover:text-white hover:bg-brand-800/60"
+              className="p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-200 dark:text-gray-300 dark:hover:text-white dark:hover:bg-brand-800/60"
             />
 
             {/* Notifications */}

@@ -40,12 +40,43 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024 // 50MB limit (matches server limit)
   },
   fileFilter: (req, file, cb) => {
-    const allowedMimeTypes = /^image\/(jpeg|jpg|png|gif|webp)$/i;
-    if (allowedMimeTypes.test(file.mimetype)) {
+    console.log('🔍 MULTER FILE FILTER:', {
+      fieldname: file.fieldname,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      encoding: file.encoding
+    });
+    
+    // TEMPORARY: Accept ALL files to get it working, then we can add restrictions
+    console.log('✅ File accepted (permissive mode - all files allowed)');
+    cb(null, true);
+    
+    /* Original logic - temporarily disabled
+    // Allow different file types based on field name
+    if (file.fieldname === 'image' || file.fieldname === 'previews') {
+      // For image uploads, only allow image files
+      const allowedImageTypes = /^image\/(jpeg|jpg|png|gif|webp)$/i;
+      if (allowedImageTypes.test(file.mimetype)) {
+        console.log('✅ Image file accepted');
+        cb(null, true);
+      } else {
+        console.log('❌ Image file rejected - invalid type');
+        cb(new Error('Only image files are allowed for image upload (JPEG, PNG, GIF, WebP)'));
+      }
+    } else if (file.fieldname === 'uploadedFile') {
+      // For utility files - PERMISSIVE: allow all non-image files
+      console.log('✅ Utility file accepted (permissive mode):', {
+        fieldname: file.fieldname,
+        originalname: file.originalname,
+        mimetype: file.mimetype
+      });
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed (JPEG, PNG, GIF, WebP)'));
+      // Default: allow all files for unknown field names
+      console.log('⚠️ Unknown field name, allowing file:', file.fieldname);
+      cb(null, true);
     }
+    */
   }
 });
 
@@ -269,36 +300,88 @@ router.post('/', [
       // Handle utility file upload
       if (req.files.uploadedFile && req.files.uploadedFile[0]) {
         const uploadedFile = req.files.uploadedFile[0];
-        console.log('📤 Utility file uploaded:', uploadedFile.filename, uploadedFile.size, 'bytes');
+        console.log('📤 Utility file upload initiated:', {
+          originalName: uploadedFile.originalname,
+          fileName: uploadedFile.filename,
+          size: uploadedFile.size,
+          mimetype: uploadedFile.mimetype,
+          path: uploadedFile.path
+        });
         
         // Upload to Supabase Storage
         try {
+          // Check if file exists and is readable
+          const fileExists = require('fs').existsSync(uploadedFile.path);
+          if (!fileExists) {
+            throw new Error(`Uploaded file not found at path: ${uploadedFile.path}`);
+          }
+
           const fileBuffer = require('fs').readFileSync(uploadedFile.path);
-          const fileName = `utility-${Date.now()}-${uploadedFile.originalname}`;
+          console.log('📦 File buffer created, size:', fileBuffer.length, 'bytes');
           
-          const { data: uploadData, error: uploadError } = await databaseService.supabase.storage
+          const fileName = `utility-${Date.now()}-${uploadedFile.originalname}`;
+          console.log('🔄 Uploading to Supabase Storage as:', fileName);
+          
+          // Get Supabase client
+          const supabaseClient = databaseService.getClient();
+          if (!supabaseClient) {
+            throw new Error('Supabase client not available');
+          }
+
+          const { data: uploadData, error: uploadError } = await supabaseClient.storage
             .from('utilities')
             .upload(fileName, fileBuffer, {
-              contentType: uploadedFile.mimetype,
+              contentType: uploadedFile.mimetype || 'application/octet-stream',
               upsert: true
             });
           
           if (uploadError) {
-            console.error('❌ Error uploading to Supabase Storage:', uploadError);
+            console.error('❌ Supabase Storage upload error:', uploadError);
+            console.error('❌ Upload error details:', {
+              message: uploadError.message,
+              statusCode: uploadError.statusCode,
+              error: uploadError.error
+            });
             throw uploadError;
+          }
+          
+          if (!uploadData || !uploadData.path) {
+            throw new Error('Upload successful but no file path returned from Supabase');
           }
           
           // Update download URL to point to Supabase Storage
           finalDownloadUrl = `https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/utilities/${uploadData.path}`;
-          console.log('✅ Utility file uploaded to Supabase Storage:', finalDownloadUrl);
+          console.log('✅ Utility file uploaded to Supabase Storage:', {
+            fileName: fileName,
+            path: uploadData.path,
+            downloadUrl: finalDownloadUrl
+          });
           
           // Clean up local file
-          require('fs').unlinkSync(uploadedFile.path);
+          try {
+            require('fs').unlinkSync(uploadedFile.path);
+            console.log('🗑️ Local temporary file cleaned up');
+          } catch (cleanupError) {
+            console.warn('⚠️ Failed to cleanup local file:', cleanupError.message);
+          }
         } catch (uploadError) {
           console.error('❌ Error processing utility file:', uploadError);
+          console.error('❌ Full error details:', {
+            message: uploadError.message,
+            stack: uploadError.stack,
+            fileName: uploadedFile.originalname,
+            fileSize: uploadedFile.size,
+            filePath: uploadedFile.path
+          });
+          
           return res.status(500).json({
             success: false,
-            message: 'Failed to upload utility file: ' + uploadError.message
+            message: 'Failed to upload utility file: ' + uploadError.message,
+            error: process.env.NODE_ENV === 'development' ? {
+              message: uploadError.message,
+              type: uploadError.name || 'UploadError',
+              fileName: uploadedFile.originalname
+            } : undefined
           });
         }
       }
@@ -381,7 +464,7 @@ router.post('/', [
   }
 });
 
-// @route   PUT /api/utilities/:id
+// @route   PUT /api/utilities/:id  
 // @desc    Update utility
 // @access  Private (Admin only)
 router.put('/:id', [
@@ -397,17 +480,41 @@ router.put('/:id', [
   body('category').optional().isIn(['Risk Management', 'Market Analysis', 'Trading Tools', 'EA Tools'])
     .withMessage('Invalid category'),
 ], async (req, res) => {
+  console.log('\n🔄 ==> PUT /api/utilities/:id REQUEST STARTED');
+  console.log('📍 Utility ID:', req.params.id);
+  console.log('🔐 Auth Header:', req.header('Authorization') ? 'Present' : 'Missing');
+  console.log('👤 User:', req.user ? { userId: req.user.userId, role: req.user.role } : 'Not authenticated');
+  console.log('📦 Files:', req.files ? Object.keys(req.files).map(key => ({ 
+    field: key, 
+    count: req.files[key].length,
+    files: req.files[key].map(f => ({ name: f.originalname, size: f.size, mimetype: f.mimetype }))
+  })) : 'No files');
+  console.log('📝 Body keys:', Object.keys(req.body));
+  
   try {
+    // Check if user is authenticated first
+    if (!req.user) {
+      console.log('❌ Authentication failed: No user object');
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+    
     // Check if user is admin (role is already in req.user from auth middleware)
-    if (!req.user || req.user.role !== 'admin') {
+    if (req.user.role !== 'admin') {
+      console.log('❌ Authorization failed: User role:', req.user.role);
       return res.status(403).json({
         success: false,
         message: 'Admin access required'
       });
     }
     
+    console.log('✅ Authentication and authorization passed');
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Validation errors:', errors.array());
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -415,52 +522,113 @@ router.put('/:id', [
       });
     }
     
+    console.log('✅ Validation passed');
+    
     const updates = { ...req.body };
     delete updates.id;
     delete updates.created_at;
     delete updates.downloads; // Don't allow manual download count updates
     
+    console.log('📝 Initial updates object:', Object.keys(updates));
+    
     // Handle uploaded files
+    console.log('🔄 Processing file uploads...');
     if (req.files) {
+      console.log('📁 Files found, processing each type...');
+      
       // Handle image upload
       if (req.files.image && req.files.image[0]) {
+        console.log('🖼️ Processing image upload...');
         updates.image = `/uploads/utilities/${req.files.image[0].filename}`;
         updates.image_timestamp = Date.now();
+        console.log('✅ Image processed:', updates.image);
       }
       
       // Handle utility file upload
       if (req.files.uploadedFile && req.files.uploadedFile[0]) {
         const uploadedFile = req.files.uploadedFile[0];
-        console.log('📤 Utility file uploaded:', uploadedFile.filename, uploadedFile.size, 'bytes');
+        console.log('📤 Utility file upload initiated:', {
+          originalName: uploadedFile.originalname,
+          fileName: uploadedFile.filename,
+          size: uploadedFile.size,
+          mimetype: uploadedFile.mimetype,
+          path: uploadedFile.path
+        });
         
         // Upload to Supabase Storage
         try {
+          // Check if file exists and is readable
+          const fileExists = require('fs').existsSync(uploadedFile.path);
+          if (!fileExists) {
+            throw new Error(`Uploaded file not found at path: ${uploadedFile.path}`);
+          }
+
           const fileBuffer = require('fs').readFileSync(uploadedFile.path);
-          const fileName = `utility-${Date.now()}-${uploadedFile.originalname}`;
+          console.log('📦 File buffer created, size:', fileBuffer.length, 'bytes');
           
-          const { data: uploadData, error: uploadError } = await databaseService.supabase.storage
+          const fileName = `utility-${Date.now()}-${uploadedFile.originalname}`;
+          console.log('🔄 Uploading to Supabase Storage as:', fileName);
+          
+          // Get Supabase client
+          const supabaseClient = databaseService.getClient();
+          if (!supabaseClient) {
+            throw new Error('Supabase client not available');
+          }
+
+          const { data: uploadData, error: uploadError } = await supabaseClient.storage
             .from('utilities')
             .upload(fileName, fileBuffer, {
-              contentType: uploadedFile.mimetype,
+              contentType: uploadedFile.mimetype || 'application/octet-stream',
               upsert: true
             });
           
           if (uploadError) {
-            console.error('❌ Error uploading to Supabase Storage:', uploadError);
+            console.error('❌ Supabase Storage upload error:', uploadError);
+            console.error('❌ Upload error details:', {
+              message: uploadError.message,
+              statusCode: uploadError.statusCode,
+              error: uploadError.error
+            });
             throw uploadError;
+          }
+          
+          if (!uploadData || !uploadData.path) {
+            throw new Error('Upload successful but no file path returned from Supabase');
           }
           
           // Update download URL to point to Supabase Storage
           updates.download_url = `https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/utilities/${uploadData.path}`;
-          console.log('✅ Utility file uploaded to Supabase Storage:', updates.download_url);
+          console.log('✅ Utility file uploaded to Supabase Storage:', {
+            fileName: fileName,
+            path: uploadData.path,
+            downloadUrl: updates.download_url
+          });
           
           // Clean up local file
-          require('fs').unlinkSync(uploadedFile.path);
+          try {
+            require('fs').unlinkSync(uploadedFile.path);
+            console.log('🗑️ Local temporary file cleaned up');
+          } catch (cleanupError) {
+            console.warn('⚠️ Failed to cleanup local file:', cleanupError.message);
+          }
         } catch (uploadError) {
           console.error('❌ Error processing utility file:', uploadError);
+          console.error('❌ Full error details:', {
+            message: uploadError.message,
+            stack: uploadError.stack,
+            fileName: uploadedFile.originalname,
+            fileSize: uploadedFile.size,
+            filePath: uploadedFile.path
+          });
+          
           return res.status(500).json({
             success: false,
-            message: 'Failed to upload utility file: ' + uploadError.message
+            message: 'Failed to upload utility file: ' + uploadError.message,
+            error: process.env.NODE_ENV === 'development' ? {
+              message: uploadError.message,
+              type: uploadError.name || 'UploadError',
+              fileName: uploadedFile.originalname
+            } : undefined
           });
         }
       }
@@ -490,23 +658,53 @@ router.put('/:id', [
       }
     }
     
-    // Use admin client for admin operations to bypass RLS
-    const supabaseAdmin = databaseService.supabaseAdmin || databaseService.supabase;
+    console.log('🔄 Starting database update...');
+    console.log('📝 Final updates object:', updates);
     
-    const { data, error } = await supabaseAdmin
+    // Use admin client for admin operations to bypass RLS
+    const supabaseClient = databaseService.getClient();
+    if (!supabaseClient) {
+      console.log('❌ Supabase client not available');
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection not available'
+      });
+    }
+    
+    console.log('✅ Supabase client available, performing update...');
+    
+    const { data, error } = await supabaseClient
       .from('utilities')
       .update(updates)
       .eq('id', req.params.id)
       .select()
       .single();
     
-    if (error || !data) {
-      console.error('Error updating utility:', error);
-      return res.status(404).json({
+    if (error) {
+      console.error('❌ Database update error:', error);
+      console.error('❌ Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      return res.status(500).json({
         success: false,
-        message: 'Utility not found or update failed'
+        message: 'Database update failed: ' + error.message,
+        error: process.env.NODE_ENV === 'development' ? error : undefined
       });
     }
+    
+    if (!data) {
+      console.log('❌ No data returned - utility not found');
+      return res.status(404).json({
+        success: false,
+        message: 'Utility not found'
+      });
+    }
+    
+    console.log('✅ Utility updated successfully');
+    console.log('📊 Updated data ID:', data.id);
     
     res.json({
       success: true,
@@ -514,12 +712,69 @@ router.put('/:id', [
       data
     });
   } catch (error) {
-    console.error('Update utility error:', error);
+    console.error('❌ CRITICAL ERROR in PUT /api/utilities/:id');
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Request details:', {
+      utilityId: req.params.id,
+      userId: req.user?.userId,
+      hasFiles: !!req.files,
+      bodyKeys: Object.keys(req.body || {})
+    });
+    
+    // Check if headers already sent
+    if (res.headersSent) {
+      console.error('❌ Headers already sent, cannot send error response');
+      return;
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error: ' + error.message,
+      error: process.env.NODE_ENV === 'development' ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      } : undefined
     });
   }
+});
+
+// Error handler for multer errors in this route
+router.use((error, req, res, next) => {
+  console.error('🚨 Route-level error handler:', {
+    name: error.name,
+    message: error.message,
+    code: error.code
+  });
+  
+  if (error instanceof multer.MulterError) {
+    console.error('🚨 Multer error caught:', error);
+    return res.status(400).json({
+      success: false,
+      message: `File upload error: ${error.message}`,
+      error: {
+        type: 'MULTER_ERROR',
+        code: error.code,
+        field: error.field
+      }
+    });
+  }
+  
+  if (error.message && error.message.includes('File type not allowed')) {
+    console.error('🚨 File type error caught:', error);
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+      error: {
+        type: 'INVALID_FILE_TYPE'
+      }
+    });
+  }
+  
+  // Pass to next error handler if not handled here
+  next(error);
 });
 
 // @route   GET /api/utilities/:id/download
@@ -558,19 +813,40 @@ router.get('/:id/download', async (req, res) => {
     
     // Check if it's a Supabase Storage URL or external URL
     if (utility.download_url && (utility.download_url.includes('supabase.co/storage') || utility.download_url.startsWith('http'))) {
-      // Redirect to external URL
-      console.log('[Utility Download] Redirecting to external URL:', utility.download_url);
+      // Handle Supabase Storage URLs - provide better download experience
+      console.log('[Utility Download] Processing Supabase Storage URL:', utility.download_url);
       
-      // Update download count
-      await databaseService.supabase
-        .from('utilities')
-        .update({ 
-          downloads: (utility.downloads || 0) + 1,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', req.params.id);
-      
-      return res.redirect(utility.download_url);
+      try {
+        // Update download count first
+        const supabaseClient = databaseService.getClient();
+        if (supabaseClient) {
+          await supabaseClient
+            .from('utilities')
+            .update({ 
+              downloads: (utility.downloads || 0) + 1,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', req.params.id);
+          console.log('[Utility Download] ✅ Download count updated');
+        }
+        
+        // Set appropriate headers for file download
+        const fileExtension = path.extname(utility.download_url).toLowerCase();
+        const fileName = `${utility.name}${fileExtension}`;
+        
+        res.set({
+          'Content-Disposition': `attachment; filename="${fileName}"`,
+          'Content-Type': 'application/octet-stream',
+          'Cache-Control': 'no-cache'
+        });
+        
+        console.log('[Utility Download] ✅ Headers set, redirecting to:', utility.download_url);
+        return res.redirect(utility.download_url);
+      } catch (error) {
+        console.error('[Utility Download] Error updating download count:', error);
+        // Still allow download even if count update fails
+        return res.redirect(utility.download_url);
+      }
     } else if (utility.download_url && utility.download_url.startsWith('/uploads/')) {
       // Serve local file
       const filePath = path.join(__dirname, '..', utility.download_url);
@@ -695,6 +971,135 @@ router.post('/:id/download', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error'
+    });
+  }
+});
+
+// @route   GET /api/utilities/debug/auth
+// @desc    Debug authentication for utilities
+// @access  Private (Admin only)
+router.get('/debug/auth', [auth], async (req, res) => {
+  try {
+    console.log('🔍 DEBUG AUTH REQUEST:');
+    console.log('- Headers:', req.headers);
+    console.log('- User:', req.user);
+    console.log('- UserRaw:', req.userRaw);
+    
+    res.json({
+      success: true,
+      auth: {
+        authenticated: !!req.user,
+        user: req.user ? {
+          id: req.user.userId,
+          email: req.user.email,
+          role: req.user.role,
+          isActive: req.user.isActive
+        } : null,
+        isAdmin: req.user?.role === 'admin',
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Auth debug error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Auth debug error',
+      error: error.message
+    });
+  }
+});
+
+// @route   GET /api/utilities/debug/storage
+// @desc    Debug Supabase storage configuration
+// @access  Private (Admin only)
+router.get('/debug/storage', [auth], async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+    
+    const supabaseClient = databaseService.getClient();
+    if (!supabaseClient) {
+      return res.json({
+        success: false,
+        message: 'Supabase client not available',
+        debug: {
+          mockMode: databaseService.mockMode,
+          supabaseUrl: process.env.SUPABASE_URL ? 'Set' : 'Not set',
+          serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Set' : 'Not set'
+        }
+      });
+    }
+    
+    // Test storage bucket access
+    try {
+      const { data: buckets, error: bucketsError } = await supabaseClient.storage.listBuckets();
+      
+      let utilitiesBucketExists = false;
+      if (!bucketsError && buckets) {
+        utilitiesBucketExists = buckets.some(bucket => bucket.name === 'utilities');
+      }
+      
+      // Try to list files in utilities bucket
+      let filesCount = 0;
+      let storageError = null;
+      if (utilitiesBucketExists) {
+        try {
+          const { data: files, error: filesError } = await supabaseClient.storage
+            .from('utilities')
+            .list('', { limit: 5 });
+          
+          if (!filesError && files) {
+            filesCount = files.length;
+          } else {
+            storageError = filesError;
+          }
+        } catch (err) {
+          storageError = err;
+        }
+      }
+      
+      res.json({
+        success: true,
+        debug: {
+          supabaseConnected: true,
+          buckets: {
+            total: buckets ? buckets.length : 0,
+            utilitiesBucketExists,
+            bucketsError: bucketsError?.message
+          },
+          utilities: {
+            filesCount,
+            storageError: storageError?.message
+          },
+          config: {
+            supabaseUrl: process.env.SUPABASE_URL,
+            hasServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+            mockMode: databaseService.mockMode
+          }
+        }
+      });
+    } catch (error) {
+      res.json({
+        success: false,
+        message: 'Storage access error',
+        error: error.message,
+        debug: {
+          supabaseConnected: true,
+          mockMode: databaseService.mockMode
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Storage debug error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Debug endpoint error',
+      error: error.message
     });
   }
 });

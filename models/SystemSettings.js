@@ -212,6 +212,19 @@ const systemSettingsSchema = new mongoose.Schema({
                 publicKey: String,
                 webhookSecret: String,
                 testMode: { type: Boolean, default: true }
+            },
+            mpesa: {
+                enabled: { type: Boolean, default: false },
+                consumerKey: String,
+                consumerSecret: String,
+                businessShortCode: String,
+                passkey: String,
+                environment: { 
+                    type: String, 
+                    enum: ['sandbox', 'production'],
+                    default: 'sandbox' 
+                },
+                callbackUrl: String
             }
         },
         subscriptionSettings: {
@@ -479,8 +492,17 @@ systemSettingsSchema.methods.updateFeatureFlag = function(feature, enabled) {
 
 systemSettingsSchema.methods.getPaymentProvider = function() {
     if (this.payments.providers.paystack.enabled) return 'paystack';
+    if (this.payments.providers.mpesa.enabled) return 'mpesa';
     if (this.payments.providers.stripe.enabled) return 'stripe';
     return null;
+};
+
+systemSettingsSchema.methods.getEnabledPaymentProviders = function() {
+    const providers = [];
+    if (this.payments.providers.paystack.enabled) providers.push('paystack');
+    if (this.payments.providers.mpesa.enabled) providers.push('mpesa');
+    if (this.payments.providers.stripe.enabled) providers.push('stripe');
+    return providers;
 };
 
 systemSettingsSchema.methods.isFeatureEnabled = function(feature) {

@@ -23,6 +23,7 @@ const escrowRoutes = require('./routes/escrow');
 const escrowWebhookRoutes = require('./routes/escrowWebhooks');
 const paymentRoutes = require('./routes/payments');
 const cryptoPaymentRoutes = require('./routes/cryptoPayments');
+const mpesaRoutes = require('./routes/mpesa');
 const analysisRoutes = require('./routes/analysis');
 const securityRoutes = require('./routes/security');
 const mt5Routes = require('./routes/mt5');
@@ -375,6 +376,7 @@ app.use('/api/escrow', auth, escrowRoutes);
 app.use('/api/escrow', escrowWebhookRoutes); // Webhooks don't require auth
 app.use('/api/payments', auth, paymentRoutes);
 app.use('/api/payments/crypto', cryptoPaymentRoutes);
+app.use('/api/mpesa', mpesaRoutes); // M-Pesa routes (callback doesn't require auth)
 app.use('/api/analysis', auth, analysisRoutes);
 app.use('/api/security', auth, securityRoutes);
 app.use('/api/mt5', mt5Routes);

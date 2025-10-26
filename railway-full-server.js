@@ -163,18 +163,21 @@ try {
     const eaRoutes = require('./routes/eas');
     const subscriptionRoutes = require('./routes/subscriptions');
     const downloadsRoutes = require('./routes/downloads');
+    const mpesaRoutes = require('./routes/mpesa');
     
     // API Routes
     app.use('/api/auth', authRoutes);
     app.use('/api/eas', eaRoutes);
     app.use('/api/subscriptions', subscriptionRoutes);
     app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
+    app.use('/api/mpesa', mpesaRoutes); // M-Pesa mobile money routes
     
     console.log('✅ Essential routes loaded');
     console.log('   - /api/auth');
     console.log('   - /api/eas');
     console.log('   - /api/subscriptions');
     console.log('   - /api/downloads');
+    console.log('   - /api/mpesa');
   } catch (error) {
     console.error('❌ Routes loading error:', error.message);
     console.error('Stack:', error.stack);

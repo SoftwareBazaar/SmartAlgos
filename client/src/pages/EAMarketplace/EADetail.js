@@ -969,12 +969,34 @@ const EADetail = () => {
           eaName: ea?.name,
           subscriptionType: selectedPlan
         }}
-        onPaymentSuccess={(result) => {
-          setShowPaymentMethodDialog(false);
-          console.log('Payment successful:', result);
-          alert('Payment successful! EA will be available in your dashboard.');
-          // Refresh subscription status
-          fetchUserSubscription();
+        onPaymentSuccess={async (result) => {
+          try {
+            console.log('💚 M-Pesa Payment successful:', result);
+            
+            // Create subscription after successful payment
+            const subscriptionResponse = await apiClient.post('/api/subscriptions', {
+              ea_id: ea?.id,
+              subscription_type: selectedPlan,
+              payment_method: 'mpesa',
+              payment_reference: result.mpesaReceiptNumber || result.checkoutRequestID,
+              amount: pricingPlans.find(p => p.id === selectedPlan)?.price || 18
+            });
+            
+            console.log('✅ Subscription created:', subscriptionResponse.data);
+            
+            setShowPaymentMethodDialog(false);
+            alert('🎉 Payment successful! Your EA is now available for download.');
+            
+            // Refresh subscription status to show download button
+            await fetchUserSubscription();
+            
+            // Automatically switch to downloads tab
+            setSelectedTab('downloads');
+            
+          } catch (error) {
+            console.error('Error creating subscription:', error);
+            alert('Payment received but there was an error activating your subscription. Please contact support.');
+          }
         }}
         onPaymentError={(error) => {
           console.error('Payment error:', error);

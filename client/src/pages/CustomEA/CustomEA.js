@@ -843,12 +843,12 @@ const CustomEA = () => {
                       </div>
                     </div>
 
-                    <div className="bg-green-50 rounded-lg p-6">
+                    <div className="bg-primary-500/20 dark:bg-primary-500/10 rounded-lg p-6 border border-primary-500/30">
                       <div className="flex items-center space-x-3">
-                        <Shield className="w-6 h-6 text-green-600" />
+                        <Shield className="w-6 h-6 text-primary-400" />
                         <div>
-                          <h3 className="font-semibold text-green-900">Quality Guarantee</h3>
-                          <p className="text-green-700 text-sm">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">Quality Guarantee</h3>
+                          <p className="text-gray-700 dark:text-gray-200 text-sm">
                             We guarantee the quality of our work. If you're not satisfied, we'll make it right.
                           </p>
                         </div>

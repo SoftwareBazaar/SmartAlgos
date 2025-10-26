@@ -6,7 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const mpesaService = require('../services/mpesaService');
-const { authenticateToken } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const databaseService = require('../services/databaseService');
 
 /**
@@ -14,7 +14,7 @@ const databaseService = require('../services/databaseService');
  * @desc    Initiate STK Push payment
  * @access  Private
  */
-router.post('/stk-push', authenticateToken, async (req, res) => {
+router.post('/stk-push', auth, async (req, res) => {
   try {
     const { amount, phoneNumber, accountReference, transactionDesc, metadata } = req.body;
     const userId = req.user?.id || req.user?.userId;
@@ -202,7 +202,7 @@ router.post('/callback', async (req, res) => {
  * @desc    Query M-Pesa transaction status
  * @access  Private
  */
-router.get('/query/:checkoutRequestID', authenticateToken, async (req, res) => {
+router.get('/query/:checkoutRequestID', auth, async (req, res) => {
   try {
     const { checkoutRequestID } = req.params;
 
@@ -259,7 +259,7 @@ router.get('/query/:checkoutRequestID', authenticateToken, async (req, res) => {
  * @desc    Get user's M-Pesa transactions
  * @access  Private
  */
-router.get('/transactions', authenticateToken, async (req, res) => {
+router.get('/transactions', auth, async (req, res) => {
   try {
     const userId = req.user?.id || req.user?.userId;
     const { limit = 10, offset = 0, status } = req.query;
@@ -310,7 +310,7 @@ router.get('/transactions', authenticateToken, async (req, res) => {
  * @desc    Validate M-Pesa API credentials
  * @access  Private (Admin only)
  */
-router.post('/validate-credentials', authenticateToken, async (req, res) => {
+router.post('/validate-credentials', auth, async (req, res) => {
   try {
     // Check if user is admin (you can add admin check middleware)
     const isValid = await mpesaService.validateCredentials();

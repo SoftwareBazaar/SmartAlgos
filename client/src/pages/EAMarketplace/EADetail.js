@@ -35,6 +35,7 @@ import apiClient from '../../lib/apiClient';
 import { useEA } from '../../contexts/EAContext';
 import CryptoPaymentDialog from '../../components/Payments/CryptoPaymentDialog';
 import SelfServiceCryptoDialog from '../../components/Payments/SelfServiceCryptoDialog';
+import { PaymentMethodDialog } from '../../components/Payments';
 import EADownloadSection from '../../components/Downloads/EADownloadSection';
 
 const EADetail = () => {
@@ -50,6 +51,7 @@ const EADetail = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showCryptoPayment, setShowCryptoPayment] = useState(false);
   const [showSelfServiceCrypto, setShowSelfServiceCrypto] = useState(false);
+  const [showPaymentMethodDialog, setShowPaymentMethodDialog] = useState(false);
   const [userSubscription, setUserSubscription] = useState(null);
 
   // Fetch user subscription for this EA
@@ -823,10 +825,17 @@ const EADetail = () => {
             </div>
 
             <div className="space-y-3">
-              <Button className="w-full">
+              <Button 
+                className="w-full"
+                onClick={() => {
+                  setShowPaymentMethodDialog(true);
+                  setShowPurchaseModal(false);
+                }}
+              >
                 <DollarSign className="h-4 w-4 mr-2" />
-                Pay with Credit Card
+                Choose Payment Method
               </Button>
+              
               <Button 
                 variant="outline" 
                 className="w-full"
@@ -947,6 +956,32 @@ const EADetail = () => {
         </div>
       )}
 
+      {/* Payment Method Dialog (Card/M-Pesa/Crypto) */}
+      <PaymentMethodDialog
+        isOpen={showPaymentMethodDialog}
+        onClose={() => setShowPaymentMethodDialog(false)}
+        amount={pricingPlans.find(p => p.id === selectedPlan)?.price || 18}
+        currency="USD"
+        accountReference={`EA_${ea?.id}_${Date.now()}`}
+        transactionDesc={`Purchase: ${ea?.name} (${selectedPlan})`}
+        metadata={{
+          eaId: ea?.id,
+          eaName: ea?.name,
+          subscriptionType: selectedPlan
+        }}
+        onPaymentSuccess={(result) => {
+          setShowPaymentMethodDialog(false);
+          console.log('Payment successful:', result);
+          alert('Payment successful! EA will be available in your dashboard.');
+          // Refresh subscription status
+          fetchUserSubscription();
+        }}
+        onPaymentError={(error) => {
+          console.error('Payment error:', error);
+          alert('Payment failed. Please try again.');
+        }}
+      />
+      
       {/* Crypto Payment Dialog */}
       <CryptoPaymentDialog
         isOpen={showCryptoPayment}

@@ -164,6 +164,7 @@ try {
     const subscriptionRoutes = require('./routes/subscriptions');
     const downloadsRoutes = require('./routes/downloads');
     const mpesaRoutes = require('./routes/mpesa');
+    const adminRoutes = require('./admin-panel'); // Admin panel with REAL database
     
     // API Routes
     app.use('/api/auth', authRoutes);
@@ -171,6 +172,7 @@ try {
     app.use('/api/subscriptions', subscriptionRoutes);
     app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
     app.use('/api/mpesa', mpesaRoutes); // M-Pesa mobile money routes
+    app.use('/api/admin', adminRoutes); // Admin panel routes
     
     console.log('✅ Essential routes loaded');
     console.log('   - /api/auth');
@@ -178,6 +180,7 @@ try {
     console.log('   - /api/subscriptions');
     console.log('   - /api/downloads');
     console.log('   - /api/mpesa');
+    console.log('   - /api/admin');
   } catch (error) {
     console.error('❌ Routes loading error:', error.message);
     console.error('Stack:', error.stack);

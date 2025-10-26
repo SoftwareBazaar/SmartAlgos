@@ -342,14 +342,14 @@ const CustomEA = () => {
                   <div className="space-y-4">
                     <div className={`border-2 rounded-lg p-6 hover:border-primary-500 transition-all cursor-pointer ${
                       formData.serviceType === 'new_ea' 
-                        ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20' 
+                        ? 'border-primary-500 bg-primary-500/20 dark:bg-primary-500/10 shadow-lg shadow-primary-500/20' 
                         : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                     }`}
                          onClick={() => handleInputChange('serviceType', 'new_ea')}>
                       <div className="flex items-center space-x-4">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                           formData.serviceType === 'new_ea' 
-                            ? 'bg-primary-100 text-primary-600' 
+                            ? 'bg-primary-500 text-white' 
                             : 'bg-brand-700 text-brand-300'
                         }`}>
                           <Rocket className="w-6 h-6" />
@@ -357,18 +357,18 @@ const CustomEA = () => {
                         <div className="flex-1">
                           <h3 className={`text-lg font-semibold ${
                             formData.serviceType === 'new_ea' 
-                              ? 'text-gray-900' 
+                              ? 'text-gray-900 dark:text-white' 
                               : 'text-white'
                           }`}>New EA Development</h3>
                           <p className={`text-sm ${
                             formData.serviceType === 'new_ea' 
-                              ? 'text-gray-700' 
+                              ? 'text-gray-700 dark:text-gray-200' 
                               : 'text-brand-300'
                           }`}>Create a custom Expert Advisor from scratch</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${
                           formData.serviceType === 'new_ea' 
-                            ? 'border-primary-600 bg-primary-600' 
+                            ? 'border-primary-500 bg-primary-500' 
                             : 'border-brand-600'
                         }`}>
                           {formData.serviceType === 'new_ea' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1" />}
@@ -378,14 +378,14 @@ const CustomEA = () => {
 
                     <div className={`border-2 rounded-lg p-6 hover:border-primary-500 transition-all cursor-pointer ${
                       formData.serviceType === 'modify_ea' 
-                        ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20' 
+                        ? 'border-primary-500 bg-primary-500/20 dark:bg-primary-500/10 shadow-lg shadow-primary-500/20' 
                         : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                     }`}
                          onClick={() => handleInputChange('serviceType', 'modify_ea')}>
                       <div className="flex items-center space-x-4">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                           formData.serviceType === 'modify_ea' 
-                            ? 'bg-primary-100 text-primary-600' 
+                            ? 'bg-primary-500 text-white' 
                             : 'bg-brand-700 text-brand-300'
                         }`}>
                           <Settings className="w-6 h-6" />
@@ -393,18 +393,18 @@ const CustomEA = () => {
                         <div className="flex-1">
                           <h3 className={`text-lg font-semibold ${
                             formData.serviceType === 'modify_ea' 
-                              ? 'text-gray-900' 
+                              ? 'text-gray-900 dark:text-white' 
                               : 'text-white'
                           }`}>EA Modification</h3>
                           <p className={`text-sm ${
                             formData.serviceType === 'modify_ea' 
-                              ? 'text-gray-700' 
+                              ? 'text-gray-700 dark:text-gray-200' 
                               : 'text-brand-300'
                           }`}>Improve or customize your existing EA</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${
                           formData.serviceType === 'modify_ea' 
-                            ? 'border-primary-600 bg-primary-600' 
+                            ? 'border-primary-500 bg-primary-500' 
                             : 'border-brand-600'
                         }`}>
                           {formData.serviceType === 'modify_ea' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1" />}
@@ -414,14 +414,14 @@ const CustomEA = () => {
 
                     <div className={`border-2 rounded-lg p-6 hover:border-primary-500 transition-all cursor-pointer ${
                       formData.serviceType === 'custom_indicator' 
-                        ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20' 
+                        ? 'border-primary-500 bg-primary-500/20 dark:bg-primary-500/10 shadow-lg shadow-primary-500/20' 
                         : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                     }`}
                          onClick={() => handleInputChange('serviceType', 'custom_indicator')}>
                       <div className="flex items-center space-x-4">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                           formData.serviceType === 'custom_indicator' 
-                            ? 'bg-primary-100 text-primary-600' 
+                            ? 'bg-primary-500 text-white' 
                             : 'bg-brand-700 text-brand-300'
                         }`}>
                           <BarChart3 className="w-6 h-6" />
@@ -429,18 +429,18 @@ const CustomEA = () => {
                         <div className="flex-1">
                           <h3 className={`text-lg font-semibold ${
                             formData.serviceType === 'custom_indicator' 
-                              ? 'text-gray-900' 
+                              ? 'text-gray-900 dark:text-white' 
                               : 'text-white'
                           }`}>Custom Indicator</h3>
                           <p className={`text-sm ${
                             formData.serviceType === 'custom_indicator' 
-                              ? 'text-gray-700' 
+                              ? 'text-gray-700 dark:text-gray-200' 
                               : 'text-brand-300'
                           }`}>Develop a custom trading indicator</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${
                           formData.serviceType === 'custom_indicator' 
-                            ? 'border-primary-600 bg-primary-600' 
+                            ? 'border-primary-500 bg-primary-500' 
                             : 'border-brand-600'
                         }`}>
                           {formData.serviceType === 'custom_indicator' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1" />}
@@ -495,7 +495,7 @@ const CustomEA = () => {
                               key={style.id}
                               className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
                                 formData.tradingStyle === style.id
-                                  ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20'
+                                  ? 'border-primary-500 bg-primary-500/20 dark:bg-primary-500/10 shadow-lg shadow-primary-500/20'
                                   : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                               }`}
                               onClick={() => handleInputChange('tradingStyle', style.id)}
@@ -529,7 +529,7 @@ const CustomEA = () => {
                             key={platform.id}
                             className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
                               formData.platform === platform.id
-                                ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20'
+                                ? 'border-primary-500 bg-primary-500/20 dark:bg-primary-500/10 shadow-lg shadow-primary-500/20'
                                 : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                             }`}
                             onClick={() => handleInputChange('platform', platform.id)}
@@ -649,7 +649,7 @@ const CustomEA = () => {
                             key={option.value}
                             className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
                               formData.timeline === option.value
-                                ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20'
+                                ? 'border-primary-500 bg-primary-500/20 dark:bg-primary-500/10 shadow-lg shadow-primary-500/20'
                                 : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                             }`}
                             onClick={() => handleInputChange('timeline', option.value)}
@@ -680,7 +680,7 @@ const CustomEA = () => {
                             key={range.label}
                             className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
                               formData.budget === range.label
-                                ? 'border-primary-500 bg-primary-50 shadow-lg shadow-primary-500/20'
+                                ? 'border-primary-500 bg-primary-500/20 dark:bg-primary-500/10 shadow-lg shadow-primary-500/20'
                                 : 'border-brand-700 hover:border-brand-600 bg-brand-800/50 hover:bg-brand-800/70'
                             }`}
                             onClick={() => handleInputChange('budget', range.label)}

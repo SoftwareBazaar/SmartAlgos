@@ -8,41 +8,55 @@
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
   }
   
   body {
-    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+    /* Light mode - Soft gradient from light blue to light purple */
+    background: linear-gradient(135deg, #f0f9ff 0%, #faf5ff 100%);
+    @apply text-gray-900;
+  }
+  
+  body.dark {
+    /* Dark mode - Beautiful twilight gradient from deep blue to purple */
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    @apply text-white;
   }
 
   * {
-    @apply border-gray-200 dark:border-gray-700;
+    @apply border-gray-200 dark:border-white/10;
   }
   
-  /* High contrast text for better visibility */
+  /* Perfect text contrast for all modes */
   .text-primary-contrast {
-    @apply text-gray-900 dark:text-gray-100;
+    @apply text-gray-900 dark:text-white !important;
   }
   
   .text-secondary-contrast {
-    @apply text-gray-700 dark:text-gray-300;
+    @apply text-gray-800 dark:text-gray-100 !important;
   }
   
   .text-muted-contrast {
-    @apply text-gray-600 dark:text-gray-400;
+    @apply text-gray-600 dark:text-gray-300 !important;
   }
   
-  /* Ensure headings have proper contrast */
+  /* Ensure headings have perfect contrast */
   h1, h2, h3, h4, h5, h6 {
-    @apply text-gray-900 dark:text-gray-100;
+    @apply text-gray-900 dark:text-white font-bold;
   }
   
-  /* Ensure links have proper contrast */
+  /* Links with perfect visibility */
   a {
-    @apply text-primary-600 dark:text-primary-400;
+    @apply text-primary-600 dark:text-primary-400 font-medium;
   }
   
   a:hover {
-    @apply text-primary-700 dark:text-primary-300;
+    @apply text-primary-700 dark:text-primary-300 underline;
+  }
+  
+  /* Ensure all text is visible */
+  p, span, div, label, input, textarea, select {
+    @apply dark:text-gray-100;
   }
 
   /* Custom scrollbar */
@@ -150,36 +164,54 @@
     @apply input border-danger-300 focus:ring-danger-500 focus:border-danger-500 dark:border-danger-600 dark:focus:ring-danger-400 dark:focus:border-danger-400;
   }
 
-  /* Card variants - improved contrast */
+  /* Card variants - Glass morphism style with perfect contrast */
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-soft border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    @apply rounded-xl shadow-xl border border-white/50 text-gray-900;
+  }
+  
+  .dark .card {
+    background: rgba(30, 27, 75, 0.7);
+    backdrop-filter: blur(20px);
+    @apply border-white/10 text-white shadow-2xl;
   }
 
   .card-header {
-    @apply px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50;
+    @apply px-6 py-4 border-b border-gray-200/50 dark:border-white/10;
+    background: rgba(249, 250, 251, 0.5);
+  }
+  
+  .dark .card-header {
+    background: rgba(255, 255, 255, 0.05);
   }
 
   .card-body {
-    @apply px-6 py-4 text-gray-800 dark:text-gray-200;
+    @apply px-6 py-4 text-gray-800 dark:text-gray-100;
   }
 
   .card-footer {
-    @apply px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50;
+    @apply px-6 py-4 border-t border-gray-200/50 dark:border-white/10;
+    background: rgba(249, 250, 251, 0.5);
   }
   
-  /* Card title - high contrast */
+  .dark .card-footer {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Card title - perfect contrast */
   .card-title {
-    @apply text-gray-900 dark:text-gray-100 font-semibold;
+    @apply text-gray-900 dark:text-white font-bold text-lg;
   }
   
-  /* Card text - readable contrast */
+  /* Card text - highly readable */
   .card-text {
-    @apply text-gray-700 dark:text-gray-300;
+    @apply text-gray-800 dark:text-gray-100;
   }
   
-  /* Card muted text - still readable */
+  /* Card muted text - still very readable */
   .card-text-muted {
-    @apply text-gray-600 dark:text-gray-400;
+    @apply text-gray-600 dark:text-gray-300;
   }
 
   /* Badge variants */

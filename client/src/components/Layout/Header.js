@@ -57,14 +57,14 @@ const Header = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="bg-gradient-to-r from-black via-brand-900 to-brand-800/90 border-b border-brand-800/60 shadow-lg backdrop-blur text-gray-100">
+    <header className="bg-white/80 dark:bg-gradient-to-r dark:from-slate-900/95 dark:via-indigo-900/95 dark:to-purple-900/90 border-b border-gray-200/50 dark:border-white/10 shadow-xl backdrop-blur-xl">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left side */}
           <div className="flex items-center">
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-white hover:bg-brand-800/60 focus:outline-none focus:ring-2 focus:ring-primary-500/60"
+              className="lg:hidden p-2 rounded-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-primary-500/60 transition-all"
             >
               <Menu className="h-6 w-6" />
             </button>
@@ -75,7 +75,7 @@ const Header = ({ onMenuClick }) => {
               size="sm"
               icon={<ArrowLeft className="h-4 w-4" />}
               onClick={handleBack}
-              className="ml-2 p-2 text-gray-300 hover:text-white hover:bg-brand-800/60"
+              className="ml-2 p-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10"
             >
               <span className="hidden sm:inline">Back</span>
             </Button>
@@ -84,12 +84,12 @@ const Header = ({ onMenuClick }) => {
             <div className="hidden md:block ml-4">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-brand-300" />
+                  <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                 </div>
                 <input
                   type="text"
                   placeholder="Search markets, signals, EAs..."
-                  className="block w-72 pl-10 pr-3 py-2 border border-brand-800/80 rounded-lg bg-brand-900/60 text-sm text-gray-100 placeholder-brand-400 focus:outline-none focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60"
+                  className="block w-72 pl-10 pr-3 py-2 border border-gray-300 dark:border-white/20 rounded-lg bg-white dark:bg-white/10 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 backdrop-blur-sm transition-all"
                 />
               </div>
             </div>
@@ -121,9 +121,9 @@ const Header = ({ onMenuClick }) => {
                 size="sm"
                 icon={<Bell className="h-4 w-4" />}
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 relative text-gray-300 hover:text-white hover:bg-brand-800/60"
+                className="p-2 relative text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10"
               >
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary-500 rounded-full text-xs text-white flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary-500 rounded-full text-xs text-white flex items-center justify-center shadow-lg">
                   3
                 </span>
               </Button>
@@ -134,41 +134,41 @@ const Header = ({ onMenuClick }) => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-80 bg-brand-900/95 backdrop-blur rounded-xl shadow-xl border border-brand-800/70 text-gray-200 z-50"
+                    className="absolute right-0 mt-2 w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200 dark:border-white/10 z-50"
                   >
-                    <div className="p-4 border-b border-brand-800/70">
-                      <h3 className="text-sm font-medium text-gray-100">
+                    <div className="p-4 border-b border-gray-200 dark:border-white/10">
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                         Notifications
                       </h3>
                     </div>
                     <div className="max-h-64 overflow-y-auto">
-                      <div className="p-4 border-b border-brand-800/70 hover:bg-brand-800/60">
-                        <p className="text-sm text-gray-200">
+                      <div className="p-4 border-b border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                        <p className="text-sm text-gray-900 dark:text-white font-medium">
                           New trading signal for AAPL
                         </p>
-                        <p className="text-xs text-brand-300 mt-1">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                           2 minutes ago
                         </p>
                       </div>
-                      <div className="p-4 border-b border-brand-800/70 hover:bg-brand-800/60">
-                        <p className="text-sm text-gray-200">
+                      <div className="p-4 border-b border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                        <p className="text-sm text-gray-900 dark:text-white font-medium">
                           EA performance update
                         </p>
-                        <p className="text-xs text-brand-300 mt-1">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                           15 minutes ago
                         </p>
                       </div>
-                      <div className="p-4 hover:bg-brand-800/60">
-                        <p className="text-sm text-gray-200">
+                      <div className="p-4 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                        <p className="text-sm text-gray-900 dark:text-white font-medium">
                           Market news: Fed rate decision
                         </p>
-                        <p className="text-xs text-brand-300 mt-1">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                           1 hour ago
                         </p>
                       </div>
                     </div>
-                    <div className="p-4 border-t border-brand-800/70">
-                      <button className="text-sm text-primary-300 hover:text-primary-200">
+                    <div className="p-4 border-t border-gray-200 dark:border-white/10">
+                      <button className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold">
                         View all notifications
                       </button>
                     </div>
@@ -181,22 +181,22 @@ const Header = ({ onMenuClick }) => {
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 p-2 rounded-lg bg-brand-900/40 text-gray-200 hover:text-white hover:bg-brand-800/60 focus:outline-none focus:ring-2 focus:ring-primary-500/60"
+                className="flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-primary-500/60 transition-all"
               >
-                <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center shadow-soft">
-                  <span className="text-sm font-medium text-white">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/20">
+                  <span className="text-sm font-bold text-white drop-shadow-lg">
                     {userInitials}
                   </span>
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-gray-100">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {userFullName}
                   </p>
-                  <p className="text-xs text-brand-300">
+                  <p className="text-xs text-gray-600 dark:text-gray-300 font-medium">
                     {userSubscriptionLabel}
                   </p>
                 </div>
-                <ChevronDown className="h-4 w-4 text-brand-300" />
+                <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </button>
 
               <AnimatePresence>
@@ -205,7 +205,7 @@ const Header = ({ onMenuClick }) => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-52 bg-brand-900/95 backdrop-blur rounded-xl shadow-xl border border-brand-800/70 text-gray-200 z-50"
+                    className="absolute right-0 mt-2 w-52 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200 dark:border-white/10 z-50"
                   >
                     <div className="py-1">
                       <button
@@ -214,7 +214,7 @@ const Header = ({ onMenuClick }) => {
                           navigate('/profile');
                           setShowUserMenu(false);
                         }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-brand-800/60"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors font-medium"
                       >
                         <User className="h-4 w-4 mr-3" />
                         Profile
@@ -225,15 +225,15 @@ const Header = ({ onMenuClick }) => {
                           navigate('/settings');
                           setShowUserMenu(false);
                         }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-brand-800/60"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors font-medium"
                       >
                         <Settings className="h-4 w-4 mr-3" />
                         Settings
                       </button>
-                      <hr className="my-2 border-brand-800/70" />
+                      <hr className="my-2 border-gray-200 dark:border-white/10" />
                       <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-brand-800/60"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors font-medium"
                       >
                         <LogOut className="h-4 w-4 mr-3" />
                         Sign out

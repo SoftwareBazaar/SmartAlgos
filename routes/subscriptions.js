@@ -311,27 +311,19 @@ router.post('/', [
   }
 });
 
-// @route   PUT /api/subscriptions/:id/cancel
-// @desc    Cancel subscription
+// @route   DELETE /api/subscriptions/:id
+// @desc    Cancel/Delete subscription (Supabase version)
 // @access  Private
-router.put('/:id/cancel', [
-  auth,
-  body('reason')
-    .optional()
-    .isIn(['user_request', 'payment_failed', 'ea_discontinued', 'violation', 'other'])
-    .withMessage('Invalid cancellation reason')
-], async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
+    const subscriptionId = req.params.id;
+    const userId = req.user.id;
 
-    const subscription = await Subscription.findById(req.params.id);
+    console.log(`[Cancel Subscription] User ${userId} canceling subscription ${subscriptionId}`);
+
+    // Get subscription to verify ownership
+    const subscription = await databaseService.getSubscriptionById(subscriptionId);
+    
     if (!subscription) {
       return res.status(404).json({
         success: false,
@@ -339,15 +331,15 @@ router.put('/:id/cancel', [
       });
     }
 
-    // Check if user owns this subscription
-    if (subscription.user.toString() !== req.user._id.toString()) {
+    // Verify user owns this subscription
+    if (subscription.user_id !== userId) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: 'You can only cancel your own subscriptions'
       });
     }
 
-    // Check if subscription can be cancelled
+    // Check if already cancelled
     if (subscription.status === 'cancelled' || subscription.status === 'expired') {
       return res.status(400).json({
         success: false,
@@ -355,26 +347,26 @@ router.put('/:id/cancel', [
       });
     }
 
-    const { reason = 'user_request' } = req.body;
-    await subscription.cancelSubscription(reason);
+    // Update subscription status to cancelled
+    const updatedSubscription = await databaseService.updateSubscription(subscriptionId, {
+      status: 'cancelled',
+      updated_at: new Date().toISOString()
+    });
 
-    // Update EA subscription stats
-    const ea = await EA.findById(subscription.ea);
-    if (ea) {
-      ea.subscriptionStats.activeSubscribers = Math.max(0, ea.subscriptionStats.activeSubscribers - 1);
-      await ea.save();
-    }
+    console.log(`[Cancel Subscription] Successfully cancelled subscription ${subscriptionId}`);
 
     res.json({
       success: true,
-      message: 'Subscription cancelled successfully'
+      message: 'Subscription cancelled successfully',
+      data: updatedSubscription
     });
 
   } catch (error) {
-    console.error('Cancel subscription error:', error);
+    console.error('[Cancel Subscription] Error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Failed to cancel subscription',
+      error: error.message
     });
   }
 });

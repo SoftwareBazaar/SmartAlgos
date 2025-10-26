@@ -641,6 +641,47 @@ const EADetail = () => {
 
                 {selectedTab === 'downloads' && (
                   <div className="space-y-6">
+                    {/* Subscription Management */}
+                    {userSubscription && userSubscription.status === 'active' && (
+                      <Card>
+                        <div className="p-4 bg-green-50 dark:bg-green-900/20">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-semibold text-green-900 dark:text-green-100">
+                                Active Subscription
+                              </h4>
+                              <p className="text-sm text-green-700 dark:text-green-300">
+                                Plan: {userSubscription.subscription_type || 'N/A'} | 
+                                Expires: {userSubscription.end_date ? new Date(userSubscription.end_date).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                if (window.confirm('Are you sure you want to cancel this subscription? You will lose access to downloads.')) {
+                                  try {
+                                    const response = await apiClient.delete(`/api/subscriptions/${userSubscription.id}`);
+                                    if (response.data.success) {
+                                      alert('✅ Subscription cancelled successfully!');
+                                      setUserSubscription(null);
+                                      await fetchUserSubscription();
+                                    }
+                                  } catch (error) {
+                                    console.error('Cancel subscription error:', error);
+                                    alert('❌ Failed to cancel subscription: ' + (error.response?.data?.message || 'Unknown error'));
+                                  }
+                                }
+                              }}
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Cancel Subscription
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    )}
+                    
                     <EADownloadSection 
                       ea={ea} 
                       subscription={userSubscription}

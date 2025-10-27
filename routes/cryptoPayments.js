@@ -9,6 +9,16 @@ const { auth } = require('../middleware/auth');
 const logger = require('../utils/logger');
 const router = express.Router();
 
+// Test route to verify crypto routes are working
+router.get('/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Crypto payment routes are working!',
+    timestamp: new Date().toISOString(),
+    walletAddresses: Object.keys(WALLET_ADDRESSES)
+  });
+});
+
 // Mock wallet addresses for different cryptocurrencies
 const WALLET_ADDRESSES = {
   usdt: {
@@ -39,7 +49,7 @@ const EXCHANGE_RATES = {
 
 // @route   POST /api/payments/crypto/generate
 // @desc    Generate crypto payment address and details
-// @access  Private
+// @access  Public (temporarily for testing)
 router.post('/generate', [
   // Temporarily disable auth for testing - add back when user auth is working
   // auth,

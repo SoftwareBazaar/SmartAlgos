@@ -11,6 +11,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 
+// Version: v2.1 - Fixed colors and contrast issues
 const CryptoPayment = ({ 
   amount, 
   currency = 'USD',

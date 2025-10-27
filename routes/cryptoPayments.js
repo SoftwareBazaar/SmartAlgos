@@ -12,19 +12,19 @@ const router = express.Router();
 // Mock wallet addresses for different cryptocurrencies
 const WALLET_ADDRESSES = {
   usdt: {
-    address: 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE',
+    address: process.env.USDT_WALLET_ADDRESS || 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE',
     network: 'TRC20'
   },
   btc: {
-    address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+    address: process.env.BITCOIN_WALLET_ADDRESS || '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
     network: 'Bitcoin'
   },
   eth: {
-    address: '0x742d35Cc6634C0532925a3b8D1A4f4C4C6C4C6C4',
+    address: process.env.ETHEREUM_WALLET_ADDRESS || '0x742d35Cc6634C0532925a3b8D1A4f4C4C6C4C6C4',
     network: 'Ethereum'
   },
   usdc: {
-    address: '0x742d35Cc6634C0532925a3b8D1A4f4C4C6C4C6C4',
+    address: process.env.USDC_WALLET_ADDRESS || process.env.ETHEREUM_WALLET_ADDRESS || '0x742d35Cc6634C0532925a3b8D1A4f4C4C6C4C6C4',
     network: 'ERC20'
   }
 };

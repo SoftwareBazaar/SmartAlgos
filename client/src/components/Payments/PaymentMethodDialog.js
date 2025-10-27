@@ -233,8 +233,8 @@ const PaymentMethodDialog = ({
                 currency={currency}
                 onPaymentSuccess={handleCryptoSuccess}
                 onPaymentError={onPaymentError}
-                productType="subscription"
-                productId={metadata?.subscriptionId}
+                productType="ea_subscription"
+                productId={metadata?.eaId || metadata?.ea_id}
               />
             </div>
           ) : selectedMethod === 'card' && showPaystackForm ? (

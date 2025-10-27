@@ -167,11 +167,32 @@ const MpesaPayment = ({
     } catch (error) {
       console.error('M-Pesa payment error:', error);
       setStatus('failed');
-      setErrorMessage(
-        error.response?.data?.message || 
-        error.message || 
-        'Failed to initiate M-Pesa payment'
-      );
+      
+      // Extract the most detailed error message
+      let detailedError = 'Failed to initiate M-Pesa payment';
+      
+      if (error.response?.data?.error?.errorMessage) {
+        // M-Pesa API error format
+        detailedError = error.response.data.error.errorMessage;
+        if (error.response.data.error.errorCode) {
+          detailedError += ` (Code: ${error.response.data.error.errorCode})`;
+        }
+      } else if (error.response?.data?.message) {
+        detailedError = error.response.data.message;
+      } else if (error.message) {
+        detailedError = error.message;
+      }
+      
+      // Show helpful message for common errors
+      if (detailedError.includes('Merchant does not exist') || detailedError.includes('500.001.1001')) {
+        detailedError = 'M-Pesa Configuration Error: Invalid Business Shortcode. Please contact support.';
+      } else if (detailedError.includes('Invalid Access Token') || detailedError.includes('400.002.02')) {
+        detailedError = 'M-Pesa Authentication Error: Invalid credentials. Please contact support.';
+      } else if (detailedError.includes('Bad Request') || detailedError.includes('400.008.01')) {
+        detailedError = 'Invalid phone number format. Please use format: 254712345678';
+      }
+      
+      setErrorMessage(detailedError);
       onError?.(error);
     } finally {
       setLoading(false);
@@ -230,7 +251,7 @@ const MpesaPayment = ({
               value={phoneNumber}
               onChange={handlePhoneChange}
               placeholder="0712345678 or 254712345678"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
               disabled={loading}
               required
             />

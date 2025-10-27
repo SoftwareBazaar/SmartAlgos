@@ -30,7 +30,8 @@ import { EACardImage, ScreenshotGrid } from '../../utils/imageUtils';
 import { EACardImageProxy } from '../../utils/imageProxy';
 import { EAImageDisplay } from '../../components/ImageDisplay';
 import { SimpleEAImage } from '../../components/SimpleImage';
-import { subscribeAndDownload, getErrorMessage } from '../../utils/subscriptionUtils';
+import { getErrorMessage, getUserSubscriptions, getSubscriptionDownloadLinks } from '../../utils/subscriptionUtils';
+import PaymentMethodDialog from '../../components/Payments/PaymentMethodDialog';
 
 const EAMarketplace = () => {
   const navigate = useNavigate();
@@ -49,6 +50,7 @@ const EAMarketplace = () => {
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [downloadLinks, setDownloadLinks] = useState(null);
   const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   // EAs are now managed by the EA context
 
@@ -153,42 +155,55 @@ const EAMarketplace = () => {
   const handleSubscriptionSubmit = async () => {
     if (!selectedEA) return;
     
+    // Close subscription type selection modal
+    setShowSubscriptionModal(false);
+    
+    // Show payment dialog
+    setShowPaymentDialog(true);
+  };
+  
+  const handlePaymentSuccess = async (paymentResult) => {
     try {
-      setSubscribing(true);
+      console.log('💰 Payment successful:', paymentResult);
       
-      console.log('Starting subscription flow...');
+      // Wait a moment for backend to create subscription
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Use enhanced subscription flow
-      const result = await subscribeAndDownload(
-        selectedEA.id,
-        subscriptionType,
-        paymentMethod
-      );
-      
-      console.log('✅ Subscription successful!', result);
-      
-      // Show download modal with available files
-      setShowDownloadModal(true);
-      setDownloadLinks(result.downloadLinks);
-      setCurrentSubscriptionId(result.subscription.id);
-      
-      // Close subscription modal
-      setShowSubscriptionModal(false);
-      setSelectedEA(null);
-      
-      // Refresh user subscriptions to update the UI
+      // Refresh user subscriptions
       await fetchUserSubscriptions();
       
-      // Show success message
-      console.log('✅ Subscription and download setup complete!');
+      // Find the newly created subscription
+      const newSubscriptions = await getUserSubscriptions();
+      const newSub = newSubscriptions.find(sub => 
+        sub.ea_id === selectedEA.id && 
+        sub.status === 'active'
+      );
+      
+      if (newSub) {
+        // Get download links
+        const downloadData = await getSubscriptionDownloadLinks(newSub.id);
+        
+        // Show download modal
+        setShowDownloadModal(true);
+        setDownloadLinks(downloadData.files);
+        setCurrentSubscriptionId(newSub.id);
+      } else {
+        alert('Subscription created! Please refresh to see your downloads.');
+      }
+      
+      // Close payment dialog
+      setShowPaymentDialog(false);
+      setSelectedEA(null);
       
     } catch (error) {
-      console.error('Subscription error:', error);
-      const errorMessage = getErrorMessage(error);
-      alert(errorMessage);
-    } finally {
-      setSubscribing(false);
+      console.error('Post-payment error:', error);
+      alert('Payment successful but there was an error loading downloads. Please check "My Subscriptions".');
     }
+  };
+  
+  const handlePaymentError = (error) => {
+    console.error('Payment error:', error);
+    alert('Payment failed. Please try again.');
   };
 
   // Use real EAs from context only - no mock fallback
@@ -1061,6 +1076,36 @@ const EAMarketplace = () => {
             </div>
           </motion.div>
         </motion.div>
+      )}
+
+      {/* Payment Method Dialog */}
+      {showPaymentDialog && selectedEA && (
+        <PaymentMethodDialog
+          isOpen={showPaymentDialog}
+          onClose={() => {
+            setShowPaymentDialog(false);
+            setSelectedEA(null);
+          }}
+          amount={
+            subscriptionType === 'weekly' ? (parseFloat(selectedEA.price_weekly) || 5) :
+            subscriptionType === 'monthly' ? (parseFloat(selectedEA.price_monthly) || 18) :
+            subscriptionType === 'quarterly' ? (parseFloat(selectedEA.price_quarterly) || 50) :
+            subscriptionType === 'yearly' ? (parseFloat(selectedEA.price_yearly) || 97) :
+            18
+          }
+          currency="KES"
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentError={handlePaymentError}
+          accountReference={`EA_${selectedEA.id}`}
+          transactionDesc={`${selectedEA.name} - ${subscriptionType} subscription`}
+          metadata={{
+            eaId: selectedEA.id,
+            ea_id: selectedEA.id,
+            subscriptionType: subscriptionType,
+            subscription_type: subscriptionType,
+            eaName: selectedEA.name
+          }}
+        />
       )}
       
       {/* Floating Chat Assistant */}

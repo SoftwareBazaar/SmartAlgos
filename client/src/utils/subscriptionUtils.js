@@ -221,37 +221,17 @@ export const checkEAAccess = async (eaId) => {
   }
 };
 
-// Enhanced subscription flow with auto-download
+// Enhanced subscription flow - REQUIRES PAYMENT FIRST
+// This should NOT create subscription directly - payment must be completed first
 export const subscribeAndDownload = async (eaId, subscriptionType, paymentMethod) => {
-  try {
-    console.log('Starting subscription flow...');
-    
-    // Create subscription
-    const subscriptionData = {
-      eaId: parseInt(eaId),
-      subscriptionType,
-      paymentMethod,
-      paymentReference: `sub_${Date.now()}_${eaId}`
-    };
-    
-    const subscription = await createSubscriptionWithRetry(subscriptionData);
-    console.log('✅ Subscription created:', subscription.data.id);
-    
-    // Get download links
-    const downloadData = await getSubscriptionDownloadLinks(subscription.data.id);
-    console.log('✅ Download links obtained');
-    
-    // Return subscription and download data
-    return {
-      subscription: subscription.data,
-      downloadLinks: downloadData.files,
-      tokenExpiresAt: downloadData.tokenExpiresAt
-    };
-    
-  } catch (error) {
-    console.error('Subscription flow failed:', error);
-    throw error;
-  }
+  throw new Error('Direct subscription creation is disabled. Please complete payment first.');
+  
+  // This function is deprecated - payment must be initiated first
+  // The flow should be:
+  // 1. Show payment method selection
+  // 2. Complete payment (M-Pesa, Crypto, Card)
+  // 3. Backend creates subscription automatically after payment confirmation
+  // 4. Then fetch download links
 };
 
 // Error message mapping

@@ -155,21 +155,18 @@ router.post('/callback', async (req, res) => {
       if (updatedTransaction && updatedTransaction.length > 0) {
         console.log('✅ Transaction updated in database:', result.checkoutRequestID);
 
-        // If payment was successful, trigger any post-payment actions
+        // If payment was successful, trigger post-payment actions
         if (result.success) {
           const transaction = updatedTransaction[0];
           
-          // TODO: Add post-payment processing here
-          // - Update subscription status
-          // - Release escrow funds
-          // - Send confirmation email
-          // - Grant access to purchased items
-          
-          console.log('💚 Payment successful - Ready for post-processing:', {
+          console.log('💚 Payment successful - Processing subscription:', {
             receiptNumber: result.mpesaReceiptNumber,
             amount: result.amount,
             userId: transaction.user_id
           });
+          
+          // Process subscription creation
+          await processSuccessfulPayment(transaction, result);
         }
       } else {
         console.warn('⚠️  Transaction not found in database:', result.checkoutRequestID);
@@ -331,6 +328,106 @@ router.post('/validate-credentials', auth, async (req, res) => {
     });
   }
 });
+
+/**
+ * Process successful M-Pesa payment and create subscription
+ * @param {Object} transaction - M-Pesa transaction record from database
+ * @param {Object} paymentResult - Payment result from M-Pesa callback
+ */
+async function processSuccessfulPayment(transaction, paymentResult) {
+  try {
+    // Parse metadata to get EA and subscription details
+    const metadata = typeof transaction.metadata === 'string' 
+      ? JSON.parse(transaction.metadata) 
+      : transaction.metadata;
+    
+    const eaId = metadata?.eaId || metadata?.ea_id;
+    const subscriptionType = metadata?.subscriptionType || metadata?.subscription_type || 'monthly';
+    
+    if (!eaId) {
+      console.warn('⚠️  No EA ID found in transaction metadata, cannot create subscription');
+      return;
+    }
+    
+    // Calculate subscription end date based on type
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+    
+    switch (subscriptionType.toLowerCase()) {
+      case 'weekly':
+        endDate.setDate(endDate.getDate() + 7);
+        break;
+      case 'monthly':
+        endDate.setMonth(endDate.getMonth() + 1);
+        break;
+      case 'quarterly':
+        endDate.setMonth(endDate.getMonth() + 3);
+        break;
+      case 'yearly':
+        endDate.setFullYear(endDate.getFullYear() + 1);
+        break;
+      default:
+        endDate.setMonth(endDate.getMonth() + 1); // Default to monthly
+    }
+    
+    // Create subscription in database
+    const subscriptionData = {
+      user_id: transaction.user_id,
+      ea_id: eaId,
+      subscription_type: subscriptionType.toLowerCase(),
+      payment_method: 'mpesa',
+      payment_reference: paymentResult.mpesaReceiptNumber,
+      amount: transaction.amount,
+      currency: 'KES',
+      status: 'active',
+      start_date: startDate.toISOString(),
+      end_date: endDate.toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    console.log('📝 Creating subscription:', subscriptionData);
+    
+    const insertQuery = `
+      INSERT INTO subscriptions (
+        user_id, ea_id, subscription_type, payment_method, 
+        payment_reference, amount, currency, status,
+        start_date, end_date, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING id
+    `;
+    
+    const { data: subscription } = await databaseService.query(insertQuery, [
+      subscriptionData.user_id,
+      subscriptionData.ea_id,
+      subscriptionData.subscription_type,
+      subscriptionData.payment_method,
+      subscriptionData.payment_reference,
+      subscriptionData.amount,
+      subscriptionData.currency,
+      subscriptionData.status,
+      subscriptionData.start_date,
+      subscriptionData.end_date,
+      subscriptionData.created_at,
+      subscriptionData.updated_at
+    ]);
+    
+    if (subscription && subscription.length > 0) {
+      console.log('✅ Subscription created successfully:', subscription[0].id);
+      
+      // TODO: Send confirmation email to user
+      // TODO: Send notification
+      
+      return subscription[0];
+    } else {
+      throw new Error('Failed to create subscription');
+    }
+    
+  } catch (error) {
+    console.error('❌ Failed to process successful payment:', error);
+    // Log error but don't throw - we don't want to fail the M-Pesa callback
+  }
+}
 
 module.exports = router;
 

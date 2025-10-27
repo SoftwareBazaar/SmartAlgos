@@ -308,18 +308,47 @@ async function processConfirmedPayment(payment) {
 
     // Create subscription or grant access based on product type
     if (payment.product_type === 'ea_subscription') {
+      // Parse metadata to get subscription type
+      const metadata = typeof payment.metadata === 'string' 
+        ? JSON.parse(payment.metadata) 
+        : payment.metadata || {};
+      
+      const subscriptionType = metadata.subscriptionType || 'monthly';
+      
+      // Calculate end date based on subscription type
+      const startDate = new Date();
+      const endDate = new Date(startDate);
+      
+      switch (subscriptionType.toLowerCase()) {
+        case 'weekly':
+          endDate.setDate(endDate.getDate() + 7);
+          break;
+        case 'monthly':
+          endDate.setMonth(endDate.getMonth() + 1);
+          break;
+        case 'quarterly':
+          endDate.setMonth(endDate.getMonth() + 3);
+          break;
+        case 'yearly':
+          endDate.setFullYear(endDate.getFullYear() + 1);
+          break;
+        default:
+          endDate.setMonth(endDate.getMonth() + 1); // Default to monthly
+      }
+      
       // Create subscription record
       const subscriptionData = {
         id: uuidv4(),
         user_id: payment.user_id,
         ea_id: payment.product_id,
-        subscription_type: 'monthly',
+        subscription_type: subscriptionType.toLowerCase(),
         payment_method: 'crypto',
         payment_reference: payment.id,
         amount: payment.amount_usd,
+        currency: payment.crypto_currency,
         status: 'active',
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };

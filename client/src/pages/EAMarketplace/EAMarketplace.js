@@ -75,11 +75,10 @@ const EAMarketplace = () => {
     );
   };
 
-  // Check if user has any subscription (for testing purposes)
+  // Check if user has any subscription
   const hasAnySubscription = (eaId) => {
-    // For testing, show download button for all EAs
-    // In production, this should check actual subscriptions
-    return true; // Temporarily show download for all EAs
+    // Check if user has an active subscription for this EA
+    return hasActiveSubscription(eaId);
   };
 
   // Handle file download

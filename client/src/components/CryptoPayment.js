@@ -90,7 +90,9 @@ const CryptoPayment = ({
   const generatePaymentAddress = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/payments/crypto/generate', {
+      // Use the correct API endpoint with proper base URL
+      const baseUrl = process.env.REACT_APP_API_URL || window.location.origin;
+      const response = await fetch(`${baseUrl}/api/payments/crypto/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,14 +109,20 @@ const CryptoPayment = ({
 
       if (response.ok) {
         const data = await response.json();
-        setPaymentData(data.data);
-        setPaymentStatus('pending');
-        setTimeLeft(1800); // Reset timer
+        if (data.success) {
+          setPaymentData(data.data);
+          setPaymentStatus('pending');
+          setTimeLeft(1800); // Reset timer
+        } else {
+          throw new Error(data.message || 'Failed to generate payment address');
+        }
       } else {
-        throw new Error('Failed to generate payment address');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error('Payment generation error:', error);
+      alert(`Payment failed: ${error.message}`);
       onPaymentError?.(error.message);
     } finally {
       setIsLoading(false);
@@ -185,15 +193,15 @@ const CryptoPayment = ({
 
   if (!paymentData) {
     return (
-      <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg p-6 border border-blue-500/30">
-        <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 shadow-lg">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
           <Bitcoin className="w-6 h-6 mr-2 text-orange-500" />
           Crypto Payment
         </h3>
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-blue-200 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Select Cryptocurrency
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -203,18 +211,18 @@ const CryptoPayment = ({
                   onClick={() => setSelectedCrypto(crypto.value)}
                   className={`p-3 rounded-lg border-2 transition-all ${
                     selectedCrypto === crypto.value
-                      ? 'border-blue-400 bg-blue-500/20'
-                      : 'border-gray-600 hover:border-gray-500'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                   }`}
                 >
                   <div className="text-center">
                     <div className={`text-2xl font-bold ${crypto.color}`}>
                       {crypto.icon}
                     </div>
-                    <div className="text-sm text-white font-medium">
+                    <div className="text-sm text-gray-900 dark:text-white font-medium">
                       {crypto.label}
                     </div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
                       {crypto.network}
                     </div>
                   </div>
@@ -223,23 +231,23 @@ const CryptoPayment = ({
             </div>
           </div>
 
-          <div className="bg-gray-700/50 rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-300">Amount:</span>
-              <span className="text-white font-semibold">
+              <span className="text-gray-600 dark:text-gray-300">Amount:</span>
+              <span className="text-gray-900 dark:text-white font-semibold">
                 {formatAmount(amount, selectedCrypto)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-300">USD Value:</span>
-              <span className="text-white">${amount}</span>
+              <span className="text-gray-600 dark:text-gray-300">USD Value:</span>
+              <span className="text-gray-900 dark:text-white">${amount}</span>
             </div>
           </div>
 
           <button
             onClick={generatePaymentAddress}
             disabled={isLoading}
-            className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center"
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center"
           >
             {isLoading ? (
               <>
@@ -259,9 +267,9 @@ const CryptoPayment = ({
   }
 
   return (
-    <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg p-6 border border-blue-500/30">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 shadow-lg">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-semibold text-white flex items-center">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
           <Bitcoin className="w-6 h-6 mr-2 text-orange-500" />
           Crypto Payment
         </h3>
@@ -273,22 +281,22 @@ const CryptoPayment = ({
 
       <div className="space-y-4">
         {/* Payment Details */}
-        <div className="bg-gray-700/50 rounded-lg p-4">
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-300">Amount to Pay:</span>
-            <span className="text-white font-semibold">
+            <span className="text-gray-600 dark:text-gray-300">Amount to Pay:</span>
+            <span className="text-gray-900 dark:text-white font-semibold">
               {formatAmount(amount, selectedCrypto)}
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-300">USD Value:</span>
-            <span className="text-white">${amount}</span>
+            <span className="text-gray-600 dark:text-gray-300">USD Value:</span>
+            <span className="text-gray-900 dark:text-white">${amount}</span>
           </div>
         </div>
 
         {/* Wallet Address */}
         <div>
-          <label className="block text-sm font-medium text-blue-200 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Send to this address:
           </label>
           <div className="flex items-center space-x-2">
@@ -296,17 +304,17 @@ const CryptoPayment = ({
               type="text"
               value={paymentData.address}
               readOnly
-              className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm font-mono"
+              className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white text-sm font-mono"
             />
             <button
               onClick={() => copyToClipboard(paymentData.address)}
-              className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+              className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               title="Copy address"
             >
               {copiedAddress ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
             Network: {cryptoOptions.find(c => c.value === selectedCrypto)?.network}
           </p>
         </div>

@@ -53,6 +53,14 @@ const EXCHANGE_RATES = {
   usdc: 1
 };
 
+// Currency conversion rates to USD
+const CURRENCY_TO_USD = {
+  USD: 1,
+  EUR: 1.1,
+  GBP: 1.27,
+  KES: 0.0067 // 1 KES = 0.0067 USD (approx 150 KES = 1 USD)
+};
+
 // @route   POST /api/payments/crypto/generate
 // @desc    Generate crypto payment address and details
 // @access  Public (temporarily for testing)
@@ -60,7 +68,7 @@ router.post('/generate', [
   // Temporarily disable auth for testing - add back when user auth is working
   // auth,
   body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
-  body('currency').isIn(['USD', 'EUR', 'GBP']).withMessage('Invalid currency'),
+  body('currency').isIn(['USD', 'EUR', 'GBP', 'KES']).withMessage('Invalid currency'),
   body('cryptoCurrency').isIn(['usdt', 'btc', 'eth', 'usdc']).withMessage('Invalid crypto currency'),
   body('productType').notEmpty().withMessage('Product type is required'),
   body('productId').notEmpty().withMessage('Product ID is required')
@@ -75,11 +83,15 @@ router.post('/generate', [
       });
     }
 
-    const { amount, currency, cryptoCurrency, productType, productId } = req.body;
+    const { amount, currency, cryptoCurrency, productType, productId, metadata } = req.body;
+    
+    // Convert amount to USD first if needed
+    const conversionRate = CURRENCY_TO_USD[currency] || 1;
+    const amountInUSD = amount * conversionRate;
     
     // Calculate crypto amount
     const rate = EXCHANGE_RATES[cryptoCurrency];
-    const cryptoAmount = (amount / rate).toFixed(8);
+    const cryptoAmount = (amountInUSD / rate).toFixed(8);
     
     // Get wallet address
     const walletInfo = WALLET_ADDRESSES[cryptoCurrency];
@@ -106,13 +118,16 @@ router.post('/generate', [
     const paymentData = {
       id: transactionId,
       user_id: userId,
-      amount_usd: amount,
+      amount_usd: amountInUSD,
+      amount_original: amount,
+      currency_original: currency,
       crypto_currency: cryptoCurrency,
       crypto_amount: cryptoAmount,
       wallet_address: walletInfo.address,
       network: walletInfo.network,
       product_type: productType,
       product_id: productId,
+      metadata: metadata || {},
       status: 'pending',
       expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 minutes
       created_at: new Date().toISOString(),

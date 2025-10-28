@@ -235,6 +235,7 @@ const PaymentMethodDialog = ({
                 onPaymentError={onPaymentError}
                 productType="ea_subscription"
                 productId={metadata?.eaId || metadata?.ea_id}
+                metadata={metadata}
               />
             </div>
           ) : selectedMethod === 'card' && showPaystackForm ? (

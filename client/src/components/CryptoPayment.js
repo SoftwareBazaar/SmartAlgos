@@ -18,7 +18,8 @@ const CryptoPayment = ({
   onPaymentSuccess, 
   onPaymentError,
   productType = 'ea_subscription',
-  productId 
+  productId,
+  metadata = {}
 }) => {
   const [selectedCrypto, setSelectedCrypto] = useState('usdt');
   const [paymentData, setPaymentData] = useState(null);
@@ -62,6 +63,14 @@ const CryptoPayment = ({
     }
   ];
 
+  // Currency conversion rates to USD
+  const currencyToUSD = {
+    USD: 1,
+    EUR: 1.1,
+    GBP: 1.27,
+    KES: 0.0067 // 1 KES = 0.0067 USD (approx 150 KES = 1 USD)
+  };
+
   const exchangeRates = {
     usdt: 1,
     btc: 65000,
@@ -104,7 +113,8 @@ const CryptoPayment = ({
           currency,
           cryptoCurrency: selectedCrypto,
           productType,
-          productId
+          productId,
+          metadata
         })
       });
 
@@ -169,8 +179,13 @@ const CryptoPayment = ({
   };
 
   const formatAmount = (amount, crypto) => {
+    // Convert amount to USD first if needed
+    const conversionRate = currencyToUSD[currency] || 1;
+    const amountInUSD = amount * conversionRate;
+    
+    // Convert USD to crypto
     const rate = exchangeRates[crypto];
-    const cryptoAmount = (amount / rate).toFixed(8);
+    const cryptoAmount = (amountInUSD / rate).toFixed(8);
     return `${cryptoAmount} ${crypto.toUpperCase()}`;
   };
 
@@ -240,9 +255,19 @@ const CryptoPayment = ({
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">USD Value:</span>
-              <span className="text-gray-900 dark:text-white">${amount}</span>
+              <span className="text-gray-600 dark:text-gray-300">
+                {currency === 'USD' ? 'USD Value:' : `${currency} Value:`}
+              </span>
+              <span className="text-gray-900 dark:text-white">{currency} {amount}</span>
             </div>
+            {currency !== 'USD' && (
+              <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                <span className="text-gray-600 dark:text-gray-300 text-sm">USD Equivalent:</span>
+                <span className="text-gray-900 dark:text-white text-sm">
+                  ${(amount * (currencyToUSD[currency] || 1)).toFixed(2)}
+                </span>
+              </div>
+            )}
           </div>
 
           <button
@@ -290,9 +315,19 @@ const CryptoPayment = ({
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-600 dark:text-gray-300">USD Value:</span>
-            <span className="text-gray-900 dark:text-white">${amount}</span>
+            <span className="text-gray-600 dark:text-gray-300">
+              {currency === 'USD' ? 'USD Value:' : `${currency} Value:`}
+            </span>
+            <span className="text-gray-900 dark:text-white">{currency} {amount}</span>
           </div>
+          {currency !== 'USD' && (
+            <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+              <span className="text-gray-600 dark:text-gray-300 text-sm">USD Equivalent:</span>
+              <span className="text-gray-900 dark:text-white text-sm">
+                ${(amount * (currencyToUSD[currency] || 1)).toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Wallet Address */}

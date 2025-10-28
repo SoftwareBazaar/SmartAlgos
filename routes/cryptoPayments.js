@@ -4,7 +4,13 @@ const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 const QRCode = require('qrcode');
 const databaseService = require('../services/databaseService');
-const blockchainService = require('../services/blockchainService');
+// Blockchain service is optional (requires web3 package)
+let blockchainService = null;
+try {
+  blockchainService = require('../services/blockchainService');
+} catch (error) {
+  console.warn('⚠️  blockchainService not available (web3 not installed). Using mock mode.');
+}
 const { auth } = require('../middleware/auth');
 const logger = require('../utils/logger');
 const router = express.Router();

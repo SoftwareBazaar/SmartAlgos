@@ -163,6 +163,8 @@ try {
     const eaRoutes = require('./routes/eas');
     const subscriptionRoutes = require('./routes/subscriptions');
     const downloadsRoutes = require('./routes/downloads');
+    const cryptoPaymentRoutes = require('./routes/cryptoPayments');
+    const paymentRoutes = require('./routes/payments');
     const mpesaRoutes = require('./routes/mpesa');
     const adminRoutes = require('./admin-panel'); // Admin panel with REAL database
     
@@ -171,6 +173,8 @@ try {
     app.use('/api/eas', eaRoutes);
     app.use('/api/subscriptions', subscriptionRoutes);
     app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
+    app.use('/api/payments/crypto', cryptoPaymentRoutes); // Crypto payment routes - MUST come before /api/payments
+    app.use('/api/payments', paymentRoutes); // General payment routes
     app.use('/api/mpesa', mpesaRoutes); // M-Pesa mobile money routes
     app.use('/api/admin', adminRoutes); // Admin panel routes
     
@@ -179,6 +183,8 @@ try {
     console.log('   - /api/eas');
     console.log('   - /api/subscriptions');
     console.log('   - /api/downloads');
+    console.log('   - /api/payments/crypto');
+    console.log('   - /api/payments');
     console.log('   - /api/mpesa');
     console.log('   - /api/admin');
   } catch (error) {

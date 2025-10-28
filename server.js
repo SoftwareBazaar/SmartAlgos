@@ -374,8 +374,8 @@ app.use('/api/news', auth, newsRoutes);
 app.use('/api/subscriptions', auth, subscriptionRoutes);
 app.use('/api/escrow', auth, escrowRoutes);
 app.use('/api/escrow', escrowWebhookRoutes); // Webhooks don't require auth
+app.use('/api/payments/crypto', cryptoPaymentRoutes); // MUST come before /api/payments
 app.use('/api/payments', auth, paymentRoutes);
-app.use('/api/payments/crypto', cryptoPaymentRoutes);
 app.use('/api/mpesa', mpesaRoutes); // M-Pesa routes (callback doesn't require auth)
 app.use('/api/analysis', auth, analysisRoutes);
 app.use('/api/security', auth, securityRoutes);

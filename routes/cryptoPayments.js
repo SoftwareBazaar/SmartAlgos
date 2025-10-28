@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 const QRCode = require('qrcode');
 const databaseService = require('../services/databaseService');
+const { getSystemSettings } = require('./admin-cms');
 // Blockchain service is optional (requires web3 package)
 let blockchainService = null;
 try {
@@ -23,6 +24,41 @@ router.get('/test', (req, res) => {
     timestamp: new Date().toISOString(),
     walletAddresses: Object.keys(WALLET_ADDRESSES)
   });
+});
+
+// @route   GET /api/payments/crypto/settings
+// @desc    Get crypto payment settings (minimums, etc.)
+// @access  Public
+router.get('/settings', async (req, res) => {
+  try {
+    const settings = await getSystemSettings();
+    const minPaymentUSD = settings.minCryptoPaymentUSD || 2.00;
+    
+    // Calculate minimums in all supported currencies
+    const minimums = {
+      USD: minPaymentUSD,
+      EUR: (minPaymentUSD / CURRENCY_TO_USD.EUR).toFixed(2),
+      GBP: (minPaymentUSD / CURRENCY_TO_USD.GBP).toFixed(2),
+      KES: (minPaymentUSD / CURRENCY_TO_USD.KES).toFixed(2)
+    };
+    
+    res.json({
+      success: true,
+      data: {
+        minPaymentUSD,
+        minimums,
+        supportedCurrencies: ['USD', 'EUR', 'GBP', 'KES'],
+        supportedCrypto: ['usdt', 'btc', 'eth', 'usdc'],
+        networkFeeWarning: settings.cryptoNetworkFeeWarning !== false
+      }
+    });
+  } catch (error) {
+    console.error('Get crypto settings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch crypto payment settings'
+    });
+  }
 });
 
 // Mock wallet addresses for different cryptocurrencies
@@ -67,7 +103,7 @@ const CURRENCY_TO_USD = {
 router.post('/generate', [
   // Temporarily disable auth for testing - add back when user auth is working
   // auth,
-  body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
+  body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be a valid number'),
   body('currency').isIn(['USD', 'EUR', 'GBP', 'KES']).withMessage('Invalid currency'),
   body('cryptoCurrency').isIn(['usdt', 'btc', 'eth', 'usdc']).withMessage('Invalid crypto currency'),
   body('productType').notEmpty().withMessage('Product type is required'),
@@ -85,9 +121,27 @@ router.post('/generate', [
 
     const { amount, currency, cryptoCurrency, productType, productId, metadata } = req.body;
     
-    // Convert amount to USD first if needed
+    // Get system settings for minimum payment validation
+    const settings = await getSystemSettings();
+    const minPaymentUSD = settings.minCryptoPaymentUSD || 2.00;
+    
+    // Convert amount to USD to check minimum
     const conversionRate = CURRENCY_TO_USD[currency] || 1;
     const amountInUSD = amount * conversionRate;
+    
+    // Validate minimum payment amount
+    if (amountInUSD < minPaymentUSD) {
+      const minInCurrency = (minPaymentUSD / conversionRate).toFixed(2);
+      return res.status(400).json({
+        success: false,
+        message: `Minimum payment amount is $${minPaymentUSD} USD (${currency} ${minInCurrency})`,
+        minAmount: {
+          usd: minPaymentUSD,
+          currency: currency,
+          amount: parseFloat(minInCurrency)
+        }
+      });
+    }
     
     // Calculate crypto amount
     const rate = EXCHANGE_RATES[cryptoCurrency];

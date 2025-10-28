@@ -50,13 +50,19 @@ const AdminCMS = () => {
     maintenanceMode: false,
     allowRegistration: true,
     maxUsers: 1000,
-    sessionTimeout: 30
+    sessionTimeout: 30,
+    // Payment Settings
+    minCryptoPaymentUSD: 2.00,
+    cryptoNetworkFeeWarning: true
   });
 
   useEffect(() => {
     fetchAdminData();
     fetchUsers();
     fetchAuditLogs();
+    if (activeTab === 'settings') {
+      fetchSettings();
+    }
   }, [activeTab]);
 
   const fetchAdminData = async () => {
@@ -71,6 +77,17 @@ const AdminCMS = () => {
       toast.error('Failed to fetch admin data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const response = await apiClient.get('/api/admin/settings');
+      if (response.data.success) {
+        setSystemSettings(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
     }
   };
 
@@ -877,6 +894,59 @@ const AdminCMS = () => {
                 type="checkbox"
                 checked={systemSettings.allowRegistration}
                 onChange={(e) => setSystemSettings(prev => ({ ...prev, allowRegistration: e.target.checked }))}
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              />
+            </div>
+          </Card.Body>
+        </Card>
+
+        <Card>
+          <Card.Header>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+              <TrendingUp className="h-5 w-5 mr-2" />
+              Payment Settings
+            </h3>
+          </Card.Header>
+          <Card.Body className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Minimum Crypto Payment (USD)
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 dark:text-gray-400">
+                  $
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={systemSettings.minCryptoPaymentUSD || 2.00}
+                  onChange={(e) => setSystemSettings(prev => ({ ...prev, minCryptoPaymentUSD: parseFloat(e.target.value) }))}
+                  className="w-full pl-7 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Minimum amount users can pay with cryptocurrency (in USD). Recommended: $2-$5 to cover network fees.
+              </p>
+              <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs text-blue-700 dark:text-blue-300">
+                <strong>Equivalents:</strong>
+                <br />
+                • KES {((systemSettings.minCryptoPaymentUSD || 2.00) / 0.0067).toFixed(2)}
+                <br />
+                • EUR {((systemSettings.minCryptoPaymentUSD || 2.00) / 1.1).toFixed(2)}
+                <br />
+                • GBP {((systemSettings.minCryptoPaymentUSD || 2.00) / 1.27).toFixed(2)}
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Show Network Fee Warnings</label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Display warnings about crypto network fees</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={systemSettings.cryptoNetworkFeeWarning !== false}
+                onChange={(e) => setSystemSettings(prev => ({ ...prev, cryptoNetworkFeeWarning: e.target.checked }))}
                 className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
             </div>

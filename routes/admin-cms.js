@@ -160,7 +160,10 @@ const readSettingsStore = async () => {
         maintenanceMode: false,
         allowRegistration: true,
         maxUsers: 1000,
-        sessionTimeout: 30
+        sessionTimeout: 30,
+        // Payment Settings
+        minCryptoPaymentUSD: 2.00, // Minimum crypto payment in USD
+        cryptoNetworkFeeWarning: true // Show network fee warnings
       };
     }
     throw error;
@@ -172,6 +175,9 @@ const writeSettingsStore = async (settings) => {
   await ensureDataDirectory();
   await fs.writeFile(SETTINGS_STORE_PATH, JSON.stringify(settings, null, 2));
 };
+
+// Export settings reader for use in other routes
+module.exports.getSystemSettings = readSettingsStore;
 
 // Read audit logs
 const readAuditLogs = async () => {

@@ -176,9 +176,6 @@ const writeSettingsStore = async (settings) => {
   await fs.writeFile(SETTINGS_STORE_PATH, JSON.stringify(settings, null, 2));
 };
 
-// Export settings reader for use in other routes
-module.exports.getSystemSettings = readSettingsStore;
-
 // Read audit logs
 const readAuditLogs = async () => {
   try {
@@ -644,4 +641,10 @@ router.post('/audit-logs/clear', async (req, res) => {
   }
 });
 
+// Export router and utility functions
+// IMPORTANT: Do not change this export pattern!
+// Other routes (like cryptoPayments.js) import getSystemSettings using destructuring:
+// const { getSystemSettings } = require('./admin-cms');
+// If you change module.exports = router, you MUST also export getSystemSettings:
 module.exports = router;
+module.exports.getSystemSettings = readSettingsStore;

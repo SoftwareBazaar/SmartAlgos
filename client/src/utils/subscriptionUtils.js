@@ -3,6 +3,8 @@
  * Handles subscription creation, error handling, and retry logic
  */
 
+import apiClient from '../lib/apiClient';
+
 // Enhanced subscription creation with retry logic
 export const createSubscriptionWithRetry = async (subscriptionData, maxRetries = 3) => {
   const token = localStorage.getItem('token');
@@ -179,29 +181,15 @@ export const restoreDownloads = () => {
 
 // Get user's active subscriptions
 export const getUserSubscriptions = async () => {
-  const token = localStorage.getItem('token');
-  
-  if (!token) {
-    throw new Error('Authentication required');
-  }
-  
   try {
-    const response = await fetch('/api/subscriptions', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    const result = await response.json();
-    
-    if (response.ok && result.success) {
-      return result.data;
+    const response = await apiClient.get('/api/payments/subscriptions');
+    if (response.data?.success) {
+      return response.data.data || [];
     }
-    
-    throw new Error(result.message || 'Failed to get subscriptions');
+    return [];
   } catch (error) {
     console.error('Error getting subscriptions:', error);
-    throw error;
+    return [];
   }
 };
 

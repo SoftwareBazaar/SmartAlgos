@@ -1974,11 +1974,11 @@ const AdminDashboard = () => {
 
       status: ea.status,
 
-      price_weekly: cleanPrice(ea.price_weekly || 6.99),
+      price_weekly: cleanPrice(ea.price_weekly || ''),
 
-      price_monthly: cleanPrice(ea.price_monthly || 18.00),
+      price_monthly: cleanPrice(ea.price_monthly || ''),
 
-      price_yearly: cleanPrice(ea.price_yearly || 97.00),
+      price_yearly: cleanPrice(ea.price_yearly || ''),
 
       category: ea.category,
 

@@ -15,9 +15,9 @@ const EnhancedEAEditor = ({ ea, onSave, onCancel }) => {
     status: 'active',
     
     // Pricing
-    price_weekly: 6.99,
-    price_monthly: 18.00,
-    price_yearly: 97.00,
+    price_weekly: '',
+    price_monthly: '',
+    price_yearly: '',
     
     // Performance Metrics
     win_rate: '',
@@ -56,9 +56,9 @@ const EnhancedEAEditor = ({ ea, onSave, onCancel }) => {
         version: ea.version || '',
         category: ea.category || 'scalping',
         status: ea.status || 'active',
-        price_weekly: ea.price_weekly || 6.99,
-        price_monthly: ea.price_monthly || 18.00,
-        price_yearly: ea.price_yearly || 97.00,
+        price_weekly: ea.price_weekly || '',
+        price_monthly: ea.price_monthly || '',
+        price_yearly: ea.price_yearly || '',
         win_rate: ea.win_rate || '',
         profit_factor: ea.profit_factor || '',
         max_drawdown: ea.max_drawdown || '',

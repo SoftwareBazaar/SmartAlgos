@@ -96,9 +96,9 @@ const EADetail = () => {
             win_rate: parseFloat(eaData.win_rate) || 0,
             profit_factor: parseFloat(eaData.profit_factor) || 0,
             max_drawdown: parseFloat(eaData.max_drawdown) || 0,
-            price_weekly: parseFloat(eaData.price_weekly) || 6.99,
-            price_monthly: parseFloat(eaData.price_monthly) || 18.00,
-            price_yearly: parseFloat(eaData.price_yearly) || 97.00,
+            price_weekly: parseFloat(eaData.price_weekly) || 0,
+            price_monthly: parseFloat(eaData.price_monthly) || 0,
+            price_yearly: parseFloat(eaData.price_yearly) || 0,
             // Set default backtest/live results if missing
             backtest_results: eaData.backtest_results || {
               period: "Backtest Data",
@@ -157,7 +157,7 @@ const EADetail = () => {
     {
       id: 'weekly',
       name: 'Weekly Access',
-      price: ea?.price_weekly || 6.99,
+      price: ea?.price_weekly || 0,
       period: 'week',
       features: ['Full EA access', 'Email support', 'Updates included'],
       badge: 'Try it out',
@@ -166,7 +166,7 @@ const EADetail = () => {
     {
       id: 'monthly',
       name: 'Monthly Access',
-      price: ea?.price_monthly || 18.00,
+      price: ea?.price_monthly || 0,
       period: 'month',
       features: ['Full EA access', 'Priority support', 'All updates', 'Trading signals'],
       badge: 'MOST POPULAR',
@@ -175,12 +175,12 @@ const EADetail = () => {
     {
       id: 'lifetime',
       name: 'Lifetime Access',
-      price: ea?.price_yearly || 97.00,
+      price: ea?.price_yearly || 0,
       period: 'one-time',
       features: ['Full EA access', 'VIP support', 'All updates', 'Custom modifications', 'Source code access'],
       popular: false
     }
-  ];
+  ].filter(plan => plan.price > 0); // Only show plans with valid prices
 
   const reviews = [
     {

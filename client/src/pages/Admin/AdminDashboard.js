@@ -91,7 +91,11 @@ const AdminDashboard = () => {
 
     status: "pending",
 
-    price: "",
+    price_weekly: "",
+
+    price_monthly: "",
+
+    price_yearly: "",
 
     category: "",
 
@@ -939,15 +943,64 @@ const AdminDashboard = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Price
+                    Status
                   </label>
-                  <Input
-                    type="number"
-                    value={eaFormData.price}
-                    onChange={(e) => setEaFormData(prev => ({ ...prev, price: e.target.value }))}
-                    placeholder="0.00"
-                  />
+                  <select
+                    value={eaFormData.status}
+                    onChange={(e) => setEaFormData(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
                 </div>
+              </div>
+
+              {/* Pricing Section */}
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Pricing (USD)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Weekly Price ($)
+                    </label>
+                    <Input
+                      type="number"
+                      value={eaFormData.price_weekly}
+                      onChange={(e) => setEaFormData(prev => ({ ...prev, price_weekly: e.target.value }))}
+                      placeholder="6.99"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Monthly Price ($) *
+                    </label>
+                    <Input
+                      type="number"
+                      value={eaFormData.price_monthly}
+                      onChange={(e) => setEaFormData(prev => ({ ...prev, price_monthly: e.target.value }))}
+                      placeholder="18.00"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Lifetime Price ($)
+                    </label>
+                    <Input
+                      type="number"
+                      value={eaFormData.price_yearly}
+                      onChange={(e) => setEaFormData(prev => ({ ...prev, price_yearly: e.target.value }))}
+                      placeholder="97.00"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  * Monthly price is the primary pricing tier
+                </p>
               </div>
 
               <div>
@@ -972,21 +1025,6 @@ const AdminDashboard = () => {
                   onChange={(e) => setEaFormData(prev => ({ ...prev, tags: e.target.value }))}
                   placeholder="gold,scalping,mt4 (comma separated)"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Status
-                </label>
-                <select
-                  value={eaFormData.status}
-                  onChange={(e) => setEaFormData(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100"
-                >
-                  <option value="pending">Pending</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
               </div>
 
               {/* Action Buttons */}
@@ -1936,7 +1974,11 @@ const AdminDashboard = () => {
 
       status: ea.status,
 
-      price: cleanPrice(ea.price),  // Clean the price to remove $ signs
+      price_weekly: cleanPrice(ea.price_weekly || 6.99),
+
+      price_monthly: cleanPrice(ea.price_monthly || 18.00),
+
+      price_yearly: cleanPrice(ea.price_yearly || 97.00),
 
       category: ea.category,
 
@@ -2010,7 +2052,11 @@ const AdminDashboard = () => {
 
       status: "pending",
 
-      price: "",
+      price_weekly: "",
+
+      price_monthly: "",
+
+      price_yearly: "",
 
       category: "",
 

@@ -563,9 +563,9 @@ router.post('/', [
       category: req.body.category,
       strategy_type: req.body.category,
       risk_level: req.body.riskLevel || 'medium',
-      price_weekly: 6.99, // Psychological pricing for weekly
-      price_monthly: parseFloat(req.body.price) || 18.00,
-      price_yearly: 97.00, // Lifetime access pricing
+      price_weekly: parseFloat(req.body.price_weekly) || 6.99,
+      price_monthly: parseFloat(req.body.price_monthly) || 18.00,
+      price_yearly: parseFloat(req.body.price_yearly) || 97.00,
       version: req.body.version || '1.0.0',
       creator_id: creatorId,
       creator_name: creatorName,
@@ -986,12 +986,32 @@ router.put('/:id', [
       logger.debug('[EA Update] Setting timeframes:', updates.timeframes);
     }
     
-    // Handle price field - map to price_weekly, price_monthly, and price_yearly
-    if (req.body.price !== undefined) {
-      const monthlyPrice = parseFloat(req.body.price) || 18.00;
-      updates.price_weekly = 6.99; // Psychological weekly pricing
-      updates.price_monthly = monthlyPrice;
-      updates.price_yearly = 97.00; // Lifetime access pricing
+    // Handle pricing fields - only set when provided and valid; do not override with defaults
+    if (req.body.price_weekly !== undefined) {
+      const weeklyValue = parseFloat(req.body.price_weekly);
+      if (Number.isFinite(weeklyValue)) {
+        updates.price_weekly = weeklyValue;
+      }
+    }
+    if (req.body.price_monthly !== undefined) {
+      const monthlyValue = parseFloat(req.body.price_monthly);
+      if (Number.isFinite(monthlyValue)) {
+        updates.price_monthly = monthlyValue;
+      }
+    }
+    if (req.body.price_yearly !== undefined) {
+      const yearlyValue = parseFloat(req.body.price_yearly);
+      if (Number.isFinite(yearlyValue)) {
+        updates.price_yearly = yearlyValue;
+      }
+    }
+    
+    // Fallback: if old 'price' field is provided, use it for monthly price
+    if (req.body.price !== undefined && req.body.price_monthly === undefined) {
+      const monthlyPrice = parseFloat(req.body.price);
+      if (Number.isFinite(monthlyPrice)) {
+        updates.price_monthly = monthlyPrice;
+      }
     }
     
     // Handle tags field - map to keywords column (database uses 'keywords' not 'tags')

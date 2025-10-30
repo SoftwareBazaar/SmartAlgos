@@ -39,6 +39,8 @@ const EAMarketplace = () => {
   const { eas, getEAsByCategory, searchEAs, refreshEAs } = useEA();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({ priceMin: '', priceMax: '', risk: '', period: 'any' });
   const [loading, setLoading] = useState(false);
   const [selectedEA, setSelectedEA] = useState(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -236,7 +238,23 @@ const EAMarketplace = () => {
 
   // Get EAs based on category and search
   const categoryEAs = getEAsByCategory(activeCategory);
-  const filteredEAs = searchTerm ? searchEAs(searchTerm) : categoryEAs;
+  const baseEAs = searchTerm ? searchEAs(searchTerm) : categoryEAs;
+  const applyFilters = (list) => {
+    return list.filter((ea) => {
+      const weekly = Number.isFinite(parseFloat(ea.price_weekly)) ? parseFloat(ea.price_weekly) : null;
+      const monthly = Number.isFinite(parseFloat(ea.price_monthly)) ? parseFloat(ea.price_monthly) : null;
+      const yearly = Number.isFinite(parseFloat(ea.price_yearly)) ? parseFloat(ea.price_yearly) : null;
+      let price = monthly ?? weekly ?? yearly;
+      if (filters.period === 'weekly') price = weekly ?? price;
+      if (filters.period === 'monthly') price = monthly ?? price;
+      if (filters.period === 'yearly') price = yearly ?? price;
+      if (filters.priceMin && Number(price) < Number(filters.priceMin)) return false;
+      if (filters.priceMax && Number(price) > Number(filters.priceMax)) return false;
+      if (filters.risk && ea.risk_level && ea.risk_level.toLowerCase() !== filters.risk) return false;
+      return true;
+    });
+  };
+  const filteredEAs = applyFilters(baseEAs);
 
   const getCategoryColor = (category) => {
     const colors = {
@@ -323,14 +341,59 @@ const EAMarketplace = () => {
                 />
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" icon={<Filter className="h-4 w-4" />}>
-                  Filters
+                <Button variant="outline" icon={<Filter className="h-4 w-4" />} onClick={() => setShowFilters(v => !v)}>
+                  {showFilters ? 'Hide Filters' : 'Filters'}
                 </Button>
               </div>
             </div>
           </Card.Body>
         </Card>
       </motion.div>
+
+      {showFilters && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <Card>
+            <Card.Body>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Period</label>
+                  <select
+                    className="w-full px-3 py-2 rounded-md border dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    value={filters.period}
+                    onChange={(e) => setFilters(f => ({ ...f, period: e.target.value }))}
+                  >
+                    <option value="any">Any</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Lifetime</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Risk</label>
+                  <select
+                    className="w-full px-3 py-2 rounded-md border dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    value={filters.risk}
+                    onChange={(e) => setFilters(f => ({ ...f, risk: e.target.value }))}
+                  >
+                    <option value="">Any</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Min Price ($)</label>
+                  <input type="number" step="0.01" value={filters.priceMin} onChange={(e) => setFilters(f => ({ ...f, priceMin: e.target.value }))} className="w-full px-3 py-2 rounded-md border dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Max Price ($)</label>
+                  <input type="number" step="0.01" value={filters.priceMax} onChange={(e) => setFilters(f => ({ ...f, priceMax: e.target.value }))} className="w-full px-3 py-2 rounded-md border dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Category Tabs */}
       <motion.div
@@ -590,19 +653,19 @@ const EAMarketplace = () => {
 
                   <div className="flex items-center justify-between mb-3">
                     <div className="relative">
-                      {(() => {
-                        const weekly = Number.isFinite(parseFloat(ea.price_weekly)) ? parseFloat(ea.price_weekly) : null;
-                        const monthly = Number.isFinite(parseFloat(ea.price_monthly)) ? parseFloat(ea.price_monthly) : null;
-                        const yearly = Number.isFinite(parseFloat(ea.price_yearly)) ? parseFloat(ea.price_yearly) : null;
-                        const display = weekly ?? monthly ?? yearly ?? 0;
-                        const unit = weekly ? '/week' : monthly ? '/month' : yearly ? 'lifetime' : '';
-                        return (
-                          <>
-                            <div className="text-xl font-bold text-white">${display}</div>
-                            <div className="text-xs font-medium text-brand-200">{unit}</div>
-                          </>
-                        );
-                      })()}
+                    {(() => {
+                      const weekly = Number.isFinite(parseFloat(ea.price_weekly)) ? parseFloat(ea.price_weekly) : null;
+                      const monthly = Number.isFinite(parseFloat(ea.price_monthly)) ? parseFloat(ea.price_monthly) : null;
+                      const yearly = Number.isFinite(parseFloat(ea.price_yearly)) ? parseFloat(ea.price_yearly) : null;
+                      const display = weekly ?? monthly ?? yearly ?? 0;
+                      const unit = weekly ? '/week' : monthly ? '/month' : yearly ? 'lifetime' : '';
+                      return (
+                        <>
+                          <div className="text-xl font-bold text-white">${display}</div>
+                          <div className="text-xs font-medium text-brand-200">{ea.risk_level ? `Risk: ${ea.risk_level}` : unit}</div>
+                        </>
+                      );
+                    })()}
                     </div>
                     <div className="flex items-center space-x-1">
                       <div className="flex items-center">

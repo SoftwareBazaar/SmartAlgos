@@ -115,6 +115,22 @@ const EAMarketplace = () => {
   };
 
   const handleSubscribe = (ea) => {
+    // Choose a sensible default plan based on available prices
+    const weekly = Number.isFinite(parseFloat(ea.price_weekly)) ? parseFloat(ea.price_weekly) : null;
+    const monthly = Number.isFinite(parseFloat(ea.price_monthly)) ? parseFloat(ea.price_monthly) : null;
+    const yearly = Number.isFinite(parseFloat(ea.price_yearly)) ? parseFloat(ea.price_yearly) : null;
+
+    if (weekly) {
+      setSubscriptionType('weekly');
+    } else if (monthly) {
+      setSubscriptionType('monthly');
+    } else if (yearly) {
+      setSubscriptionType('lifetime');
+    } else {
+      // No prices available; default to monthly to keep UI consistent
+      setSubscriptionType('monthly');
+    }
+
     setSelectedEA(ea);
     setShowSubscriptionModal(true);
   };
@@ -424,12 +440,20 @@ const EAMarketplace = () => {
 
                     <div className="flex items-center justify-between mb-4">
                       <div className="relative">
-                        <div className="text-4xl font-extrabold text-white drop-shadow-lg">
-                          ${Number.isFinite(parseFloat(ea.price_weekly)) ? parseFloat(ea.price_weekly) : 0}
-                        </div>
-                        <div className="text-xs font-medium text-brand-200 mt-1 tracking-wider">
-                          per week • Start Today
-                        </div>
+                        {(() => {
+                          const weekly = Number.isFinite(parseFloat(ea.price_weekly)) ? parseFloat(ea.price_weekly) : null;
+                          const monthly = Number.isFinite(parseFloat(ea.price_monthly)) ? parseFloat(ea.price_monthly) : null;
+                          const yearly = Number.isFinite(parseFloat(ea.price_yearly)) ? parseFloat(ea.price_yearly) : null;
+                          const display = weekly ?? monthly ?? yearly ?? 0;
+                          const label = weekly ? 'per week' : monthly ? 'per month' : yearly ? 'lifetime' : '';
+                          return (
+                            <>
+                              <div className="text-4xl font-extrabold text-white drop-shadow-lg">${display}</div>
+                              <div className="text-xs font-medium text-brand-200 mt-1 tracking-wider">{label}{label && ' • Start Today'}</div>
+                            </>
+                          );
+                        })()}
+                        
                         <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
                           LOW ENTRY
                         </div>
@@ -567,12 +591,19 @@ const EAMarketplace = () => {
 
                   <div className="flex items-center justify-between mb-3">
                     <div className="relative">
-                      <div className="text-xl font-bold text-white">
-                        ${Number.isFinite(parseFloat(ea.price_weekly)) ? parseFloat(ea.price_weekly) : 0}
-                      </div>
-                      <div className="text-xs font-medium text-brand-200">
-                        /week
-                      </div>
+                      {(() => {
+                        const weekly = Number.isFinite(parseFloat(ea.price_weekly)) ? parseFloat(ea.price_weekly) : null;
+                        const monthly = Number.isFinite(parseFloat(ea.price_monthly)) ? parseFloat(ea.price_monthly) : null;
+                        const yearly = Number.isFinite(parseFloat(ea.price_yearly)) ? parseFloat(ea.price_yearly) : null;
+                        const display = weekly ?? monthly ?? yearly ?? 0;
+                        const unit = weekly ? '/week' : monthly ? '/month' : yearly ? 'lifetime' : '';
+                        return (
+                          <>
+                            <div className="text-xl font-bold text-white">${display}</div>
+                            <div className="text-xs font-medium text-brand-200">{unit}</div>
+                          </>
+                        );
+                      })()}
                     </div>
                     <div className="flex items-center space-x-1">
                       <div className="flex items-center">
@@ -719,29 +750,17 @@ const EAMarketplace = () => {
                   Choose Your Plan
                 </label>
                 <div className="grid grid-cols-1 gap-3">
-                  {[
-                    { 
-                      type: 'weekly', 
-                      label: 'Weekly Access', 
-                      price: Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : 0,
-                      badge: 'Try it out',
-                      savings: null
-                    },
-                    { 
-                      type: 'monthly', 
-                      label: 'Monthly Access', 
-                      price: Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0,
-                      badge: 'MOST POPULAR',
-                      savings: null
-                    },
-                    { 
-                      type: 'lifetime', 
-                      label: 'Lifetime Access', 
-                      price: Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : 0,
-                      badge: 'BEST VALUE',
-                      savings: 'Save $115 - Never pay again!'
-                    }
-                  ].map((option) => (
+                  {(() => {
+                    const opts = [];
+                    const w = Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : null;
+                    const m = Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : null;
+                    const y = Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : null;
+                    if (w && w > 0) opts.push({ type: 'weekly', label: 'Weekly Access', price: w, badge: 'Try it out', savings: null });
+                    if (m && m > 0) opts.push({ type: 'monthly', label: 'Monthly Access', price: m, badge: 'MOST POPULAR', savings: null });
+                    if (y && y > 0) opts.push({ type: 'lifetime', label: 'Lifetime Access', price: y, badge: 'BEST VALUE', savings: 'Save $115 - Never pay again!' });
+                    // If no valid prices, show a disabled placeholder
+                    return opts.length > 0 ? opts : [{ type: 'monthly', label: 'Monthly Access', price: 0, badge: null, savings: null }];
+                  })().map((option) => (
                     <button
                       key={option.type}
                       onClick={() => setSubscriptionType(option.type)}
@@ -846,10 +865,15 @@ const EAMarketplace = () => {
                   productType="ea_subscription"
                   productId={selectedEA.id}
                   productName={selectedEA.name}
-                      productPrice={subscriptionType === 'weekly' ? (Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : 0) :
-                                subscriptionType === 'monthly' ? (Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0) :
-                                subscriptionType === 'lifetime' ? (Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : 0) :
-                                (Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0)}
+                      productPrice={(() => {
+                        const w = Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : null;
+                        const m = Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : null;
+                        const y = Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : null;
+                        if (subscriptionType === 'weekly') return w ?? m ?? y ?? 0;
+                        if (subscriptionType === 'monthly') return m ?? w ?? y ?? 0;
+                        if (subscriptionType === 'lifetime') return y ?? m ?? w ?? 0;
+                        return m ?? w ?? y ?? 0;
+                      })()}
                   sellerEmail={selectedEA.creator || selectedEA.creatorName}
                   onTransactionCreated={(transaction) => {
                     setEscrowTransaction(transaction);
@@ -868,20 +892,28 @@ const EAMarketplace = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Product Price</span>
                     <span className="text-gray-900 dark:text-gray-100">
-                      ${subscriptionType === 'weekly' ? (Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : 0) :
-                        subscriptionType === 'monthly' ? (Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0) :
-                        subscriptionType === 'lifetime' ? (Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : 0) :
-                        (Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0)}
+                      {(() => {
+                        const w = Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : null;
+                        const m = Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : null;
+                        const y = Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : null;
+                        if (subscriptionType === 'weekly') return `$${w ?? m ?? y ?? 0}`;
+                        if (subscriptionType === 'monthly') return `$${m ?? w ?? y ?? 0}`;
+                        if (subscriptionType === 'lifetime') return `$${y ?? m ?? w ?? 0}`;
+                        return `$${m ?? w ?? y ?? 0}`;
+                      })()}
                     </span>
                   </div>
                   {useEscrow && (
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 dark:text-gray-400">Escrow Fee (0.89%)</span>
                       <span className="text-gray-900 dark:text-gray-100">
-                        ${((subscriptionType === 'weekly' ? (Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : 0) :
-                            subscriptionType === 'monthly' ? (Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0) :
-                            subscriptionType === 'lifetime' ? (Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : 0) :
-                            (Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0)) * 0.0089).toFixed(2)}
+                        {(() => {
+                          const w = Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : null;
+                          const m = Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : null;
+                          const y = Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : null;
+                          const base = subscriptionType === 'weekly' ? (w ?? m ?? y ?? 0) : subscriptionType === 'monthly' ? (m ?? w ?? y ?? 0) : (y ?? m ?? w ?? 0);
+                          return `$${(base * 0.0089).toFixed(2)}`;
+                        })()}
                       </span>
                     </div>
                   )}
@@ -901,16 +933,13 @@ const EAMarketplace = () => {
                         Total
                       </span>
                       <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                        ${useEscrow 
-                          ? ((subscriptionType === 'weekly' ? (Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : 0) :
-                              subscriptionType === 'monthly' ? (Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0) :
-                              subscriptionType === 'lifetime' ? (Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : 0) :
-                              (Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0)) * 1.0089).toFixed(2)
-                          : (subscriptionType === 'weekly' ? (Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : 0) :
-                              subscriptionType === 'monthly' ? (Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0) :
-                              subscriptionType === 'lifetime' ? (Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : 0) :
-                              (Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0))
-                        }
+                        {(() => {
+                          const w = Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : null;
+                          const m = Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : null;
+                          const y = Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : null;
+                          const base = subscriptionType === 'weekly' ? (w ?? m ?? y ?? 0) : subscriptionType === 'monthly' ? (m ?? w ?? y ?? 0) : (y ?? m ?? w ?? 0);
+                          return useEscrow ? `$${(base * 1.0089).toFixed(2)}` : `$${base}`;
+                        })()}
                       </span>
                     </div>
                   </div>
@@ -1086,13 +1115,16 @@ const EAMarketplace = () => {
             setShowPaymentDialog(false);
             setSelectedEA(null);
           }}
-          amount={
-            subscriptionType === 'weekly' ? (Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : 0) :
-            subscriptionType === 'monthly' ? (Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : 0) :
-            subscriptionType === 'quarterly' ? (Number.isFinite(parseFloat(selectedEA.price_quarterly)) ? parseFloat(selectedEA.price_quarterly) : 0) :
-            subscriptionType === 'yearly' ? (Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : 0) :
-            0
-          }
+          amount={(() => {
+            const w = Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : null;
+            const m = Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : null;
+            const y = Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : null;
+            if (subscriptionType === 'weekly') return w ?? m ?? y ?? 0;
+            if (subscriptionType === 'monthly') return m ?? w ?? y ?? 0;
+            if (subscriptionType === 'quarterly') return 0; // not used
+            if (subscriptionType === 'yearly') return y ?? m ?? w ?? 0;
+            return m ?? w ?? y ?? 0;
+          })()}
           currency="USD"
           onPaymentSuccess={handlePaymentSuccess}
           onPaymentError={handlePaymentError}

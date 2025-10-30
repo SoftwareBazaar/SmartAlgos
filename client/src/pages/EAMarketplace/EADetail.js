@@ -1026,7 +1026,8 @@ const EADetail = () => {
             console.log('✅ Subscription created:', subscriptionResponse.data);
             
             setShowPaymentMethodDialog(false);
-            alert('🎉 Payment successful! Your EA is now available for download.');
+            // Notify user - rely on parent flow to show downloads or route
+            console.log('🎉 Payment successful! Subscription activated.');
             
             // Refresh subscription status to show download button
             await fetchUserSubscription();
@@ -1041,7 +1042,6 @@ const EADetail = () => {
         }}
         onPaymentError={(error) => {
           console.error('Payment error:', error);
-          alert('Payment failed. Please try again.');
         }}
       />
       

@@ -32,6 +32,7 @@ import { EAImageDisplay } from '../../components/ImageDisplay';
 import { SimpleEAImage } from '../../components/SimpleImage';
 import { getErrorMessage, getUserSubscriptions, getSubscriptionDownloadLinks } from '../../utils/subscriptionUtils';
 import PaymentMethodDialog from '../../components/Payments/PaymentMethodDialog';
+import PaymentResultDialog from '../../components/Payments/PaymentResultDialog';
 
 const EAMarketplace = () => {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ const EAMarketplace = () => {
   const [downloadLinks, setDownloadLinks] = useState(null);
   const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [resultDialog, setResultDialog] = useState({ open: false, status: 'success', message: '' });
 
   // EAs are now managed by the EA context
 
@@ -198,16 +200,13 @@ const EAMarketplace = () => {
       if (newSub) {
         // Get download links
         const downloadData = await getSubscriptionDownloadLinks(newSub.id);
-        
-        // Show download modal
-        setShowDownloadModal(true);
         setDownloadLinks(downloadData.files);
         setCurrentSubscriptionId(newSub.id);
+        setResultDialog({ open: true, status: 'success', message: 'Your subscription is active. You can download files now.' });
       } else {
-        alert('Subscription created! Please refresh to see your downloads.');
+        setResultDialog({ open: true, status: 'success', message: 'Subscription created. It may take a moment to activate.' });
       }
       
-      // Close payment dialog
       setShowPaymentDialog(false);
       setSelectedEA(null);
       
@@ -219,7 +218,7 @@ const EAMarketplace = () => {
   
   const handlePaymentError = (error) => {
     console.error('Payment error:', error);
-    alert('Payment failed. Please try again.');
+    setResultDialog({ open: true, status: 'failed', message: 'Payment failed. Please try again.' });
   };
 
   // Use real EAs from context only - no mock fallback
@@ -959,22 +958,26 @@ const EAMarketplace = () => {
                 >
                   Cancel
                 </Button>
-                {useEscrow && escrowTransaction ? (
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    onClick={() => window.open(`/api/escrow/transactions/${escrowTransaction.id}`, '_blank')}
-                  >
-                    View Escrow Transaction
-                  </Button>
+                {/* If escrow is enabled, use the EscrowIntegration internal primary CTA.
+                    Only show a secondary CTA when a transaction exists. */}
+                {useEscrow ? (
+                  escrowTransaction ? (
+                    <Button
+                      variant="primary"
+                      fullWidth
+                      onClick={() => window.open(`/api/escrow/transactions/${escrowTransaction.id}`, '_blank')}
+                    >
+                      View Escrow Transaction
+                    </Button>
+                  ) : null
                 ) : (
                   <Button
                     variant="primary"
                     fullWidth
-                    onClick={useEscrow ? () => {} : handleSubscriptionSubmit}
-                    disabled={subscribing || (useEscrow && !escrowTransaction)}
+                    onClick={handleSubscriptionSubmit}
+                    disabled={subscribing}
                   >
-                    {subscribing ? 'Processing...' : useEscrow ? 'Create Escrow Transaction' : 'Subscribe Now'}
+                    {subscribing ? 'Processing...' : 'Subscribe Now'}
                   </Button>
                 )}
               </div>
@@ -1137,6 +1140,21 @@ const EAMarketplace = () => {
             subscription_type: subscriptionType,
             eaName: selectedEA.name
           }}
+        />
+      )}
+
+      {/* Payment Result Dialog */}
+      {resultDialog.open && (
+        <PaymentResultDialog
+          isOpen={resultDialog.open}
+          status={resultDialog.status}
+          message={resultDialog.message}
+          onDownload={() => {
+            setShowDownloadModal(true);
+            setResultDialog({ open: false, status: 'success' });
+          }}
+          onViewSubscription={() => navigate('/payments')}
+          onClose={() => setResultDialog({ open: false, status: 'success' })}
         />
       )}
       

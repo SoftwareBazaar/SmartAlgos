@@ -401,7 +401,7 @@ const Markets = () => {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => navigate(`/markets/${item.symbol}`)}
+                            onClick={() => navigate(`/markets/${item.symbol}?type=${activeTab}`)}
                           >
                             View
                           </Button>

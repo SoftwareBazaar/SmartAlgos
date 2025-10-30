@@ -25,6 +25,15 @@ import Card from '../../components/UI/Card';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import apiClient from '../../lib/apiClient';
 
+const EmptyState = () => (
+  <Card className="mb-8">
+    <div className="p-6 text-center">
+      <AlertCircle className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+      <p className="text-gray-700 dark:text-gray-300">No news found for the current filters. Try adjusting filters or refreshing.</p>
+    </div>
+  </Card>
+);
+
 const News = () => {
   const [news, setNews] = useState([]);
   const [trending, setTrending] = useState([]);
@@ -104,6 +113,42 @@ const News = () => {
 
     return matchesCategory && matchesImpact && matchesSentiment && matchesSearch;
   });
+
+  const demoFallback = [
+    {
+      id: 'demo-1',
+      title: 'Markets Hold Steady as Investors Weigh Inflation Outlook',
+      description: 'Equities were little changed while currency markets saw modest moves ahead of data.',
+      category: 'general',
+      impact: 'medium',
+      sentiment: 'neutral',
+      source: 'Smart Algos Wire',
+      published_at: new Date().toISOString()
+    },
+    {
+      id: 'demo-2',
+      title: 'USD Edges Higher on Rate Differentials; EUR Softens',
+      description: 'Dollar strength persists amid policy divergence and resilient US data.',
+      category: 'forex',
+      impact: 'low',
+      sentiment: 'positive',
+      source: 'Smart Algos FX',
+      published_at: new Date().toISOString()
+    }
+  ];
+
+  const EmptyState = () => (
+    <Card className="mb-8">
+      <div className="p-8 text-center">
+        <AlertCircle className="h-8 w-8 text-gray-400 mx-auto mb-3" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">No news found</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Try adjusting filters or search. If the feed is unavailable, it will retry when you refresh.</p>
+        <Button variant="outline" onClick={fetchNews} className="inline-flex items-center">
+          <RefreshCw className="h-4 w-4 mr-2" /> Refresh
+        </Button>
+      </div>
+    </Card>
+  );
 
   const toggleBookmark = (newsId) => {
     const newBookmarked = new Set(bookmarkedNews);
@@ -296,6 +341,8 @@ const News = () => {
             )}
           </div>
         </Card>
+
+        {filteredNews.length === 0 && <EmptyState />}
 
         {/* News Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">

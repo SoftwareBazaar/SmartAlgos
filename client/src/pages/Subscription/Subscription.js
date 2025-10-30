@@ -37,7 +37,7 @@ const Subscription = () => {
   const fetchSubscriptions = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/api/subscriptions');
+      const response = await apiClient.get('/api/payments/subscriptions');
       const subscriptions = response.data.data || [];
       
       // Fix subscription data structure - ensure we have proper IDs

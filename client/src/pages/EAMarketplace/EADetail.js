@@ -1001,7 +1001,7 @@ const EADetail = () => {
       <PaymentMethodDialog
         isOpen={showPaymentMethodDialog}
         onClose={() => setShowPaymentMethodDialog(false)}
-        amount={pricingPlans.find(p => p.id === selectedPlan)?.price || 18}
+        amount={pricingPlans.find(p => p.id === selectedPlan)?.price || 0}
         currency="USD"
         accountReference={`EA_${ea?.id}_${Date.now()}`}
         transactionDesc={`Purchase: ${ea?.name} (${selectedPlan})`}
@@ -1020,7 +1020,7 @@ const EADetail = () => {
               subscription_type: selectedPlan,
               payment_method: 'mpesa',
               payment_reference: result.mpesaReceiptNumber || result.checkoutRequestID,
-              amount: pricingPlans.find(p => p.id === selectedPlan)?.price || 18
+              amount: pricingPlans.find(p => p.id === selectedPlan)?.price || 0
             });
             
             console.log('✅ Subscription created:', subscriptionResponse.data);
@@ -1049,7 +1049,7 @@ const EADetail = () => {
       <CryptoPaymentDialog
         isOpen={showCryptoPayment}
         onClose={() => setShowCryptoPayment(false)}
-        amount={pricingPlans.find(p => p.id === selectedPlan)?.price || 18}
+        amount={pricingPlans.find(p => p.id === selectedPlan)?.price || 0}
         currency="USD"
         onPaymentSuccess={() => {
           setShowCryptoPayment(false);
@@ -1062,7 +1062,7 @@ const EADetail = () => {
         onClose={() => setShowSelfServiceCrypto(false)}
         eaId={ea?.id}
         eaName={ea?.name}
-        amount={pricingPlans.find(p => p.id === selectedPlan)?.price || 18}
+        amount={pricingPlans.find(p => p.id === selectedPlan)?.price || 0}
         currency="USD"
         subscriptionType="lifetime"
         onPaymentSuccess={() => {

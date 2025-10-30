@@ -6,7 +6,7 @@ import apiClient from '../../lib/apiClient';
 const CryptoPaymentDialog = ({ 
   isOpen, 
   onClose, 
-  amount = 18, 
+  amount, 
   currency = 'USD',
   onPaymentSuccess 
 }) => {

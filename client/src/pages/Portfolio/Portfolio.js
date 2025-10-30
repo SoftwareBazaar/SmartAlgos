@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -141,6 +141,27 @@ const Portfolio = () => {
   });
 
   const [pnlEntries, setPnLEntries] = useState(DEFAULT_PNL_ENTRIES);
+  const [loadingPnL, setLoadingPnL] = useState(false);
+
+  // Attempt to load PnL from backend; fallback to defaults
+  useEffect(() => {
+    const loadPnL = async () => {
+      try {
+        setLoadingPnL(true);
+        const res = await apiClient.get('/api/portfolio/pnl');
+        const data = res.data?.data;
+        if (Array.isArray(data) && data.length > 0) {
+          setPnLEntries(data);
+        }
+      } catch (e) {
+        // keep defaults
+        console.warn('[Portfolio] Using default PnL sample');
+      } finally {
+        setLoadingPnL(false);
+      }
+    };
+    loadPnL();
+  }, []);
 
   const pnlByDate = useMemo(() => {
     return pnlEntries.reduce((acc, entry) => {
@@ -518,6 +539,11 @@ const Portfolio = () => {
               </div>
             </div>
 
+            {loadingPnL ? (
+              <div className="py-8 text-center text-gray-500 dark:text-gray-400">Loading performance…</div>
+            ) : pnlEntries.length === 0 ? (
+              <div className="py-8 text-center text-gray-500 dark:text-gray-400">No performance data yet. Upload a CSV to populate this chart.</div>
+            ) : (
             <div className="grid grid-cols-7 gap-2 text-xs">
               {dayLabels.map((label) => (
                 <div key={label} className="text-center text-gray-500 dark:text-brand-300 uppercase tracking-widest">
@@ -552,6 +578,7 @@ const Portfolio = () => {
                 );
               })}
             </div>
+            )}
 
             <p className="mt-4 text-xs text-gray-500 dark:text-brand-200">
               Calendar uses mock trade statements. Replace with parsed CSV data once your upload pipeline is ready.

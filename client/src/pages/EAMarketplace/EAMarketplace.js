@@ -65,7 +65,7 @@ const EAMarketplace = () => {
 
   const fetchUserSubscriptions = async () => {
     try {
-      const response = await apiClient.get('/api/subscriptions');
+      const response = await apiClient.get('/api/payments/subscriptions');
       setUserSubscriptions(response.data.data || []);
     } catch (error) {
       console.error('Error fetching subscriptions:', error);

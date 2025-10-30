@@ -47,37 +47,35 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
       try {
         console.log('=== CHECKING AUTH ON APP LOAD ===');
-        
-        // CRITICAL: For admin sessions, do NOT restore from localStorage
-        // Admin must always re-authenticate for security
-        const isAdminRoute = window.location.pathname.includes('/admin');
-        if (isAdminRoute) {
-          console.log('Admin route detected - clearing any stored tokens for security');
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          dispatch({ type: 'SET_LOADING', payload: false });
-          return;
+
+        // Hydrate user immediately from localStorage to avoid logout flicker
+        const cachedUser = localStorage.getItem('user');
+        const cachedToken = localStorage.getItem('token');
+        if (cachedToken && cachedUser) {
+          try {
+            const parsed = JSON.parse(cachedUser);
+            dispatch({ type: 'SET_USER', payload: parsed });
+            apiClient.defaults.headers.common.Authorization = `Bearer ${cachedToken}`;
+          } catch {}
         }
-        
-        // Clear any old tokens first
+
+        // Clear any old JWT tokens (not our dev tokens)
         const oldToken = localStorage.getItem('token');
         if (oldToken && oldToken.includes('.') && oldToken.split('.').length === 3) {
           console.log('Clearing old JWT token');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
         }
-        
-        // Use bulletproof auth system for regular users only
+
+        // Validate session with backend in the background
         const userData = await getCurrentUser();
         if (userData && userData.user) {
           dispatch({ type: 'SET_USER', payload: userData.user });
+          localStorage.setItem('user', JSON.stringify(userData.user));
         }
       } catch (error) {
-        console.error('Auth check failed:', error);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        console.warn('Auth background check failed (non-fatal):', error?.message || error);
+        // Keep cached session; do not clear on transient errors
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
@@ -97,6 +95,8 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', token);
         apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
         
+        // Persist user for fast hydration on refresh
+        localStorage.setItem('user', JSON.stringify(user));
         dispatch({ type: 'SET_USER', payload: user });
         toast.success('Login successful!');
         return { success: true, message: 'Login successful!' };

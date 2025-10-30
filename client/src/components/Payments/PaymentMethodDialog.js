@@ -3,7 +3,7 @@
  * Unified payment interface supporting multiple payment providers
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   CreditCard, 
   Smartphone, 
@@ -32,6 +32,17 @@ const PaymentMethodDialog = ({
     email: '',
     paymentMethod: 'initialize'
   });
+
+  // Basic client-side validations
+  const amountValid = useMemo(() => {
+    const n = Number(amount);
+    return Number.isFinite(n) && n > 0;
+  }, [amount]);
+
+  const emailValid = useMemo(() => {
+    if (!paystackData.email) return false;
+    return /[^@\s]+@[^@\s]+\.[^@\s]+/.test(paystackData.email);
+  }, [paystackData.email]);
 
   // Payment method configurations
   const paymentMethods = [
@@ -169,9 +180,9 @@ const PaymentMethodDialog = ({
                 <button
                   key={method.id}
                   onClick={() => handleMethodSelect(method.id)}
-                  disabled={!method.available}
+                  disabled={!method.available || !amountValid}
                   className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
-                    method.available
+                    method.available && amountValid
                       ? `border-gray-200 dark:border-gray-700 hover:border-${method.color}-500 hover:bg-${method.color}-50 dark:hover:bg-${method.color}-900/20`
                       : 'border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed'
                   }`}
@@ -191,6 +202,9 @@ const PaymentMethodDialog = ({
                         <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                           ≈ KES {getConvertedAmount('KES')} (Auto-converted)
                         </p>
+                      )}
+                      {!amountValid && (
+                        <p className="text-xs text-red-500 mt-1">Enter a valid amount greater than 0.</p>
                       )}
                     </div>
                   </div>

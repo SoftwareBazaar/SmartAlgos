@@ -57,15 +57,15 @@ export async function login(email, password) {
       throw new Error('Received JWT token instead of dev token');
     }
 
-    // Store token
-    localStorage.setItem('auth_token', cleanToken);
+    // Store token under unified key
+    localStorage.setItem('token', cleanToken);
     console.log('✓ Token stored successfully');
     
     return data;
     
   } catch (error) {
     console.error('Login error:', error);
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('token');
     throw error;
   }
 }
@@ -111,14 +111,14 @@ export async function adminLogin(email, password) {
     }
 
     // Store token
-    localStorage.setItem('auth_token', cleanToken);
+    localStorage.setItem('admin_token', cleanToken);
     console.log('✓ Admin token stored successfully');
     
     return data;
     
   } catch (error) {
     console.error('Admin login error:', error);
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('admin_token');
     throw error;
   }
 }
@@ -126,17 +126,23 @@ export async function adminLogin(email, password) {
 /**
  * Logout user
  */
-export async function logout() {
+export async function logout(role = 'user') {
   try {
-    await fetch(`${API_URL}/api/auth/logout`, {
-      method: 'POST',
-      credentials: 'include'
-    });
+    await fetch(`${API_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' });
   } catch (error) {
     console.error('Logout error:', error);
   } finally {
-    localStorage.removeItem('auth_token');
-    window.location.href = '/login';
+    if (role === 'admin') {
+      localStorage.removeItem('admin_token');
+      if (window.location.pathname.startsWith('/admin')) {
+        window.location.href = '/admin/login';
+        return;
+      }
+    } else {
+      localStorage.removeItem('token');
+      window.location.href = '/auth/login';
+      return;
+    }
   }
 }
 
@@ -145,7 +151,7 @@ export async function logout() {
  */
 export async function getCurrentUser() {
   try {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('token');
     
     if (!token) {
       console.log('No token in localStorage');
@@ -180,7 +186,7 @@ export async function getCurrentUser() {
     
   } catch (error) {
     console.error('Get user error:', error);
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('token');
     return null;
   }
 }
@@ -189,7 +195,7 @@ export async function getCurrentUser() {
  * Make authenticated API request
  */
 export async function fetchWithAuth(url, options = {}) {
-  const token = localStorage.getItem('auth_token');
+  const token = localStorage.getItem('token');
 
   if (!token) {
     throw new Error('No authentication token');
@@ -217,8 +223,8 @@ export async function fetchWithAuth(url, options = {}) {
     const errorData = await response.json();
     console.error('Error details:', errorData);
     
-    localStorage.removeItem('auth_token');
-    window.location.href = '/login';
+    localStorage.removeItem('token');
+    window.location.href = '/auth/login';
     throw new Error('Session expired');
   }
 

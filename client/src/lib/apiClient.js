@@ -29,7 +29,8 @@ console.log(`[API Client] Environment: ${process.env.NODE_ENV || 'development'}`
 
 // Request interceptor
 apiClient.interceptors.request.use((config) => {
-  let token = localStorage.getItem('token');
+  const isAdminContext = typeof window !== 'undefined' && window.location.pathname.includes('/admin');
+  let token = isAdminContext ? localStorage.getItem('admin_token') : localStorage.getItem('token');
   const runtimeEnv = typeof window !== 'undefined' && window.env ? window.env.nodeEnv : undefined;
   const isDevRuntime = (process.env.NODE_ENV && process.env.NODE_ENV !== 'production')
     || (!process.env.NODE_ENV && runtimeEnv && runtimeEnv !== 'production')
@@ -38,8 +39,12 @@ apiClient.interceptors.request.use((config) => {
   // Check if token is a malformed JWT (old Supabase token)
   if (token && token.includes('.') && token.split('.').length === 3) {
     console.warn('[API Client] Detected old JWT token, clearing it...');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    if (isAdminContext) {
+      localStorage.removeItem('admin_token');
+    } else {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
     token = null;
   }
 
@@ -72,6 +77,7 @@ apiClient.interceptors.response.use(
       // Server responded with error status
       const status = error.response.status;
       const url = error.config?.url;
+      const isAdminContext = typeof window !== 'undefined' && window.location.pathname.includes('/admin');
       
       console.error(`[API Error ${status}] ${url}`, {
         status,
@@ -85,20 +91,23 @@ apiClient.interceptors.response.use(
         const errorMessage = error.response.data?.message || '';
         if (errorMessage.includes('JWT') || errorMessage.includes('malformed') || errorMessage.includes('invalid')) {
           console.warn('[API Client] JWT token error detected, clearing storage...');
-          localStorage.clear();
-          sessionStorage.clear();
+          if (isAdminContext) {
+            localStorage.removeItem('admin_token');
+          } else {
+            localStorage.clear();
+          }
         } else {
           // Regular unauthorized error
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          if (isAdminContext) {
+            localStorage.removeItem('admin_token');
+          } else {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
         }
         
         delete apiClient.defaults.headers.common.Authorization;
-        
-        // Only redirect if not already on auth pages
-        if (!window.location.pathname.includes('/auth') && !window.location.pathname.includes('/admin')) {
-          window.location.href = '/auth/login';
-        }
+        // Do not auto-redirect on 401; let the view/state decide.
       } else if (status === 404) {
         console.warn(`[404 Not Found] Endpoint: ${error.config?.baseURL}${url}`);
       }

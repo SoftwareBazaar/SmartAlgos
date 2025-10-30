@@ -173,8 +173,6 @@ router.post('/generate', [
       id: transactionId,
       user_id: userId,
       amount_usd: amountInUSD,
-      amount_original: amount,
-      currency_original: currency,
       crypto_currency: cryptoCurrency,
       crypto_amount: cryptoAmount,
       wallet_address: walletInfo.address,
@@ -331,6 +329,24 @@ router.get('/status/:transactionId', async (req, res) => {
 // @access  Public (but should verify webhook signature)
 router.post('/webhook', async (req, res) => {
   try {
+    // 1) Verify webhook signature (HMAC SHA256 of raw body)
+    try {
+      const secret = process.env.CRYPTO_WEBHOOK_SECRET;
+      if (!secret) {
+        console.warn('[crypto-webhook] CRYPTO_WEBHOOK_SECRET not set - accepting webhook in dev');
+      } else {
+        const payload = JSON.stringify(req.body);
+        const expected = require('crypto').createHmac('sha256', secret).update(payload).digest('hex');
+        const received = req.headers['x-crypto-signature'] || req.headers['x-signature'];
+        if (!received || !require('crypto').timingSafeEqual(Buffer.from(expected), Buffer.from(received))) {
+          return res.status(401).json({ success: false, message: 'Invalid webhook signature' });
+        }
+      }
+    } catch (sigErr) {
+      console.error('[crypto-webhook] Signature verification error:', sigErr);
+      return res.status(401).json({ success: false, message: 'Invalid webhook signature' });
+    }
+
     const { transactionId, status, txHash, amount, confirmations } = req.body;
 
     if (!transactionId) {
@@ -341,6 +357,22 @@ router.post('/webhook', async (req, res) => {
     }
 
     const supabase = databaseService.getClient();
+
+    // 2) Idempotency guard: if already confirmed, do nothing
+    const { data: existing, error: readErr } = await supabase
+      .from('crypto_payments')
+      .select('id,status,tx_hash,confirmations')
+      .eq('id', transactionId)
+      .maybeSingle();
+
+    if (readErr) {
+      console.error('Webhook read error:', readErr);
+    }
+
+    if (existing && existing.status === 'confirmed') {
+      // Already processed; acknowledge without duplicating side effects
+      return res.json({ success: true, message: 'Already confirmed (idempotent)' });
+    }
 
     // Update payment record
     const { data, error } = await supabase

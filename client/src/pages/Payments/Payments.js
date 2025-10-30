@@ -378,6 +378,20 @@ const Payments = () => {
     }).format(amount);
   };
 
+  const safeParseDate = (value) => {
+    try {
+      if (!value) return null;
+      const d = new Date(value);
+      return isNaN(d.getTime()) ? null : d;
+    } catch { return null; }
+  };
+
+  const formatDateTime = (value) => {
+    const d = safeParseDate(value);
+    if (!d) return '-';
+    return new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(d);
+  };
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-NG', {
       year: 'numeric',
@@ -926,6 +940,8 @@ const Payments = () => {
                 </label>
                 <input
                   type="number"
+                  min={0.01}
+                  step={0.01}
                   value={paymentData.amount}
                   onChange={(e) => setPaymentData(prev => ({ ...prev, amount: parseFloat(e.target.value) }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
@@ -979,7 +995,12 @@ const Payments = () => {
               <Button
                 onClick={handleInitializePayment}
                 className="flex-1"
-                disabled={loading || (paymentData.paymentMethod === 'charge_authorization' && !paymentData.authorization_code)}
+                disabled={
+                  loading ||
+                  (paymentData.paymentMethod === 'charge_authorization' && !paymentData.authorization_code) ||
+                  !(Number(paymentData.amount) > 0) ||
+                  !/[^@\s]+@[^@\s]+\.[^@\s]+/.test(paymentData.email)
+                }
               >
                 {loading ? <LoadingSpinner size="sm" /> : 
                   paymentData.paymentMethod === 'charge_authorization' ? 'Charge Now' : 'Pay Now'}

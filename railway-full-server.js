@@ -166,6 +166,8 @@ try {
     const cryptoPaymentRoutes = require('./routes/cryptoPayments');
     const paymentRoutes = require('./routes/payments');
     const mpesaRoutes = require('./routes/mpesa');
+    const mt5Routes = require('./routes/mt5');
+    const portfolioRoutes = require('./routes/portfolio');
     const adminRoutes = require('./admin-panel'); // Admin panel with REAL database
     
     // API Routes
@@ -176,6 +178,8 @@ try {
     app.use('/api/payments/crypto', cryptoPaymentRoutes); // Crypto payment routes - MUST come before /api/payments
     app.use('/api/payments', paymentRoutes); // General payment routes
     app.use('/api/mpesa', mpesaRoutes); // M-Pesa mobile money routes
+    app.use('/api/mt5', mt5Routes); // MT5 connections and API routes
+    app.use('/api/portfolio', portfolioRoutes); // Portfolio routes
     app.use('/api/admin', adminRoutes); // Admin panel routes
     
     console.log('✅ Essential routes loaded');
@@ -186,6 +190,8 @@ try {
     console.log('   - /api/payments/crypto');
     console.log('   - /api/payments');
     console.log('   - /api/mpesa');
+    console.log('   - /api/mt5');
+    console.log('   - /api/portfolio');
     console.log('   - /api/admin');
   } catch (error) {
     console.error('❌ Routes loading error:', error.message);

@@ -14,6 +14,14 @@ class MT5Service {
     }
 
     this.fallbackPath = path.join(__dirname, '..', 'logs', 'mt5-connections.json');
+    
+    // Default demo account for portfolio integration
+    this.defaultDemoAccount = {
+      login: '5040707296',
+      password: 'CeD!5uIm',
+      server: 'MetaQuotes-Demo',
+      label: 'Default Demo Account'
+    };
   }
 
   ensureFallbackStore() {
@@ -215,6 +223,14 @@ class MT5Service {
       console.error('Failed to decrypt MT5 password:', error.message);
       return null;
     }
+  }
+
+  /**
+   * Get default demo account connection
+   * @returns {Object} Demo account credentials
+   */
+  getDefaultDemoAccount() {
+    return { ...this.defaultDemoAccount };
   }
 
   async generateDeploymentManifest(userId, { eaId, connectionId }) {

@@ -4,6 +4,9 @@ const express = require('express');
 const multer = require('multer');
 const { parse } = require('csv-parse/sync');
 const XLSX = require('xlsx');
+const { auth, updateActivity } = require('../middleware/auth');
+const mt5APIService = require('../services/mt5APIService');
+const mt5Service = require('../services/mt5Service');
 
 const router = express.Router();
 
@@ -797,6 +800,244 @@ router.post('/upload-csv', (req, res, next) => {
       return next(error);
     }
   });
+});
+
+// ==================== MT5 REAL DATA INTEGRATION ====================
+
+// @route   GET /api/portfolio/pnl
+// @desc    Get PnL calendar data from MT5 demo account
+// @access  Private
+router.get('/pnl', [auth, updateActivity], async (req, res) => {
+  try {
+    const demoAccount = mt5Service.getDefaultDemoAccount();
+    const connectionKey = `${demoAccount.login}@${demoAccount.server}`;
+    
+    let pnlEntries = [];
+    
+    try {
+      // Connect to MT5 if not already connected
+      let connection = null;
+      try {
+        await mt5APIService.getAccountInfo(connectionKey);
+        // Already connected
+      } catch {
+        // Not connected, connect now
+        await mt5APIService.connect({
+          login: demoAccount.login,
+          password: demoAccount.password,
+          server: demoAccount.server
+        });
+      }
+
+      // Get order history from last 30 days
+      const fromDate = new Date();
+      fromDate.setDate(fromDate.getDate() - 30);
+      
+      const history = await mt5APIService.getOrderHistory(connectionKey, {
+        from: fromDate.toISOString().split('T')[0],
+        to: new Date().toISOString().split('T')[0]
+      });
+
+      // Group trades by date and calculate daily PnL
+      const pnlByDate = new Map();
+      
+      history.forEach(trade => {
+        const tradeDate = new Date(trade.time);
+        const dateKey = tradeDate.toISOString().split('T')[0];
+        
+        const currentPnL = pnlByDate.get(dateKey) || 0;
+        pnlByDate.set(dateKey, currentPnL + (trade.profit || 0));
+      });
+
+      // Convert to array format
+      pnlEntries = Array.from(pnlByDate.entries())
+        .map(([date, pnl]) => ({
+          date,
+          pnl: parseFloat(pnl.toFixed(2))
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      console.log(`[Portfolio] ✅ Fetched ${pnlEntries.length} days of PnL data from MT5`);
+    } catch (mt5Error) {
+      console.warn('[Portfolio] MT5 connection failed, using fallback:', mt5Error.message);
+      // Fallback to empty or default data
+      pnlEntries = [];
+    }
+
+    res.json({
+      success: true,
+      data: pnlEntries,
+      source: pnlEntries.length > 0 ? 'mt5' : 'fallback'
+    });
+  } catch (error) {
+    console.error('Get PnL error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch PnL data',
+      data: []
+    });
+  }
+});
+
+// @route   GET /api/portfolio/positions
+// @desc    Get open positions from MT5 demo account
+// @access  Private
+router.get('/positions', [auth, updateActivity], async (req, res) => {
+  try {
+    const demoAccount = mt5Service.getDefaultDemoAccount();
+    const connectionKey = `${demoAccount.login}@${demoAccount.server}`;
+    
+    try {
+      // Connect to MT5 if not already connected
+      try {
+        await mt5APIService.getAccountInfo(connectionKey);
+      } catch {
+        await mt5APIService.connect({
+          login: demoAccount.login,
+          password: demoAccount.password,
+          server: demoAccount.server
+        });
+      }
+
+      const positions = await mt5APIService.getPositions(connectionKey);
+      const accountInfo = await mt5APIService.getAccountInfo(connectionKey);
+
+      // Transform positions to portfolio format
+      const portfolioPositions = positions.map(pos => ({
+        id: pos.ticket,
+        symbol: pos.symbol,
+        type: pos.type === 0 ? 'BUY' : 'SELL',
+        volume: pos.volume,
+        entry_price: pos.price_open,
+        current_price: pos.price_current,
+        profit: pos.profit,
+        swap: pos.swap,
+        open_time: pos.time
+      }));
+
+      res.json({
+        success: true,
+        data: {
+          positions: portfolioPositions,
+          account: {
+            balance: accountInfo.balance,
+            equity: accountInfo.equity,
+            margin: accountInfo.margin,
+            free_margin: accountInfo.free_margin,
+            margin_level: accountInfo.margin_level,
+            currency: accountInfo.currency
+          },
+          totalPositions: positions.length,
+          totalProfit: positions.reduce((sum, pos) => sum + (pos.profit || 0), 0)
+        },
+        source: 'mt5'
+      });
+    } catch (mt5Error) {
+      console.warn('[Portfolio] MT5 connection failed:', mt5Error.message);
+      res.json({
+        success: true,
+        data: {
+          positions: [],
+          account: null,
+          totalPositions: 0,
+          totalProfit: 0
+        },
+        source: 'fallback'
+      });
+    }
+  } catch (error) {
+    console.error('Get positions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch positions'
+    });
+  }
+});
+
+// @route   GET /api/portfolio/account
+// @desc    Get account summary from MT5 demo account
+// @access  Private
+router.get('/account', [auth, updateActivity], async (req, res) => {
+  try {
+    const demoAccount = mt5Service.getDefaultDemoAccount();
+    const connectionKey = `${demoAccount.login}@${demoAccount.server}`;
+    
+    try {
+      // Connect to MT5 if not already connected
+      try {
+        await mt5APIService.getAccountInfo(connectionKey);
+      } catch {
+        await mt5APIService.connect({
+          login: demoAccount.login,
+          password: demoAccount.password,
+          server: demoAccount.server
+        });
+      }
+
+      const accountInfo = await mt5APIService.getAccountInfo(connectionKey);
+      const positions = await mt5APIService.getPositions(connectionKey);
+      const history = await mt5APIService.getOrderHistory(connectionKey, {
+        from: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      });
+
+      // Calculate portfolio metrics
+      const totalProfit = positions.reduce((sum, pos) => sum + (pos.profit || 0), 0);
+      const totalProfitClosed = history
+        .filter(h => h.entry === 1) // Only closed deals
+        .reduce((sum, h) => sum + (h.profit || 0), 0);
+
+      const profitableTrades = history.filter(h => h.profit > 0).length;
+      const totalTrades = history.filter(h => h.entry === 1).length;
+      const winRate = totalTrades > 0 ? (profitableTrades / totalTrades * 100) : 0;
+
+      res.json({
+        success: true,
+        data: {
+          account: {
+            login: accountInfo.login,
+            balance: accountInfo.balance,
+            equity: accountInfo.equity,
+            margin: accountInfo.margin,
+            free_margin: accountInfo.free_margin,
+            margin_level: accountInfo.margin_level,
+            currency: accountInfo.currency,
+            leverage: accountInfo.leverage,
+            server: accountInfo.server,
+            company: accountInfo.company
+          },
+          portfolio: {
+            total_value: accountInfo.equity,
+            total_invested: accountInfo.balance,
+            total_profit: totalProfit,
+            profit_percentage: accountInfo.balance > 0 ? ((accountInfo.equity - accountInfo.balance) / accountInfo.balance * 100) : 0,
+            open_positions: positions.length,
+            total_closed_profit: totalProfitClosed,
+            win_rate: winRate,
+            total_trades: totalTrades,
+            profitable_trades: profitableTrades
+          }
+        },
+        source: 'mt5'
+      });
+    } catch (mt5Error) {
+      console.warn('[Portfolio] MT5 connection failed:', mt5Error.message);
+      res.json({
+        success: true,
+        data: {
+          account: null,
+          portfolio: null
+        },
+        source: 'fallback',
+        error: mt5Error.message
+      });
+    }
+  } catch (error) {
+    console.error('Get account error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch account data'
+    });
+  }
 });
 
 module.exports = router;

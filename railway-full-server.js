@@ -160,6 +160,7 @@ try {
   
   try {
     const authRoutes = require('./routes/auth');
+    const usersRoutes = require('./routes/users'); // User routes including dashboard-stats
     const eaRoutes = require('./routes/eas');
     const subscriptionRoutes = require('./routes/subscriptions');
     const downloadsRoutes = require('./routes/downloads');
@@ -173,6 +174,7 @@ try {
     
     // API Routes
     app.use('/api/auth', authRoutes);
+    app.use('/api/users', usersRoutes); // User routes - MUST come before other routes that might conflict
     app.use('/api/eas', eaRoutes);
     app.use('/api/subscriptions', subscriptionRoutes);
     app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
@@ -185,6 +187,7 @@ try {
     
     console.log('✅ Essential routes loaded');
     console.log('   - /api/auth');
+    console.log('   - /api/users');
     console.log('   - /api/eas');
     console.log('   - /api/subscriptions');
     console.log('   - /api/downloads');

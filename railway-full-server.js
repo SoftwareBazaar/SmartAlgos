@@ -166,7 +166,8 @@ try {
     const cryptoPaymentRoutes = require('./routes/cryptoPayments');
     const paymentRoutes = require('./routes/payments');
     const mpesaRoutes = require('./routes/mpesa');
-    const mt5Routes = require('./routes/mt5');
+    // MT5 routes - disabled for Railway (requires MT5 terminal installation)
+    // const mt5Routes = require('./routes/mt5');
     const portfolioRoutes = require('./routes/portfolio');
     const adminRoutes = require('./admin-panel'); // Admin panel with REAL database
     
@@ -178,8 +179,8 @@ try {
     app.use('/api/payments/crypto', cryptoPaymentRoutes); // Crypto payment routes - MUST come before /api/payments
     app.use('/api/payments', paymentRoutes); // General payment routes
     app.use('/api/mpesa', mpesaRoutes); // M-Pesa mobile money routes
-    app.use('/api/mt5', mt5Routes); // MT5 connections and API routes
-    app.use('/api/portfolio', portfolioRoutes); // Portfolio routes
+    // app.use('/api/mt5', mt5Routes); // MT5 routes disabled (requires MT5 terminal)
+    app.use('/api/portfolio', portfolioRoutes); // Portfolio routes (MT5 integration disabled)
     app.use('/api/admin', adminRoutes); // Admin panel routes
     
     console.log('✅ Essential routes loaded');
@@ -190,7 +191,7 @@ try {
     console.log('   - /api/payments/crypto');
     console.log('   - /api/payments');
     console.log('   - /api/mpesa');
-    console.log('   - /api/mt5');
+    // console.log('   - /api/mt5'); // MT5 disabled
     console.log('   - /api/portfolio');
     console.log('   - /api/admin');
   } catch (error) {

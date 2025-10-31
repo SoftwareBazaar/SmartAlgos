@@ -145,15 +145,26 @@ export async function getCurrentUser() {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      credentials: 'include'
+      credentials: 'include',
+      // Add timeout to prevent hanging
+      signal: AbortSignal.timeout(5000)
     });
 
     console.log('Auth check response status:', response.status);
 
     if (!response.ok) {
-      const error = await response.json();
-      console.error('Auth check failed:', error);
-      throw new Error(error.message || error.error || 'Authentication failed');
+      // Only clear token if it's a real auth failure (401), not network errors
+      if (response.status === 401) {
+        const error = await response.json().catch(() => ({}));
+        console.error('Auth check failed (401):', error);
+        // Don't clear token here - let the caller decide
+        // The token might still be valid, just needs refresh
+        return null;
+      }
+      // For other errors (500, 503, etc), keep the token
+      const error = await response.json().catch(() => ({}));
+      console.warn('Auth check failed (non-401):', response.status, error);
+      return null; // Return null but don't clear token
     }
 
     const data = await response.json();
@@ -162,8 +173,14 @@ export async function getCurrentUser() {
     return data;
     
   } catch (error) {
-    console.error('Get user error:', error);
-    removeToken('user');
+    // Network errors, timeouts, etc - DO NOT clear token
+    if (error.name === 'AbortError' || error.name === 'TypeError') {
+      console.warn('Network error during auth check (keeping cached session):', error.message);
+    } else {
+      console.warn('Auth check error (keeping cached session):', error.message);
+    }
+    // Return null but keep the token in localStorage
+    // The cached session will be used until backend is available
     return null;
   }
 }

@@ -14,18 +14,49 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       const cachedToken = getToken(requireAdmin ? 'admin' : 'user');
       const cachedUser = getUser();
       
-      // If we have a valid cached token/user, wait a bit longer for auth context to hydrate
+      // If we have a valid cached token/user, wait for auth context to hydrate
       if (cachedToken && cachedUser && isValidTokenFormat(cachedToken)) {
-        // Give auth context time to hydrate (max 2 seconds)
-        setTimeout(() => setIsCheckingCache(false), 2000);
+        // Wait for auth context to set loading to false
+        // Check every 100ms if loading is done (max 3 seconds)
+        let attempts = 0;
+        const maxAttempts = 30; // 30 * 100ms = 3 seconds max
+        
+        const checkInterval = setInterval(() => {
+          attempts++;
+          // If auth context has finished loading OR we've waited too long
+          if (!loading || attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            setIsCheckingCache(false);
+          }
+        }, 100);
+        
+        return () => clearInterval(checkInterval);
       } else {
-        // No cache, can check immediately
-        setIsCheckingCache(false);
+        // No cache, can check immediately (but still wait for loading to finish)
+        if (!loading) {
+          setIsCheckingCache(false);
+        } else {
+          // Wait for loading to finish
+          const checkInterval = setInterval(() => {
+            if (!loading) {
+              clearInterval(checkInterval);
+              setIsCheckingCache(false);
+            }
+          }, 100);
+          
+          // Safety timeout
+          setTimeout(() => {
+            clearInterval(checkInterval);
+            setIsCheckingCache(false);
+          }, 3000);
+          
+          return () => clearInterval(checkInterval);
+        }
       }
     };
 
     checkCache();
-  }, [requireAdmin]);
+  }, [requireAdmin, loading]);
 
   // Show loading spinner while checking authentication OR while checking cache
   if (loading || isCheckingCache) {

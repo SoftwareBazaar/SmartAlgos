@@ -87,14 +87,22 @@ apiClient.interceptors.response.use(
 
       // Handle specific error cases
       if (status === 401) {
-        // Clear auth data on 401 error
-        if (isAdminContext) {
-          removeToken('admin');
-        } else {
-          clearAuth('user');
-        }
+        // Only clear auth on 401 if it's NOT the initial auth check endpoint
+        // During page refresh, /api/auth/me might fail but token could still be valid
+        const isAuthCheck = url && (url.includes('/api/auth/me') || url.includes('/auth/me'));
         
-        delete apiClient.defaults.headers.common.Authorization;
+        if (!isAuthCheck) {
+          // For other endpoints, clear auth on 401
+          if (isAdminContext) {
+            removeToken('admin');
+          } else {
+            clearAuth('user');
+          }
+          delete apiClient.defaults.headers.common.Authorization;
+        } else {
+          // For auth check endpoint, just log but don't clear
+          console.warn('[API Client] 401 on auth check - keeping cached session');
+        }
         // Do not auto-redirect on 401; let the view/state decide.
       } else if (status === 404) {
         console.warn(`[404 Not Found] Endpoint: ${error.config?.baseURL}${url}`);

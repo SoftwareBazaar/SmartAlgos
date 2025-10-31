@@ -10,8 +10,10 @@ class CryptoPaymentService {
     this.binanceSecretKey = process.env.BINANCE_SECRET_KEY;
     this.isMockMode = !this.coinbaseApiKey || this.coinbaseApiKey.includes('your_');
     
+    // Note: Coinbase Commerce is optional - we use blockchainMonitorService for verification
+    // This warning is harmless if you're using Etherscan/BlockCypher for automatic verification
     if (this.isMockMode) {
-      console.warn('[CryptoPayment] Running in mock mode. Add COINBASE_API_KEY to enable live payments.');
+      // Silent - Coinbase Commerce is optional, not required for automatic verification
     }
   }
 

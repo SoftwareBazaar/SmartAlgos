@@ -5,12 +5,14 @@ const crypto = require('crypto');
 const QRCode = require('qrcode');
 const databaseService = require('../services/databaseService');
 const { getSystemSettings } = require('./admin-cms');
-// Blockchain service is optional (requires web3 package)
+// Blockchain service is optional (for advanced features like smart contracts)
+// NOT needed for payment verification - we use blockchainMonitorService instead
 let blockchainService = null;
 try {
   blockchainService = require('../services/blockchainService');
 } catch (error) {
-  console.warn('⚠️  blockchainService not available (web3 not installed). Using mock mode.');
+  // This is OK - blockchainService is only for advanced features, not payment verification
+  // Payment verification uses blockchainMonitorService (Etherscan/BlockCypher) instead
 }
 // Blockchain monitoring service for automatic payment verification
 let blockchainMonitor = null;

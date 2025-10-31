@@ -271,7 +271,7 @@ const CustomEA = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-brand-900 to-black">
+    <div className="min-h-screen bg-gray-50 dark:bg-gradient-to-br dark:from-black dark:via-brand-900 dark:to-black">
       {/* Header */}
       <div className="bg-white dark:bg-gradient-to-r dark:from-black dark:via-brand-900 dark:to-black border-b border-gray-200 dark:border-brand-800/70 shadow-lg">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6">
@@ -296,7 +296,7 @@ const CustomEA = () => {
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 overflow-y-auto scrollbar-thin scrollbar-thumb-brand-700 scrollbar-track-transparent hover:scrollbar-thumb-brand-600 scroll-smooth max-h-screen">
         {/* Progress Bar */}
-        <div className="mb-6 sm:mb-8 sticky top-0 bg-gradient-to-br from-black via-brand-900 to-black pb-4 z-10">
+        <div className="mb-6 sm:mb-8 sticky top-0 bg-white dark:bg-gradient-to-br dark:from-black dark:via-brand-900 dark:to-black pb-4 z-10">
           <div className="flex items-center justify-between mb-3 sm:mb-4 overflow-x-auto pb-2">
             {[1, 2, 3, 4, 5].map((step) => (
               <div key={step} className="flex items-center flex-shrink-0">
@@ -363,7 +363,7 @@ const CustomEA = () => {
                           <p className={`text-sm ${
                             formData.serviceType === 'new_ea' 
                               ? 'text-gray-700 dark:text-gray-200' 
-                              : 'text-brand-300'
+                              : 'text-gray-700 dark:text-brand-300'
                           }`}>Create a custom Expert Advisor from scratch</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${
@@ -399,7 +399,7 @@ const CustomEA = () => {
                           <p className={`text-sm ${
                             formData.serviceType === 'modify_ea' 
                               ? 'text-gray-700 dark:text-gray-200' 
-                              : 'text-brand-300'
+                              : 'text-gray-700 dark:text-brand-300'
                           }`}>Improve or customize your existing EA</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${
@@ -435,7 +435,7 @@ const CustomEA = () => {
                           <p className={`text-sm ${
                             formData.serviceType === 'custom_indicator' 
                               ? 'text-gray-700 dark:text-gray-200' 
-                              : 'text-brand-300'
+                              : 'text-gray-700 dark:text-brand-300'
                           }`}>Develop a custom trading indicator</p>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 ${

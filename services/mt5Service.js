@@ -170,6 +170,7 @@ class MT5Service {
       return null;
     }
 
+    // Normalize userId to string for consistent querying
     const userIdKey = String(userId);
     console.log('[MT5 Service] getConnection for user:', userIdKey, 'connection:', connectionId);
 
@@ -352,8 +353,7 @@ class MT5Service {
     console.log('[MT5 Service] Using fallback storage for user:', userId, '(type:', typeof userId, ')');
     const store = this.readFallbackStore();
     
-    // Normalize userId to string for consistent storage/retrieval
-    const userIdKey = String(userId);
+    // userIdKey already declared above, reuse it
     const list = store[userIdKey] || [];
     
     console.log('[MT5 Service] Current connections for user:', list.length);

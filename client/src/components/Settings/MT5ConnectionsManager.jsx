@@ -18,6 +18,20 @@ const EMPTY_FORM = {
   isDemo: true
 };
 
+// Pre-filled demo account form for quick setup
+const DEMO_FORM = {
+  id: null,
+  label: 'MetaQuotes Demo Account',
+  broker: 'MetaQuotes Software',
+  server: 'MetaQuotes-Demo',
+  login: '5040707296',
+  password: 'CeD!5uIm',
+  accountType: 'demo',
+  leverage: '',
+  timezone: '',
+  isDemo: true
+};
+
 const accountTypeOptions = [
   { value: 'demo', label: 'Demo' },
   { value: 'live', label: 'Live' },
@@ -99,7 +113,8 @@ const MT5ConnectionsManager = () => {
   };
 
   const openCreateForm = () => {
-    setFormData(EMPTY_FORM);
+    // Pre-fill with demo account for quick setup
+    setFormData(DEMO_FORM);
     setFormVisible(true);
     setManifest(null);
   };
@@ -297,81 +312,95 @@ const MT5ConnectionsManager = () => {
               </Card.Header>
               <Card.Body>
                 <form className="space-y-4" onSubmit={handleSubmit}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      label="Display Name"
-                      name="label"
-                      value={formData.label}
-                      onChange={handleInputChange}
-                      placeholder="Primary MT5 Terminal"
-                    />
-                    <Input
-                      label="Broker"
-                      name="broker"
-                      value={formData.broker}
-                      onChange={handleInputChange}
-                      placeholder="Broker name"
-                    />
-                    <Input
-                      label="Server"
-                      name="server"
-                      value={formData.server}
-                      onChange={handleInputChange}
-                      placeholder="Broker server name"
-                      required
-                    />
-                    <Input
-                      label="Login"
-                      name="login"
-                      value={formData.login}
-                      onChange={handleInputChange}
-                      placeholder="MT5 login"
-                      required
-                    />
-                    <Input
-                      label="Password"
-                      name="password"
-                      type="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder={formData.id ? 'Leave blank to keep existing' : 'MT5 password'}
-                    />
-                    <Input
-                      label="Leverage"
-                      name="leverage"
-                      value={formData.leverage}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 1:500"
-                    />
-                    <Input
-                      label="Timezone"
-                      name="timezone"
-                      value={formData.timezone}
-                      onChange={handleInputChange}
-                      placeholder="e.g., GMT+3"
-                    />
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Account Type</label>
-                      <select
-                        name="accountType"
-                        value={formData.accountType}
+                  {/* Essential Fields - Always Visible */}
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Server *"
+                        name="server"
+                        value={formData.server}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500"
-                      >
-                        {accountTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                      </select>
-                      <label className="mt-2 inline-flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                        <input
-                          type="checkbox"
-                          name="isDemo"
-                          checked={formData.isDemo}
-                          onChange={handleInputChange}
-                        />
-                        <span>Demo account</span>
-                      </label>
+                        placeholder="MetaQuotes-Demo"
+                        required
+                      />
+                      <Input
+                        label="Login *"
+                        name="login"
+                        value={formData.login}
+                        onChange={handleInputChange}
+                        placeholder="Your MT5 login number"
+                        required
+                      />
+                      <Input
+                        label="Password *"
+                        name="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        placeholder="MT5 password"
+                        required={!formData.id}
+                        className="md:col-span-2"
+                      />
                     </div>
+
+                    {/* Optional Fields - Collapsible */}
+                    <details className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                      <summary className="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400">
+                        Advanced Settings (Optional)
+                      </summary>
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input
+                          label="Display Name"
+                          name="label"
+                          value={formData.label}
+                          onChange={handleInputChange}
+                          placeholder="Primary MT5 Terminal"
+                        />
+                        <Input
+                          label="Broker"
+                          name="broker"
+                          value={formData.broker}
+                          onChange={handleInputChange}
+                          placeholder="Broker name"
+                        />
+                        <Input
+                          label="Leverage"
+                          name="leverage"
+                          value={formData.leverage}
+                          onChange={handleInputChange}
+                          placeholder="e.g., 1:500"
+                        />
+                        <Input
+                          label="Timezone"
+                          name="timezone"
+                          value={formData.timezone}
+                          onChange={handleInputChange}
+                          placeholder="e.g., GMT+3"
+                        />
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Account Type</label>
+                          <select
+                            name="accountType"
+                            value={formData.accountType}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500"
+                          >
+                            {accountTypeOptions.map((option) => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                          </select>
+                          <label className="mt-2 inline-flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                            <input
+                              type="checkbox"
+                              name="isDemo"
+                              checked={formData.isDemo}
+                              onChange={handleInputChange}
+                            />
+                            <span>Demo account</span>
+                          </label>
+                        </div>
+                      </div>
+                    </details>
                   </div>
                   <div className="flex justify-end space-x-3">
                     <Button type="button" variant="outline" onClick={() => setFormVisible(false)}>

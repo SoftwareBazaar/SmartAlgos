@@ -273,7 +273,7 @@ const CustomEA = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-brand-900 to-black">
       {/* Header */}
-      <div className="bg-gradient-to-r from-black via-brand-900 to-black border-b border-brand-800/70 shadow-lg">
+      <div className="bg-white dark:bg-gradient-to-r dark:from-black dark:via-brand-900 dark:to-black border-b border-gray-200 dark:border-brand-800/70 shadow-lg">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex-1">
@@ -281,12 +281,12 @@ const CustomEA = () => {
               <p className="text-gray-700 dark:text-brand-300 mt-1 sm:mt-2 text-xs sm:text-sm md:text-base">Get a professional Expert Advisor built to your exact specifications</p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
-              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-brand-300">
-                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-primary-400" />
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-gray-700 dark:text-brand-300">
+                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 dark:text-primary-400" />
                 <span className="whitespace-nowrap">500+ EAs</span>
               </div>
-              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-brand-300">
-                <Award className="w-3 h-3 sm:w-4 sm:h-4 text-primary-400" />
+              <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-gray-700 dark:text-brand-300">
+                <Award className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 dark:text-primary-400" />
                 <span className="whitespace-nowrap">4.9/5 Rating</span>
               </div>
             </div>

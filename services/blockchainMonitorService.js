@@ -1,488 +1,636 @@
+/**
+ * Blockchain Monitoring Service
+ * Automatically verifies crypto payments by checking blockchain transactions
+ * Supports: Bitcoin, Ethereum, USDT (TRC20/ERC20), USDC (ERC20)
+ * 
+ * Uses BlockCypher API for Bitcoin and Ethereum networks
+ * Uses TRON API for TRC20 tokens (USDT on Tron)
+ */
+
 const axios = require('axios');
-const crypto = require('crypto');
+const logger = require('./logger');
 
 class BlockchainMonitorService {
   constructor() {
-    this.isMockMode = !process.env.COINBASE_API_KEY || process.env.COINBASE_API_KEY.includes('your_');
-    this.activePayments = new Map(); // Track active payments
+    // BlockCypher API (free tier: 200 requests/hour)
+    this.blockcypher = {
+      apiKey: process.env.BLOCKCYPHER_API_KEY || null,
+      baseUrl: 'https://api.blockcypher.com/v1',
+      rateLimit: 200, // requests per hour
+      requestCount: 0,
+      resetTime: Date.now() + 3600000 // 1 hour
+    };
+
+    // TRON API for TRC20 tokens
+    this.tron = {
+      baseUrl: 'https://api.trongrid.io',
+      apiKey: process.env.TRON_API_KEY || null
+    };
+
+    // Etherscan for Ethereum (if BlockCypher fails)
+    this.etherscan = {
+      apiKey: process.env.ETHERSCAN_API_KEY || null,
+      baseUrl: 'https://api.etherscan.io/api'
+    };
+
+    // Blockchain.info for Bitcoin (fallback)
+    this.blockchainInfo = {
+      baseUrl: 'https://blockchain.info'
+    };
+
     this.confirmationThresholds = {
-      BTC: 6,  // Bitcoin requires 6 confirmations
-      ETH: 12, // Ethereum requires 12 confirmations  
-      BNB: 12, // BSC requires 12 confirmations
-      USDT: 12 // USDT on Ethereum requires 12 confirmations
+      btc: 1, // Bitcoin: 1 confirmation (can increase to 3-6 for large amounts)
+      eth: 12, // Ethereum: 12 confirmations (~3 minutes)
+      usdt_trc20: 19, // TRC20: 19 confirmations (~1 minute)
+      usdt_erc20: 12, // ERC20: 12 confirmations
+      usdc: 12 // ERC20: 12 confirmations
     };
   }
 
   /**
-   * Start monitoring a payment
+   * Check if BlockCypher API key is available
    */
-  async startPaymentMonitoring(paymentData) {
-    const {
-      paymentId,
-      eaId,
-      subscriptionType,
-      amount,
-      currency,
-      cryptoOptions,
-      userId
-    } = paymentData;
+  hasBlockCypherKey() {
+    return !!this.blockcypher.apiKey;
+  }
 
-    // Store payment for monitoring
-    this.activePayments.set(paymentId, {
-      ...paymentData,
-      status: 'pending',
-      startTime: Date.now(),
-      lastChecked: Date.now(),
-      confirmations: {},
-      attempts: 0
-    });
-
-    console.log(`[BlockchainMonitor] Started monitoring payment ${paymentId}`);
-
-    // Start monitoring loop
-    this.monitorPayment(paymentId);
+  /**
+   * Check if transaction exists on blockchain
+   * @param {Object} payment - Payment record from database
+   * @returns {Promise<Object>} { confirmed: boolean, txHash: string, confirmations: number, error: string }
+   */
+  async verifyTransaction(payment) {
+    const { crypto_currency, wallet_address, crypto_amount, network } = payment;
     
-    return {
-      success: true,
-      paymentId,
-      monitoringStarted: true
-    };
-  }
-
-  /**
-   * Monitor a specific payment
-   */
-  async monitorPayment(paymentId) {
-    const payment = this.activePayments.get(paymentId);
-    if (!payment) return;
-
-    const maxAttempts = 120; // 30 minutes (15 second intervals)
-    const interval = 15000; // 15 seconds
-
-    const checkPayment = async () => {
-      payment.attempts++;
-      payment.lastChecked = Date.now();
-
-      console.log(`[BlockchainMonitor] Checking payment ${paymentId} (attempt ${payment.attempts})`);
-
-      try {
-        // Check each crypto option
-        for (const [cryptoType, cryptoData] of Object.entries(payment.cryptoOptions)) {
-          const isPaid = await this.checkCryptoPayment(cryptoType, cryptoData);
-          
-          if (isPaid) {
-            console.log(`[BlockchainMonitor] Payment detected for ${cryptoType} - ${paymentId}`);
-            
-            // Verify the payment
-            const verified = await this.verifyPayment(paymentId, cryptoType, cryptoData);
-            
-            if (verified) {
-              await this.processSuccessfulPayment(paymentId, cryptoType);
-              return; // Stop monitoring
-            }
-          }
-        }
-
-        // Check if payment expired
-        if (payment.attempts >= maxAttempts) {
-          console.log(`[BlockchainMonitor] Payment ${paymentId} expired after ${maxAttempts} attempts`);
-          this.activePayments.delete(paymentId);
-          return;
-        }
-
-        // Continue monitoring
-        setTimeout(checkPayment, interval);
-
-      } catch (error) {
-        console.error(`[BlockchainMonitor] Error checking payment ${paymentId}:`, error);
-        setTimeout(checkPayment, interval);
-      }
-    };
-
-    // Start monitoring
-    setTimeout(checkPayment, interval);
-  }
-
-  /**
-   * Check if crypto payment was made
-   */
-  async checkCryptoPayment(cryptoType, cryptoData) {
-    if (this.isMockMode) {
-      // In mock mode, simulate random payment detection
-      return Math.random() < 0.1; // 10% chance of payment detection per check
-    }
-
     try {
-      switch (cryptoType.toLowerCase()) {
-        case 'bitcoin':
-          return await this.checkBitcoinPayment(cryptoData);
-        case 'ethereum':
-          return await this.checkEthereumPayment(cryptoData);
-        case 'binance':
-          return await this.checkBinancePayment(cryptoData);
+      switch (crypto_currency.toLowerCase()) {
+        case 'btc':
+          return await this.verifyBitcoinTransaction(payment);
+        
+        case 'eth':
+          return await this.verifyEthereumTransaction(payment);
+        
         case 'usdt':
-          return await this.checkUSDTPayment(cryptoData);
+          if (network === 'TRC20') {
+            return await this.verifyTRC20Transaction(payment);
+          } else {
+            // ERC20 USDT
+            return await this.verifyERC20Transaction(payment, 'USDT');
+          }
+        
+        case 'usdc':
+          return await this.verifyERC20Transaction(payment, 'USDC');
+        
         default:
-          return false;
+          return {
+            confirmed: false,
+            error: `Unsupported cryptocurrency: ${crypto_currency}`
+          };
       }
     } catch (error) {
-      console.error(`[BlockchainMonitor] Error checking ${cryptoType} payment:`, error);
-      return false;
-    }
-  }
-
-  /**
-   * Check Bitcoin payment using blockchain API
-   */
-  async checkBitcoinPayment(cryptoData) {
-    try {
-      const address = cryptoData.address;
-      const expectedAmount = parseFloat(cryptoData.amount);
-      
-      // Use BlockCypher API to check transactions
-      const response = await axios.get(`https://api.blockcypher.com/v1/btc/main/addrs/${address}/balance`);
-      
-      if (response.data && response.data.balance > 0) {
-        // Check recent transactions
-        const txsResponse = await axios.get(`https://api.blockcypher.com/v1/btc/main/addrs/${address}/txs`);
-        
-        for (const tx of txsResponse.data.txs) {
-          // Check if transaction is recent (last 30 minutes)
-          const txTime = new Date(tx.received);
-          const now = new Date();
-          const timeDiff = (now - txTime) / 1000 / 60; // minutes
-          
-          if (timeDiff <= 30) {
-            // Check if amount matches (within 5% tolerance)
-            const txAmount = tx.total / 100000000; // Convert satoshis to BTC
-            if (Math.abs(txAmount - expectedAmount) / expectedAmount <= 0.05) {
-              return true;
-            }
-          }
-        }
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('[BlockchainMonitor] Error checking Bitcoin payment:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Check Ethereum payment using Etherscan API
-   */
-  async checkEthereumPayment(cryptoData) {
-    try {
-      const address = cryptoData.address.toLowerCase();
-      const expectedAmount = parseFloat(cryptoData.amount);
-      
-      // Use Etherscan API
-      const apiKey = process.env.ETHERSCAN_API_KEY || 'YourEtherscanAPIKey';
-      const response = await axios.get(`https://api.etherscan.io/api`, {
-        params: {
-          module: 'account',
-          action: 'txlist',
-          address: address,
-          startblock: 0,
-          endblock: 99999999,
-          page: 1,
-          offset: 10,
-          sort: 'desc',
-          apikey: apiKey
-        }
-      });
-
-      if (response.data && response.data.result) {
-        const now = Math.floor(Date.now() / 1000);
-        
-        for (const tx of response.data.result) {
-          // Check if transaction is recent (last 30 minutes)
-          const txTime = parseInt(tx.timeStamp);
-          const timeDiff = (now - txTime) / 60; // minutes
-          
-          if (timeDiff <= 30 && tx.to.toLowerCase() === address) {
-            // Check if amount matches (within 5% tolerance)
-            const txAmount = parseFloat(tx.value) / Math.pow(10, 18); // Convert wei to ETH
-            if (Math.abs(txAmount - expectedAmount) / expectedAmount <= 0.05) {
-              return true;
-            }
-          }
-        }
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('[BlockchainMonitor] Error checking Ethereum payment:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Check Binance Smart Chain payment
-   */
-  async checkBinancePayment(cryptoData) {
-    try {
-      const address = cryptoData.address.toLowerCase();
-      const expectedAmount = parseFloat(cryptoData.amount);
-      
-      // Use BSCScan API (similar to Etherscan)
-      const apiKey = process.env.BSCSCAN_API_KEY || 'YourBSCScanAPIKey';
-      const response = await axios.get(`https://api.bscscan.com/api`, {
-        params: {
-          module: 'account',
-          action: 'txlist',
-          address: address,
-          startblock: 0,
-          endblock: 99999999,
-          page: 1,
-          offset: 10,
-          sort: 'desc',
-          apikey: apiKey
-        }
-      });
-
-      if (response.data && response.data.result) {
-        const now = Math.floor(Date.now() / 1000);
-        
-        for (const tx of response.data.result) {
-          const txTime = parseInt(tx.timeStamp);
-          const timeDiff = (now - txTime) / 60;
-          
-          if (timeDiff <= 30 && tx.to.toLowerCase() === address) {
-            const txAmount = parseFloat(tx.value) / Math.pow(10, 18);
-            if (Math.abs(txAmount - expectedAmount) / expectedAmount <= 0.05) {
-              return true;
-            }
-          }
-        }
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('[BlockchainMonitor] Error checking Binance payment:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Check USDT payment (on Ethereum network)
-   */
-  async checkUSDTPayment(cryptoData) {
-    // USDT is an ERC-20 token, so we check for token transfers
-    try {
-      const address = cryptoData.address.toLowerCase();
-      const expectedAmount = parseFloat(cryptoData.amount) * Math.pow(10, 6); // USDT has 6 decimals
-      
-      // USDT contract address on Ethereum mainnet
-      const usdtContract = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
-      
-      const apiKey = process.env.ETHERSCAN_API_KEY || 'YourEtherscanAPIKey';
-      const response = await axios.get(`https://api.etherscan.io/api`, {
-        params: {
-          module: 'account',
-          action: 'tokentx',
-          contractaddress: usdtContract,
-          address: address,
-          page: 1,
-          offset: 10,
-          sort: 'desc',
-          apikey: apiKey
-        }
-      });
-
-      if (response.data && response.data.result) {
-        const now = Math.floor(Date.now() / 1000);
-        
-        for (const tx of response.data.result) {
-          const txTime = parseInt(tx.timeStamp);
-          const timeDiff = (now - txTime) / 60;
-          
-          if (timeDiff <= 30 && tx.to.toLowerCase() === address) {
-            const txAmount = parseFloat(tx.value);
-            if (Math.abs(txAmount - expectedAmount) / expectedAmount <= 0.05) {
-              return true;
-            }
-          }
-        }
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('[BlockchainMonitor] Error checking USDT payment:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Verify payment with additional security checks
-   */
-  async verifyPayment(paymentId, cryptoType, cryptoData) {
-    const payment = this.activePayments.get(paymentId);
-    if (!payment) return false;
-
-    try {
-      // Additional verification steps
-      const verificationChecks = [
-        this.checkPaymentAmount(cryptoData, payment.amount),
-        this.checkPaymentTiming(payment),
-        this.checkDuplicatePayment(paymentId, cryptoData)
-      ];
-
-      const results = await Promise.all(verificationChecks);
-      const allPassed = results.every(result => result === true);
-
-      if (allPassed) {
-        console.log(`[BlockchainMonitor] Payment ${paymentId} verified successfully`);
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error(`[BlockchainMonitor] Error verifying payment ${paymentId}:`, error);
-      return false;
-    }
-  }
-
-  /**
-   * Check if payment amount is correct
-   */
-  async checkPaymentAmount(cryptoData, expectedAmount) {
-    const receivedAmount = parseFloat(cryptoData.amount);
-    const tolerance = 0.05; // 5% tolerance
-    
-    return Math.abs(receivedAmount - expectedAmount) / expectedAmount <= tolerance;
-  }
-
-  /**
-   * Check if payment timing is valid
-   */
-  async checkPaymentTiming(payment) {
-    const now = Date.now();
-    const timeDiff = (now - payment.startTime) / 1000 / 60; // minutes
-    
-    // Payment must be within 30 minutes
-    return timeDiff <= 30;
-  }
-
-  /**
-   * Check for duplicate payments
-   */
-  async checkDuplicatePayment(paymentId, cryptoData) {
-    // In a real implementation, you'd check against a database
-    // For now, we'll assume no duplicates
-    return true;
-  }
-
-  /**
-   * Process successful payment
-   */
-  async processSuccessfulPayment(paymentId, cryptoType) {
-    const payment = this.activePayments.get(paymentId);
-    if (!payment) return;
-
-    try {
-      console.log(`[BlockchainMonitor] Processing successful payment ${paymentId}`);
-
-      // Update payment status
-      payment.status = 'completed';
-      payment.completedAt = Date.now();
-      payment.cryptoType = cryptoType;
-
-      // Grant access to EA
-      await this.grantEAAccess(payment);
-
-      // Send confirmation email/notification
-      await this.sendConfirmation(payment);
-
-      // Clean up
-      this.activePayments.delete(paymentId);
-
-      console.log(`[BlockchainMonitor] Payment ${paymentId} processed successfully`);
-
-    } catch (error) {
-      console.error(`[BlockchainMonitor] Error processing payment ${paymentId}:`, error);
-    }
-  }
-
-  /**
-   * Grant EA access to user
-   */
-  async grantEAAccess(payment) {
-    try {
-      // In a real implementation, you'd update the database
-      // to grant the user access to the EA
-      
-      console.log(`[BlockchainMonitor] Granting EA access:`, {
-        userId: payment.userId,
-        eaId: payment.eaId,
-        subscriptionType: payment.subscriptionType,
-        amount: payment.amount
-      });
-
-      // TODO: Implement database update
-      // await updateUserSubscription(payment.userId, payment.eaId, payment.subscriptionType);
-
-    } catch (error) {
-      console.error('[BlockchainMonitor] Error granting EA access:', error);
-    }
-  }
-
-  /**
-   * Send payment confirmation
-   */
-  async sendConfirmation(payment) {
-    try {
-      console.log(`[BlockchainMonitor] Sending confirmation for payment ${payment.paymentId}`);
-      
-      // TODO: Implement email/notification system
-      // await sendPaymentConfirmationEmail(payment);
-
-    } catch (error) {
-      console.error('[BlockchainMonitor] Error sending confirmation:', error);
-    }
-  }
-
-  /**
-   * Get payment status
-   */
-  getPaymentStatus(paymentId) {
-    const payment = this.activePayments.get(paymentId);
-    
-    if (!payment) {
+      logger.error('[Blockchain Monitor] Verification error:', error);
       return {
-        status: 'not_found',
-        message: 'Payment not found or expired'
+        confirmed: false,
+        error: error.message || 'Blockchain verification failed'
+      };
+    }
+  }
+
+  /**
+   * Verify Bitcoin transaction
+   */
+  async verifyBitcoinTransaction(payment) {
+    const { wallet_address, crypto_amount } = payment;
+    const expectedAmount = parseFloat(crypto_amount);
+
+    try {
+      if (this.hasBlockCypherKey()) {
+        // Use BlockCypher API
+        const response = await axios.get(
+          `${this.blockcypher.baseUrl}/btc/main/addrs/${wallet_address}/balance`,
+          {
+            params: { token: this.blockcypher.apiKey },
+            timeout: 10000
+          }
+        );
+
+        // Get recent transactions
+        const txsResponse = await axios.get(
+          `${this.blockcypher.baseUrl}/btc/main/addrs/${wallet_address}`,
+          {
+            params: { 
+              token: this.blockcypher.apiKey,
+              limit: 50,
+              unspentOnly: false
+            },
+            timeout: 10000
+          }
+        );
+
+        // Check if any transaction matches amount and is recent
+        const transactions = txsResponse.data.txs || [];
+        const recentTxs = transactions.filter(tx => {
+          const txTime = new Date(tx.received);
+          const paymentTime = new Date(payment.created_at);
+          // Transaction must be after payment was created
+          return txTime >= paymentTime;
+        });
+
+        for (const tx of recentTxs) {
+          // Check if transaction sends to our address
+          const receivedAmount = this.calculateReceivedAmount(tx, wallet_address);
+          
+          if (Math.abs(receivedAmount - expectedAmount) < 0.00000001) { // Account for fees
+            const confirmations = tx.confirmations || 0;
+            const confirmed = confirmations >= this.confirmationThresholds.btc;
+            
+            return {
+              confirmed,
+              txHash: tx.hash,
+              confirmations,
+              amount: receivedAmount,
+              timestamp: tx.received
+            };
+          }
+        }
+
+        return {
+          confirmed: false,
+          error: 'No matching transaction found'
+        };
+      } else {
+        // Fallback to Blockchain.info API
+        return await this.verifyBitcoinBlockchainInfo(payment);
+      }
+    } catch (error) {
+      logger.error('[Blockchain Monitor] Bitcoin verification error:', error);
+      
+      // Fallback to Blockchain.info if BlockCypher fails
+      if (this.hasBlockCypherKey()) {
+        try {
+          return await this.verifyBitcoinBlockchainInfo(payment);
+        } catch (fallbackError) {
+          return {
+            confirmed: false,
+            error: `Blockchain API error: ${error.message}`
+          };
+        }
+      }
+      
+      return {
+        confirmed: false,
+        error: error.message || 'Bitcoin verification failed'
+      };
+    }
+  }
+
+  /**
+   * Verify Bitcoin using Blockchain.info API (fallback)
+   */
+  async verifyBitcoinBlockchainInfo(payment) {
+    const { wallet_address, crypto_amount } = payment;
+    const expectedAmount = parseFloat(crypto_amount);
+
+    try {
+      const response = await axios.get(
+        `${this.blockchainInfo.baseUrl}/rawaddr/${wallet_address}`,
+        { timeout: 10000 }
+      );
+
+      const transactions = response.data.txs || [];
+      const paymentTime = new Date(payment.created_at).getTime() / 1000;
+
+      for (const tx of transactions) {
+        // Transaction must be after payment was created
+        if (tx.time < paymentTime) continue;
+
+        // Calculate received amount
+        for (const output of tx.out) {
+          if (output.addr === wallet_address) {
+            const receivedAmount = output.value / 100000000; // Satoshi to BTC
+            
+            if (Math.abs(receivedAmount - expectedAmount) < 0.00000001) {
+              const confirmations = response.data.n_tx > 0 ? 1 : 0; // Basic check
+              
+              return {
+                confirmed: confirmations >= this.confirmationThresholds.btc,
+                txHash: tx.hash,
+                confirmations,
+                amount: receivedAmount,
+                timestamp: new Date(tx.time * 1000).toISOString()
+              };
+            }
+          }
+        }
+      }
+
+      return {
+        confirmed: false,
+        error: 'No matching transaction found'
+      };
+    } catch (error) {
+      return {
+        confirmed: false,
+        error: `Blockchain.info API error: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * Verify Ethereum transaction
+   */
+  async verifyEthereumTransaction(payment) {
+    const { wallet_address, crypto_amount } = payment;
+    const expectedAmount = parseFloat(crypto_amount);
+
+    try {
+      if (this.hasBlockCypherKey()) {
+        // Use BlockCypher API
+        const response = await axios.get(
+          `${this.blockcypher.baseUrl}/eth/main/addrs/${wallet_address}`,
+          {
+            params: { 
+              token: this.blockcypher.apiKey,
+              limit: 50
+            },
+            timeout: 10000
+          }
+        );
+
+        const transactions = response.data.txs || [];
+        const paymentTime = new Date(payment.created_at);
+
+        for (const tx of transactions) {
+          const txTime = new Date(tx.received);
+          
+          // Transaction must be after payment was created
+          if (txTime < paymentTime) continue;
+
+          // Check if transaction sends ETH to our address
+          if (tx.addresses && tx.addresses.includes(wallet_address.toLowerCase())) {
+            // Get transaction details
+            const txDetailResponse = await axios.get(
+              `${this.blockcypher.baseUrl}/eth/main/txs/${tx.hash}`,
+              {
+                params: { token: this.blockcypher.apiKey },
+                timeout: 10000
+              }
+            );
+
+            const txDetail = txDetailResponse.data;
+            
+            // Check if it's a transaction TO our address
+            if (txDetail.outputs) {
+              for (const output of txDetail.outputs) {
+                if (output.addresses && output.addresses.includes(wallet_address.toLowerCase())) {
+                  const receivedAmount = parseFloat(output.value) / 1e18; // Wei to ETH
+                  
+                  if (Math.abs(receivedAmount - expectedAmount) < 0.00000001) {
+                    const confirmations = txDetail.confirmations || 0;
+                    const confirmed = confirmations >= this.confirmationThresholds.eth;
+                    
+                    return {
+                      confirmed,
+                      txHash: tx.hash,
+                      confirmations,
+                      amount: receivedAmount,
+                      timestamp: tx.received
+                    };
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        return {
+          confirmed: false,
+          error: 'No matching transaction found'
+        };
+      } else if (this.etherscan.apiKey) {
+        // Fallback to Etherscan
+        return await this.verifyEthereumEtherscan(payment);
+      } else {
+        return {
+          confirmed: false,
+          error: 'No API keys configured for Ethereum verification'
+        };
+      }
+    } catch (error) {
+      logger.error('[Blockchain Monitor] Ethereum verification error:', error);
+      return {
+        confirmed: false,
+        error: error.message || 'Ethereum verification failed'
+      };
+    }
+  }
+
+  /**
+   * Verify Ethereum using Etherscan API (fallback)
+   */
+  async verifyEthereumEtherscan(payment) {
+    const { wallet_address, crypto_amount } = payment;
+    const expectedAmount = parseFloat(crypto_amount);
+    const paymentTime = Math.floor(new Date(payment.created_at).getTime() / 1000);
+
+    try {
+      const response = await axios.get(this.etherscan.baseUrl, {
+        params: {
+          module: 'account',
+          action: 'txlist',
+          address: wallet_address,
+          startblock: 0,
+          endblock: 99999999,
+          page: 1,
+          offset: 100,
+          sort: 'desc',
+          apikey: this.etherscan.apiKey
+        },
+        timeout: 10000
+      });
+
+      if (response.data.status !== '1' || !response.data.result) {
+        return {
+          confirmed: false,
+          error: 'No transactions found'
+        };
+      }
+
+      const transactions = response.data.result;
+
+      for (const tx of transactions) {
+        // Transaction must be after payment was created and TO our address
+        if (tx.timeStamp >= paymentTime && tx.to?.toLowerCase() === wallet_address.toLowerCase()) {
+          const receivedAmount = parseFloat(tx.value) / 1e18; // Wei to ETH
+          
+          if (Math.abs(receivedAmount - expectedAmount) < 0.00000001) {
+            const confirmations = parseInt(tx.confirmations) || 0;
+            const confirmed = confirmations >= this.confirmationThresholds.eth;
+            
+            return {
+              confirmed,
+              txHash: tx.hash,
+              confirmations,
+              amount: receivedAmount,
+              timestamp: new Date(tx.timeStamp * 1000).toISOString()
+            };
+          }
+        }
+      }
+
+      return {
+        confirmed: false,
+        error: 'No matching transaction found'
+      };
+    } catch (error) {
+      return {
+        confirmed: false,
+        error: `Etherscan API error: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * Verify ERC20 token transaction (USDT/USDC on Ethereum)
+   */
+  async verifyERC20Transaction(payment, tokenSymbol) {
+    const { wallet_address, crypto_amount } = payment;
+    const expectedAmount = parseFloat(crypto_amount);
+
+    // ERC20 token contract addresses
+    const tokenContracts = {
+      USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+    };
+
+    const tokenContract = tokenContracts[tokenSymbol];
+    if (!tokenContract) {
+      return {
+        confirmed: false,
+        error: `Unknown ERC20 token: ${tokenSymbol}`
       };
     }
 
-    return {
-      status: payment.status,
-      startTime: payment.startTime,
-      lastChecked: payment.lastChecked,
-      attempts: payment.attempts,
-      expiresAt: payment.startTime + (30 * 60 * 1000) // 30 minutes
-    };
+    try {
+      if (this.etherscan.apiKey) {
+        // Use Etherscan for ERC20 tokens
+        const paymentTime = Math.floor(new Date(payment.created_at).getTime() / 1000);
+
+        const response = await axios.get(this.etherscan.baseUrl, {
+          params: {
+            module: 'account',
+            action: 'tokentx',
+            contractaddress: tokenContract,
+            address: wallet_address,
+            page: 1,
+            offset: 100,
+            sort: 'desc',
+            apikey: this.etherscan.apiKey
+          },
+          timeout: 10000
+        });
+
+        if (response.data.status !== '1' || !response.data.result) {
+          return {
+            confirmed: false,
+            error: 'No token transactions found'
+          };
+        }
+
+        const transactions = response.data.result;
+
+        for (const tx of transactions) {
+          // Transaction must be after payment was created and TO our address
+          if (tx.timeStamp >= paymentTime && tx.to?.toLowerCase() === wallet_address.toLowerCase()) {
+            // ERC20 amounts are in token decimals (usually 6 for USDT/USDC)
+            const decimals = parseInt(tx.tokenDecimal) || 6;
+            const receivedAmount = parseFloat(tx.value) / Math.pow(10, decimals);
+            
+            if (Math.abs(receivedAmount - expectedAmount) < 0.000001) {
+              const confirmations = parseInt(tx.confirmations) || 0;
+              const threshold = this.confirmationThresholds[tokenSymbol.toLowerCase()] || 
+                               this.confirmationThresholds.usdt_erc20;
+              const confirmed = confirmations >= threshold;
+              
+              return {
+                confirmed,
+                txHash: tx.hash,
+                confirmations,
+                amount: receivedAmount,
+                timestamp: new Date(tx.timeStamp * 1000).toISOString()
+              };
+            }
+          }
+        }
+
+        return {
+          confirmed: false,
+          error: 'No matching token transaction found'
+        };
+      } else {
+        return {
+          confirmed: false,
+          error: 'Etherscan API key required for ERC20 token verification'
+        };
+      }
+    } catch (error) {
+      logger.error(`[Blockchain Monitor] ERC20 ${tokenSymbol} verification error:`, error);
+      return {
+        confirmed: false,
+        error: error.message || `${tokenSymbol} verification failed`
+      };
+    }
   }
 
   /**
-   * Get service status
+   * Verify TRC20 token transaction (USDT on Tron)
    */
-  getStatus() {
-    return {
-      service: 'blockchain-monitor',
-      configured: !this.isMockMode,
-      mode: this.isMockMode ? 'mock' : 'live',
-      activePayments: this.activePayments.size,
-      supportedNetworks: ['Bitcoin', 'Ethereum', 'BSC', 'USDT'],
-      features: [
-        'automatic_monitoring',
-        'payment_detection',
-        'verification',
-        'access_granting'
-      ]
-    };
+  async verifyTRC20Transaction(payment) {
+    const { wallet_address, crypto_amount } = payment;
+    const expectedAmount = parseFloat(crypto_amount);
+
+    // USDT TRC20 contract address
+    const USDT_TRC20_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+
+    try {
+      // Use TRON API
+      const response = await axios.post(
+        `${this.tron.baseUrl}/v1/accounts/${wallet_address}/transactions/trc20`,
+        {
+          limit: 50,
+          only_confirmed: false
+        },
+        {
+          headers: {
+            'TRON-PRO-API-KEY': this.tron.apiKey || ''
+          },
+          timeout: 10000
+        }
+      );
+
+      if (!response.data.data || !Array.isArray(response.data.data)) {
+        return {
+          confirmed: false,
+          error: 'No transactions found'
+        };
+      }
+
+      const transactions = response.data.data;
+      const paymentTime = new Date(payment.created_at).getTime();
+
+      for (const tx of transactions) {
+        // Check if transaction is for USDT and to our address
+        if (tx.token_info?.address === USDT_TRC20_CONTRACT && 
+            tx.to?.toLowerCase() === wallet_address.toLowerCase()) {
+          
+          const txTime = tx.block_timestamp || 0;
+          
+          // Transaction must be after payment was created
+          if (txTime < paymentTime) continue;
+
+          // TRC20 amounts are in sun (1 USDT = 1,000,000 sun)
+          const receivedAmount = parseFloat(tx.value || 0) / 1000000;
+          
+          if (Math.abs(receivedAmount - expectedAmount) < 0.000001) {
+            const confirmations = tx.confirmed ? 19 : 0;
+            const confirmed = confirmations >= this.confirmationThresholds.usdt_trc20;
+            
+            return {
+              confirmed,
+              txHash: tx.transaction_id,
+              confirmations,
+              amount: receivedAmount,
+              timestamp: new Date(txTime).toISOString()
+            };
+          }
+        }
+      }
+
+      return {
+        confirmed: false,
+        error: 'No matching TRC20 transaction found'
+      };
+    } catch (error) {
+      logger.error('[Blockchain Monitor] TRC20 verification error:', error);
+      return {
+        confirmed: false,
+        error: error.message || 'TRC20 verification failed'
+      };
+    }
+  }
+
+  /**
+   * Calculate received amount from Bitcoin transaction
+   */
+  calculateReceivedAmount(tx, address) {
+    let received = 0;
+    for (const output of tx.outputs || []) {
+      if (output.addresses && output.addresses.includes(address)) {
+        received += output.value || 0;
+      }
+    }
+    return received / 100000000; // Satoshi to BTC
+  }
+
+  /**
+   * Get transaction details by hash
+   */
+  async getTransactionDetails(txHash, currency) {
+    try {
+      switch (currency.toLowerCase()) {
+        case 'btc':
+          if (this.hasBlockCypherKey()) {
+            const response = await axios.get(
+              `${this.blockcypher.baseUrl}/btc/main/txs/${txHash}`,
+              {
+                params: { token: this.blockcypher.apiKey },
+                timeout: 10000
+              }
+            );
+            return {
+              hash: response.data.hash,
+              confirmations: response.data.confirmations || 0,
+              received: response.data.received
+            };
+          }
+          break;
+        
+        case 'eth':
+          if (this.hasBlockCypherKey()) {
+            const response = await axios.get(
+              `${this.blockcypher.baseUrl}/eth/main/txs/${txHash}`,
+              {
+                params: { token: this.blockcypher.apiKey },
+                timeout: 10000
+              }
+            );
+            return {
+              hash: response.data.hash,
+              confirmations: response.data.confirmations || 0,
+              received: response.data.received
+            };
+          } else if (this.etherscan.apiKey) {
+            const response = await axios.get(this.etherscan.baseUrl, {
+              params: {
+                module: 'proxy',
+                action: 'eth_getTransactionByHash',
+                txhash: txHash,
+                apikey: this.etherscan.apiKey
+              },
+              timeout: 10000
+            });
+            return response.data.result;
+          }
+          break;
+      }
+      
+      return null;
+    } catch (error) {
+      logger.error(`[Blockchain Monitor] Get transaction details error:`, error);
+      return null;
+    }
   }
 }
 
 module.exports = new BlockchainMonitorService();
+

@@ -12,6 +12,18 @@ try {
 } catch (error) {
   console.warn('⚠️  blockchainService not available (web3 not installed). Using mock mode.');
 }
+// Blockchain monitoring service for automatic payment verification
+let blockchainMonitor = null;
+try {
+  blockchainMonitor = require('../services/blockchainMonitorService');
+  if (blockchainMonitor.hasBlockCypherKey() || process.env.ETHERSCAN_API_KEY) {
+    console.log('✅ Blockchain monitoring service enabled - automatic payment verification active');
+  } else {
+    console.warn('⚠️  Blockchain monitoring available but no API keys configured. Add BLOCKCYPHER_API_KEY or ETHERSCAN_API_KEY for automatic verification.');
+  }
+} catch (error) {
+  console.warn('⚠️  Blockchain monitor service not available:', error.message);
+}
 const { auth } = require('../middleware/auth');
 const logger = require('../utils/logger');
 const router = express.Router();

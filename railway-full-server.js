@@ -300,7 +300,16 @@ try {
     });
   });
 
-  console.log('✅ Server configuration complete');
+  // Start crypto payment monitor (automatic blockchain verification)
+try {
+  const cryptoPaymentMonitor = require('./services/cryptoPaymentMonitor');
+  cryptoPaymentMonitor.start();
+  console.log('✅ Crypto payment monitor started');
+} catch (error) {
+  console.warn('⚠️  Crypto payment monitor not available:', error.message);
+}
+
+console.log('✅ Server configuration complete');
 
 } catch (error) {
   console.error('❌ Error loading server components:', error);

@@ -24,6 +24,10 @@ import Button from '../../components/UI/Button';
 import Card from '../../components/UI/Card';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import apiClient from '../../lib/apiClient';
+import AISentimentIndicator from '../../components/News/AISentimentIndicator';
+import NewsImpactExplainer from '../../components/News/NewsImpactExplainer';
+import EconomicCalendarOverlay from '../../components/News/EconomicCalendarOverlay';
+import NewsAlertSetup from '../../components/News/NewsAlertSetup';
 
 // Demo fallback data - defined before component to ensure it's always available
 const demoFallback = [
@@ -216,6 +220,26 @@ const News = () => {
     }
   };
 
+  // Calculate market summary
+  const marketSummary = React.useMemo(() => {
+    const sentiments = news.map(n => n.sentiment).filter(Boolean);
+    const bullish = sentiments.filter(s => s === 'positive' || s === 'bullish').length;
+    const bearish = sentiments.filter(s => s === 'negative' || s === 'bearish').length;
+    const marketBias = bullish > bearish ? 'Risk-On' : bearish > bullish ? 'Risk-Off' : 'Neutral';
+    
+    // Extract high-impact events from news
+    const keyEvents = news
+      .filter(n => n.impact === 'high' || n.category === 'monetary_policy')
+      .slice(0, 5)
+      .map(n => n.title.split(':')[0] || n.category);
+
+    return {
+      marketBias,
+      keyEvents: keyEvents.length > 0 ? keyEvents : ['No major events today'],
+      sentiment: bullish > bearish ? 'Bullish' : bearish > bullish ? 'Bearish' : 'Neutral'
+    };
+  }, [news]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -227,17 +251,41 @@ const News = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {/* Market Summary Banner */}
+        <MarketSummaryBanner
+          marketBias={marketSummary.marketBias}
+          keyEvents={marketSummary.keyEvents}
+          sentiment={marketSummary.sentiment}
+        />
+
+        {/* Economic Calendar Overlay */}
+        <EconomicCalendarOverlay
+          date={new Date().toISOString().split('T')[0]}
+          onEventClick={(event) => {
+            console.log('Event clicked:', event);
+            // Could open a modal or navigate to details
+          }}
+        />
+
+        {/* Header with Actions */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Newspaper className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Financial News & Analysis
-            </h1>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <Newspaper className="h-8 w-8 text-blue-600" />
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  Financial News & Analysis
+                </h1>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">
+                Real-time market news with AI-powered insights, sentiment analysis, and impact explanations
+              </p>
+            </div>
+            <NewsAlertSetup onSaveAlert={(alert) => {
+              console.log('Alert saved:', alert);
+              // TODO: Save alert to backend
+            }} />
           </div>
-          <p className="text-gray-600 dark:text-gray-400">
-            Stay updated with the latest market news, economic indicators, and their impact on trading opportunities.
-          </p>
         </div>
 
         {/* Trending Symbols */}
@@ -384,6 +432,16 @@ const News = () => {
               >
                 <Card className="h-full hover:shadow-lg transition-shadow duration-200">
                   <div className="p-6 h-full flex flex-col">
+                    {/* AI Sentiment Indicator */}
+                    {article.ai_analysis && (
+                      <AISentimentIndicator
+                        sentiment={article.ai_analysis.sentiment || article.sentiment}
+                        confidence={article.ai_analysis.confidence || 0.75}
+                        explanation={article.ai_analysis.explanation}
+                        source={article.source}
+                      />
+                    )}
+
                     {/* Header */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-2">
@@ -411,6 +469,12 @@ const News = () => {
                     <p className="text-gray-600 dark:text-gray-400 mb-4 flex-1 line-clamp-3">
                       {article.description || 'No description available.'}
                     </p>
+
+                    {/* News Impact Explainer */}
+                    <NewsImpactExplainer
+                      newsItem={article}
+                      marketImpact={article.ai_analysis?.marketImpact}
+                    />
 
                     {/* Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">

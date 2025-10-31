@@ -609,12 +609,71 @@ class AISignalService {
    */
   async generateNewsSummary(article) {
     try {
-      // Mock AI-generated summary
-      // In production, use OpenAI, Claude, or other LLM APIs
+      const openaiApiKey = process.env.OPENAI_API_KEY;
+      
+      // Try to use OpenAI if API key is available
+      if (openaiApiKey && !openaiApiKey.includes('your_') && openaiApiKey.trim() !== '') {
+        try {
+          const axios = require('axios');
+          const response = await axios.post(
+            'https://api.openai.com/v1/chat/completions',
+            {
+              model: 'gpt-3.5-turbo', // Use GPT-3.5 for free tier (cheaper)
+              messages: [
+                {
+                  role: 'system',
+                  content: 'You are a financial news analyst. Summarize news articles for traders, explain market impact, and identify sentiment (bullish/bearish/neutral). Be concise and actionable.'
+                },
+                {
+                  role: 'user',
+                  content: `Analyze this financial news article:
+Title: ${article.title || 'N/A'}
+Description: ${article.description || 'N/A'}
+Category: ${article.category || 'general'}
+
+Provide:
+1. A brief summary (2-3 sentences)
+2. Key points (bullet points)
+3. Market sentiment (bullish/bearish/neutral)
+4. Potential market impact and affected pairs/symbols
+5. Confidence level (0-100%)`
+                }
+              ],
+              max_tokens: 300,
+              temperature: 0.7
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${openaiApiKey}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+
+          const aiResponse = response.data.choices[0].message.content;
+          
+          // Parse AI response (basic parsing - you can enhance this)
+          const sentiment = this.analyzeSentimentFromText(article.title + ' ' + article.description);
+          const marketImpact = this.assessMarketImpact(article);
+
+          return {
+            text: aiResponse,
+            keyPoints: this.extractKeyPoints(article),
+            sentiment: sentiment.sentiment,
+            marketImpact: marketImpact,
+            confidence: Math.round(sentiment.score / 100 * 85 + 15) // 15-100% confidence based on sentiment
+          };
+        } catch (openaiError) {
+          console.warn('[AI Signal Service] OpenAI API error, falling back to mock:', openaiError.message);
+          // Fall through to mock mode
+        }
+      }
+
+      // Fallback to mock AI-generated summary
       const summary = {
         text: this.generateMockSummary(article),
         keyPoints: this.extractKeyPoints(article),
-        sentiment: this.analyzeSentimentFromText(article.title + ' ' + article.description),
+        sentiment: this.analyzeSentimentFromText(article.title + ' ' + article.description).sentiment,
         marketImpact: this.assessMarketImpact(article),
         confidence: Math.round(Math.random() * 30 + 70) // 70-100% confidence
       };

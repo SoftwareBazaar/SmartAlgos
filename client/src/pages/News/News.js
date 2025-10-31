@@ -25,6 +25,30 @@ import Card from '../../components/UI/Card';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import apiClient from '../../lib/apiClient';
 
+// Demo fallback data - defined before component to ensure it's always available
+const demoFallback = [
+  {
+    id: 'demo-1',
+    title: 'Markets Hold Steady as Investors Weigh Inflation Outlook',
+    description: 'Equities were little changed while currency markets saw modest moves ahead of data.',
+    category: 'general',
+    impact: 'medium',
+    sentiment: 'neutral',
+    source: 'Smart Algos Wire',
+    published_at: new Date().toISOString()
+  },
+  {
+    id: 'demo-2',
+    title: 'USD Edges Higher on Rate Differentials; EUR Softens',
+    description: 'Dollar strength persists amid policy divergence and resilient US data.',
+    category: 'forex',
+    impact: 'low',
+    sentiment: 'positive',
+    source: 'Smart Algos FX',
+    published_at: new Date().toISOString()
+  }
+];
+
 const EmptyState = () => (
   <Card className="mb-8">
     <div className="p-6 text-center">
@@ -74,6 +98,14 @@ const News = () => {
     fetchTrending();
   }, []);
 
+  // Ensure we always have some data to display
+  useEffect(() => {
+    // If news is empty after initial load and not loading, set fallback
+    if (!loading && news.length === 0 && selectedCategory === 'all' && selectedImpact === 'all' && selectedSentiment === 'all' && !searchTerm.trim()) {
+      setNews(demoFallback);
+    }
+  }, [loading, news.length, selectedCategory, selectedImpact, selectedSentiment, searchTerm]);
+
   const fetchNews = async () => {
     setLoading(true);
     try {
@@ -90,19 +122,24 @@ const News = () => {
       if (newsData.length === 0 && selectedCategory === 'all' && selectedImpact === 'all' && selectedSentiment === 'all' && !searchTerm.trim()) {
         console.warn('[News] API returned no results, using fallback data');
         setNews(demoFallback);
-      } else {
+      } else if (newsData.length > 0) {
         setNews(newsData);
+      } else {
+        // Empty result with filters - show empty state
+        setNews([]);
       }
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching news:', error);
-      // Use fallback on error if no filters
+      // Use fallback on error if no filters - always show something
       if (selectedCategory === 'all' && selectedImpact === 'all' && selectedSentiment === 'all' && !searchTerm.trim()) {
         console.warn('[News] API error, using fallback data');
         setNews(demoFallback);
       } else {
+        // With filters applied and error - show empty
         setNews([]);
       }
+    } finally {
+      // Always set loading to false
       setLoading(false);
     }
   };
@@ -119,38 +156,16 @@ const News = () => {
   };
 
   const filteredNews = news.filter(article => {
+    if (!article) return false;
     const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
     const matchesImpact = selectedImpact === 'all' || article.impact === selectedImpact;
     const matchesSentiment = selectedSentiment === 'all' || article.sentiment === selectedSentiment;
     const matchesSearch = searchTerm === '' || 
-      article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.description.toLowerCase().includes(searchTerm.toLowerCase());
+      (article.title && article.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (article.description && article.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return matchesCategory && matchesImpact && matchesSentiment && matchesSearch;
   });
-
-  const demoFallback = [
-    {
-      id: 'demo-1',
-      title: 'Markets Hold Steady as Investors Weigh Inflation Outlook',
-      description: 'Equities were little changed while currency markets saw modest moves ahead of data.',
-      category: 'general',
-      impact: 'medium',
-      sentiment: 'neutral',
-      source: 'Smart Algos Wire',
-      published_at: new Date().toISOString()
-    },
-    {
-      id: 'demo-2',
-      title: 'USD Edges Higher on Rate Differentials; EUR Softens',
-      description: 'Dollar strength persists amid policy divergence and resilient US data.',
-      category: 'forex',
-      impact: 'low',
-      sentiment: 'positive',
-      source: 'Smart Algos FX',
-      published_at: new Date().toISOString()
-    }
-  ];
 
   const EmptyState = () => (
     <Card className="mb-8">
@@ -357,11 +372,10 @@ const News = () => {
           </div>
         </Card>
 
-        {filteredNews.length === 0 && <EmptyState />}
-
         {/* News Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredNews.map((article, index) => (
+        {filteredNews.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredNews.map((article, index) => (
             <motion.div
               key={article.id}
               initial={{ opacity: 0, y: 20 }}

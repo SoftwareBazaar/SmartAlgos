@@ -277,7 +277,7 @@ router.post('/connect', [
 });
 
 // @route   GET /api/mt5/account/:connectionKey
-// @desc    Get account information
+// @desc    Get account information (automatically connects if needed)
 // @access  Private
 router.get('/account/:connectionKey', [
   auth,
@@ -289,8 +289,80 @@ router.get('/account/:connectionKey', [
       return;
     }
 
-    const accountInfo = await mt5APIService.getAccountInfo(req.params.connectionKey);
+    const connectionKey = req.params.connectionKey;
+    const [login, server] = connectionKey.split('@');
     
+    if (!login || !server) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid connection key format. Expected: login@server'
+      });
+    }
+    
+    // Get connection from database to get encrypted password
+    const userId = req.user.userId || req.user.id;
+    const connections = await mt5Service.listConnections(userId);
+    const connection = connections.find(c => 
+      c.login === login && c.server === server
+    );
+    
+    if (!connection) {
+      return res.status(404).json({
+        success: false,
+        message: 'MT5 connection not found. Please create the connection first.'
+      });
+    }
+    
+    // Get full connection with password (for decryption) - use includePassword flag
+    const fullConnection = await mt5Service.getConnection(userId, connection.id);
+    
+    if (!fullConnection) {
+      return res.status(404).json({
+        success: false,
+        message: 'Connection details not found'
+      });
+    }
+    
+    // Decrypt password if encrypted
+    let password = null;
+    if (fullConnection.password_encrypted) {
+      try {
+        password = mt5Service.decryptPassword(fullConnection);
+      } catch (decryptError) {
+        console.error('[MT5 Route] Password decryption failed:', decryptError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to decrypt connection password'
+        });
+      }
+    } else if (fullConnection.password) {
+      password = fullConnection.password;
+    }
+    
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password not available for this connection. Please update the connection with a password.'
+      });
+    }
+    
+    // Connect to MT5 if not already connected
+    try {
+      // Check if already connected
+      await mt5APIService.getAccountInfo(connectionKey);
+    } catch (notConnectedError) {
+      // Not connected, connect now
+      console.log('[MT5 Route] Connecting to MT5 for account info...');
+      await mt5APIService.connect({
+        login: fullConnection.login,
+        password: password,
+        server: fullConnection.server
+      });
+    }
+    
+    // Get account info
+    const accountInfo = await mt5APIService.getAccountInfo(connectionKey);
+
     res.json({
       success: true,
       data: accountInfo

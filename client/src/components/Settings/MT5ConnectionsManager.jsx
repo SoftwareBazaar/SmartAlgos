@@ -46,8 +46,48 @@ const MT5ConnectionsManager = () => {
     }
   };
 
+  // Auto-save demo connection on mount if it doesn't exist
   useEffect(() => {
-    fetchConnections();
+    const autoSaveDemoConnection = async () => {
+      try {
+        const response = await apiClient.get('/api/mt5/connections');
+        const existingConnections = response.data?.data || [];
+        
+        // Check if demo connection already exists
+        const demoExists = existingConnections.some(
+          conn => conn.login === '5040707296' && conn.server === 'MetaQuotes-Demo'
+        );
+        
+        if (!demoExists) {
+          // Auto-save the demo connection
+          const demoConnection = {
+            label: 'MetaQuotes Demo Account',
+            broker: 'MetaQuotes Software',
+            server: 'MetaQuotes-Demo',
+            login: '5040707296',
+            password: 'CeD!5uIm',
+            accountType: 'demo',
+            leverage: '',
+            timezone: '',
+            isDemo: true,
+            metadata: {
+              broker: 'MetaQuotes Software',
+              timezone: ''
+            }
+          };
+          
+          await apiClient.post('/api/mt5/connections', demoConnection);
+          console.log('[MT5] ✅ Auto-saved demo connection');
+        }
+      } catch (error) {
+        console.warn('[MT5] Could not auto-save demo connection:', error.message);
+      } finally {
+        // Fetch connections after auto-save attempt
+        fetchConnections();
+      }
+    };
+    
+    autoSaveDemoConnection();
   }, []);
 
   const handleInputChange = (event) => {

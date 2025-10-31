@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Server, Plus, RefreshCw, Shield, Trash2, DownloadCloud } from 'lucide-react';
+import { Server, Plus, RefreshCw, Shield, Trash2, DownloadCloud, Eye, EyeOff, DollarSign } from 'lucide-react';
 import apiClient from '../../lib/apiClient';
 import Button from '../UI/Button';
 import Card from '../UI/Card';
@@ -46,17 +46,88 @@ const MT5ConnectionsManager = () => {
   const [formVisible, setFormVisible] = useState(false);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [manifest, setManifest] = useState(null);
+  const [accountDetails, setAccountDetails] = useState({}); // connectionId -> account info
+  const [loadingAccounts, setLoadingAccounts] = useState({}); // connectionId -> loading state
+  const [expandedConnections, setExpandedConnections] = useState({}); // connectionId -> expanded state
 
   const fetchConnections = async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await apiClient.get('/api/mt5/connections');
-      setConnections(response.data?.data || []);
+      const fetchedConnections = response.data?.data || [];
+      console.log('[MT5 Manager] Fetched connections:', fetchedConnections.length);
+      setConnections(fetchedConnections);
+      
+      // If connections exist but weren't showing, log them
+      if (fetchedConnections.length > 0) {
+        console.log('[MT5 Manager] Connections:', fetchedConnections.map(c => ({
+          id: c.id,
+          label: c.label,
+          server: c.server,
+          login: c.login
+        })));
+      }
     } catch (err) {
+      console.error('[MT5 Manager] Fetch error:', err);
       setError(err.response?.data?.message || 'Failed to load MT5 connections');
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const fetchAccountDetails = async (connection) => {
+    const connectionKey = `${connection.login}@${connection.server}`;
+    
+    try {
+      setLoadingAccounts(prev => ({ ...prev, [connection.id]: true }));
+      setError(null);
+      
+      // First, connect to MT5
+      await apiClient.post('/api/mt5/connect', {
+        login: connection.login,
+        password: '', // Password should be stored encrypted, fetch from connection
+        server: connection.server
+      });
+      
+      // Then get account info
+      const accountResponse = await apiClient.get(`/api/mt5/account/${connectionKey}`);
+      const balanceResponse = await apiClient.get(`/api/mt5/balance/${connectionKey}`);
+      
+      setAccountDetails(prev => ({
+        ...prev,
+        [connection.id]: {
+          account: accountResponse.data?.data,
+          balance: balanceResponse.data?.data
+        }
+      }));
+      
+      setExpandedConnections(prev => ({ ...prev, [connection.id]: true }));
+    } catch (err) {
+      console.error('[MT5 Manager] Account fetch error:', err);
+      setError(err.response?.data?.message || 'Failed to fetch account details');
+      
+      // If connection fails, try to get password from connection and retry
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setError('Authentication failed. Please check your MT5 credentials.');
+      }
+    } finally {
+      setLoadingAccounts(prev => ({ ...prev, [connection.id]: false }));
+    }
+  };
+  
+  const toggleAccountDetails = (connectionId) => {
+    setExpandedConnections(prev => ({
+      ...prev,
+      [connectionId]: !prev[connectionId]
+    }));
+    
+    // If expanding and we don't have account details, fetch them
+    if (!expandedConnections[connectionId] && !accountDetails[connectionId]) {
+      const connection = connections.find(c => c.id === connectionId);
+      if (connection) {
+        fetchAccountDetails(connection);
+      }
     }
   };
 
@@ -237,47 +308,179 @@ const MT5ConnectionsManager = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {connections.map((connection) => (
-              <div
-                key={connection.id}
-                className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <Server className="h-4 w-4 text-primary-500" />
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {connection.label || connection.server}
-                    </span>
-                    {connection.isDemo && (
-                      <span className="text-xs font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                        Demo
-                      </span>
-                    )}
+            {connections.map((connection) => {
+              const isExpanded = expandedConnections[connection.id];
+              const accountInfo = accountDetails[connection.id];
+              const isLoadingAccount = loadingAccounts[connection.id];
+              
+              return (
+                <div
+                  key={connection.id}
+                  className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+                >
+                  <div className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center space-x-2">
+                        <Server className="h-4 w-4 text-primary-500" />
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                          {connection.label || connection.server}
+                        </span>
+                        {connection.isDemo && (
+                          <span className="text-xs font-semibold uppercase tracking-wide bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 px-2 py-0.5 rounded">
+                            Demo
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Login {connection.login} • {connection.server}
+                      </p>
+                      {connection.broker && (
+                        <p className="text-xs text-gray-400">Broker: {connection.broker}</p>
+                      )}
+                      {accountInfo?.account && (
+                        <div className="flex items-center space-x-4 mt-2">
+                          <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
+                            <DollarSign className="h-4 w-4" />
+                            <span className="text-sm font-semibold">
+                              Balance: ${accountInfo.account.balance?.toFixed(2) || '0.00'}
+                            </span>
+                          </div>
+                          {accountInfo.account.equity && (
+                            <span className="text-xs text-gray-500">
+                              Equity: ${accountInfo.account.equity.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-4 sm:mt-0 flex items-center space-x-3 flex-wrap gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => toggleAccountDetails(connection.id)}
+                        disabled={isLoadingAccount}
+                      >
+                        {isLoadingAccount ? (
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        ) : isExpanded ? (
+                          <EyeOff className="h-4 w-4 mr-2" />
+                        ) : (
+                          <Eye className="h-4 w-4 mr-2" />
+                        )}
+                        {isLoadingAccount ? 'Loading...' : isExpanded ? 'Hide Details' : 'View Details'}
+                      </Button>
+                      <Button variant="outline" onClick={() => openEditForm(connection)}>
+                        Edit
+                      </Button>
+                      <Button variant="outline" onClick={() => handleGenerateManifest(connection.id)}>
+                        <DownloadCloud className="h-4 w-4 mr-2" />
+                        Prepare Download
+                      </Button>
+                      <Button variant="ghost" onClick={() => handleDelete(connection.id)}>
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Login {connection.login} • {connection.server}
-                  </p>
-                  {connection.broker && (
-                    <p className="text-xs text-gray-400">Broker: {connection.broker}</p>
-                  )}
-                  {connection.timezone && (
-                    <p className="text-xs text-gray-400">Timezone: {connection.timezone}</p>
+                  
+                  {/* Expanded Account Details */}
+                  {isExpanded && accountInfo && (
+                    <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4">
+                      {isLoadingAccount ? (
+                        <div className="text-center py-4 text-gray-500">Loading account details...</div>
+                      ) : accountInfo.account ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <div>
+                            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              Balance
+                            </label>
+                            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                              ${accountInfo.account.balance?.toFixed(2) || '0.00'}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              Equity
+                            </label>
+                            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                              ${accountInfo.account.equity?.toFixed(2) || '0.00'}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              Margin
+                            </label>
+                            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                              ${accountInfo.account.margin?.toFixed(2) || '0.00'}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              Free Margin
+                            </label>
+                            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                              ${accountInfo.account.margin_free?.toFixed(2) || '0.00'}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              Margin Level
+                            </label>
+                            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                              {accountInfo.account.margin_level?.toFixed(2) || '0.00'}%
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              Profit
+                            </label>
+                            <p className={`text-lg font-semibold ${
+                              (accountInfo.account.profit || 0) >= 0 
+                                ? 'text-green-600 dark:text-green-400' 
+                                : 'text-red-600 dark:text-red-400'
+                            }`}>
+                              ${accountInfo.account.profit?.toFixed(2) || '0.00'}
+                            </p>
+                          </div>
+                          {accountInfo.account.currency && (
+                            <div>
+                              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                Currency
+                              </label>
+                              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                {accountInfo.account.currency}
+                              </p>
+                            </div>
+                          )}
+                          {accountInfo.account.leverage && (
+                            <div>
+                              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                Leverage
+                              </label>
+                              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                1:{accountInfo.account.leverage}
+                              </p>
+                            </div>
+                          )}
+                          {accountInfo.account.server && (
+                            <div>
+                              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                Server
+                              </label>
+                              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                {accountInfo.account.server}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                          Unable to fetch account details. Please check your connection credentials.
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
-                <div className="mt-4 sm:mt-0 flex items-center space-x-3">
-                  <Button variant="outline" onClick={() => openEditForm(connection)}>
-                    Edit
-                  </Button>
-                  <Button variant="outline" onClick={() => handleGenerateManifest(connection.id)}>
-                    <DownloadCloud className="h-4 w-4 mr-2" />
-                    Prepare Download
-                  </Button>
-                  <Button variant="ghost" onClick={() => handleDelete(connection.id)}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

@@ -59,12 +59,12 @@ class MT5Service {
     return crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
   }
 
-  sanitizeConnection(record) {
+  sanitizeConnection(record, includePassword = false) {
     if (!record) {
       return null;
     }
 
-    return {
+    const sanitized = {
       id: record.id,
       label: record.label || record.connection_label || `${record.server || 'MT5'}-${record.login}`,
       broker: record.broker || null,
@@ -75,10 +75,22 @@ class MT5Service {
       timezone: record.timezone || null,
       isDemo: Boolean(record.is_demo),
       meta: record.metadata || record.meta || {},
-      hasPassword: Boolean(record.password_encrypted || record.passwordEncrypted),
+      hasPassword: Boolean(record.password_encrypted || record.passwordEncrypted || record.password),
       created_at: record.created_at || record.createdAt || null,
       updated_at: record.updated_at || record.updatedAt || null
     };
+    
+    // Only include password fields if explicitly requested (for internal use)
+    if (includePassword) {
+      if (record.password_encrypted) {
+        sanitized.password_encrypted = record.password_encrypted;
+      }
+      if (record.password) {
+        sanitized.password = record.password;
+      }
+    }
+    
+    return sanitized;
   }
 
   async listConnections(userId) {
@@ -105,7 +117,7 @@ class MT5Service {
         } else {
           // Success - return Supabase data
           console.log('[MT5 Service] Found', data?.length || 0, 'connections in Supabase');
-          return (data || []).map((record) => this.sanitizeConnection(record));
+          return (data || []).map((record) => this.sanitizeConnection(record, false));
         }
       } catch (supabaseError) {
         console.warn('[MT5 Service] Supabase query error, using fallback:', supabaseError.message);
@@ -142,7 +154,7 @@ class MT5Service {
       }
     }
     
-    return connections.map((record) => this.sanitizeConnection(record));
+    return connections.map((record) => this.sanitizeConnection(record, false));
   }
 
   async getConnection(userId, connectionId) {

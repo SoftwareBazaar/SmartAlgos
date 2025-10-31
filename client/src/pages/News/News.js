@@ -28,6 +28,8 @@ import AISentimentIndicator from '../../components/News/AISentimentIndicator';
 import NewsImpactExplainer from '../../components/News/NewsImpactExplainer';
 import EconomicCalendarOverlay from '../../components/News/EconomicCalendarOverlay';
 import NewsAlertSetup from '../../components/News/NewsAlertSetup';
+import MarketSummaryBanner from '../../components/News/MarketSummaryBanner';
+import AIChatAssistant from '../../components/News/AIChatAssistant';
 
 // Demo fallback data - defined before component to ensure it's always available
 const demoFallback = [
@@ -541,6 +543,9 @@ const News = () => {
           </div>
         </Card>
       </div>
+
+      {/* AI Chat Assistant - Floating */}
+      <AIChatAssistant />
     </div>
   );
 };

@@ -19,6 +19,7 @@ import Button from '../../components/UI/Button';
 import Card from '../../components/UI/Card';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import { formatDate, formatDateTime, formatCurrency } from '../../utils/formatting';
+import { calculateSubscriptionStats } from '../../utils/subscriptionStats';
 
 const Payments = () => {
   const { user } = useAuth();
@@ -572,7 +573,7 @@ const Payments = () => {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Subscriptions</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {subscriptions.filter(s => s.status === 'active').length}
+                    {calculateSubscriptionStats(subscriptions).active}
                   </p>
                 </div>
               </div>

@@ -23,6 +23,7 @@ import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import apiClient from '../../lib/apiClient';
+import { calculateSubscriptionStats } from '../../utils/subscriptionStats';
 
 const Subscription = () => {
   const { user } = useAuth();
@@ -200,12 +201,15 @@ const Subscription = () => {
         transition={{ duration: 0.5, delay: 0.1 }}
       >
         <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-          {[
-            { id: 'active', name: 'Active', count: subscriptions.filter(s => s.status === 'active').length },
-            { id: 'pending', name: 'Pending', count: subscriptions.filter(s => s.status === 'pending').length },
-            { id: 'cancelled', name: 'Cancelled', count: subscriptions.filter(s => s.status === 'cancelled').length },
-            { id: 'all', name: 'All', count: subscriptions.length }
-          ].map((tab) => (
+          {(() => {
+            const stats = calculateSubscriptionStats(subscriptions);
+            return [
+              { id: 'active', name: 'Active', count: stats.active },
+              { id: 'pending', name: 'Pending', count: stats.pending },
+              { id: 'cancelled', name: 'Cancelled', count: stats.cancelled },
+              { id: 'all', name: 'All', count: stats.total }
+            ];
+          })().map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -419,7 +423,7 @@ const Subscription = () => {
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Active Subscriptions</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {subscriptions.filter(s => s.status === 'active').length}
+                    {calculateSubscriptionStats(subscriptions).active}
                   </p>
                 </div>
               </div>

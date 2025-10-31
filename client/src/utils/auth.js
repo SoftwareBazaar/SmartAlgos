@@ -1,5 +1,7 @@
 // utils/auth.js - BULLETPROOF Frontend Auth
 
+import { setToken, removeToken, cleanAndValidateToken, clearAuth } from './authStorage';
+
 const API_URL = process.env.REACT_APP_API_URL || window.location.origin;
 
 /**
@@ -45,27 +47,15 @@ export async function login(email, password) {
     }
 
     // Clean and validate token before storing
-    const cleanToken = data.token.trim();
-    
-    console.log('Token received, length:', cleanToken.length);
-    console.log('Token segments:', cleanToken.split('.').length);
-
-    // For dev tokens, we expect them to NOT have 3 segments (JWT format)
-    if (cleanToken.split('.').length === 3) {
-      console.error('JWT TOKEN FROM SERVER - This should not happen!');
-      console.error('Token:', cleanToken);
-      throw new Error('Received JWT token instead of dev token');
-    }
-
-    // Store token under unified key
-    localStorage.setItem('token', cleanToken);
+    const cleanToken = cleanAndValidateToken(data.token, 'user');
+    setToken(cleanToken, 'user');
     console.log('✓ Token stored successfully');
     
     return data;
     
   } catch (error) {
     console.error('Login error:', error);
-    localStorage.removeItem('token');
+    removeToken('user');
     throw error;
   }
 }
@@ -98,27 +88,15 @@ export async function adminLogin(email, password) {
     }
 
     // Clean and validate token before storing
-    const cleanToken = data.token.trim();
-    
-    console.log('Token received, length:', cleanToken.length);
-    console.log('Token type:', cleanToken.startsWith('dev_token_') ? 'DEV TOKEN' : 'OTHER');
-
-    // For dev tokens, we expect them to start with 'dev_token_'
-    if (!cleanToken.startsWith('dev_token_')) {
-      console.error('INVALID TOKEN FORMAT FROM SERVER!');
-      console.error('Token:', cleanToken);
-      throw new Error('Received invalid token format');
-    }
-
-    // Store token
-    localStorage.setItem('admin_token', cleanToken);
+    const cleanToken = cleanAndValidateToken(data.token, 'admin');
+    setToken(cleanToken, 'admin');
     console.log('✓ Admin token stored successfully');
     
     return data;
     
   } catch (error) {
     console.error('Admin login error:', error);
-    localStorage.removeItem('admin_token');
+    removeToken('admin');
     throw error;
   }
 }
@@ -132,14 +110,13 @@ export async function logout(role = 'user') {
   } catch (error) {
     console.error('Logout error:', error);
   } finally {
+    clearAuth(role);
     if (role === 'admin') {
-      localStorage.removeItem('admin_token');
       if (window.location.pathname.startsWith('/admin')) {
         window.location.href = '/admin/login';
         return;
       }
     } else {
-      localStorage.removeItem('token');
       window.location.href = '/auth/login';
       return;
     }
@@ -151,10 +128,10 @@ export async function logout(role = 'user') {
  */
 export async function getCurrentUser() {
   try {
-    const token = localStorage.getItem('token');
+    const token = getToken('user');
     
     if (!token) {
-      console.log('No token in localStorage');
+      console.log('No token found');
       return null;
     }
 
@@ -186,7 +163,7 @@ export async function getCurrentUser() {
     
   } catch (error) {
     console.error('Get user error:', error);
-    localStorage.removeItem('token');
+    removeToken('user');
     return null;
   }
 }
@@ -195,7 +172,7 @@ export async function getCurrentUser() {
  * Make authenticated API request
  */
 export async function fetchWithAuth(url, options = {}) {
-  const token = localStorage.getItem('token');
+  const token = getToken('user');
 
   if (!token) {
     throw new Error('No authentication token');
@@ -223,7 +200,7 @@ export async function fetchWithAuth(url, options = {}) {
     const errorData = await response.json();
     console.error('Error details:', errorData);
     
-    localStorage.removeItem('token');
+    removeToken('user');
     window.location.href = '/auth/login';
     throw new Error('Session expired');
   }

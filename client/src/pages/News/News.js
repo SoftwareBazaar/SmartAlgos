@@ -84,10 +84,25 @@ const News = () => {
       if (searchTerm.trim()) params.search = searchTerm.trim();
 
       const response = await apiClient.get('/api/news', { params });
-      setNews(response.data?.data || []);
+      const newsData = response.data?.data || [];
+      
+      // Fallback to demo data if API returns empty and no filters applied
+      if (newsData.length === 0 && selectedCategory === 'all' && selectedImpact === 'all' && selectedSentiment === 'all' && !searchTerm.trim()) {
+        console.warn('[News] API returned no results, using fallback data');
+        setNews(demoFallback);
+      } else {
+        setNews(newsData);
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching news:', error);
+      // Use fallback on error if no filters
+      if (selectedCategory === 'all' && selectedImpact === 'all' && selectedSentiment === 'all' && !searchTerm.trim()) {
+        console.warn('[News] API error, using fallback data');
+        setNews(demoFallback);
+      } else {
+        setNews([]);
+      }
       setLoading(false);
     }
   };

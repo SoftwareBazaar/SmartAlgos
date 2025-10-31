@@ -293,7 +293,7 @@ const HFTBots = () => {
                 <Card hover className="h-full">
                   <div className="relative">
                     <div className="h-48 bg-gradient-to-br from-primary-500 to-primary-600 rounded-t-lg flex items-center justify-center">
-                      <Bot className="h-16 w-16 text-white" />
+                      <Bot className="h-16 w-16 text-gray-900 dark:text-white" />
                     </div>
                     <div className="absolute top-4 right-4">
                       <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-medium">
@@ -306,7 +306,7 @@ const HFTBots = () => {
                       </span>
                     </div>
                     <div className="absolute bottom-4 left-4">
-                      <span className="bg-black bg-opacity-50 text-white px-2 py-1 rounded-full text-xs font-medium">
+                      <span className="bg-gray-800 dark:bg-black bg-opacity-70 dark:bg-opacity-50 text-white px-2 py-1 rounded-full text-xs font-medium">
                         {getExchangeIcon(bot.exchange)} {bot.exchange}
                       </span>
                     </div>
@@ -439,7 +439,7 @@ const HFTBots = () => {
               <Card hover className="h-full">
                 <div className="relative">
                   <div className="h-48 bg-gradient-to-br from-primary-500 to-primary-600 rounded-t-lg flex items-center justify-center">
-                    <Bot className="h-16 w-16 text-white" />
+                    <Bot className="h-16 w-16 text-gray-900 dark:text-white" />
                   </div>
                   <div className="absolute top-4 left-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStrategyColor(bot.strategy)}`}>
@@ -592,7 +592,7 @@ const HFTBots = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}

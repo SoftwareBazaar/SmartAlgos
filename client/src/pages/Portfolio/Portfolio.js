@@ -532,22 +532,22 @@ const Portfolio = () => {
             {uploadPreview && (
               <div className="mt-6 rounded-lg border border-brand-800/60 bg-brand-900/40 p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-gray-100">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     Preview (first {uploadPreview.preview.length} lines)
                   </h3>
-                  <p className="text-xs text-brand-200">Saved to: {uploadPreview.savedTo}</p>
+                  <p className="text-xs text-gray-700 dark:text-brand-200">Saved to: {uploadPreview.savedTo}</p>
                 </div>
-                <pre className="mt-3 max-h-48 overflow-auto rounded bg-black/40 p-3 text-xs text-brand-100">
+                <pre className="mt-3 max-h-48 overflow-auto rounded bg-gray-100 dark:bg-black/40 p-3 text-xs text-gray-900 dark:text-brand-100">
                   {uploadPreview.preview.length ? uploadPreview.preview.join('\n') : 'No data detected.'}
                 </pre>
 
                 {analysis && (
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <div className="rounded-lg border border-brand-800/60 bg-brand-900/60 p-4">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-brand-200">
+                    <div className="rounded-lg border border-gray-200 dark:border-brand-800/60 bg-gray-50 dark:bg-brand-900/60 p-4">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-brand-200">
                         PnL Summary
                       </h4>
-                      <div className="mt-3 space-y-2 text-sm text-brand-100">
+                      <div className="mt-3 space-y-2 text-sm text-gray-900 dark:text-brand-100">
                         <div className="flex items-center justify-between">
                           <span>Total Profit</span>
                           <span className={analysisTotals?.totalProfit >= 0 ? 'text-success-300' : 'text-danger-300'}>

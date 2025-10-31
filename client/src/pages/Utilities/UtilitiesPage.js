@@ -116,10 +116,10 @@ const UtilitiesPage = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-sm">
+            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight drop-shadow-sm">
               Free Trading Utilities
             </h1>
-            <p className="mt-2 text-brand-200 font-medium">
+            <p className="mt-2 text-gray-700 dark:text-brand-200 font-medium">
               Professional trading tools and calculators - completely free
             </p>
           </div>
@@ -144,7 +144,7 @@ const UtilitiesPage = () => {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 activeCategory === category.id
                   ? 'bg-primary-500 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
             >
               {category.name} ({category.count})
@@ -315,24 +315,24 @@ const UtilitiesPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        className="bg-gray-800 rounded-lg p-4"
+        className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4"
       >
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Professional Trading Tools - Completely Free
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div className="flex items-center justify-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-gray-300">No registration required</span>
+              <span className="text-gray-700 dark:text-gray-300">No registration required</span>
             </div>
             <div className="flex items-center justify-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-gray-300">Regular updates</span>
+              <span className="text-gray-700 dark:text-gray-300">Regular updates</span>
             </div>
             <div className="flex items-center justify-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-gray-300">Professional quality</span>
+              <span className="text-gray-700 dark:text-gray-300">Professional quality</span>
             </div>
           </div>
         </div>
@@ -340,7 +340,7 @@ const UtilitiesPage = () => {
 
       {/* Guide Modal */}
       {showGuide && selectedUtility && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

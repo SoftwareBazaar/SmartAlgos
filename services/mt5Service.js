@@ -205,8 +205,16 @@ class MT5Service {
 
         return this.sanitizeConnection(data);
       } catch (supabaseError) {
-        // If Supabase fails, fall back to local storage
+        // If Supabase fails (table doesn't exist, etc), fall back to local storage
         console.warn('[MT5 Service] Supabase upsert failed, using fallback storage:', supabaseError.message);
+        console.warn('[MT5 Service] Error code:', supabaseError.code);
+        
+        // Check if it's a table not found error
+        if (supabaseError.code === 'PGRST205' || supabaseError.message?.includes('table') || supabaseError.message?.includes('not found')) {
+          console.warn('[MT5 Service] Table mt5_connections does not exist in Supabase. Using fallback storage.');
+          console.warn('[MT5 Service] To create the table, run the SQL in database/mt5_connections_table.sql');
+        }
+        
         // Continue to fallback storage below
       }
     }

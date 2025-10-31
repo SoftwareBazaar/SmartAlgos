@@ -58,11 +58,15 @@ const Portfolio = () => {
   const [portfolios, setPortfolios] = useState([]);
   const [portfolioLoading, setPortfolioLoading] = useState(true);
 
-  // Fetch real portfolio data from MT5
+  // Fetch portfolio data
+  // MT5 Integration disabled - requires MT5 terminal installation (not compatible with Railway cloud)
   useEffect(() => {
     const fetchPortfolioData = async () => {
       try {
         setPortfolioLoading(true);
+        
+        // MT5 data fetching disabled - uncomment below if MT5 is available locally
+        /*
         const response = await apiClient.get('/api/portfolio/account');
         const data = response.data?.data;
 
@@ -81,8 +85,8 @@ const Portfolio = () => {
               ? ((data.portfolio.total_profit - (data.portfolio.total_closed_profit || 0)) / data.portfolio.total_invested * 100) 
               : 0,
             risk_level: data.account.margin_level > 200 ? "Low" : data.account.margin_level > 100 ? "Medium" : "High",
-            max_drawdown: 0, // Calculate from history
-            sharpe_ratio: 0, // Calculate from history
+            max_drawdown: 0,
+            sharpe_ratio: 0,
             win_rate: data.portfolio.win_rate,
             total_trades: data.portfolio.total_trades,
             profitable_trades: data.portfolio.profitable_trades,
@@ -94,9 +98,12 @@ const Portfolio = () => {
           };
           setPortfolios([mt5Portfolio]);
           console.log('[Portfolio] ✅ Loaded real MT5 data');
-        } else {
-          // Fallback to mock data
-          setPortfolios([
+          return;
+        }
+        */
+        
+        // Use mock data (default for web platform)
+        setPortfolios([
             {
               id: 1,
               name: "My Trading Portfolio",

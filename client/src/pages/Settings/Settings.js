@@ -2,7 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Settings as SettingsIcon, Shield, Bell } from 'lucide-react';
 import Card from '../../components/UI/Card';
-import MT5ConnectionsManager from '../../components/Settings/MT5ConnectionsManager';
+// MT5 Integration - Disabled for Railway deployment (requires MT5 terminal installation)
+// import MT5ConnectionsManager from '../../components/Settings/MT5ConnectionsManager';
 
 const Settings = () => {
   return (
@@ -14,17 +15,19 @@ const Settings = () => {
       >
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Platform Settings</h1>
         <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Manage trading terminals, notification preferences, and account security.
+          Manage notification preferences and account security.
         </p>
       </motion.div>
 
-      <motion.div
+      {/* MT5 Integration - Disabled for Railway deployment */}
+      {/* MT5 terminal connection requires local installation, not compatible with cloud deployment */}
+      {/* <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.05 }}
       >
         <MT5ConnectionsManager />
-      </motion.div>
+      </motion.div> */}
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

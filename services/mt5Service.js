@@ -100,10 +100,14 @@ class MT5Service {
 
     if (this.supabase) {
       try {
+        // Normalize userId to string for consistent querying
+        const userIdKey = String(userId);
+        console.log('[MT5 Service] Querying Supabase for user_id:', userIdKey, '(type:', typeof userIdKey, ')');
+        
         const { data, error } = await this.supabase
           .from('mt5_connections')
           .select('*')
-          .eq('user_id', userId)
+          .eq('user_id', userIdKey)
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -242,9 +246,12 @@ class MT5Service {
       metadata = payload.metadata;
     }
 
+    // Normalize userId to string for consistent storage
+    const userIdKey = String(userId);
+    
     const record = {
       id: connectionId,
-      user_id: userId,
+      user_id: userIdKey,
       label: payload.label || payload.connection_label || null,
       broker: payload.broker || null,
       server: serverValue,

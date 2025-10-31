@@ -16,10 +16,26 @@ try {
 let blockchainMonitor = null;
 try {
   blockchainMonitor = require('../services/blockchainMonitorService');
-  if (blockchainMonitor.hasBlockCypherKey() || process.env.ETHERSCAN_API_KEY) {
+  const hasBlockCypher = blockchainMonitor.hasBlockCypherKey();
+  const hasEtherscan = !!process.env.ETHERSCAN_API_KEY;
+  const hasTron = !!process.env.TRON_API_KEY;
+  
+  if (hasBlockCypher || hasEtherscan || hasTron) {
     console.log('✅ Blockchain monitoring service enabled - automatic payment verification active');
+    console.log('   Supported:');
+    if (hasBlockCypher) console.log('   - Bitcoin & Ethereum (via BlockCypher)');
+    if (hasEtherscan) console.log('   - Ethereum, USDT/USDC ERC20 (via Etherscan)');
+    if (hasTron) console.log('   - USDT TRC20 (via TronGrid)');
+    
+    if (!hasBlockCypher && !hasEtherscan) {
+      console.warn('   ⚠️  No Bitcoin support - add BLOCKCYPHER_API_KEY for BTC payments');
+    }
+    if (!hasEtherscan) {
+      console.warn('   ⚠️  No Ethereum/ERC20 support - add ETHERSCAN_API_KEY for ETH/USDT/USDC');
+    }
   } else {
-    console.warn('⚠️  Blockchain monitoring available but no API keys configured. Add BLOCKCYPHER_API_KEY or ETHERSCAN_API_KEY for automatic verification.');
+    console.warn('⚠️  Blockchain monitoring available but no API keys configured.');
+    console.warn('   Add at least one: BLOCKCYPHER_API_KEY (Bitcoin/Ethereum) or ETHERSCAN_API_KEY (Ethereum/ERC20)');
   }
 } catch (error) {
   console.warn('⚠️  Blockchain monitor service not available:', error.message);

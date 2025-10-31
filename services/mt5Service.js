@@ -157,7 +157,7 @@ class MT5Service {
     return connections.map((record) => this.sanitizeConnection(record, false));
   }
 
-  async getConnection(userId, connectionId) {
+  async getConnection(userId, connectionId, includePassword = false) {
     if (!userId || !connectionId) {
       return null;
     }
@@ -177,12 +177,15 @@ class MT5Service {
         throw error;
       }
 
-      return data;
+      return includePassword ? data : this.sanitizeConnection(data, includePassword);
     }
 
+    // Fallback to local storage
+    const userIdKey = String(userId);
     const store = this.readFallbackStore();
-    const list = store[userId] || [];
-    return list.find((record) => record.id === connectionId) || null;
+    const list = store[userIdKey] || [];
+    const record = list.find((r) => r.id === connectionId);
+    return record ? (includePassword ? record : this.sanitizeConnection(record, includePassword)) : null;
   }
 
   async upsertConnection(userId, payload) {

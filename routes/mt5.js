@@ -314,7 +314,7 @@ router.get('/account/:connectionKey', [
     }
     
     // Get full connection with password (for decryption) - use includePassword flag
-    const fullConnection = await mt5Service.getConnection(userId, connection.id);
+    const fullConnection = await mt5Service.getConnection(userId, connection.id, true);
     
     if (!fullConnection) {
       return res.status(404).json({

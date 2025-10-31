@@ -21,7 +21,21 @@ function handleValidation(req, res) {
 
 router.get('/connections', [auth, updateActivity], async (req, res) => {
   try {
-    const connections = await mt5Service.listConnections(req.user.userId);
+    // Use userId if available, otherwise use id
+    const userId = req.user.userId || req.user.id;
+    console.log('[MT5 Route] Fetching connections for user:', userId);
+    
+    if (!userId) {
+      console.error('[MT5 Route] No user ID found in req.user:', req.user);
+      return res.status(400).json({
+        success: false,
+        message: 'User ID not found'
+      });
+    }
+    
+    const connections = await mt5Service.listConnections(userId);
+    console.log('[MT5 Route] Found connections:', connections.length);
+    
     res.json({
       success: true,
       data: connections
@@ -30,7 +44,8 @@ router.get('/connections', [auth, updateActivity], async (req, res) => {
     console.error('List MT5 connections error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to load MT5 connections'
+      message: 'Failed to load MT5 connections',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -85,7 +100,19 @@ router.post('/connections', [
       return;
     }
 
-    const connection = await mt5Service.upsertConnection(req.user.userId, req.body);
+    // Use userId if available, otherwise use id
+    const userId = req.user.userId || req.user.id;
+    console.log('[MT5 Route] Saving connection for user:', userId);
+    
+    if (!userId) {
+      console.error('[MT5 Route] No user ID found in req.user:', req.user);
+      return res.status(400).json({
+        success: false,
+        message: 'User ID not found'
+      });
+    }
+    
+    const connection = await mt5Service.upsertConnection(userId, req.body);
 
     res.status(201).json({
       success: true,

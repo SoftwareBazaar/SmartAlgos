@@ -87,8 +87,11 @@ class MT5Service {
       return (data || []).map((record) => this.sanitizeConnection(record));
     }
 
+    // Fallback to local storage
+    console.log('[MT5 Service] Using fallback storage to list connections for user:', userId);
     const store = this.readFallbackStore();
     const connections = store[userId] || [];
+    console.log('[MT5 Service] Found', connections.length, 'connections in fallback storage');
     return connections.map((record) => this.sanitizeConnection(record));
   }
 
@@ -241,6 +244,8 @@ class MT5Service {
       }
     }
 
+    // Fallback to local storage
+    console.log('[MT5 Service] Using fallback storage for user:', userId);
     const store = this.readFallbackStore();
     const list = store[userId] || [];
     const index = list.findIndex((item) => item.id === connectionId);
@@ -258,6 +263,8 @@ class MT5Service {
 
     store[userId] = list;
     this.writeFallbackStore(store);
+    
+    console.log('[MT5 Service] ✅ Saved to fallback storage. Total connections for user:', list.length);
 
     return this.sanitizeConnection(fallbackRecord);
   }

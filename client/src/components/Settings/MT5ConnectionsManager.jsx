@@ -149,10 +149,19 @@ const MT5ConnectionsManager = () => {
           timezone: formData.timezone
         }
       };
-      await apiClient.post('/api/mt5/connections', payload);
+      const response = await apiClient.post('/api/mt5/connections', payload);
+      console.log('[MT5 Manager] Save response:', response.data);
+      
+      // Refresh connections list
       await fetchConnections();
+      
       setFormVisible(false);
       setFormData(EMPTY_FORM);
+      
+      // Show success message
+      if (response.data?.success) {
+        console.log('[MT5 Manager] ✅ Connection saved successfully');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save MT5 connection');
     } finally {

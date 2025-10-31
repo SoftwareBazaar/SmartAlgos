@@ -289,8 +289,7 @@ router.get('/status/:transactionId', async (req, res) => {
       });
     }
 
-    // In production, check blockchain for actual transactions
-    // For now, we'll simulate checking
+    // Check blockchain for actual transactions (automatic verification)
     const isConfirmed = await checkBlockchainTransaction(payment);
 
     if (isConfirmed && payment.status === 'pending') {

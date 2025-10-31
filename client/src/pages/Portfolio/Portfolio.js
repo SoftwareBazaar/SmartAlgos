@@ -104,29 +104,28 @@ const Portfolio = () => {
         
         // Use mock data (default for web platform)
         setPortfolios([
-            {
-              id: 1,
-              name: "My Trading Portfolio",
-              description: "Diversified trading portfolio with forex, crypto, and stock positions",
-              total_value: 125000,
-              total_invested: 100000,
-              total_profit: 25000,
-              profit_percentage: 25.0,
-              daily_change: 1250,
-              daily_change_percentage: 1.01,
-              risk_level: "Medium",
-              max_drawdown: 8.5,
-              sharpe_ratio: 1.8,
-              win_rate: 68.5,
-              total_trades: 156,
-              profitable_trades: 107,
-              asset_count: 3,
-              is_featured: true,
-              created_at: "2023-01-15T10:30:00Z",
-              updated_at: "2024-01-15T14:20:00Z"
-            },
-          ]);
-        }
+          {
+            id: 1,
+            name: "My Trading Portfolio",
+            description: "Diversified trading portfolio with forex, crypto, and stock positions",
+            total_value: 125000,
+            total_invested: 100000,
+            total_profit: 25000,
+            profit_percentage: 25.0,
+            daily_change: 1250,
+            daily_change_percentage: 1.01,
+            risk_level: "Medium",
+            max_drawdown: 8.5,
+            sharpe_ratio: 1.8,
+            win_rate: 68.5,
+            total_trades: 156,
+            profitable_trades: 107,
+            asset_count: 3,
+            is_featured: true,
+            created_at: "2023-01-15T10:30:00Z",
+            updated_at: "2024-01-15T14:20:00Z"
+          },
+        ]);
       } catch (error) {
         console.warn('[Portfolio] Failed to fetch MT5 data, using mock:', error.message);
         // Fallback to mock

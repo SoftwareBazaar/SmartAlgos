@@ -49,28 +49,28 @@ const Sidebar = ({ isOpen, onClose }) => {
   const linkClassNames = (href) => {
     return `group flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 border ${
       isActive(href)
-        ? 'bg-primary-500/20 text-primary-100 border-primary-500/60 shadow-soft backdrop-blur'
-        : 'text-gray-300 border-transparent hover:text-white hover:bg-brand-800/60 hover:border-primary-500/20'
+        ? 'bg-primary-500/20 dark:bg-primary-500/20 text-primary-700 dark:text-primary-100 border-primary-500/60 dark:border-primary-500/60 shadow-soft backdrop-blur'
+        : 'text-gray-700 dark:text-gray-300 border-transparent hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:border-primary-500/20 dark:hover:border-primary-500/20'
     }`;
   };
 
   const sidebarContent = (
     <>
-      <div className="flex items-center justify-between h-16 px-4 bg-gradient-to-r from-black via-brand-900 to-black border-b border-brand-800/70 shadow-lg">
-        <h1 className="text-xl font-semibold text-primary-200 tracking-wide">
+      <div className="flex items-center justify-between h-16 px-4 bg-white dark:bg-gradient-to-r dark:from-black dark:via-brand-900 dark:to-black border-b border-gray-200 dark:border-brand-800/70 shadow-lg">
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-primary-200 tracking-wide">
           Smart Algos
         </h1>
         <button
           onClick={onClose}
-          className="p-2 rounded-md text-gray-400 hover:text-white hover:bg-brand-800/60 focus:outline-none focus:ring-2 focus:ring-primary-500/60 lg:hidden"
+          className="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-brand-800/60 focus:outline-none focus:ring-2 focus:ring-primary-500/60 lg:hidden"
         >
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      <nav className="mt-6 flex-1 px-3 pb-6 space-y-8 overflow-y-auto scrollbar-thin scrollbar-thumb-brand-700 scrollbar-track-transparent hover:scrollbar-thumb-brand-600 scroll-smooth">
+      <nav className="mt-6 flex-1 px-3 pb-6 space-y-8 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-brand-700 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-brand-600 scroll-smooth">
         <div className="space-y-1">
-          <p className="px-1 text-xs font-semibold uppercase tracking-wider text-brand-300">
+          <p className="px-1 text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-brand-300">
             Navigation
           </p>
           <div className="mt-3 space-y-1">
@@ -92,7 +92,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         </div>
 
         <div>
-          <p className="px-1 text-xs font-semibold uppercase tracking-wider text-brand-300">
+          <p className="px-1 text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-brand-300">
             Account
           </p>
           <div className="mt-3 space-y-1">
@@ -115,7 +115,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       </nav>
 
-      <div className="p-4 border-t border-brand-800/70 bg-brand-900/80 backdrop-blur">
+      <div className="p-4 border-t border-gray-200 dark:border-brand-800/70 bg-gray-50 dark:bg-brand-900/80 backdrop-blur">
         <div className="flex items-center">
           <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center shadow-hard">
             <span className="text-sm font-semibold text-white">
@@ -123,10 +123,10 @@ const Sidebar = ({ isOpen, onClose }) => {
             </span>
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium text-white">
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
               {user?.fullName || 'User'}
             </p>
-            <p className="text-xs text-brand-300">
+            <p className="text-xs text-gray-600 dark:text-brand-300">
               {user?.subscription?.type || 'Free'}
             </p>
           </div>
@@ -144,7 +144,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         />
       )}
 
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-black via-brand-900 to-brand-800/95 shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gradient-to-b dark:from-black dark:via-brand-900 dark:to-brand-800/95 shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex flex-col h-full">
@@ -153,7 +153,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       </div>
 
       <div className="hidden lg:flex lg:w-64 xl:w-72 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-gradient-to-b from-black via-brand-900 to-brand-800/90 border-r border-brand-800/70 shadow-xl">
+        <div className="flex flex-col flex-grow bg-white dark:bg-gradient-to-b dark:from-black dark:via-brand-900 dark:to-brand-800/90 border-r border-gray-200 dark:border-brand-800/70 shadow-xl">
           <div className="flex flex-col h-full">
             {sidebarContent}
           </div>

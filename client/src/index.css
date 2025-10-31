@@ -32,8 +32,18 @@
     @apply text-gray-600 dark:text-gray-400 !important;
   }
   
-  /* Ensure headings have perfect contrast */
+  /* Ensure headings have perfect contrast - WCAG AA compliant (7:1 ratio) */
   h1, h2, h3, h4, h5, h6 {
+    @apply text-gray-900 dark:text-white font-bold;
+    color: rgb(17, 24, 39) !important; /* gray-900 - high contrast light mode */
+  }
+  
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    color: rgb(255, 255, 255) !important; /* white - high contrast dark mode */
+  }
+  
+  /* Page-level headings - extra emphasis */
+  .page-heading, .section-heading {
     @apply text-gray-900 dark:text-white font-bold;
   }
   

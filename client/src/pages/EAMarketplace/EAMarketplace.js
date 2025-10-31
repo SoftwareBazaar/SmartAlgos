@@ -303,10 +303,10 @@ const EAMarketplace = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-sm">
+            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight drop-shadow-sm">
               EA Marketplace
             </h1>
-            <p className="mt-2 text-brand-200 font-medium">
+            <p className="mt-2 text-gray-700 dark:text-brand-200 font-medium">
               Discover and rent professional Expert Advisors
             </p>
           </div>
@@ -432,7 +432,7 @@ const EAMarketplace = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <h2 className="text-2xl font-semibold text-white tracking-wide mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-wide mb-4">
             Featured EAs
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -576,7 +576,7 @@ const EAMarketplace = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        <h2 className="text-xl font-semibold text-white tracking-wide mb-3">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white tracking-wide mb-3">
           {activeCategory === 'all' ? 'All EAs' : categories.find(c => c.id === activeCategory)?.name}
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

@@ -315,7 +315,7 @@ const CustomEA = () => {
               </div>
             ))}
           </div>
-          <div className="hidden sm:flex justify-between text-xs md:text-sm text-gray-600 dark:text-brand-300 mt-2">
+          <div className="hidden sm:flex justify-between text-xs md:text-sm text-brand-300 mt-2">
             <span className="text-center flex-1">Service Type</span>
             <span className="text-center flex-1">Requirements</span>
             <span className="text-center flex-1">Technical</span>
@@ -337,7 +337,7 @@ const CustomEA = () => {
               {/* Step 1: Service Type */}
               {currentStep === 1 && (
                 <div>
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-primary-200 mb-4 sm:mb-6">Choose Your Service</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Choose Your Service</h2>
                   
                   <div className="space-y-4">
                     <div className={`border-2 rounded-lg p-6 hover:border-primary-500 transition-all cursor-pointer ${
@@ -484,7 +484,7 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">
+                      <label className="block text-xs sm:text-sm font-medium text-white mb-3 sm:mb-4">
                         Trading Style
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -502,7 +502,7 @@ const CustomEA = () => {
                             >
                               <div className="flex items-center space-x-3">
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${style.color}`}>
-                                  <Icon className="w-5 h-5 text-gray-900 dark:text-white" />
+                                  <Icon className="w-5 h-5 text-white" />
                                 </div>
                                 <div>
                                   <h4 className={`font-semibold text-sm ${
@@ -640,7 +640,7 @@ const CustomEA = () => {
                   
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 dark:text-white mb-4">
+                      <label className="block text-sm font-medium text-white mb-4">
                         Delivery Timeline
                       </label>
                       <div className="space-y-3">
@@ -671,7 +671,7 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 dark:text-white mb-4">
+                      <label className="block text-sm font-medium text-white mb-4">
                         Budget Range
                       </label>
                       <div className="space-y-3">
@@ -688,14 +688,14 @@ const CustomEA = () => {
                             <div className="flex items-center justify-between">
                               <div>
                                 <span className={`font-medium ${
-                                  formData.budget === range.label ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
+                                  formData.budget === range.label ? 'text-gray-900' : 'text-white'
                                 }`}>{range.label}</span>
                                 <p className={`text-sm ${
-                                  formData.budget === range.label ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-brand-300'
+                                  formData.budget === range.label ? 'text-gray-700' : 'text-brand-300'
                                 }`}>{range.description}</p>
                               </div>
                               <DollarSign className={`w-5 h-5 ${
-                                formData.budget === range.label ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-brand-300'
+                                formData.budget === range.label ? 'text-gray-700' : 'text-brand-300'
                               }`} />
                             </div>
                           </div>
@@ -704,22 +704,22 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                      <label className="block text-sm font-medium text-white mb-2">
                         💰 Custom Budget (Optional)
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-900 dark:text-white">$</span>
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white">$</span>
                         <input
                           type="number"
                           placeholder="Enter your custom budget amount"
                           value={formData.customBudget || ''}
                           onChange={(e) => handleInputChange('customBudget', e.target.value)}
-                          className="w-full pl-8 pr-3 py-3 bg-white dark:bg-brand-800 border border-gray-300 dark:border-brand-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-brand-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          className="w-full pl-8 pr-3 py-3 bg-brand-800 border border-brand-600 rounded-lg text-white placeholder-brand-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           min="100"
                           step="50"
                         />
                       </div>
-                      <p className="text-xs text-gray-600 dark:text-brand-300 mt-1">
+                      <p className="text-xs text-brand-300 mt-1">
                         Leave empty to use the selected budget range above
                       </p>
                     </div>
@@ -902,38 +902,38 @@ const CustomEA = () => {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-gradient-to-br from-brand-900 to-black rounded-lg sm:rounded-xl shadow-soft border border-brand-800/70 p-4 sm:p-6 sticky top-4 sm:top-8">
-              <h3 className="text-base sm:text-lg font-semibold text-primary-200 mb-3 sm:mb-4">Why Choose Us?</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-200 mb-3 sm:mb-4">Why Choose Us?</h3>
               
               <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-start space-x-2 sm:space-x-3">
                   <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="text-sm sm:text-base font-medium text-primary-200">Expert Developers</h4>
-                    <p className="text-xs sm:text-sm text-brand-300">10+ years experience in MQL programming</p>
+                    <h4 className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-200">Expert Developers</h4>
+                    <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">10+ years experience in MQL programming</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start space-x-2 sm:space-x-3">
                   <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="text-sm sm:text-base font-medium text-primary-200">Quality Guarantee</h4>
-                    <p className="text-xs sm:text-sm text-brand-300">100% satisfaction or money back</p>
+                    <h4 className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-200">Quality Guarantee</h4>
+                    <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">100% satisfaction or money back</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start space-x-2 sm:space-x-3">
                   <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="text-sm sm:text-base font-medium text-primary-200">Fast Delivery</h4>
-                    <p className="text-xs sm:text-sm text-brand-300">Most EAs delivered within 1 week</p>
+                    <h4 className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-200">Fast Delivery</h4>
+                    <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Most EAs delivered within 1 week</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start space-x-2 sm:space-x-3">
                   <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="text-sm sm:text-base font-medium text-primary-200">24/7 Support</h4>
-                    <p className="text-xs sm:text-sm text-brand-300">Ongoing support and maintenance</p>
+                    <h4 className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-200">24/7 Support</h4>
+                    <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Ongoing support and maintenance</p>
                   </div>
                 </div>
               </div>

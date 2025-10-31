@@ -485,7 +485,7 @@ const Portfolio = () => {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white tracking-wide">
                   Upload Portfolio CSV
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-brand-200 max-w-2xl">
+                <p className="text-sm text-gray-600 dark:text-gray-300 max-w-2xl">
                   Import statements exported from MT4/MT5, Polygon flat files, or other brokers. We'll store the file locally and preview the first few lines so you can confirm the format before processing.
                 </p>
               </div>
@@ -518,7 +518,7 @@ const Portfolio = () => {
             </div>
 
             {selectedCsv && (
-              <div className="mt-4 text-sm text-gray-500 dark:text-brand-200">
+              <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
                 Selected file: <span className="font-semibold text-gray-900 dark:text-white">{selectedCsv.name}</span> ({(selectedCsv.size / 1024).toFixed(1)} KB)
               </div>
             )}
@@ -535,19 +535,19 @@ const Portfolio = () => {
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     Preview (first {uploadPreview.preview.length} lines)
                   </h3>
-                  <p className="text-xs text-gray-700 dark:text-brand-200">Saved to: {uploadPreview.savedTo}</p>
+                  <p className="text-xs text-gray-700 dark:text-gray-300">Saved to: {uploadPreview.savedTo}</p>
                 </div>
-                <pre className="mt-3 max-h-48 overflow-auto rounded bg-gray-100 dark:bg-black/40 p-3 text-xs text-gray-900 dark:text-brand-100">
+                <pre className="mt-3 max-h-48 overflow-auto rounded bg-gray-100 dark:bg-black/40 p-3 text-xs text-gray-900 dark:text-gray-200">
                   {uploadPreview.preview.length ? uploadPreview.preview.join('\n') : 'No data detected.'}
                 </pre>
 
                 {analysis && (
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     <div className="rounded-lg border border-gray-200 dark:border-brand-800/60 bg-gray-50 dark:bg-brand-900/60 p-4">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-brand-200">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
                         PnL Summary
                       </h4>
-                      <div className="mt-3 space-y-2 text-sm text-gray-900 dark:text-brand-100">
+                      <div className="mt-3 space-y-2 text-sm text-gray-900 dark:text-gray-200">
                         <div className="flex items-center justify-between">
                           <span>Total Profit</span>
                           <span className={analysisTotals?.totalProfit >= 0 ? 'text-success-300' : 'text-danger-300'}>
@@ -576,11 +576,11 @@ const Portfolio = () => {
                         )}
                       </div>
                     </div>
-                    <div className="rounded-lg border border-brand-800/60 bg-brand-900/60 p-4">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-brand-200">
+                    <div className="rounded-lg border border-gray-200 dark:border-brand-800/60 bg-gray-50 dark:bg-brand-900/60 p-4">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
                         CSV Details
                       </h4>
-                      <div className="mt-3 space-y-2 text-sm text-brand-100">
+                      <div className="mt-3 space-y-2 text-sm text-gray-900 dark:text-gray-200">
                         <div className="flex items-center justify-between">
                           <span>Rows Parsed</span>
                           <span>{analysis.parsedRows}/{analysis.totalRows}</span>
@@ -624,11 +624,11 @@ const Portfolio = () => {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white tracking-wide">
                   Monthly PnL
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-brand-200">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   {monthLabel} - {formatPnLValue(totalMonthlyPnL)} total
                 </p>
               </div>
-              <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-brand-200">
+              <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded bg-success-500/70" />
                   <span>Gain</span>
@@ -651,7 +651,7 @@ const Portfolio = () => {
             ) : (
             <div className="grid grid-cols-7 gap-2 text-xs">
               {dayLabels.map((label) => (
-                <div key={label} className="text-center text-gray-500 dark:text-brand-300 uppercase tracking-widest">
+                <div key={label} className="text-center text-gray-600 dark:text-gray-300 uppercase tracking-widest">
                   {label}
                 </div>
               ))}
@@ -685,7 +685,7 @@ const Portfolio = () => {
             </div>
             )}
 
-            <p className="mt-4 text-xs text-gray-500 dark:text-brand-200">
+            <p className="mt-4 text-xs text-gray-600 dark:text-gray-300">
               Calendar uses mock trade statements. Replace with parsed CSV data once your upload pipeline is ready.
             </p>
           </Card.Body>

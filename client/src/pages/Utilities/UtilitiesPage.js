@@ -119,7 +119,7 @@ const UtilitiesPage = () => {
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight drop-shadow-sm">
               Free Trading Utilities
             </h1>
-            <p className="mt-2 text-gray-700 dark:text-brand-200 font-medium">
+            <p className="mt-2 text-gray-700 dark:text-gray-300 font-medium">
               Professional trading tools and calculators - completely free
             </p>
           </div>

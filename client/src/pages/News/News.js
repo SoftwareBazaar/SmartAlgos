@@ -372,103 +372,93 @@ const News = () => {
           </div>
         </Card>
 
-        {/* News Grid */}
+        {/* News Grid or Empty State */}
         {filteredNews.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredNews.map((article, index) => (
-            <motion.div
-              key={article.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="h-full hover:shadow-lg transition-shadow duration-200">
-                <div className="p-6 h-full flex flex-col">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      {getSentimentIcon(article.sentiment)}
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getImpactColor(article.impact)}`}>
-                        {article.impact} impact
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleBookmark(article.id)}
-                      className={bookmarkedNews.has(article.id) ? 'text-yellow-500' : 'text-gray-400'}
-                    >
-                      <Bookmark className={`h-4 w-4 ${bookmarkedNews.has(article.id) ? 'fill-current' : ''}`} />
-                    </Button>
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 line-clamp-2">
-                    {article.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 flex-1 line-clamp-3">
-                    {article.description}
-                  </p>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${getSentimentColor(article.sentiment)}`}>
-                      {article.sentiment}
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded text-xs font-medium">
-                      {article.category}
-                    </span>
-                    {article.symbols.slice(0, 2).map((symbol) => (
-                      <span
-                        key={symbol}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded text-xs font-medium"
+              <motion.div
+                key={article.id || `article-${index}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="h-full hover:shadow-lg transition-shadow duration-200">
+                  <div className="p-6 h-full flex flex-col">
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        {getSentimentIcon(article.sentiment)}
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${getImpactColor(article.impact)}`}>
+                          {article.impact} impact
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleBookmark(article.id)}
+                        className={bookmarkedNews.has(article.id) ? 'text-yellow-500' : 'text-gray-400'}
                       >
-                        {symbol}
+                        <Bookmark className={`h-4 w-4 ${bookmarkedNews.has(article.id) ? 'fill-current' : ''}`} />
+                      </Button>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 line-clamp-2">
+                      {article.title || 'Untitled'}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-gray-600 dark:text-gray-400 mb-4 flex-1 line-clamp-3">
+                      {article.description || 'No description available.'}
+                    </p>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${getSentimentColor(article.sentiment)}`}>
+                        {article.sentiment || 'neutral'}
                       </span>
-                    ))}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                      <Clock className="h-4 w-4" />
-                      {new Date(article.published_at).toLocaleDateString()}
+                      <span className="px-2 py-1 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded text-xs font-medium">
+                        {article.category || 'general'}
+                      </span>
+                      {article.symbols && article.symbols.length > 0 && article.symbols.slice(0, 2).map((symbol) => (
+                        <span
+                          key={symbol}
+                          className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded text-xs font-medium"
+                        >
+                          {symbol}
+                        </span>
+                      ))}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Share2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        <Clock className="h-4 w-4" />
+                        {article.published_at ? new Date(article.published_at).toLocaleDateString() : 'Recent'}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {article.url && (
+                          <Button variant="ghost" size="sm" onClick={() => window.open(article.url, '_blank')}>
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="sm">
+                          <Share2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Source */}
+                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Source: {article.source || 'Unknown'}
                     </div>
                   </div>
-
-                  {/* Source */}
-                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                    Source: {article.source}
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* No Results */}
-        {filteredNews.length === 0 && (
-          <Card>
-            <div className="p-12 text-center">
-              <Newspaper className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                No news found
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Try adjusting your filters or search terms to find relevant news.
-              </p>
-            </div>
-          </Card>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState />
         )}
 
         {/* Telegram Integration */}

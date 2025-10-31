@@ -2,6 +2,7 @@
 const { body, param, validationResult } = require('express-validator');
 const { auth, updateActivity } = require('../middleware/auth');
 const mt5Service = require('../services/mt5Service');
+const mt5APIService = require('../services/mt5APIService');
 
 const router = express.Router();
 
@@ -157,6 +158,289 @@ router.post('/deploy', [
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to prepare deployment manifest'
+    });
+  }
+});
+
+// ==================== REAL MT5 API ENDPOINTS ====================
+
+// @route   POST /api/mt5/connect
+// @desc    Connect to MT5 server (real connection)
+// @access  Private
+router.post('/connect', [
+  auth,
+  updateActivity,
+  body('login').trim().notEmpty().withMessage('Login is required'),
+  body('password').trim().notEmpty().withMessage('Password is required'),
+  body('server').trim().notEmpty().withMessage('Server is required')
+], async (req, res) => {
+  try {
+    if (!handleValidation(req, res)) {
+      return;
+    }
+
+    const { login, password, server, timeout } = req.body;
+    
+    const result = await mt5APIService.connect({
+      login,
+      password,
+      server,
+      timeout: timeout || 60000
+    });
+
+    // Also save to database for future use
+    await mt5Service.upsertConnection(req.user.userId, {
+      login,
+      password,
+      server,
+      label: `${server}-${login}`
+    });
+
+    res.json({
+      success: true,
+      data: result,
+      message: 'Successfully connected to MT5 server'
+    });
+  } catch (error) {
+    console.error('MT5 connect error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to connect to MT5 server'
+    });
+  }
+});
+
+// @route   GET /api/mt5/account/:connectionKey
+// @desc    Get account information
+// @access  Private
+router.get('/account/:connectionKey', [
+  auth,
+  updateActivity,
+  param('connectionKey').notEmpty().withMessage('Connection key is required')
+], async (req, res) => {
+  try {
+    if (!handleValidation(req, res)) {
+      return;
+    }
+
+    const accountInfo = await mt5APIService.getAccountInfo(req.params.connectionKey);
+    
+    res.json({
+      success: true,
+      data: accountInfo
+    });
+  } catch (error) {
+    console.error('MT5 get account info error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get account information'
+    });
+  }
+});
+
+// @route   GET /api/mt5/balance/:connectionKey
+// @desc    Get account balance
+// @access  Private
+router.get('/balance/:connectionKey', [
+  auth,
+  updateActivity,
+  param('connectionKey').notEmpty()
+], async (req, res) => {
+  try {
+    const balance = await mt5APIService.getBalance(req.params.connectionKey);
+    
+    res.json({
+      success: true,
+      data: { balance }
+    });
+  } catch (error) {
+    console.error('MT5 get balance error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get balance'
+    });
+  }
+});
+
+// @route   GET /api/mt5/positions/:connectionKey
+// @desc    Get open positions
+// @access  Private
+router.get('/positions/:connectionKey', [
+  auth,
+  updateActivity,
+  param('connectionKey').notEmpty()
+], async (req, res) => {
+  try {
+    const symbol = req.query.symbol || null;
+    const positions = await mt5APIService.getPositions(req.params.connectionKey, symbol);
+    
+    res.json({
+      success: true,
+      data: positions
+    });
+  } catch (error) {
+    console.error('MT5 get positions error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get positions'
+    });
+  }
+});
+
+// @route   POST /api/mt5/order
+// @desc    Place a market order
+// @access  Private
+router.post('/order', [
+  auth,
+  updateActivity,
+  body('connectionKey').trim().notEmpty().withMessage('Connection key is required'),
+  body('symbol').trim().notEmpty().withMessage('Symbol is required'),
+  body('action').isIn(['BUY', 'SELL']).withMessage('Action must be BUY or SELL'),
+  body('volume').isFloat({ min: 0.01 }).withMessage('Volume must be at least 0.01')
+], async (req, res) => {
+  try {
+    if (!handleValidation(req, res)) {
+      return;
+    }
+
+    const { connectionKey, symbol, action, volume, price, sl, tp, comment } = req.body;
+    
+    const order = await mt5APIService.placeOrder(connectionKey, {
+      symbol,
+      action,
+      volume,
+      price,
+      sl,
+      tp,
+      comment
+    });
+    
+    res.json({
+      success: true,
+      data: order,
+      message: 'Order placed successfully'
+    });
+  } catch (error) {
+    console.error('MT5 place order error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to place order'
+    });
+  }
+});
+
+// @route   DELETE /api/mt5/position/:connectionKey/:ticket
+// @desc    Close a position
+// @access  Private
+router.delete('/position/:connectionKey/:ticket', [
+  auth,
+  updateActivity,
+  param('connectionKey').notEmpty(),
+  param('ticket').isInt().withMessage('Ticket must be an integer')
+], async (req, res) => {
+  try {
+    if (!handleValidation(req, res)) {
+      return;
+    }
+
+    const result = await mt5APIService.closePosition(
+      req.params.connectionKey,
+      req.params.ticket
+    );
+    
+    res.json({
+      success: true,
+      data: result,
+      message: 'Position closed successfully'
+    });
+  } catch (error) {
+    console.error('MT5 close position error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to close position'
+    });
+  }
+});
+
+// @route   GET /api/mt5/market-price/:connectionKey/:symbol
+// @desc    Get current market price
+// @access  Private
+router.get('/market-price/:connectionKey/:symbol', [
+  auth,
+  updateActivity,
+  param('connectionKey').notEmpty(),
+  param('symbol').notEmpty()
+], async (req, res) => {
+  try {
+    const price = await mt5APIService.getMarketPrice(
+      req.params.connectionKey,
+      req.params.symbol
+    );
+    
+    res.json({
+      success: true,
+      data: price
+    });
+  } catch (error) {
+    console.error('MT5 get market price error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get market price'
+    });
+  }
+});
+
+// @route   GET /api/mt5/history/:connectionKey
+// @desc    Get order history
+// @access  Private
+router.get('/history/:connectionKey', [
+  auth,
+  updateActivity,
+  param('connectionKey').notEmpty()
+], async (req, res) => {
+  try {
+    const filters = {
+      symbol: req.query.symbol || null,
+      from: req.query.from || null,
+      to: req.query.to || null,
+      group: req.query.group || null
+    };
+
+    const history = await mt5APIService.getOrderHistory(req.params.connectionKey, filters);
+    
+    res.json({
+      success: true,
+      data: history
+    });
+  } catch (error) {
+    console.error('MT5 get history error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get order history'
+    });
+  }
+});
+
+// @route   POST /api/mt5/disconnect/:connectionKey
+// @desc    Disconnect from MT5 server
+// @access  Private
+router.post('/disconnect/:connectionKey', [
+  auth,
+  updateActivity,
+  param('connectionKey').notEmpty()
+], async (req, res) => {
+  try {
+    await mt5APIService.disconnect(req.params.connectionKey);
+    
+    res.json({
+      success: true,
+      message: 'Disconnected from MT5 server'
+    });
+  } catch (error) {
+    console.error('MT5 disconnect error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to disconnect'
     });
   }
 });

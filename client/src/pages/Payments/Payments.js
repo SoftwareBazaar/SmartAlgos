@@ -12,11 +12,13 @@ import {
   Download,
   RefreshCw,
   Plus,
-  ArrowLeft
+  ArrowLeft,
+  Mail
 } from 'lucide-react';
 import Button from '../../components/UI/Button';
 import Card from '../../components/UI/Card';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
+import { formatDate, formatDateTime, formatCurrency } from '../../utils/formatting';
 
 const Payments = () => {
   const { user } = useAuth();
@@ -138,11 +140,16 @@ const Payments = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentData, setPaymentData] = useState({
     amount: 0,
-    currency: 'NGN',
+    currency: 'USD',
     email: user?.email || '',
     description: '',
     authorization_code: '',
     paymentMethod: 'initialize' // 'initialize', 'charge_authorization', 'initialize_paused'
+  });
+  const [paymentErrors, setPaymentErrors] = useState({
+    amount: '',
+    email: '',
+    description: ''
   });
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
 
@@ -228,7 +235,49 @@ const Payments = () => {
     }
   };
 
+  // Validate payment form
+  const validatePaymentForm = () => {
+    const errors = {
+      amount: '',
+      email: '',
+      description: ''
+    };
+    let isValid = true;
+
+    // Validate amount
+    const amount = Number(paymentData.amount);
+    if (!amount || amount <= 0) {
+      errors.amount = 'Amount must be greater than 0';
+      isValid = false;
+    } else if (amount < 0.01) {
+      errors.amount = 'Amount must be at least $0.01';
+      isValid = false;
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!paymentData.email || !emailRegex.test(paymentData.email)) {
+      errors.email = 'Please enter a valid email address';
+      isValid = false;
+    }
+
+    // Validate description (optional but recommended)
+    if (paymentData.description && paymentData.description.length > 500) {
+      errors.description = 'Description must be less than 500 characters';
+      isValid = false;
+    }
+
+    setPaymentErrors(errors);
+    return isValid;
+  };
+
   const handleInitializePayment = async () => {
+    // Validate form before proceeding
+    if (!validatePaymentForm()) {
+      showNotification('Please fix the errors in the form', 'error');
+      return;
+    }
+
     setLoading(true);
     try {
       let endpoint = '/api/payments/initialize';
@@ -371,33 +420,17 @@ const Payments = () => {
     }
   };
 
-  const formatCurrency = (amount, currency = 'NGN') => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: currency
-    }).format(amount);
+  // Use centralized formatting utilities from utils/formatting.js
+  const formatCurrencyLocal = (amount, currency = 'USD') => {
+    return formatCurrency(amount, currency, 'en-US', { fallback: '$0.00' });
   };
 
-  const safeParseDate = (value) => {
-    try {
-      if (!value) return null;
-      const d = new Date(value);
-      return isNaN(d.getTime()) ? null : d;
-    } catch { return null; }
+  const formatDateLocal = (date) => {
+    return formatDate(date, 'en-US', { fallback: '-' });
   };
 
-  const formatDateTime = (value) => {
-    const d = safeParseDate(value);
-    if (!d) return '-';
-    return new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(d);
-  };
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const formatDateTimeLocal = (value) => {
+    return formatDateTime(value, 'en-US', { fallback: '-' });
   };
 
   if (loading && subscriptions.length === 0) {
@@ -555,10 +588,11 @@ const Payments = () => {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Spent</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {formatCurrency(
+                    {formatCurrencyLocal(
                       paymentHistory
                         .filter(p => p.status === 'succeeded')
                         .reduce((sum, p) => sum + p.amount, 0)
+                      , 'USD'
                     )}
                   </p>
                 </div>
@@ -641,7 +675,7 @@ const Payments = () => {
                           {subscription.product?.name || 'Platform Subscription'}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-500">
-                          {formatCurrency(subscription.price, subscription.currency)} / {subscription.interval}
+                          {formatCurrencyLocal(subscription.price, subscription.currency)} / {subscription.interval}
                         </p>
                       </div>
                       <div className="flex items-center space-x-4">
@@ -664,13 +698,13 @@ const Payments = () => {
                       <div>
                         <span className="text-gray-600 dark:text-gray-400">Start Date:</span>
                         <span className="ml-2 text-gray-900 dark:text-white">
-                          {formatDate(subscription.startDate)}
+                          {formatDateLocal(subscription.startDate)}
                         </span>
                       </div>
                       <div>
                         <span className="text-gray-600 dark:text-gray-400">End Date:</span>
                         <span className="ml-2 text-gray-900 dark:text-white">
-                          {formatDate(subscription.endDate)}
+                          {formatDateLocal(subscription.endDate)}
                         </span>
                       </div>
                     </div>
@@ -734,7 +768,7 @@ const Payments = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {formatCurrency(payment.amount, payment.currency)}
+                          {formatCurrencyLocal(payment.amount, payment.currency)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
@@ -742,7 +776,7 @@ const Payments = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {formatDate(payment.created)}
+                          {formatDateLocal(payment.created)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           {payment.receiptUrl && (
@@ -795,7 +829,7 @@ const Payments = () => {
                           {invoice.description}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-500">
-                          {formatCurrency(invoice.amount, invoice.currency)}
+                          {formatCurrencyLocal(invoice.amount, invoice.currency)}
                         </p>
                       </div>
                       <div className="flex items-center space-x-4">
@@ -816,13 +850,13 @@ const Payments = () => {
                       <div>
                         <span className="text-gray-600 dark:text-gray-400">Due Date:</span>
                         <span className="ml-2 text-gray-900 dark:text-white">
-                          {formatDate(invoice.dueDate)}
+                          {formatDateLocal(invoice.dueDate)}
                         </span>
                       </div>
                       <div>
                         <span className="text-gray-600 dark:text-gray-400">Paid Date:</span>
                         <span className="ml-2 text-gray-900 dark:text-white">
-                          {invoice.paidDate ? formatDate(invoice.paidDate) : 'Not paid'}
+                          {invoice.paidDate ? formatDateLocal(invoice.paidDate) : 'Not paid'}
                         </span>
                       </div>
                     </div>
@@ -849,7 +883,7 @@ const Payments = () => {
                     </h3>
                     <div className="mb-4">
                       <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                        {formatCurrency(plan.price, plan.currency)}
+                        {formatCurrencyLocal(plan.price, plan.currency)}
                       </span>
                       <span className="text-gray-600 dark:text-gray-400">/{plan.interval}</span>
                     </div>
@@ -934,61 +968,79 @@ const Payments = () => {
                 </div>
               )}
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Amount
-                </label>
-                <input
-                  type="number"
-                  min={0.01}
-                  step={0.01}
-                  value={paymentData.amount}
-                  onChange={(e) => setPaymentData(prev => ({ ...prev, amount: parseFloat(e.target.value) }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
-                  disabled={paymentData.paymentMethod === 'charge_authorization'}
-                />
-              </div>
+              <Input
+                label="Amount"
+                type="number"
+                min={0.01}
+                step={0.01}
+                value={paymentData.amount}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  setPaymentData(prev => ({ ...prev, amount: value }));
+                  if (paymentErrors.amount) {
+                    setPaymentErrors(prev => ({ ...prev, amount: '' }));
+                  }
+                }}
+                error={paymentErrors.amount}
+                helperText="Minimum amount: $0.01"
+                leftIcon={<DollarSign className="h-4 w-4" />}
+                disabled={paymentData.paymentMethod === 'charge_authorization'}
+                aria-label="Payment amount"
+              />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label 
+                  htmlFor="payment-currency"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Currency
                 </label>
                 <select
+                  id="payment-currency"
                   value={paymentData.currency}
                   onChange={(e) => setPaymentData(prev => ({ ...prev, currency: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                  aria-label="Payment currency"
                 >
-                  <option value="NGN">NGN</option>
-                  <option value="USD">USD</option>
-                  <option value="GHS">GHS</option>
-                  <option value="ZAR">ZAR</option>
-                  <option value="KES">KES</option>
+                  <option value="USD">USD - US Dollar</option>
+                  <option value="NGN">NGN - Nigerian Naira</option>
+                  <option value="KES">KES - Kenyan Shilling</option>
+                  <option value="GHS">GHS - Ghanaian Cedi</option>
+                  <option value="ZAR">ZAR - South African Rand</option>
                 </select>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={paymentData.email}
-                  onChange={(e) => setPaymentData(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
+              <Input
+                label="Email"
+                type="email"
+                value={paymentData.email}
+                onChange={(e) => {
+                  setPaymentData(prev => ({ ...prev, email: e.target.value }));
+                  if (paymentErrors.email) {
+                    setPaymentErrors(prev => ({ ...prev, email: '' }));
+                  }
+                }}
+                error={paymentErrors.email}
+                leftIcon={<Mail className="h-4 w-4" />}
+                aria-label="Email address for payment receipt"
+                required
+              />
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  value={paymentData.description}
-                  onChange={(e) => setPaymentData(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
+              <Input
+                label="Description (Optional)"
+                type="text"
+                value={paymentData.description}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setPaymentData(prev => ({ ...prev, description: value }));
+                  if (paymentErrors.description) {
+                    setPaymentErrors(prev => ({ ...prev, description: '' }));
+                  }
+                }}
+                error={paymentErrors.description}
+                helperText="Max 500 characters"
+                aria-label="Payment description"
+              />
             </div>
             
             <div className="flex space-x-3 mt-6">

@@ -922,7 +922,7 @@ const EAMarketplace = () => {
               </div>
 
               {/* Escrow Integration */}
-                  {useEscrow && selectedEA && (
+              {useEscrow && selectedEA && (
                 <EscrowIntegration
                   productType="ea_subscription"
                   productId={selectedEA.id}
@@ -1025,13 +1025,13 @@ const EAMarketplace = () => {
                     Only show a secondary CTA when a transaction exists. */}
                 {useEscrow ? (
                   escrowTransaction ? (
-                    <Button
-                      variant="primary"
-                      fullWidth
-                      onClick={() => window.open(`/api/escrow/transactions/${escrowTransaction.id}`, '_blank')}
-                    >
-                      View Escrow Transaction
-                    </Button>
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    onClick={() => window.open(`/api/escrow/transactions/${escrowTransaction.id}`, '_blank')}
+                  >
+                    View Escrow Transaction
+                  </Button>
                   ) : null
                 ) : (
                   <Button

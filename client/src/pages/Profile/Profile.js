@@ -28,6 +28,7 @@ import Input from '../../components/UI/Input';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { formatDateTime } from '../../utils/formatting';
 import apiClient from '../../lib/apiClient';
 import toast from 'react-hot-toast';
 
@@ -158,24 +159,9 @@ const mapUserToPreferences = (user, fallbackTheme) => {
   };
 };
 
-const formatDateTime = (value) => {
-  if (!value) {
-    return 'Not available';
-  }
-
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return 'Not available';
-    }
-
-    return date.toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    });
-  } catch (error) {
-    return 'Not available';
-  }
+// Use centralized formatting utilities from utils/formatting.js
+const formatDateTimeLocal = (value) => {
+  return formatDateTime(value, 'en-US', { fallback: 'Not available' });
 };
 
 const formatStatus = (status) => {
@@ -511,16 +497,16 @@ const Profile = () => {
             <div className="mt-6 space-y-3 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-primary-500" />
-                <span>Member since {formatDateTime(user?.created_at)}</span>
+                <span>Member since {formatDateTimeLocal(user?.created_at)}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4 text-primary-500" />
-                <span>Last login {formatDateTime(user?.last_login)}</span>
+                <span>Last login {formatDateTimeLocal(user?.last_login)}</span>
               </div>
               {subscriptionSummary.endDate && (
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-primary-500" />
-                  <span>Renewal on {formatDateTime(subscriptionSummary.endDate)}</span>
+                  <span>Renewal on {formatDateTimeLocal(subscriptionSummary.endDate)}</span>
                 </div>
               )}
             </div>
@@ -986,7 +972,7 @@ const Profile = () => {
                               {item.description || meta.label}
                             </p>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {formatDateTime(item.timestamp)}
+                              {formatDateTimeLocal(item.timestamp)}
                             </span>
                           </div>
                           {item.metadata && (

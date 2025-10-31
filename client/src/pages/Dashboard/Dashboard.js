@@ -8,24 +8,25 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Eye,
-  Users,
   Bot,
   Zap,
-  ArrowLeft,
-  Settings,
-  Shield
+  Shield,
+  BarChart3,
+  Target,
+  Clock,
+  Globe,
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import PNLCalendar from '../../components/Analysis/PNLCalendar';
 import { useAuth } from '../../contexts/AuthContext';
-// import { useWebSocket } from '../../contexts/WebSocketContext';
 import { useEA } from '../../contexts/EAContext';
 import apiClient from '../../lib/apiClient';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  // const { connected } = useWebSocket();
   const { getActiveEAs } = useEA();
   
   const [statsData, setStatsData] = useState(null);
@@ -52,12 +53,12 @@ const Dashboard = () => {
 
   // Transform API data to stats format
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value || 0);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value || 0);
   };
 
   const formatPercent = (value) => {
     const num = parseFloat(value) || 0;
-    return `${num >= 0 ? '+' : ''}${num.toFixed(1)}%`;
+    return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
   };
 
   const stats = statsData ? [
@@ -68,6 +69,10 @@ const Dashboard = () => {
       changePercent: formatPercent(statsData.todayPnLPercent),
       trend: (statsData.todayPnL || 0) >= 0 ? 'up' : 'down',
       icon: DollarSign,
+      color: 'primary',
+      bgGradient: 'from-primary-500/10 via-primary-500/5 to-transparent dark:from-primary-400/20 dark:via-primary-400/10',
+      iconBg: 'bg-primary-500/10 dark:bg-primary-400/20',
+      iconColor: 'text-primary-600 dark:text-primary-400',
     },
     {
       name: 'Today\'s P&L',
@@ -76,6 +81,16 @@ const Dashboard = () => {
       changePercent: formatPercent(statsData.todayPnLPercent),
       trend: (statsData.todayPnL || 0) >= 0 ? 'up' : 'down',
       icon: TrendingUp,
+      color: (statsData.todayPnL || 0) >= 0 ? 'success' : 'danger',
+      bgGradient: (statsData.todayPnL || 0) >= 0 
+        ? 'from-success-500/10 via-success-500/5 to-transparent dark:from-success-400/20 dark:via-success-400/10'
+        : 'from-danger-500/10 via-danger-500/5 to-transparent dark:from-danger-400/20 dark:via-danger-400/10',
+      iconBg: (statsData.todayPnL || 0) >= 0 
+        ? 'bg-success-500/10 dark:bg-success-400/20'
+        : 'bg-danger-500/10 dark:bg-danger-400/20',
+      iconColor: (statsData.todayPnL || 0) >= 0 
+        ? 'text-success-600 dark:text-success-400'
+        : 'text-danger-600 dark:text-danger-400',
     },
     {
       name: 'Active Signals',
@@ -84,6 +99,10 @@ const Dashboard = () => {
       changePercent: '+0%',
       trend: 'up',
       icon: Activity,
+      color: 'warning',
+      bgGradient: 'from-warning-500/10 via-warning-500/5 to-transparent dark:from-warning-400/20 dark:via-warning-400/10',
+      iconBg: 'bg-warning-500/10 dark:bg-warning-400/20',
+      iconColor: 'text-warning-600 dark:text-warning-400',
     },
     {
       name: 'Win Rate',
@@ -91,7 +110,11 @@ const Dashboard = () => {
       change: '+0%',
       changePercent: '+0%',
       trend: (statsData.winRate || 0) >= 50 ? 'up' : 'down',
-      icon: TrendingUp,
+      icon: Target,
+      color: 'info',
+      bgGradient: 'from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-400/20 dark:via-blue-400/10',
+      iconBg: 'bg-blue-500/10 dark:bg-blue-400/20',
+      iconColor: 'text-blue-600 dark:text-blue-400',
     },
   ] : [];
 
@@ -176,178 +199,182 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="space-y-6 text-white">
-      {/* Header with Back Button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            onClick={() => window.history.back()}
-            variant="outline"
-            size="sm"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Welcome back, Trader! 👋
-            </h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* Header Section */}
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800/50">
+        <div className="container-custom py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                Welcome back, {user?.name || 'Trader'}! 👋
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Here's your trading overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+            
+            {user?.role === 'admin' && user?.isAdminSession === true && (
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => window.open('/admin', '_blank')}
+                  variant="outline"
+                  size="sm"
+                  className="bg-primary-600 hover:bg-primary-700 text-white border-primary-600 dark:bg-primary-500 dark:hover:bg-primary-600"
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Admin Access
+                </Button>
+              </div>
+            )}
           </div>
         </div>
-        
-        {/* Admin Access Buttons - Only visible to actual admins */}
-        {user?.role === 'admin' && user?.isAdminSession === true && (
-          <div className="flex space-x-2">
-            <Button
-              onClick={() => window.open('/admin', '_blank')}
-              variant="outline"
-              size="sm"
-              className="bg-primary-500 hover:bg-primary-600 text-white border-primary-500"
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Admin Access
-            </Button>
-            <Button
-              onClick={() => window.open('/admin-login', '_blank')}
-              variant="outline"
-              size="sm"
-              className="bg-gray-600 hover:bg-gray-700 text-white border-gray-600"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Admin Login
-            </Button>
-          </div>
-        )}
       </div>
 
-      {/* Welcome Section */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Here's what's happening with your trading today.
-        </p>
-      </motion.div>
-
-      {/* Stats Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        {loadingStats ? (
-          // Loading skeleton
-          [1, 2, 3, 4].map((i) => (
-            <Card key={i} className="p-6">
-              <div className="animate-pulse">
-                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-24 mb-3"></div>
-                <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-32 mb-2"></div>
-                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-20"></div>
-              </div>
-            </Card>
-          ))
-        ) : stats.length > 0 ? (
-          stats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={stat.name} hover className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      {stat.name}
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      {stat.value}
-                    </p>
-                    <div className="flex items-center mt-1">
-                      {stat.trend === 'up' ? (
-                        <ArrowUpRight className="h-4 w-4 text-success-500" />
-                      ) : (
-                        <ArrowDownRight className="h-4 w-4 text-danger-500" />
-                      )}
-                      <span
-                        className={`text-sm font-medium ml-1 ${
-                          stat.trend === 'up'
-                            ? 'text-success-600 dark:text-success-400'
-                            : 'text-danger-600 dark:text-danger-400'
-                        }`}
-                      >
-                        {stat.changePercent}
-                      </span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
-                        vs yesterday
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-primary-100 dark:bg-primary-900 rounded-lg">
-                    <Icon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
-                  </div>
+      <div className="container-custom py-8 space-y-8">
+        {/* Stats Grid - Professional Trading Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+        >
+          {loadingStats ? (
+            [1, 2, 3, 4].map((i) => (
+              <Card key={i} className="overflow-hidden">
+                <div className="animate-pulse p-6">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-4"></div>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                 </div>
               </Card>
-            );
-          })
-        ) : (
-          // Empty state
-          <div className="col-span-4 text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">Unable to load dashboard statistics</p>
-          </div>
-        )}
-      </motion.div>
+            ))
+          ) : stats.length > 0 ? (
+            stats.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <motion.div
+                  key={stat.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <Card className="relative overflow-hidden border-2 border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all duration-300 group">
+                    {/* Background Gradient */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                    
+                    <div className="relative p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                            {stat.name}
+                          </p>
+                          <p className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                            {stat.value}
+                          </p>
+                        </div>
+                        <div className={`p-3 rounded-xl ${stat.iconBg} transition-transform duration-300 group-hover:scale-110`}>
+                          <Icon className={`h-6 w-6 ${stat.iconColor}`} />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 pt-3 border-t border-gray-200 dark:border-gray-800">
+                        {stat.trend === 'up' ? (
+                          <ArrowUpRight className="h-4 w-4 text-success-600 dark:text-success-400" />
+                        ) : (
+                          <ArrowDownRight className="h-4 w-4 text-danger-600 dark:text-danger-400" />
+                        )}
+                        <span
+                          className={`text-sm font-semibold ${
+                            stat.trend === 'up'
+                              ? 'text-success-600 dark:text-success-400'
+                              : 'text-danger-600 dark:text-danger-400'
+                          }`}
+                        >
+                          {stat.changePercent}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          vs yesterday
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })
+          ) : (
+            <div className="col-span-4 text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400">Unable to load dashboard statistics</p>
+            </div>
+          )}
+        </motion.div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Recent Signals */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="lg:col-span-2"
-        >
-          <Card>
-            <Card.Header>
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Recent Trading Signals
-                </h3>
-                <button className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">
-                  View all
-                </button>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Recent Signals - Enhanced */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="lg:col-span-2"
+          >
+            <Card className="h-full">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg">
+                      <Activity className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                        Recent Trading Signals
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Live market signals and alerts
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">
+                    View all
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               </div>
-            </Card.Header>
-            <Card.Body>
-              <div className="space-y-4">
-                {recentSignals.map((signal) => (
-                  <div
+              <div className="p-6 space-y-3">
+                {recentSignals.map((signal, idx) => (
+                  <motion.div
                     key={signal.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.3 + idx * 0.1 }}
+                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors border border-gray-200 dark:border-gray-800"
                   >
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-4 flex-1">
                       <div className="flex-shrink-0">
-                        <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
-                          <span className="text-sm font-bold text-primary-600 dark:text-primary-400">
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 rounded-xl flex items-center justify-center shadow-lg">
+                          <span className="text-sm font-bold text-white">
                             {signal.symbol}
                           </span>
                         </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                           {signal.name}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {signal.time}
-                        </p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Clock className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {signal.time}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-6">
                       <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          ${signal.price}
+                        <p className="text-sm font-bold text-gray-900 dark:text-white">
+                          ${signal.price.toFixed(2)}
                         </p>
                         <p
-                          className={`text-xs ${
+                          className={`text-xs font-semibold ${
                             signal.change.startsWith('+')
                               ? 'text-success-600 dark:text-success-400'
                               : 'text-danger-600 dark:text-danger-400'
@@ -358,12 +385,12 @@ const Dashboard = () => {
                       </div>
                       <div className="text-right">
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold ${
                             signal.signal === 'BUY'
-                              ? 'bg-success-100 text-success-800 dark:bg-success-900 dark:text-success-200'
+                              ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400 border border-success-200 dark:border-success-800'
                               : signal.signal === 'SELL'
-                              ? 'bg-danger-100 text-danger-800 dark:bg-danger-900 dark:text-danger-200'
-                              : 'bg-warning-100 text-warning-800 dark:bg-warning-900 dark:text-warning-200'
+                              ? 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400 border border-danger-200 dark:border-danger-800'
+                              : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400 border border-warning-200 dark:border-warning-800'
                           }`}
                         >
                           {signal.signal}
@@ -373,96 +400,126 @@ const Dashboard = () => {
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </Card.Body>
-          </Card>
-        </motion.div>
+            </Card>
+          </motion.div>
 
-        {/* Active EAs */}
+          {/* Active EAs - Enhanced */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Card className="h-full">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg">
+                    <Bot className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                      Active EAs
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Running expert advisors
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
+                {activeEAs.length > 0 ? (
+                  activeEAs.map((ea) => (
+                    <div
+                      key={ea.id}
+                      className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {ea.name}
+                        </h4>
+                        <div className="relative">
+                          <span className="status-online animate-pulse"></span>
+                          <span className="absolute inset-0 status-online animate-ping opacity-75"></span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                        {ea.category}
+                      </p>
+                      <div className="flex items-center justify-between text-xs">
+                        <div>
+                          <span className="font-bold text-success-600 dark:text-success-400">
+                            {ea.performance}
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400 ml-1">
+                            return
+                          </span>
+                        </div>
+                        <div className="text-gray-500 dark:text-gray-400">
+                          {ea.trades} trades • {ea.winRate} win rate
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Bot className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      No active EAs
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Market Overview - Enhanced */}
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
         >
           <Card>
-            <Card.Header>
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Active EAs
-                </h3>
-                <Bot className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg">
+                  <Globe className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                    Market Overview
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Real-time market indices
+                  </p>
+                </div>
               </div>
-            </Card.Header>
-            <Card.Body>
-              <div className="space-y-4">
-                {activeEAs.map((ea) => (
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {marketOverview.map((market) => (
                   <div
-                    key={ea.id}
-                    className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                    key={market.symbol}
+                    className="p-5 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {ea.name}
-                      </h4>
-                      <span className="status-online"></span>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                      {ea.category}
-                    </p>
-                    <div className="flex items-center justify-between text-xs">
-                      <div>
-                        <span className="text-success-600 dark:text-success-400 font-medium">
-                          {ea.performance}
-                        </span>
-                        <span className="text-gray-500 dark:text-gray-400 ml-1">
-                          return
-                        </span>
-                      </div>
-                      <div className="text-gray-500 dark:text-gray-400">
-                        {ea.trades} trades • {ea.winRate} win rate
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card.Body>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Market Overview */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        <Card>
-          <Card.Header>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Market Overview
-            </h3>
-          </Card.Header>
-          <Card.Body>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {marketOverview.map((market) => (
-                <div
-                  key={market.symbol}
-                  className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                         {market.symbol}
                       </p>
-                      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                        {market.value}
-                      </p>
+                      {market.trend === 'up' ? (
+                        <TrendingUp className="h-4 w-4 text-success-600 dark:text-success-400" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-danger-600 dark:text-danger-400" />
+                      )}
                     </div>
-                    <div className="text-right">
+                    <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                      {market.value}
+                    </p>
+                    <div className="flex items-center space-x-2">
                       <p
-                        className={`text-sm font-medium ${
+                        className={`text-sm font-semibold ${
                           market.trend === 'up'
                             ? 'text-success-600 dark:text-success-400'
                             : 'text-danger-600 dark:text-danger-400'
@@ -481,35 +538,21 @@ const Dashboard = () => {
                       </p>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </Card.Body>
-        </Card>
-      </motion.div>
+          </Card>
+        </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.45 }}
-      >
-        <PNLCalendar />
-      </motion.div>
-
-      {/* Connection Status */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="fixed bottom-4 right-4"
-      >
-        <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-          <div className="w-2 h-2 rounded-full bg-success-500" />
-          <span className="text-sm text-gray-600 dark:text-gray-400">
-            Connected
-          </span>
-        </div>
-      </motion.div>
+        {/* PnL Calendar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.45 }}
+        >
+          <PNLCalendar />
+        </motion.div>
+      </div>
     </div>
   );
 };

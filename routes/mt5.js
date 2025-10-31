@@ -60,7 +60,8 @@ router.get('/connections/:id', [
       return;
     }
 
-    const connection = await mt5Service.getConnection(req.user.userId, req.params.id);
+    const userId = req.user.userId || req.user.id;
+    const connection = await mt5Service.getConnection(userId, req.params.id);
 
     if (!connection) {
       return res.status(404).json({
@@ -173,7 +174,8 @@ router.delete('/connections/:id', [
       return;
     }
 
-    const deleted = await mt5Service.deleteConnection(req.user.userId, req.params.id);
+    const userId = req.user.userId || req.user.id;
+    const deleted = await mt5Service.deleteConnection(userId, req.params.id);
 
     if (!deleted) {
       return res.status(404).json({
@@ -206,7 +208,8 @@ router.post('/deploy', [
       return;
     }
 
-    const manifest = await mt5Service.generateDeploymentManifest(req.user.userId, {
+    const userId = req.user.userId || req.user.id;
+    const manifest = await mt5Service.generateDeploymentManifest(userId, {
       eaId: req.body.eaId,
       connectionId: req.body.connectionId
     });
@@ -251,7 +254,8 @@ router.post('/connect', [
     });
 
     // Also save to database for future use
-    await mt5Service.upsertConnection(req.user.userId, {
+    const userId = req.user.userId || req.user.id;
+    await mt5Service.upsertConnection(userId, {
       login,
       password,
       server,

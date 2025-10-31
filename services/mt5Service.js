@@ -33,13 +33,26 @@ class MT5Service {
 
   readFallbackStore() {
     this.ensureFallbackStore();
-    const raw = fs.readFileSync(this.fallbackPath, 'utf-8');
-    return raw ? JSON.parse(raw) : {};
+    try {
+      const raw = fs.readFileSync(this.fallbackPath, 'utf-8');
+      const parsed = raw ? JSON.parse(raw) : {};
+      console.log('[MT5 Service] Read fallback store, keys:', Object.keys(parsed));
+      return parsed;
+    } catch (error) {
+      console.error('[MT5 Service] Error reading fallback store:', error.message);
+      return {};
+    }
   }
 
   writeFallbackStore(store) {
-    this.ensureFallbackStore();
-    fs.writeFileSync(this.fallbackPath, JSON.stringify(store, null, 2));
+    try {
+      this.ensureFallbackStore();
+      fs.writeFileSync(this.fallbackPath, JSON.stringify(store, null, 2), 'utf-8');
+      console.log('[MT5 Service] ✅ Fallback store written, keys:', Object.keys(store));
+    } catch (error) {
+      console.error('[MT5 Service] Error writing fallback store:', error.message);
+      throw error;
+    }
   }
 
   createId() {
@@ -74,24 +87,61 @@ class MT5Service {
     }
 
     if (this.supabase) {
-      const { data, error } = await this.supabase
-        .from('mt5_connections')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await this.supabase
+          .from('mt5_connections')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
+        if (error) {
+          // If table doesn't exist or query fails, fall back to local storage
+          if (error.code === 'PGRST205' || error.message?.includes('table') || error.message?.includes('not found')) {
+            console.warn('[MT5 Service] Table query failed, using fallback storage:', error.message);
+            // Continue to fallback below
+          } else {
+            throw error;
+          }
+        } else {
+          // Success - return Supabase data
+          console.log('[MT5 Service] Found', data?.length || 0, 'connections in Supabase');
+          return (data || []).map((record) => this.sanitizeConnection(record));
+        }
+      } catch (supabaseError) {
+        console.warn('[MT5 Service] Supabase query error, using fallback:', supabaseError.message);
+        // Continue to fallback below
       }
-
-      return (data || []).map((record) => this.sanitizeConnection(record));
     }
 
     // Fallback to local storage
-    console.log('[MT5 Service] Using fallback storage to list connections for user:', userId);
+    console.log('[MT5 Service] Using fallback storage to list connections for user:', userId, '(type:', typeof userId, ')');
     const store = this.readFallbackStore();
-    const connections = store[userId] || [];
+    
+    // Normalize userId to string for consistent storage/retrieval
+    const userIdKey = String(userId);
+    console.log('[MT5 Service] Looking for key:', userIdKey);
+    console.log('[MT5 Service] Available keys in store:', Object.keys(store));
+    
+    const connections = store[userIdKey] || [];
     console.log('[MT5 Service] Found', connections.length, 'connections in fallback storage');
+    
+    if (connections.length === 0) {
+      // Try alternative key formats
+      const altKeys = Object.keys(store).filter(key => 
+        key.includes(String(userId)) || String(userId).includes(key)
+      );
+      if (altKeys.length > 0) {
+        console.log('[MT5 Service] Trying alternative keys:', altKeys);
+        for (const altKey of altKeys) {
+          const altConnections = store[altKey] || [];
+          if (altConnections.length > 0) {
+            console.log('[MT5 Service] Found connections under alternative key:', altKey);
+            return altConnections.map((record) => this.sanitizeConnection(record));
+          }
+        }
+      }
+    }
+    
     return connections.map((record) => this.sanitizeConnection(record));
   }
 
@@ -245,9 +295,14 @@ class MT5Service {
     }
 
     // Fallback to local storage
-    console.log('[MT5 Service] Using fallback storage for user:', userId);
+    console.log('[MT5 Service] Using fallback storage for user:', userId, '(type:', typeof userId, ')');
     const store = this.readFallbackStore();
-    const list = store[userId] || [];
+    
+    // Normalize userId to string for consistent storage/retrieval
+    const userIdKey = String(userId);
+    const list = store[userIdKey] || [];
+    
+    console.log('[MT5 Service] Current connections for user:', list.length);
     const index = list.findIndex((item) => item.id === connectionId);
 
     const fallbackRecord = {
@@ -257,14 +312,17 @@ class MT5Service {
 
     if (index === -1) {
       list.push(fallbackRecord);
+      console.log('[MT5 Service] Adding new connection:', connectionId);
     } else {
       list[index] = fallbackRecord;
+      console.log('[MT5 Service] Updating existing connection:', connectionId);
     }
 
-    store[userId] = list;
+    store[userIdKey] = list;
     this.writeFallbackStore(store);
     
     console.log('[MT5 Service] ✅ Saved to fallback storage. Total connections for user:', list.length);
+    console.log('[MT5 Service] Store now has keys:', Object.keys(store));
 
     return this.sanitizeConnection(fallbackRecord);
   }

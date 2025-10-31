@@ -53,25 +53,51 @@ export const AuthProvider = ({ children }) => {
         const cachedUser = getUser();
         const cachedToken = getToken('user');
         if (cachedToken && cachedUser && isValidTokenFormat(cachedToken)) {
+          console.log('✓ Hydrating user from cache:', cachedUser.email);
           dispatch({ type: 'SET_USER', payload: cachedUser });
           apiClient.defaults.headers.common.Authorization = `Bearer ${cachedToken}`;
+          // Set loading to false immediately after hydration so UI doesn't wait
+          dispatch({ type: 'SET_LOADING', payload: false });
         } else if (cachedToken && !isValidTokenFormat(cachedToken)) {
           // Clear invalid tokens
           console.log('Clearing invalid token format');
           clearAuth('user');
+          dispatch({ type: 'SET_LOADING', payload: false });
+          return; // Exit early if no valid cache
+        } else {
+          // No cache at all - user needs to login
+          console.log('No cached auth found');
+          dispatch({ type: 'SET_LOADING', payload: false });
+          return;
         }
 
-        // Validate session with backend in the background
-        const userData = await getCurrentUser();
-        if (userData && userData.user) {
-          dispatch({ type: 'SET_USER', payload: userData.user });
-          setUser(userData.user);
+        // Validate session with backend in the background (non-blocking)
+        try {
+          const userData = await getCurrentUser();
+          if (userData && userData.user) {
+            console.log('✓ Backend validation successful:', userData.user.email);
+            dispatch({ type: 'SET_USER', payload: userData.user });
+            setUser(userData.user);
+          } else {
+            console.warn('Backend validation returned no user, keeping cache');
+          }
+        } catch (backendError) {
+          console.warn('Auth background check failed (non-fatal):', backendError?.message || backendError);
+          // Keep cached session; do not clear on transient errors
+          // User stays logged in with cached session
         }
       } catch (error) {
-        console.warn('Auth background check failed (non-fatal):', error?.message || error);
-        // Keep cached session; do not clear on transient errors
-      } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        console.error('Auth check error:', error?.message || error);
+        // Only clear if it's a critical error
+        const cachedToken = getToken('user');
+        if (!cachedToken) {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        } else {
+          // Keep loading state if we have a token (might be a transient error)
+          setTimeout(() => {
+            dispatch({ type: 'SET_LOADING', payload: false });
+          }, 1000);
+        }
       }
     };
 

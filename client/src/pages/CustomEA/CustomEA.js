@@ -506,10 +506,10 @@ const CustomEA = () => {
                                 </div>
                                 <div>
                                   <h4 className={`font-semibold text-sm ${
-                                    formData.tradingStyle === style.id ? 'text-gray-900' : 'text-white'
+                                    formData.tradingStyle === style.id ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
                                   }`}>{style.name}</h4>
                                   <p className={`text-xs ${
-                                    formData.tradingStyle === style.id ? 'text-gray-700' : 'text-brand-300'
+                                    formData.tradingStyle === style.id ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-brand-300'
                                   }`}>{style.description}</p>
                                 </div>
                               </div>
@@ -537,7 +537,7 @@ const CustomEA = () => {
                             <div className="text-center">
                               <div className="text-2xl mb-2">{platform.icon}</div>
                               <h4 className={`font-semibold text-sm ${
-                                formData.platform === platform.id ? 'text-gray-900' : 'text-white'
+                                formData.platform === platform.id ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
                               }`}>{platform.name}</h4>
                               <p className={`text-xs ${
                                 formData.platform === platform.id ? 'text-gray-900 dark:text-gray-200' : 'text-gray-700 dark:text-brand-300'
@@ -586,14 +586,14 @@ const CustomEA = () => {
                               onChange={() => handleArrayToggle('indicators', indicator)}
                               className="w-4 h-4 text-primary-500 border-brand-600 bg-brand-800 rounded focus:ring-primary-500"
                             />
-                            <span className="text-sm text-white font-medium">{indicator}</span>
+                            <span className="text-sm text-gray-900 dark:text-white font-medium">{indicator}</span>
                           </label>
                         ))}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-lg font-bold text-white mb-4 border-b-2 border-primary-500 pb-2">
+                      <label className="block text-lg font-bold text-gray-900 dark:text-white mb-4 border-b-2 border-primary-500 pb-2">
                         🛡️ Risk Management Features
                       </label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -605,14 +605,14 @@ const CustomEA = () => {
                               onChange={() => handleArrayToggle('riskManagement', feature)}
                               className="w-4 h-4 text-primary-500 border-brand-600 bg-brand-800 rounded focus:ring-primary-500"
                             />
-                            <span className="text-sm text-white font-medium">{feature}</span>
+                            <span className="text-sm text-gray-900 dark:text-white font-medium">{feature}</span>
                           </label>
                         ))}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-lg font-bold text-white mb-4 border-b-2 border-primary-500 pb-2">
+                      <label className="block text-lg font-bold text-gray-900 dark:text-white mb-4 border-b-2 border-primary-500 pb-2">
                         ⚡ Custom Features
                       </label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -624,7 +624,7 @@ const CustomEA = () => {
                               onChange={() => handleArrayToggle('customFeatures', feature)}
                               className="w-4 h-4 text-primary-500 border-brand-600 bg-brand-800 rounded focus:ring-primary-500"
                             />
-                            <span className="text-sm text-white font-medium">{feature}</span>
+                            <span className="text-sm text-gray-900 dark:text-white font-medium">{feature}</span>
                           </label>
                         ))}
                       </div>
@@ -660,7 +660,7 @@ const CustomEA = () => {
                                   formData.timeline === option.value ? 'text-gray-900 dark:text-gray-200' : 'text-gray-700 dark:text-brand-300'
                                 }`} />
                                 <span className={`font-medium ${
-                                  formData.timeline === option.value ? 'text-gray-900' : 'text-white'
+                                  formData.timeline === option.value ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
                                 }`}>{option.label}</span>
                               </div>
                               <span className={`font-semibold ${option.color}`}>{option.price}</span>

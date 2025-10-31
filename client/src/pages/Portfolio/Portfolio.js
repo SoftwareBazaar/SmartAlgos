@@ -530,7 +530,7 @@ const Portfolio = () => {
             )}
 
             {uploadPreview && (
-              <div className="mt-6 rounded-lg border border-brand-800/60 bg-brand-900/40 p-4">
+              <div className="mt-6 rounded-lg border border-gray-200 dark:border-brand-800/60 bg-gray-50 dark:bg-brand-900/40 p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     Preview (first {uploadPreview.preview.length} lines)

@@ -116,7 +116,10 @@ class MT5Service {
           }
         } else {
           // Success - return Supabase data
-          console.log('[MT5 Service] Found', data?.length || 0, 'connections in Supabase');
+          console.log('[MT5 Service] Found', data?.length || 0, 'connections in Supabase for user:', userId);
+          if (data && data.length > 0) {
+            console.log('[MT5 Service] Connection IDs:', data.map(r => ({ id: r.id, login: r.login, server: r.server })));
+          }
           return (data || []).map((record) => this.sanitizeConnection(record, false));
         }
       } catch (supabaseError) {
@@ -159,32 +162,50 @@ class MT5Service {
 
   async getConnection(userId, connectionId, includePassword = false) {
     if (!userId || !connectionId) {
+      console.log('[MT5 Service] getConnection: Missing userId or connectionId', { userId, connectionId });
       return null;
     }
 
+    const userIdKey = String(userId);
+    console.log('[MT5 Service] getConnection for user:', userIdKey, 'connection:', connectionId);
+
     if (this.supabase) {
-      const { data, error } = await this.supabase
-        .from('mt5_connections')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('id', connectionId)
-        .single();
+      try {
+        const { data, error } = await this.supabase
+          .from('mt5_connections')
+          .select('*')
+          .eq('user_id', userIdKey)
+          .eq('id', connectionId)
+          .single();
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          return null;
+        if (error) {
+          if (error.code === 'PGRST116') {
+            console.log('[MT5 Service] Connection not found in Supabase:', connectionId);
+            return null;
+          }
+          console.error('[MT5 Service] Supabase error getting connection:', error);
+          throw error;
         }
-        throw error;
-      }
 
-      return includePassword ? data : this.sanitizeConnection(data, includePassword);
+        console.log('[MT5 Service] Found connection in Supabase:', data?.id);
+        return includePassword ? data : this.sanitizeConnection(data, includePassword);
+      } catch (supabaseError) {
+        console.warn('[MT5 Service] Supabase getConnection failed, trying fallback:', supabaseError.message);
+        // Continue to fallback
+      }
     }
 
     // Fallback to local storage
-    const userIdKey = String(userId);
     const store = this.readFallbackStore();
     const list = store[userIdKey] || [];
     const record = list.find((r) => r.id === connectionId);
+    
+    if (record) {
+      console.log('[MT5 Service] Found connection in fallback storage');
+    } else {
+      console.log('[MT5 Service] Connection not found in fallback storage');
+    }
+    
     return record ? (includePassword ? record : this.sanitizeConnection(record, includePassword)) : null;
   }
 
@@ -244,13 +265,14 @@ class MT5Service {
           created_at: payload.created_at || now
         };
 
-        console.log('[MT5 Service] Upserting connection:', {
-          id: upsertData.id,
-          user_id: upsertData.user_id,
-          server: upsertData.server,
-          login: upsertData.login,
-          has_password: !!upsertData.password_encrypted
-        });
+          console.log('[MT5 Service] Upserting connection to Supabase:', {
+            id: upsertData.id,
+            user_id: upsertData.user_id,
+            user_id_type: typeof upsertData.user_id,
+            server: upsertData.server,
+            login: upsertData.login,
+            has_password: !!upsertData.password_encrypted
+          });
 
         const { data, error } = await this.supabase
           .from('mt5_connections')
@@ -280,10 +302,14 @@ class MT5Service {
                 .select()
                 .single();
 
-              if (!retryError && retryData) {
-                console.log('[MT5 Service] ✅ Table created and connection saved!');
-                return this.sanitizeConnection(retryData);
-              }
+          if (!retryError && retryData) {
+            console.log('[MT5 Service] ✅ Table created and connection saved!', {
+              id: retryData.id,
+              user_id: retryData.user_id,
+              login: retryData.login
+            });
+            return this.sanitizeConnection(retryData);
+          }
             } catch (createError) {
               console.warn('[MT5 Service] Could not create table automatically:', createError.message);
               console.warn('[MT5 Service] Using fallback storage. Run database/mt5_connections_table.sql in Supabase SQL Editor.');
@@ -299,6 +325,12 @@ class MT5Service {
           throw error;
         }
 
+        console.log('[MT5 Service] ✅ Connection saved to Supabase:', {
+          id: data.id,
+          user_id: data.user_id,
+          login: data.login,
+          server: data.server
+        });
         return this.sanitizeConnection(data);
       } catch (supabaseError) {
         // If Supabase fails (table doesn't exist, etc), fall back to local storage
@@ -338,6 +370,12 @@ class MT5Service {
     
     console.log('[MT5 Service] ✅ Saved to fallback storage. Total connections for user:', list.length);
     console.log('[MT5 Service] Store now has keys:', Object.keys(store));
+    console.log('[MT5 Service] Saved connection details:', {
+      id: fallbackRecord.id,
+      user_id: userIdKey,
+      login: fallbackRecord.login,
+      server: fallbackRecord.server
+    });
 
     return this.sanitizeConnection(fallbackRecord);
   }

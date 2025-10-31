@@ -22,19 +22,29 @@ function handleValidation(req, res) {
 router.get('/connections', [auth, updateActivity], async (req, res) => {
   try {
     // Use userId if available, otherwise use id
-    const userId = req.user.userId || req.user.id;
+    const userId = req.user.userId || req.user.id || req.user._id;
     console.log('[MT5 Route] Fetching connections for user:', userId);
+    console.log('[MT5 Route] req.user object:', {
+      userId: req.user.userId,
+      id: req.user.id,
+      _id: req.user._id,
+      email: req.user.email
+    });
     
     if (!userId) {
       console.error('[MT5 Route] No user ID found in req.user:', req.user);
       return res.status(400).json({
         success: false,
-        message: 'User ID not found'
+        message: 'User ID not found',
+        debug: process.env.NODE_ENV === 'development' ? { user: req.user } : undefined
       });
     }
     
     const connections = await mt5Service.listConnections(userId);
     console.log('[MT5 Route] Found connections:', connections.length);
+    if (connections.length > 0) {
+      console.log('[MT5 Route] Connection details:', connections.map(c => ({ id: c.id, login: c.login, server: c.server })));
+    }
     
     res.json({
       success: true,

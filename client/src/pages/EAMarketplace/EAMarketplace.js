@@ -446,7 +446,7 @@ const EAMarketplace = () => {
                 <Card hover className="h-full">
                   <div className="relative">
                     <div className="h-48 bg-gradient-to-br from-primary-500 to-primary-600 rounded-t-lg flex items-center justify-center">
-                      <Bot className="h-16 w-16 text-white" />
+                      <Bot className="h-16 w-16 text-gray-900 dark:text-white" />
                     </div>
                     <div className="absolute top-4 right-4">
                       <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-medium">
@@ -463,7 +463,7 @@ const EAMarketplace = () => {
                   <Card.Body>
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="text-lg font-semibold text-white">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {ea.name}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -472,7 +472,7 @@ const EAMarketplace = () => {
                       </div>
                       <div className="flex items-center">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="ml-1 text-sm font-medium text-white">
+                        <span className="ml-1 text-sm font-medium text-gray-900 dark:text-white">
                           {ea.rating}
                         </span>
                         <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
@@ -510,8 +510,8 @@ const EAMarketplace = () => {
                           const label = weekly ? 'per week' : monthly ? 'per month' : yearly ? 'lifetime' : '';
                           return (
                             <>
-                              <div className="text-4xl font-extrabold text-white drop-shadow-lg">${display}</div>
-                              <div className="text-xs font-medium text-brand-200 mt-1 tracking-wider">{label}{label && ' • Start Today'}</div>
+                              <div className="text-4xl font-extrabold text-gray-900 dark:text-white drop-shadow-lg">${display}</div>
+                              <div className="text-xs font-medium text-gray-700 dark:text-brand-200 mt-1 tracking-wider">{label}{label && ' • Start Today'}</div>
                             </>
                           );
                         })()}
@@ -596,7 +596,7 @@ const EAMarketplace = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Bot className="h-10 w-10 text-white" />
+                      <Bot className="h-10 w-10 text-gray-900 dark:text-white" />
                     )}
                   </div>
                   <div className="absolute top-4 left-4">
@@ -623,7 +623,7 @@ const EAMarketplace = () => {
                 <Card.Body className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-white truncate">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                         {ea.name}
                       </h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -661,8 +661,8 @@ const EAMarketplace = () => {
                       const unit = weekly ? '/week' : monthly ? '/month' : yearly ? 'lifetime' : '';
                       return (
                         <>
-                          <div className="text-xl font-bold text-white">${display}</div>
-                          <div className="text-xs font-medium text-brand-200">{ea.risk_level ? `Risk: ${ea.risk_level}` : unit}</div>
+                          <div className="text-xl font-bold text-gray-900 dark:text-white">${display}</div>
+                          <div className="text-xs font-medium text-gray-700 dark:text-brand-200">{ea.risk_level ? `Risk: ${ea.risk_level}` : unit}</div>
                         </>
                       );
                     })()}
@@ -670,7 +670,7 @@ const EAMarketplace = () => {
                     <div className="flex items-center space-x-1">
                       <div className="flex items-center">
                         <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                        <span className="ml-1 text-xs font-medium text-white">
+                        <span className="ml-1 text-xs font-medium text-gray-900 dark:text-white">
                           {ea.average_rating || 0}
                         </span>
                         <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">

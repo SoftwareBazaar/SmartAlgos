@@ -333,7 +333,7 @@ const HFTBotDetail = () => {
                         className="w-full h-48 object-cover rounded-lg"
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                        <Eye className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Eye className="h-8 w-8 text-gray-900 dark:text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </div>
                   ))}

@@ -315,7 +315,7 @@ const CustomEA = () => {
               </div>
             ))}
           </div>
-          <div className="hidden sm:flex justify-between text-xs md:text-sm text-brand-300 mt-2">
+          <div className="hidden sm:flex justify-between text-xs md:text-sm text-gray-600 dark:text-brand-300 mt-2">
             <span className="text-center flex-1">Service Type</span>
             <span className="text-center flex-1">Requirements</span>
             <span className="text-center flex-1">Technical</span>
@@ -484,7 +484,7 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-white mb-3 sm:mb-4">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">
                         Trading Style
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -502,7 +502,7 @@ const CustomEA = () => {
                             >
                               <div className="flex items-center space-x-3">
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${style.color}`}>
-                                  <Icon className="w-5 h-5 text-white" />
+                                  <Icon className="w-5 h-5 text-gray-900 dark:text-white" />
                                 </div>
                                 <div>
                                   <h4 className={`font-semibold text-sm ${
@@ -640,7 +640,7 @@ const CustomEA = () => {
                   
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-white mb-4">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-white mb-4">
                         Delivery Timeline
                       </label>
                       <div className="space-y-3">
@@ -671,7 +671,7 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-white mb-4">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-white mb-4">
                         Budget Range
                       </label>
                       <div className="space-y-3">
@@ -688,14 +688,14 @@ const CustomEA = () => {
                             <div className="flex items-center justify-between">
                               <div>
                                 <span className={`font-medium ${
-                                  formData.budget === range.label ? 'text-gray-900' : 'text-white'
+                                  formData.budget === range.label ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
                                 }`}>{range.label}</span>
                                 <p className={`text-sm ${
-                                  formData.budget === range.label ? 'text-gray-700' : 'text-brand-300'
+                                  formData.budget === range.label ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-brand-300'
                                 }`}>{range.description}</p>
                               </div>
                               <DollarSign className={`w-5 h-5 ${
-                                formData.budget === range.label ? 'text-gray-700' : 'text-brand-300'
+                                formData.budget === range.label ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-brand-300'
                               }`} />
                             </div>
                           </div>
@@ -704,22 +704,22 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-white mb-2">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                         💰 Custom Budget (Optional)
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white">$</span>
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-900 dark:text-white">$</span>
                         <input
                           type="number"
                           placeholder="Enter your custom budget amount"
                           value={formData.customBudget || ''}
                           onChange={(e) => handleInputChange('customBudget', e.target.value)}
-                          className="w-full pl-8 pr-3 py-3 bg-brand-800 border border-brand-600 rounded-lg text-white placeholder-brand-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          className="w-full pl-8 pr-3 py-3 bg-white dark:bg-brand-800 border border-gray-300 dark:border-brand-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-brand-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           min="100"
                           step="50"
                         />
                       </div>
-                      <p className="text-xs text-brand-300 mt-1">
+                      <p className="text-xs text-gray-600 dark:text-brand-300 mt-1">
                         Leave empty to use the selected budget range above
                       </p>
                     </div>

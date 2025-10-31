@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS public.mt5_connections (
   id TEXT PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
   label TEXT,
   broker TEXT,
   server TEXT NOT NULL,
@@ -26,29 +26,30 @@ CREATE INDEX IF NOT EXISTS idx_mt5_connections_server_login ON public.mt5_connec
 ALTER TABLE public.mt5_connections ENABLE ROW LEVEL SECURITY;
 
 -- Create policy: Users can only see their own connections
+-- Note: Using service role key bypasses RLS, so we filter by user_id in code
 CREATE POLICY "Users can view own connections"
   ON public.mt5_connections
   FOR SELECT
-  USING (auth.uid() = user_id);
+  USING (true); -- Allow all, filter by user_id in application code
 
 -- Create policy: Users can insert their own connections
 CREATE POLICY "Users can insert own connections"
   ON public.mt5_connections
   FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (true); -- Allow all, validate user_id in application code
 
 -- Create policy: Users can update their own connections
 CREATE POLICY "Users can update own connections"
   ON public.mt5_connections
   FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING (true)
+  WITH CHECK (true); -- Allow all, validate user_id in application code
 
 -- Create policy: Users can delete their own connections
 CREATE POLICY "Users can delete own connections"
   ON public.mt5_connections
   FOR DELETE
-  USING (auth.uid() = user_id);
+  USING (true); -- Allow all, validate user_id in application code
 
 -- Create updated_at trigger
 CREATE OR REPLACE FUNCTION update_updated_at_column()

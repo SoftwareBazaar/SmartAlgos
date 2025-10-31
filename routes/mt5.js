@@ -90,7 +90,8 @@ router.post('/connections', [
     res.status(201).json({
       success: true,
       data: connection,
-      message: req.body.id ? 'Connection updated successfully' : 'Connection created successfully'
+      message: req.body.id ? 'Connection updated successfully' : 'Connection created successfully',
+      storage: connection ? (connection.id ? 'database' : 'local') : 'local'
     });
   } catch (error) {
     console.error('Upsert MT5 connection error:', error);
@@ -100,6 +101,29 @@ router.post('/connections', [
       details: error.details,
       hint: error.hint
     });
+    
+    // If it's a table not found error, try to save to local storage as fallback
+    if (error.code === 'PGRST205' || error.message?.includes('table') || error.message?.includes('not found')) {
+      try {
+        console.log('[MT5 Route] Attempting fallback to local storage...');
+        // The mt5Service will automatically fall back to local storage
+        // But we need to catch and return success even if Supabase fails
+        const fallbackConnection = await mt5Service.upsertConnection(req.user.userId, req.body);
+        
+        if (fallbackConnection) {
+          return res.status(201).json({
+            success: true,
+            data: fallbackConnection,
+            message: 'Connection saved to local storage (Supabase table not found)',
+            storage: 'local',
+            note: 'Create mt5_connections table in Supabase for database storage. SQL: database/mt5_connections_table.sql'
+          });
+        }
+      } catch (fallbackError) {
+        console.error('[MT5 Route] Fallback storage also failed:', fallbackError.message);
+      }
+    }
+    
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to save MT5 connection',

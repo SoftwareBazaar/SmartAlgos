@@ -194,6 +194,34 @@ class MT5Service {
           .single();
 
         if (error) {
+          // Check if it's a table not found error - try to create table automatically
+          if (error.code === 'PGRST205' || error.message?.includes('table') || error.message?.includes('not found')) {
+            console.warn('[MT5 Service] Table mt5_connections does not exist. Attempting to create...');
+            
+            // Try to create table using a workaround
+            try {
+              await this.createTableIfNotExists();
+              
+              // Retry the upsert after creating table
+              const { data: retryData, error: retryError } = await this.supabase
+                .from('mt5_connections')
+                .upsert(upsertData, {
+                  onConflict: 'id',
+                  ignoreDuplicates: false
+                })
+                .select()
+                .single();
+
+              if (!retryError && retryData) {
+                console.log('[MT5 Service] ✅ Table created and connection saved!');
+                return this.sanitizeConnection(retryData);
+              }
+            } catch (createError) {
+              console.warn('[MT5 Service] Could not create table automatically:', createError.message);
+              console.warn('[MT5 Service] Using fallback storage. Run database/mt5_connections_table.sql in Supabase SQL Editor.');
+            }
+          }
+          
           console.error('[MT5 Service] Supabase error:', {
             code: error.code,
             message: error.message,
@@ -208,12 +236,6 @@ class MT5Service {
         // If Supabase fails (table doesn't exist, etc), fall back to local storage
         console.warn('[MT5 Service] Supabase upsert failed, using fallback storage:', supabaseError.message);
         console.warn('[MT5 Service] Error code:', supabaseError.code);
-        
-        // Check if it's a table not found error
-        if (supabaseError.code === 'PGRST205' || supabaseError.message?.includes('table') || supabaseError.message?.includes('not found')) {
-          console.warn('[MT5 Service] Table mt5_connections does not exist in Supabase. Using fallback storage.');
-          console.warn('[MT5 Service] To create the table, run the SQL in database/mt5_connections_table.sql');
-        }
         
         // Continue to fallback storage below
       }

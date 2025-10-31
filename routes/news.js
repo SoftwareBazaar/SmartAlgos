@@ -57,24 +57,33 @@ router.get('/', [
         limit: Math.ceil(options.limit / 2)
       });
       
-      // Transform GNews format to our standard format
-      allNews = allNews.concat(gnewsArticles.map(article => ({
-        id: article.url,
-        title: article.title,
-        description: article.description || article.content || '',
-        url: article.url,
-        source: article.source?.name || 'GNews',
-        published_at: article.publishedAt,
-        symbols: [],
-        image_url: article.image || null,
-        sentiment: article.sentiment || 'neutral',
-        impact: 'medium',
-        category: 'general',
-        relevance_score: 0.8,
-        provider: 'gnews'
-      })));
+      if (gnewsArticles && gnewsArticles.length > 0) {
+        console.log(`[News Route] ✅ GNews: Fetched ${gnewsArticles.length} articles`);
+        // Transform GNews format to our standard format
+        allNews = allNews.concat(gnewsArticles.map(article => ({
+          id: article.url,
+          title: article.title,
+          description: article.description || article.content || '',
+          url: article.url,
+          source: article.source?.name || 'GNews',
+          published_at: article.publishedAt,
+          symbols: [],
+          image_url: article.image || null,
+          sentiment: article.sentiment || 'neutral',
+          impact: 'medium',
+          category: 'general',
+          relevance_score: 0.8,
+          provider: 'gnews'
+        })));
+      } else {
+        console.log('[News Route] ⚠️ GNews returned empty results');
+      }
     } catch (gnewsError) {
-      console.log('[News Route] GNews failed:', gnewsError.message);
+      console.error('[News Route] ❌ GNews failed:', gnewsError.message);
+      if (gnewsError.response) {
+        console.error('[News Route] GNews status:', gnewsError.response.status);
+        console.error('[News Route] GNews response:', gnewsError.response.data);
+      }
     }
 
     // Add FMP news
@@ -84,33 +93,50 @@ router.get('/', [
         limit: Math.ceil(options.limit / 2)
       });
       
-      allNews = allNews.concat(fmpNews.map(article => ({
-        id: article.url || article.title,
-        title: article.title,
-        description: article.text || '',
-        url: article.url,
-        source: article.site || 'FMP',
-        published_at: article.publishedDate,
-        symbols: article.symbol ? [article.symbol] : [],
-        image_url: article.image || null,
-        sentiment: article.sentiment || 'neutral',
-        impact: 'medium',
-        category: 'general',
-        relevance_score: 0.9,
-        provider: 'fmp'
-      })));
+      if (fmpNews && fmpNews.length > 0) {
+        console.log(`[News Route] ✅ FMP: Fetched ${fmpNews.length} articles`);
+        allNews = allNews.concat(fmpNews.map(article => ({
+          id: article.url || article.title,
+          title: article.title,
+          description: article.text || '',
+          url: article.url,
+          source: article.site || 'FMP',
+          published_at: article.publishedDate,
+          symbols: article.symbol ? [article.symbol] : [],
+          image_url: article.image || null,
+          sentiment: article.sentiment || 'neutral',
+          impact: 'medium',
+          category: 'general',
+          relevance_score: 0.9,
+          provider: 'fmp'
+        })));
+      } else {
+        console.log('[News Route] ⚠️ FMP returned empty results');
+      }
     } catch (fmpError) {
-      console.log('[News Route] FMP news failed:', fmpError.message);
+      console.error('[News Route] ❌ FMP news failed:', fmpError.message);
+      if (fmpError.response) {
+        console.error('[News Route] FMP status:', fmpError.response.status);
+        console.error('[News Route] FMP response:', fmpError.response.data);
+      }
     }
 
     // Fallback to old service if both fail
     if (allNews.length === 0) {
+      console.warn('[News Route] ⚠️ No news from GNews or FMP, trying fallback service...');
       try {
         const result = await newsService.getFinancialNews(options);
-        allNews = result.data;
+        if (result && result.data && result.data.length > 0) {
+          console.log(`[News Route] ✅ Fallback: Fetched ${result.data.length} articles`);
+          allNews = result.data;
+        } else {
+          console.warn('[News Route] ⚠️ Fallback service also returned no data - will use mock');
+        }
       } catch (fallbackError) {
-        console.log('[News Route] Fallback service also failed:', fallbackError.message);
+        console.error('[News Route] ❌ Fallback service failed:', fallbackError.message);
       }
+    } else {
+      console.log(`[News Route] ✅ Total articles fetched: ${allNews.length}`);
     }
 
     // Apply filters

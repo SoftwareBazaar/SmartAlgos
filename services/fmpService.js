@@ -235,6 +235,11 @@ class FMPService {
    * Get market news
    */
   async getMarketNews(options = {}) {
+    // Check if API key is available and valid
+    if (!this.apiKey || this.apiKey === 'demo' || this.apiKey === 'your_fmp_key_here' || this.apiKey.includes('your_')) {
+      logger.warn('[FMP] API key not configured or invalid');
+      throw new Error('FMP API key not configured');
+    }
     const { tickers = [], limit = 50, page = 0 } = options;
     
     try {
@@ -249,8 +254,17 @@ class FMPService {
       }
 
       const response = await axios.get(`${this.baseUrl}/stock_news`, {
-        params
+        params,
+        timeout: 10000 // 10 second timeout
       });
+
+      // Check if response has data
+      if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
+        logger.warn('[FMP] No news articles returned from API');
+        return [];
+      }
+
+      logger.info(`[FMP] Successfully fetched ${response.data.length} news articles`);
 
       return response.data.map(article => ({
         publishedDate: article.publishedDate,
@@ -262,7 +276,13 @@ class FMPService {
         symbol: article.symbol
       }));
     } catch (error) {
-      console.error('[FMP] Error fetching market news:', error.message);
+      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+      logger.error(`[FMP] Error fetching market news: ${errorMsg}`);
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        logger.error('[FMP] Invalid API key - check your FMP_API_KEY');
+      } else if (error.response?.status === 429) {
+        logger.error('[FMP] Rate limit exceeded - free tier: 250 requests/day');
+      }
       throw error;
     }
   }

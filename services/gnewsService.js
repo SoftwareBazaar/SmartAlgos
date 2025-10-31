@@ -39,6 +39,12 @@ class GNewsService {
       }
     }
 
+    // Check if API key is available
+    if (!this.apiKey || this.apiKey === 'your_gnews_key_here' || this.apiKey.includes('your_')) {
+      logger.warn('[GNews] API key not configured or invalid');
+      throw new Error('GNews API key not configured');
+    }
+
     try {
       const response = await axios.get(`${this.baseUrl}/search`, {
         params: {
@@ -48,8 +54,15 @@ class GNewsService {
           max: limit,
           apikey: this.apiKey,
           sortby: 'publishedAt' // Most recent first
-        }
+        },
+        timeout: 10000 // 10 second timeout
       });
+
+      // Check if response has data
+      if (!response.data || !response.data.articles || response.data.articles.length === 0) {
+        logger.warn('[GNews] No articles returned from API');
+        return [];
+      }
 
       const articles = response.data.articles.map(article => ({
         title: article.title,
@@ -64,6 +77,8 @@ class GNewsService {
         }
       }));
 
+      logger.info(`[GNews] Successfully fetched ${articles.length} articles`);
+      
       this.cache.set(cacheKey, {
         data: articles,
         timestamp: Date.now()
@@ -71,7 +86,13 @@ class GNewsService {
 
       return articles;
     } catch (error) {
-      logger.throttle('gnews-financial', 'error', '[GNews] Error fetching financial news:', error.message);
+      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+      logger.error(`[GNews] Error fetching financial news: ${errorMsg}`);
+      if (error.response?.status === 401) {
+        logger.error('[GNews] Invalid API key - check your GNEWS_API_KEY');
+      } else if (error.response?.status === 429) {
+        logger.error('[GNews] Rate limit exceeded - free tier: 100 articles/day');
+      }
       throw error;
     }
   }

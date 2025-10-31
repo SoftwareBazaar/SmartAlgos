@@ -540,6 +540,8 @@ const News = () => {
             </Button>
           </div>
         </Card>
+          </>
+        )}
       </div>
 
       {/* AI Chat Assistant - Floating */}

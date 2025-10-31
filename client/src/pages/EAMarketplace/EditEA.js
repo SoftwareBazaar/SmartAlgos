@@ -223,8 +223,8 @@ const EditEA = () => {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white">Edit EA</h1>
-          <p className="text-gray-400 mt-1">Update your Expert Advisor details and preview</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit EA</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Update your Expert Advisor details and preview</p>
         </div>
         <div className="flex space-x-3">
           <Button 

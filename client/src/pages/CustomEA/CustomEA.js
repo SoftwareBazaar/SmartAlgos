@@ -277,8 +277,8 @@ const CustomEA = () => {
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex-1">
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary-200">Custom EA Design Service</h1>
-              <p className="text-brand-300 mt-1 sm:mt-2 text-xs sm:text-sm md:text-base">Get a professional Expert Advisor built to your exact specifications</p>
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-primary-200">Custom EA Design Service</h1>
+              <p className="text-gray-700 dark:text-brand-300 mt-1 sm:mt-2 text-xs sm:text-sm md:text-base">Get a professional Expert Advisor built to your exact specifications</p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
               <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-brand-300">

@@ -8,7 +8,13 @@
  */
 
 const axios = require('axios');
-const logger = require('./logger');
+
+// Simple logger wrapper
+const logger = {
+  info: (...args) => console.log('[INFO]', ...args),
+  warn: (...args) => console.warn('[WARN]', ...args),
+  error: (...args) => console.error('[ERROR]', ...args)
+};
 
 class BlockchainMonitorService {
   constructor() {

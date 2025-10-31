@@ -7,7 +7,13 @@
 const nodeCron = require('node-cron');
 const databaseService = require('./databaseService');
 const blockchainMonitor = require('./blockchainMonitorService');
-const logger = require('./logger');
+
+// Simple logger wrapper
+const logger = {
+  info: (...args) => console.log('[INFO]', ...args),
+  warn: (...args) => console.warn('[WARN]', ...args),
+  error: (...args) => console.error('[ERROR]', ...args)
+};
 
 class CryptoPaymentMonitor {
   constructor() {

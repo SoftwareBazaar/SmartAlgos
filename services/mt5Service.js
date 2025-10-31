@@ -131,37 +131,84 @@ class MT5Service {
       ? securityService.encrypt(payload.password)
       : payload.password_encrypted || null;
 
+    // Ensure login is a string (Supabase might expect string)
+    const loginValue = payload.login ? String(payload.login).trim() : null;
+    
+    if (!loginValue) {
+      throw new Error('Login is required');
+    }
+
+    // Ensure server is a string
+    const serverValue = payload.server ? String(payload.server).trim() : null;
+    
+    if (!serverValue) {
+      throw new Error('Server is required');
+    }
+
+    // Prepare metadata - ensure it's a valid object
+    let metadata = {};
+    if (payload.meta && typeof payload.meta === 'object') {
+      metadata = payload.meta;
+    } else if (payload.metadata && typeof payload.metadata === 'object') {
+      metadata = payload.metadata;
+    }
+
     const record = {
       id: connectionId,
       user_id: userId,
       label: payload.label || payload.connection_label || null,
       broker: payload.broker || null,
-      server: payload.server,
-      login: payload.login,
+      server: serverValue,
+      login: loginValue,
       account_type: payload.accountType || payload.account_type || null,
-      leverage: payload.leverage || null,
-      timezone: payload.timezone || null,
+      leverage: payload.leverage ? String(payload.leverage) : null,
+      timezone: payload.timezone ? String(payload.timezone) : null,
       is_demo: payload.isDemo ?? payload.is_demo ?? false,
-      metadata: payload.meta || payload.metadata || {},
+      metadata: metadata,
       password_encrypted: encryptedPassword,
       updated_at: now
     };
 
     if (this.supabase) {
-      const { data, error } = await this.supabase
-        .from('mt5_connections')
-        .upsert({
+      try {
+        const upsertData = {
           ...record,
           created_at: payload.created_at || now
-        })
-        .select()
-        .single();
+        };
 
-      if (error) {
-        throw error;
+        console.log('[MT5 Service] Upserting connection:', {
+          id: upsertData.id,
+          user_id: upsertData.user_id,
+          server: upsertData.server,
+          login: upsertData.login,
+          has_password: !!upsertData.password_encrypted
+        });
+
+        const { data, error } = await this.supabase
+          .from('mt5_connections')
+          .upsert(upsertData, {
+            onConflict: 'id',
+            ignoreDuplicates: false
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('[MT5 Service] Supabase error:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          });
+          throw error;
+        }
+
+        return this.sanitizeConnection(data);
+      } catch (supabaseError) {
+        // If Supabase fails, fall back to local storage
+        console.warn('[MT5 Service] Supabase upsert failed, using fallback storage:', supabaseError.message);
+        // Continue to fallback storage below
       }
-
-      return this.sanitizeConnection(data);
     }
 
     const store = this.readFallbackStore();

@@ -94,9 +94,20 @@ router.post('/connections', [
     });
   } catch (error) {
     console.error('Upsert MT5 connection error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
     res.status(500).json({
       success: false,
-      message: 'Failed to save MT5 connection'
+      message: error.message || 'Failed to save MT5 connection',
+      error: process.env.NODE_ENV === 'development' ? {
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      } : undefined
     });
   }
 });

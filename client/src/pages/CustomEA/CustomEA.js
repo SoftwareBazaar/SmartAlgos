@@ -337,7 +337,7 @@ const CustomEA = () => {
               {/* Step 1: Service Type */}
               {currentStep === 1 && (
                 <div>
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">Choose Your Service</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-primary-200 mb-4 sm:mb-6">Choose Your Service</h2>
                   
                   <div className="space-y-4">
                     <div className={`border-2 rounded-lg p-6 hover:border-primary-500 transition-all cursor-pointer ${
@@ -350,7 +350,7 @@ const CustomEA = () => {
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                           formData.serviceType === 'new_ea' 
                             ? 'bg-primary-500 text-white' 
-                            : 'bg-brand-700 text-brand-300'
+                            : 'bg-gray-200 dark:bg-brand-700 text-gray-700 dark:text-brand-300'
                         }`}>
                           <Rocket className="w-6 h-6" />
                         </div>
@@ -386,7 +386,7 @@ const CustomEA = () => {
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                           formData.serviceType === 'modify_ea' 
                             ? 'bg-primary-500 text-white' 
-                            : 'bg-brand-700 text-brand-300'
+                            : 'bg-gray-200 dark:bg-brand-700 text-gray-700 dark:text-brand-300'
                         }`}>
                           <Settings className="w-6 h-6" />
                         </div>
@@ -422,7 +422,7 @@ const CustomEA = () => {
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                           formData.serviceType === 'custom_indicator' 
                             ? 'bg-primary-500 text-white' 
-                            : 'bg-brand-700 text-brand-300'
+                            : 'bg-gray-200 dark:bg-brand-700 text-gray-700 dark:text-brand-300'
                         }`}>
                           <BarChart3 className="w-6 h-6" />
                         </div>
@@ -454,11 +454,11 @@ const CustomEA = () => {
               {/* Step 2: Requirements */}
               {currentStep === 2 && (
                 <div>
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">EA Requirements</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-primary-200 mb-4 sm:mb-6">EA Requirements</h2>
                   
                   <div className="space-y-4 sm:space-y-6">
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-brand-300 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-brand-300 mb-2">
                         EA Name
                       </label>
                       <input
@@ -471,7 +471,7 @@ const CustomEA = () => {
                     </div>
 
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-brand-300 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-brand-300 mb-2">
                         Description
                       </label>
                       <textarea
@@ -540,7 +540,7 @@ const CustomEA = () => {
                                 formData.platform === platform.id ? 'text-gray-900' : 'text-white'
                               }`}>{platform.name}</h4>
                               <p className={`text-xs ${
-                                formData.platform === platform.id ? 'text-gray-700' : 'text-brand-300'
+                                formData.platform === platform.id ? 'text-gray-900 dark:text-gray-200' : 'text-gray-700 dark:text-brand-300'
                               }`}>{platform.description}</p>
                             </div>
                           </div>
@@ -554,11 +554,11 @@ const CustomEA = () => {
               {/* Step 3: Technical Details */}
               {currentStep === 3 && (
                 <div>
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">Technical Requirements</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-primary-200 mb-4 sm:mb-6">Technical Requirements</h2>
                   
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-primary-200 mb-2">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-primary-200 mb-2">
                         Preferred Timeframe
                       </label>
                       <select
@@ -636,7 +636,7 @@ const CustomEA = () => {
               {/* Step 4: Timeline & Budget */}
               {currentStep === 4 && (
                 <div>
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-primary-200 mb-4 sm:mb-6">Timeline & Budget</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-primary-200 mb-4 sm:mb-6">Timeline & Budget</h2>
                   
                   <div className="space-y-6">
                     <div>
@@ -657,7 +657,7 @@ const CustomEA = () => {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-3">
                                 <Clock className={`w-5 h-5 ${
-                                  formData.timeline === option.value ? 'text-gray-700' : 'text-brand-300'
+                                  formData.timeline === option.value ? 'text-gray-900 dark:text-gray-200' : 'text-gray-700 dark:text-brand-300'
                                 }`} />
                                 <span className={`font-medium ${
                                   formData.timeline === option.value ? 'text-gray-900' : 'text-white'

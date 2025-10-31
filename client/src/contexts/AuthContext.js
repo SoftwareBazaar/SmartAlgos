@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
 import { adminLogin as bulletproofAdminLogin, getCurrentUser, logout as bulletproofLogout } from '../utils/auth';
+import { getToken, setToken, setUser, getUser, removeToken, removeUser, clearAuth, isValidTokenFormat } from '../utils/authStorage';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -36,8 +37,8 @@ export const AuthProvider = ({ children }) => {
 
   // Apply persisted authorization header
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    const token = getToken('user');
+    if (token && isValidTokenFormat(token)) {
       apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
     }
   }, []);
@@ -49,29 +50,22 @@ export const AuthProvider = ({ children }) => {
         console.log('=== CHECKING AUTH ON APP LOAD ===');
 
         // Hydrate user immediately from localStorage to avoid logout flicker
-        const cachedUser = localStorage.getItem('user');
-        const cachedToken = localStorage.getItem('token');
-        if (cachedToken && cachedUser) {
-          try {
-            const parsed = JSON.parse(cachedUser);
-            dispatch({ type: 'SET_USER', payload: parsed });
-            apiClient.defaults.headers.common.Authorization = `Bearer ${cachedToken}`;
-          } catch {}
-        }
-
-        // Clear any old JWT tokens (not our dev tokens)
-        const oldToken = localStorage.getItem('token');
-        if (oldToken && oldToken.includes('.') && oldToken.split('.').length === 3) {
-          console.log('Clearing old JWT token');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+        const cachedUser = getUser();
+        const cachedToken = getToken('user');
+        if (cachedToken && cachedUser && isValidTokenFormat(cachedToken)) {
+          dispatch({ type: 'SET_USER', payload: cachedUser });
+          apiClient.defaults.headers.common.Authorization = `Bearer ${cachedToken}`;
+        } else if (cachedToken && !isValidTokenFormat(cachedToken)) {
+          // Clear invalid tokens
+          console.log('Clearing invalid token format');
+          clearAuth('user');
         }
 
         // Validate session with backend in the background
         const userData = await getCurrentUser();
         if (userData && userData.user) {
           dispatch({ type: 'SET_USER', payload: userData.user });
-          localStorage.setItem('user', JSON.stringify(userData.user));
+          setUser(userData.user);
         }
       } catch (error) {
         console.warn('Auth background check failed (non-fatal):', error?.message || error);
@@ -92,11 +86,16 @@ export const AuthProvider = ({ children }) => {
       
       if (response.data.success) {
         const { token, user } = response.data;
-        localStorage.setItem('token', token);
+        
+        // Validate and store token using authStorage utility
+        if (!isValidTokenFormat(token)) {
+          throw new Error('Invalid token format received from server');
+        }
+        
+        setToken(token, 'user');
+        setUser(user);
         apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
         
-        // Persist user for fast hydration on refresh
-        localStorage.setItem('user', JSON.stringify(user));
         dispatch({ type: 'SET_USER', payload: user });
         toast.success('Login successful!');
         return { success: true, message: 'Login successful!' };
@@ -183,10 +182,16 @@ export const AuthProvider = ({ children }) => {
       const response = await apiClient.post(endpoint, userData);
       
       const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
       
-      dispatch({ type: 'SET_USER', payload: user });
+      // Validate and store token using authStorage utility
+      if (isValidTokenFormat(token)) {
+        setToken(token, 'user');
+        setUser(user);
+        apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+        dispatch({ type: 'SET_USER', payload: user });
+      } else {
+        throw new Error('Invalid token format received');
+      }
       const successMessage = isAdminRegistration ? 'Admin registration successful!' : 'Registration successful!';
       toast.success(successMessage);
       return { success: true };
@@ -218,10 +223,8 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Clear all tokens and user data
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      // Clear all tokens and user data using authStorage utility
+      clearAuth('user');
       delete apiClient.defaults.headers.common.Authorization;
       dispatch({ type: 'LOGOUT' });
       toast.success('Logged out successfully');
@@ -243,9 +246,9 @@ export const AuthProvider = ({ children }) => {
       console.error('Admin logout error:', error);
     } finally {
       // Clear all tokens and user data - CRITICAL for admin security
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      clearAuth('admin');
+      removeToken('user'); // Also clear regular user token if any
+      removeUser();
       delete apiClient.defaults.headers.common.Authorization;
       dispatch({ type: 'LOGOUT' });
       toast.success('Admin session ended. Please login again for security.');

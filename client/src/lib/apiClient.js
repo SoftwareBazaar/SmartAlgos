@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { removeToken, clearAuth, isValidTokenFormat } from '../utils/authStorage';
 
 // Get API base URL from environment or use defaults
 const getBaseURL = () => {
@@ -36,14 +37,13 @@ apiClient.interceptors.request.use((config) => {
     || (!process.env.NODE_ENV && runtimeEnv && runtimeEnv !== 'production')
     || runtimeEnv === 'development';
 
-  // Check if token is a malformed JWT (old Supabase token)
-  if (token && token.includes('.') && token.split('.').length === 3) {
-    console.warn('[API Client] Detected old JWT token, clearing it...');
+  // Check if token format is valid
+  if (token && !isValidTokenFormat(token)) {
+    console.warn('[API Client] Detected invalid token format, clearing it...');
     if (isAdminContext) {
-      localStorage.removeItem('admin_token');
+      removeToken('admin');
     } else {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      clearAuth('user');
     }
     token = null;
   }
@@ -87,23 +87,11 @@ apiClient.interceptors.response.use(
 
       // Handle specific error cases
       if (status === 401) {
-        // Check if it's a JWT token error
-        const errorMessage = error.response.data?.message || '';
-        if (errorMessage.includes('JWT') || errorMessage.includes('malformed') || errorMessage.includes('invalid')) {
-          console.warn('[API Client] JWT token error detected, clearing storage...');
-          if (isAdminContext) {
-            localStorage.removeItem('admin_token');
-          } else {
-            localStorage.clear();
-          }
+        // Clear auth data on 401 error
+        if (isAdminContext) {
+          removeToken('admin');
         } else {
-          // Regular unauthorized error
-          if (isAdminContext) {
-            localStorage.removeItem('admin_token');
-          } else {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-          }
+          clearAuth('user');
         }
         
         delete apiClient.defaults.headers.common.Authorization;

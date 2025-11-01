@@ -208,7 +208,7 @@ const CustomEA = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-2xl w-full text-center border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 sm:p-8 max-w-lg w-full text-center border border-gray-200 dark:border-gray-700"
         >
           <motion.div
             initial={{ scale: 0 }}

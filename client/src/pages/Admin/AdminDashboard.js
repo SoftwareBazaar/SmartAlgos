@@ -1347,11 +1347,11 @@ const AdminDashboard = () => {
                             key={`utility-${utility.id}-${utility.imageTimestamp || utility.updated_at || 0}`}
                             src={utility.image}
                             alt={utility.name}
-                            className="h-12 w-12 rounded-lg object-cover"
+                            className="h-20 w-20 rounded-lg object-cover border border-gray-300 dark:border-gray-600"
                           />
                         ) : (
-                          <div className="h-12 w-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                            <Settings className="h-6 w-6 text-gray-400" />
+                          <div className="h-20 w-20 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-300 dark:border-gray-600">
+                            <Settings className="h-8 w-8 text-gray-400" />
                           </div>
                         )}
                       </div>

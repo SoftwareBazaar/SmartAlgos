@@ -11,28 +11,10 @@ const path = require('path');
 const fs = require('fs').promises;
 const { auth, updateActivity } = require('../middleware/auth');
 const databaseService = require('../services/databaseService');
+const supabaseStorage = require('../services/supabaseStorage');
 
-// Configure multer for file uploads
-const UPLOAD_DIR = path.join(__dirname, '../uploads/utilities');
-const ensureUploadDir = async () => {
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
-};
-
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    try {
-      await ensureUploadDir();
-      cb(null, UPLOAD_DIR);
-    } catch (error) {
-      cb(error);
-    }
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const extension = path.extname(file.originalname) || '.jpg';
-    cb(null, `utility-${uniqueSuffix}${extension}`);
-  }
-});
+// Configure multer for file uploads - use memory storage for Supabase uploads
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
@@ -291,104 +273,81 @@ router.post('/', [
     let finalPreviews = previews;
     
     if (req.files) {
-      // Handle image upload
+      // Handle image upload to Supabase Storage
       if (req.files.image && req.files.image[0]) {
-        finalImage = `/uploads/utilities/${req.files.image[0].filename}`;
-        finalImageTimestamp = Date.now();
-      }
-      
-      // Handle utility file upload
-      if (req.files.uploadedFile && req.files.uploadedFile[0]) {
-        const uploadedFile = req.files.uploadedFile[0];
-        console.log('📤 Utility file upload initiated:', {
-          originalName: uploadedFile.originalname,
-          fileName: uploadedFile.filename,
-          size: uploadedFile.size,
-          mimetype: uploadedFile.mimetype,
-          path: uploadedFile.path
-        });
-        
-        // Upload to Supabase Storage
         try {
-          // Check if file exists and is readable
-          const fileExists = require('fs').existsSync(uploadedFile.path);
-          if (!fileExists) {
-            throw new Error(`Uploaded file not found at path: ${uploadedFile.path}`);
-          }
-
-          const fileBuffer = require('fs').readFileSync(uploadedFile.path);
-          console.log('📦 File buffer created, size:', fileBuffer.length, 'bytes');
-          
-          const fileName = `utility-${Date.now()}-${uploadedFile.originalname}`;
-          console.log('🔄 Uploading to Supabase Storage as:', fileName);
-          
-          // Get Supabase client
-          const supabaseClient = databaseService.getClient();
-          if (!supabaseClient) {
-            throw new Error('Supabase client not available');
-          }
-
-          const { data: uploadData, error: uploadError } = await supabaseClient.storage
-            .from('utilities')
-            .upload(fileName, fileBuffer, {
-              contentType: uploadedFile.mimetype || 'application/octet-stream',
-              upsert: true
-            });
-          
-          if (uploadError) {
-            console.error('❌ Supabase Storage upload error:', uploadError);
-            console.error('❌ Upload error details:', {
-              message: uploadError.message,
-              statusCode: uploadError.statusCode,
-              error: uploadError.error
-            });
-            throw uploadError;
-          }
-          
-          if (!uploadData || !uploadData.path) {
-            throw new Error('Upload successful but no file path returned from Supabase');
-          }
-          
-          // Update download URL to point to Supabase Storage
-          finalDownloadUrl = `https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/utilities/${uploadData.path}`;
-          console.log('✅ Utility file uploaded to Supabase Storage:', {
-            fileName: fileName,
-            path: uploadData.path,
-            downloadUrl: finalDownloadUrl
+          console.log('📤 Utility image upload initiated:', {
+            originalName: req.files.image[0].originalname,
+            size: req.files.image[0].size,
+            mimetype: req.files.image[0].mimetype
           });
           
-          // Clean up local file
-          try {
-            require('fs').unlinkSync(uploadedFile.path);
-            console.log('🗑️ Local temporary file cleaned up');
-          } catch (cleanupError) {
-            console.warn('⚠️ Failed to cleanup local file:', cleanupError.message);
-          }
+          const uploadResult = await supabaseStorage.uploadImage(
+            req.files.image[0].buffer,
+            req.files.image[0].originalname,
+            req.files.image[0].mimetype,
+            'utilities' // Bucket name
+          );
+          
+          finalImage = uploadResult.url;
+          finalImageTimestamp = Date.now();
+          console.log('✅ Utility image uploaded to Supabase:', finalImage);
         } catch (uploadError) {
-          console.error('❌ Error processing utility file:', uploadError);
-          console.error('❌ Full error details:', {
-            message: uploadError.message,
-            stack: uploadError.stack,
-            fileName: uploadedFile.originalname,
-            fileSize: uploadedFile.size,
-            filePath: uploadedFile.path
-          });
-          
+          console.error('❌ Utility image upload failed:', uploadError);
           return res.status(500).json({
             success: false,
-            message: 'Failed to upload utility file: ' + uploadError.message,
-            error: process.env.NODE_ENV === 'development' ? {
-              message: uploadError.message,
-              type: uploadError.name || 'UploadError',
-              fileName: uploadedFile.originalname
-            } : undefined
+            message: 'Failed to upload utility image: ' + uploadError.message
           });
         }
       }
       
-      // Handle preview images
+      // Handle utility file upload to Supabase Storage
+      if (req.files.uploadedFile && req.files.uploadedFile[0]) {
+        try {
+          const uploadedFile = req.files.uploadedFile[0];
+          console.log('📤 Utility file upload initiated:', {
+            originalName: uploadedFile.originalname,
+            size: uploadedFile.size,
+            mimetype: uploadedFile.mimetype
+          });
+          
+          const uploadResult = await supabaseStorage.uploadImage(
+            uploadedFile.buffer,
+            uploadedFile.originalname,
+            uploadedFile.mimetype,
+            'utilities' // Bucket name
+          );
+          
+          finalDownloadUrl = uploadResult.url;
+          console.log('✅ Utility file uploaded to Supabase:', finalDownloadUrl);
+        } catch (uploadError) {
+          console.error('❌ Utility file upload failed:', uploadError);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to upload utility file: ' + uploadError.message
+          });
+        }
+      }
+      
+      // Handle preview images to Supabase Storage
       if (req.files.previews && req.files.previews.length > 0) {
-        finalPreviews = req.files.previews.map(file => `/uploads/utilities/${file.filename}`);
+        try {
+          const previewUrls = [];
+          for (const file of req.files.previews) {
+            const uploadResult = await supabaseStorage.uploadImage(
+              file.buffer,
+              file.originalname,
+              file.mimetype,
+              'utilities' // Bucket name
+            );
+            previewUrls.push(uploadResult.url);
+          }
+          finalPreviews = previewUrls;
+          console.log('✅ Preview images uploaded to Supabase:', finalPreviews.length);
+        } catch (uploadError) {
+          console.error('❌ Preview images upload failed:', uploadError);
+          // Continue without previews rather than failing
+        }
       }
     }
     
@@ -536,107 +495,75 @@ router.put('/:id', [
     if (req.files) {
       console.log('📁 Files found, processing each type...');
       
-      // Handle image upload
+      // Handle image upload to Supabase Storage
       if (req.files.image && req.files.image[0]) {
-        console.log('🖼️ Processing image upload...');
-        updates.image = `/uploads/utilities/${req.files.image[0].filename}`;
-        updates.image_timestamp = Date.now();
-        console.log('✅ Image processed:', updates.image);
-      }
-      
-      // Handle utility file upload
-      if (req.files.uploadedFile && req.files.uploadedFile[0]) {
-        const uploadedFile = req.files.uploadedFile[0];
-        console.log('📤 Utility file upload initiated:', {
-          originalName: uploadedFile.originalname,
-          fileName: uploadedFile.filename,
-          size: uploadedFile.size,
-          mimetype: uploadedFile.mimetype,
-          path: uploadedFile.path
-        });
-        
-        // Upload to Supabase Storage
         try {
-          // Check if file exists and is readable
-          const fileExists = require('fs').existsSync(uploadedFile.path);
-          if (!fileExists) {
-            throw new Error(`Uploaded file not found at path: ${uploadedFile.path}`);
-          }
-
-          const fileBuffer = require('fs').readFileSync(uploadedFile.path);
-          console.log('📦 File buffer created, size:', fileBuffer.length, 'bytes');
-          
-          const fileName = `utility-${Date.now()}-${uploadedFile.originalname}`;
-          console.log('🔄 Uploading to Supabase Storage as:', fileName);
-          
-          // Get Supabase client
-          const supabaseClient = databaseService.getClient();
-          if (!supabaseClient) {
-            throw new Error('Supabase client not available');
-          }
-
-          const { data: uploadData, error: uploadError } = await supabaseClient.storage
-            .from('utilities')
-            .upload(fileName, fileBuffer, {
-              contentType: uploadedFile.mimetype || 'application/octet-stream',
-              upsert: true
-            });
-          
-          if (uploadError) {
-            console.error('❌ Supabase Storage upload error:', uploadError);
-            console.error('❌ Upload error details:', {
-              message: uploadError.message,
-              statusCode: uploadError.statusCode,
-              error: uploadError.error
-            });
-            throw uploadError;
-          }
-          
-          if (!uploadData || !uploadData.path) {
-            throw new Error('Upload successful but no file path returned from Supabase');
-          }
-          
-          // Update download URL to point to Supabase Storage
-          updates.download_url = `https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/utilities/${uploadData.path}`;
-          console.log('✅ Utility file uploaded to Supabase Storage:', {
-            fileName: fileName,
-            path: uploadData.path,
-            downloadUrl: updates.download_url
-          });
-          
-          // Clean up local file
-          try {
-            require('fs').unlinkSync(uploadedFile.path);
-            console.log('🗑️ Local temporary file cleaned up');
-          } catch (cleanupError) {
-            console.warn('⚠️ Failed to cleanup local file:', cleanupError.message);
-          }
+          console.log('🖼️ Processing image upload...');
+          const uploadResult = await supabaseStorage.uploadImage(
+            req.files.image[0].buffer,
+            req.files.image[0].originalname,
+            req.files.image[0].mimetype,
+            'utilities'
+          );
+          updates.image = uploadResult.url;
+          updates.image_timestamp = Date.now();
+          console.log('✅ Image uploaded to Supabase:', updates.image);
         } catch (uploadError) {
-          console.error('❌ Error processing utility file:', uploadError);
-          console.error('❌ Full error details:', {
-            message: uploadError.message,
-            stack: uploadError.stack,
-            fileName: uploadedFile.originalname,
-            fileSize: uploadedFile.size,
-            filePath: uploadedFile.path
-          });
-          
+          console.error('❌ Image upload failed:', uploadError);
           return res.status(500).json({
             success: false,
-            message: 'Failed to upload utility file: ' + uploadError.message,
-            error: process.env.NODE_ENV === 'development' ? {
-              message: uploadError.message,
-              type: uploadError.name || 'UploadError',
-              fileName: uploadedFile.originalname
-            } : undefined
+            message: 'Failed to upload image: ' + uploadError.message
           });
         }
       }
       
-      // Handle preview images
+      // Handle utility file upload to Supabase Storage
+      if (req.files.uploadedFile && req.files.uploadedFile[0]) {
+        try {
+          const uploadedFile = req.files.uploadedFile[0];
+          console.log('📤 Utility file upload initiated:', {
+            originalName: uploadedFile.originalname,
+            size: uploadedFile.size,
+            mimetype: uploadedFile.mimetype
+          });
+          
+          const uploadResult = await supabaseStorage.uploadImage(
+            uploadedFile.buffer,
+            uploadedFile.originalname,
+            uploadedFile.mimetype,
+            'utilities'
+          );
+          
+          updates.download_url = uploadResult.url;
+          console.log('✅ Utility file uploaded to Supabase:', updates.download_url);
+        } catch (uploadError) {
+          console.error('❌ Utility file upload failed:', uploadError);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to upload utility file: ' + uploadError.message
+          });
+        }
+      }
+      
+      // Handle preview images to Supabase Storage
       if (req.files.previews && req.files.previews.length > 0) {
-        const previewUrls = req.files.previews.map(file => `/uploads/utilities/${file.filename}`);
-        updates.previews = previewUrls;
+        try {
+          const previewUrls = [];
+          for (const file of req.files.previews) {
+            const uploadResult = await supabaseStorage.uploadImage(
+              file.buffer,
+              file.originalname,
+              file.mimetype,
+              'utilities'
+            );
+            previewUrls.push(uploadResult.url);
+          }
+          updates.previews = previewUrls;
+          console.log('✅ Preview images uploaded to Supabase:', previewUrls.length);
+        } catch (uploadError) {
+          console.error('❌ Preview images upload failed:', uploadError);
+          // Continue without previews rather than failing
+        }
       }
     }
     

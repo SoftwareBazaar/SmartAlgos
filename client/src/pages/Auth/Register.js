@@ -288,24 +288,6 @@ const Register = () => {
                 <span className="relative z-10">{loading ? 'Creating Account...' : 'Create Trading Account'}</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               </button>
-
-              {/* Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-700" />
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-2 bg-slate-800/40 text-slate-400">Already have an account?</span>
-                </div>
-              </div>
-
-              {/* Login Link */}
-              <Link
-                to="/login"
-                className="w-full py-2 bg-slate-700/50 border border-slate-600 text-white text-sm font-semibold rounded-lg hover:bg-slate-700 hover:border-purple-500 transition-all transform hover:scale-[1.01] active:scale-[0.99] text-center block"
-              >
-                Sign In Instead
-              </Link>
             </form>
 
             <div className="pb-3 px-4 flex items-center justify-center gap-1.5 text-slate-400 text-xs mt-3">

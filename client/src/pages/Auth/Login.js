@@ -8,6 +8,7 @@ export default function SmartAlgosLogin() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
 
   const { login, loading } = useAuth();
   const navigate = useNavigate();
@@ -15,10 +16,13 @@ export default function SmartAlgosLogin() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setError(''); // Clear previous errors
     const result = await login(email.trim(), password);
     if (result.success) {
       const redirectTo = location.state?.from?.pathname || '/dashboard';
       navigate(redirectTo, { replace: true });
+    } else {
+      setError(result.message || 'Login failed. Please check your credentials.');
     }
   };
 
@@ -59,6 +63,16 @@ export default function SmartAlgosLogin() {
 
           {/* Login Form */}
           <form className="px-6 pb-6 space-y-4" onSubmit={handleSubmit}>
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-start gap-2 animate-shake">
+                <svg className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-red-400 text-xs font-medium">{error}</p>
+              </div>
+            )}
+            
             {/* Email Field */}
             <div className="space-y-1">
               <label className="block text-xs font-medium text-brand-200">

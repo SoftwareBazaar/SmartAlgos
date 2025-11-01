@@ -633,9 +633,9 @@ const CustomEA = () => {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-3">
                                 <Clock className={`w-5 h-5 ${
-                                  formData.timeline === option.value ? 'text-gray-900 dark:text-gray-200' : 'text-gray-700 dark:text-brand-300'
+                                  formData.timeline === option.value ? 'text-gray-900 dark:text-gray-200' : 'text-gray-600 dark:text-brand-300'
                                 }`} />
-                                <span className={`font-medium ${
+                                <span className={`font-semibold text-base ${
                                   formData.timeline === option.value ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
                                 }`}>{option.label}</span>
                               </div>
@@ -663,15 +663,15 @@ const CustomEA = () => {
                           >
                             <div className="flex items-center justify-between">
                               <div>
-                                <span className={`font-medium ${
-                                  formData.budget === range.label ? 'text-gray-900' : 'text-white'
+                                <span className={`font-semibold text-base ${
+                                  formData.budget === range.label ? 'text-gray-900' : 'text-gray-900 dark:text-gray-200'
                                 }`}>{range.label}</span>
                                 <p className={`text-sm ${
-                                  formData.budget === range.label ? 'text-gray-700' : 'text-brand-300'
+                                  formData.budget === range.label ? 'text-gray-700' : 'text-gray-600 dark:text-brand-300'
                                 }`}>{range.description}</p>
                               </div>
                               <DollarSign className={`w-5 h-5 ${
-                                formData.budget === range.label ? 'text-gray-700' : 'text-brand-300'
+                                formData.budget === range.label ? 'text-gray-700' : 'text-gray-600 dark:text-brand-300'
                               }`} />
                             </div>
                           </div>
@@ -839,7 +839,7 @@ const CustomEA = () => {
                 <button
                   onClick={prevStep}
                   disabled={currentStep === 1}
-                  className="px-4 sm:px-6 py-2 sm:py-3 border border-brand-700 rounded-lg text-brand-300 hover:bg-brand-800 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base order-2 sm:order-1"
+                  className="px-4 sm:px-6 py-2 sm:py-3 border-2 border-gray-300 dark:border-brand-700 rounded-lg text-gray-900 dark:text-brand-300 hover:bg-gray-100 dark:hover:bg-brand-800 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base font-semibold order-2 sm:order-1"
                 >
                   Previous
                 </button>

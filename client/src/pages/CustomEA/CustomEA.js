@@ -204,36 +204,48 @@ const CustomEA = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-brand-900 dark:via-brand-800 dark:to-black flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full text-center"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-2xl w-full text-center border border-gray-200 dark:border-gray-700"
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+            className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
           >
-            <CheckCircle className="w-10 h-10 text-green-600" />
+            <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
           </motion.div>
           
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             Request Submitted Successfully!
           </h1>
           
-          <p className="text-lg text-gray-600 mb-8">
+          <p className="text-lg text-gray-700 dark:text-gray-200 mb-8 font-medium">
             Your custom EA request has been received. Our team will review your requirements and get back to you within 24 hours with a detailed proposal.
           </p>
           
-          <div className="bg-blue-50 rounded-lg p-6 mb-8">
-            <h3 className="font-semibold text-blue-900 mb-2">What happens next?</h3>
-            <div className="space-y-2 text-blue-800">
-              <p>• Our expert developers will analyze your requirements</p>
-              <p>• You'll receive a detailed proposal with timeline and pricing</p>
-              <p>• We'll schedule a consultation call to discuss specifics</p>
-              <p>• Development begins once you approve the proposal</p>
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 mb-8 border border-blue-200 dark:border-blue-800">
+            <h3 className="font-bold text-blue-900 dark:text-blue-200 mb-4 text-lg">What happens next?</h3>
+            <div className="space-y-3 text-left">
+              <p className="text-blue-800 dark:text-blue-200 font-medium flex items-start">
+                <span className="text-green-600 dark:text-green-400 font-bold mr-2">✓</span>
+                Our expert developers will analyze your requirements
+              </p>
+              <p className="text-blue-800 dark:text-blue-200 font-medium flex items-start">
+                <span className="text-green-600 dark:text-green-400 font-bold mr-2">✓</span>
+                You'll receive a detailed proposal with timeline and pricing
+              </p>
+              <p className="text-blue-800 dark:text-blue-200 font-medium flex items-start">
+                <span className="text-green-600 dark:text-green-400 font-bold mr-2">✓</span>
+                We'll schedule a consultation call to discuss specifics
+              </p>
+              <p className="text-blue-800 dark:text-blue-200 font-medium flex items-start">
+                <span className="text-green-600 dark:text-green-400 font-bold mr-2">✓</span>
+                Development begins once you approve the proposal
+              </p>
             </div>
           </div>
           
@@ -261,7 +273,7 @@ const CustomEA = () => {
                 files: []
               });
             }}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 dark:bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             Submit Another Request
           </button>

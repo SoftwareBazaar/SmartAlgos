@@ -82,6 +82,7 @@ router.post('/request', [
   updateActivity,
   auditLog('custom_ea_request_submitted'),
   body('serviceType')
+    .optional()
     .isIn(['new_ea', 'modify_ea', 'custom_indicator'])
     .withMessage('Invalid service type'),
   body('eaName')
@@ -95,15 +96,7 @@ router.post('/request', [
   body('platform')
     .optional()
     .isIn(['mt4', 'mt5', 'tradingview'])
-    .withMessage('Invalid platform'),
-  body('timeline')
-    .optional()
-    .isLength({ min: 1 })
-    .withMessage('Timeline is required'),
-  body('budget')
-    .optional()
-    .isLength({ min: 1 })
-    .withMessage('Budget is required')
+    .withMessage('Invalid platform')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);

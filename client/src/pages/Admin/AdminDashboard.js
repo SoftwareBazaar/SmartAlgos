@@ -334,9 +334,9 @@ const AdminDashboard = () => {
   // Custom EA Requests Handler Functions
   const fetchCustomEARequests = async () => {
     try {
-      const response = await apiClient.get('/api/custom-ea-requests');
+      const response = await apiClient.get('/api/custom-ea/admin/requests');
       if (response.data.success) {
-        setCustomEARequests(response.data.data || []);
+        setCustomEARequests(response.data.data.requests || []);
       }
     } catch (error) {
       console.error('Failed to fetch custom EA requests:', error);
@@ -365,7 +365,7 @@ const AdminDashboard = () => {
 
   const handleSaveCustomEA = async () => {
     try {
-      const response = await apiClient.put(`/api/custom-ea-requests/${editingCustomEA.id}`, {
+      const response = await apiClient.put(`/api/custom-ea/admin/requests/${editingCustomEA.id}`, {
         ...customEAFormData,
         updatedAt: new Date().toISOString()
       });
@@ -1344,6 +1344,7 @@ const AdminDashboard = () => {
                       <div className="flex items-center">
                         {utility.image ? (
                           <img
+                            key={`utility-${utility.id}-${utility.imageTimestamp || utility.updated_at || 0}`}
                             src={utility.image}
                             alt={utility.name}
                             className="h-12 w-12 rounded-lg object-cover"

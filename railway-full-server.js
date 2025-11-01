@@ -216,6 +216,11 @@ try {
   app.use('/api/utilities', utilitiesRoutes);
   console.log('✅ Utilities routes loaded');
 
+  // Load custom EA routes
+  const customEARoutes = require('./routes/customEA');
+  app.use('/api/custom-ea', customEARoutes);
+  console.log('✅ Custom EA routes loaded');
+
   // ========================================
   // FRONTEND SERVING - Serve React app
   // ========================================

@@ -2,6 +2,7 @@ const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const { auth, updateActivity } = require('../middleware/auth');
 const securityService = require('../services/securityService');
+const emailService = require('../services/emailService');
 const { auditLog } = require('../middleware/security');
 const multer = require('multer');
 const path = require('path');
@@ -136,6 +137,15 @@ router.post('/request', [
       estimatedPrice: requestData.estimatedPrice,
       ip: securityService.getClientIP(req)
     });
+
+    // Send email notification to admin
+    try {
+      await emailService.sendCustomEARequestNotification(requestData);
+      console.log('✅ Email notification sent for custom EA request:', requestData.id);
+    } catch (error) {
+      console.error('⚠️  Failed to send email notification:', error);
+      // Don't fail the request if email fails
+    }
 
     res.status(201).json({
       success: true,

@@ -82,19 +82,19 @@ router.post('/request', [
   updateActivity,
   auditLog('custom_ea_request_submitted'),
   body('serviceType')
-    .optional()
+    .optional({ checkFalsy: true })
     .isIn(['new_ea', 'modify_ea', 'custom_indicator'])
     .withMessage('Invalid service type'),
   body('eaName')
-    .optional()
+    .optional({ checkFalsy: true })
     .isLength({ min: 3, max: 100 })
     .withMessage('EA name must be between 3 and 100 characters'),
   body('tradingStyle')
-    .optional()
+    .optional({ checkFalsy: true })
     .isIn(['scalping', 'swing', 'hedging', 'arbitrage', 'grid', 'martingale'])
     .withMessage('Invalid trading style'),
   body('platform')
-    .optional()
+    .optional({ checkFalsy: true })
     .isIn(['mt4', 'mt5', 'tradingview'])
     .withMessage('Invalid platform')
 ], async (req, res) => {

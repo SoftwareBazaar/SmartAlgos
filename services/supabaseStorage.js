@@ -22,20 +22,21 @@ class SupabaseStorageService {
    */
   async uploadImage(fileBuffer, originalFilename, mimetype, bucket = 'ea-images') {
     try {
-      // Normalize MIME type (Supabase might reject some variations)
+      // Normalize MIME type to standard formats
       const normalizeMimeType = (mime) => {
         if (!mime) return 'application/octet-stream';
         
-        // Normalize common image MIME type variations
+        const lowerMime = mime.toLowerCase();
+        
+        // Normalize to standard MIME types (don't convert jpeg to jpg - jpg is invalid!)
         const mimeMap = {
-          'image/jpeg': 'image/jpg',
-          'image/x-jpeg': 'image/jpg',
-          'image/pjpeg': 'image/jpg',
+          'image/jpg': 'image/jpeg',  // Convert invalid jpg to valid jpeg
+          'image/x-jpeg': 'image/jpeg',
+          'image/pjpeg': 'image/jpeg',
           'image/x-png': 'image/png',
-          'image/x-icon': 'image/x-icon',
         };
         
-        return mimeMap[mime.toLowerCase()] || mime;
+        return mimeMap[lowerMime] || mime;
       };
 
       const normalizedMimeType = normalizeMimeType(mimetype);

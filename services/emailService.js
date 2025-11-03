@@ -4,7 +4,9 @@ const axios = require('axios');
 // Send email via SendGrid API (HTTP-based, works on Railway free tier)
 const sendEmailViaSendGrid = async ({ to, subject, html, text }) => {
   const sendGridApiKey = process.env.SENDGRID_API_KEY;
-  const fromEmail = process.env.ADMIN_EMAIL || process.env.SENDGRID_FROM_EMAIL || 'noreply@smartalgos.com';
+  // Use SENDGRID_FROM_EMAIL if set, otherwise use ADMIN_EMAIL
+  // This must be a verified sender in SendGrid
+  const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.ADMIN_EMAIL;
 
   if (!sendGridApiKey) {
     return null; // SendGrid not configured

@@ -32,8 +32,8 @@ export const ImageWithFallback = ({
     if (onLoad) onLoad(e);
   };
 
-  // Don't render if no src
-  if (!src || src.includes('undefined')) {
+  // Don't render if no src or invalid URL
+  if (!src || typeof src !== 'string' || src.includes('undefined') || src.trim() === '') {
     return null;
   }
 

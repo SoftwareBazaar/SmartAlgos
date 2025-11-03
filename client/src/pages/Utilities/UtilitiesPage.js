@@ -176,24 +176,21 @@ const UtilitiesPage = () => {
                 <div className="mb-3">
                   {(() => {
                     const imageUrl = utility.image || utility.image_url;
-                    if (imageUrl && !imageUrl.includes('undefined')) {
+                    // Only show image if URL is valid and not undefined
+                    if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim() !== '' && !imageUrl.includes('undefined')) {
                       const proxyUrl = getImageProxyUrl(imageUrl);
                       return (
-                        <div className="relative w-full h-24 rounded-lg overflow-hidden">
-                          <ImageWithFallback
-                            src={proxyUrl}
-                            alt={utility.name}
-                            className="w-full h-24 object-cover rounded-lg"
-                            fallbackType="ea"
-                            onLoad={() => console.log('✅ Utility image loaded:', utility.name)}
-                            onError={() => console.log('❌ Utility image failed:', utility.name, imageUrl)}
-                          />
-                          <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center hidden" style={{ display: 'none' }}>
-                            <Icon className="h-8 w-8 text-gray-400" />
-                          </div>
-                        </div>
+                        <ImageWithFallback
+                          src={proxyUrl}
+                          alt={utility.name}
+                          className="w-full h-24 object-cover rounded-lg"
+                          fallbackType="ea"
+                          onLoad={() => console.log('✅ Utility image loaded:', utility.name, imageUrl.substring(0, 50))}
+                          onError={() => console.log('❌ Utility image failed:', utility.name, imageUrl)}
+                        />
                       );
                     }
+                    // Show placeholder if no image
                     return (
                       <div className="w-full h-24 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                         <Icon className="h-8 w-8 text-gray-400" />

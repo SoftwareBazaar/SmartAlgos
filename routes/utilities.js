@@ -189,10 +189,15 @@ router.post('/upload-image', [
       });
     }
 
-    // Upload to Supabase Storage (same as POST/PUT routes)
+    // Upload to Supabase Storage (REQUIRED - no fallback to local)
     let imageUrl;
     try {
-      console.log('📤 Uploading utility image to Supabase Storage...');
+      console.log('📤 Uploading utility image to Supabase Storage...', {
+        originalname: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      });
+      
       const uploadResult = await supabaseStorage.uploadImage(
         req.file.buffer,
         req.file.originalname,
@@ -203,13 +208,24 @@ router.post('/upload-image', [
       imageUrl = uploadResult.url;
       console.log('✅ Utility image uploaded to Supabase:', imageUrl);
     } catch (uploadError) {
-      console.error('❌ Supabase upload failed, using local path:', uploadError.message);
-      // Fallback to local path if Supabase fails
-      imageUrl = `/uploads/utilities/${req.file.filename}`;
+      console.error('❌ Supabase upload failed:', uploadError.message);
+      console.error('❌ Upload error details:', uploadError);
+      // DON'T use local path - return error instead
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload image to storage: ' + uploadError.message
+      });
+    }
+    
+    if (!imageUrl) {
+      return res.status(500).json({
+        success: false,
+        message: 'Image upload succeeded but no URL returned'
+      });
     }
     
     console.log('✅ File uploaded successfully:', {
-      filename: req.file.filename,
+      originalname: req.file.originalname,
       size: req.file.size,
       mimetype: req.file.mimetype,
       imageUrl
@@ -220,7 +236,7 @@ router.post('/upload-image', [
       message: 'Image uploaded successfully',
       data: {
         imageUrl,
-        filename: req.file.filename,
+        filename: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype
       }

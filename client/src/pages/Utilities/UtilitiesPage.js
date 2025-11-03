@@ -173,12 +173,25 @@ const UtilitiesPage = () => {
               <div className="p-4">
                 {/* Utility Image */}
                 <div className="mb-3">
-                  <img 
-                    key={`utility-${utility.id}-${utility.imageTimestamp || utility.updated_at || 0}`}
-                    src={utility.image} 
-                    alt={utility.name}
-                    className="w-full h-24 object-cover rounded-lg"
-                  />
+                  {utility.image ? (
+                    <img 
+                      key={`utility-${utility.id}-${utility.imageTimestamp || utility.updated_at || 0}`}
+                      src={utility.image} 
+                      alt={utility.name}
+                      className="w-full h-24 object-cover rounded-lg"
+                      onError={(e) => {
+                        // If image fails to load, hide it and show icon instead
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className={`w-full h-24 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center ${utility.image ? 'hidden' : ''}`}
+                    style={{ display: utility.image ? 'none' : 'flex' }}
+                  >
+                    <Icon className="h-8 w-8 text-gray-400" />
+                  </div>
                 </div>
 
                 <div className="flex items-start justify-between mb-3">

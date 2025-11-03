@@ -63,7 +63,7 @@ const transformUtilityFromApi = (utility) => {
 
   const {
     download_url,
-
+    image,
     image_timestamp,
 
     created_at,
@@ -111,6 +111,8 @@ const transformUtilityFromApi = (utility) => {
     ...remaining,
 
     downloadUrl: download_url ?? camelDownloadUrl ?? "",
+    
+    image: image ?? remaining.image ?? rest.image ?? null,
 
     imageTimestamp: image_timestamp ?? camelImageTimestamp ?? null,
 

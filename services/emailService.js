@@ -1,4 +1,54 @@
 const nodemailer = require('nodemailer');
+const axios = require('axios');
+
+// Send email via SendGrid API (HTTP-based, works on Railway free tier)
+const sendEmailViaSendGrid = async ({ to, subject, html, text }) => {
+  const sendGridApiKey = process.env.SENDGRID_API_KEY;
+  const fromEmail = process.env.ADMIN_EMAIL || process.env.SENDGRID_FROM_EMAIL || 'noreply@smartalgos.com';
+
+  if (!sendGridApiKey) {
+    return null; // SendGrid not configured
+  }
+
+  try {
+    const response = await axios.post(
+      'https://api.sendgrid.com/v3/mail/send',
+      {
+        personalizations: [{
+          to: [{ email: to }],
+          subject: subject
+        }],
+        from: {
+          email: fromEmail,
+          name: 'Smart Algos'
+        },
+        content: [
+          {
+            type: 'text/plain',
+            value: text
+          },
+          {
+            type: 'text/html',
+            value: html
+          }
+        ]
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${sendGridApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000 // 10 second timeout
+      }
+    );
+
+    console.log('✅ Email sent via SendGrid:', response.status);
+    return { success: true, messageId: response.headers['x-message-id'] || 'sendgrid-sent' };
+  } catch (error) {
+    console.error('❌ SendGrid API error:', error.response?.data || error.message);
+    throw error;
+  }
+};
 
 // Get email configuration from environment variables
 const getEmailConfig = () => {
@@ -79,6 +129,21 @@ const sendEmail = async ({ to, subject, html, text }, timeout = 15000) => {
     return { success: false, message: 'No email configuration' };
   }
 
+  // Priority 1: Try SendGrid API first (works on Railway free tier)
+  if (process.env.SENDGRID_API_KEY) {
+    try {
+      console.log('📧 Attempting to send email via SendGrid API...');
+      const result = await sendEmailViaSendGrid({ to, subject, html, text });
+      if (result && result.success) {
+        return result;
+      }
+    } catch (error) {
+      console.warn('⚠️  SendGrid failed, falling back to SMTP:', error.message);
+      // Fall through to SMTP
+    }
+  }
+
+  // Priority 2: Try SMTP (may be blocked on Railway free tier)
   if (!transporter) {
     // Log email to console instead
     console.log('📧 EMAIL WOULD BE SENT (no transporter):');
@@ -110,7 +175,7 @@ const sendEmail = async ({ to, subject, html, text }, timeout = 15000) => {
     // Race between sending and timeout
     const info = await Promise.race([sendPromise, timeoutPromise]);
 
-    console.log('✅ Email sent successfully:', info.messageId);
+    console.log('✅ Email sent successfully via SMTP:', info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('❌ Failed to send email:', error.message || error);

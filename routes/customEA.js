@@ -635,4 +635,44 @@ router.get('/admin/stats', [
   }
 });
 
+// @route   GET /api/custom-ea/email-status
+// @desc    Check email configuration status (for debugging)
+// @access  Private (Admin)
+router.get('/email-status', [
+  auth,
+  (req, res, next) => {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+    next();
+  }
+], async (req, res) => {
+  try {
+    const emailConfig = {
+      hasAdminEmail: !!process.env.ADMIN_EMAIL,
+      adminEmail: process.env.ADMIN_EMAIL || 'NOT SET',
+      hasSMTP: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+      hasGmail: !!(process.env.GMAIL_USER && process.env.GMAIL_PASS),
+      smtpHost: process.env.SMTP_HOST || 'NOT SET',
+      smtpPort: process.env.SMTP_PORT || 'NOT SET',
+      transporterExists: !!emailService ? 'CONFIGURED' : 'NOT CONFIGURED'
+    };
+
+    res.json({
+      success: true,
+      data: emailConfig,
+      message: 'Email configuration status'
+    });
+  } catch (error) {
+    console.error('Email status check error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check email status'
+    });
+  }
+});
+
 module.exports = router;

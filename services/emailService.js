@@ -17,6 +17,9 @@ const sendEmailViaSendGrid = async ({ to, subject, html, text }) => {
     throw new Error('SENDGRID_FROM_EMAIL environment variable is required');
   }
 
+  // Log what email we're using as sender (for debugging)
+  console.log(`📧 SendGrid: FROM=${fromEmail}, TO=${to}`);
+
   try {
     const response = await axios.post(
       'https://api.sendgrid.com/v3/mail/send',

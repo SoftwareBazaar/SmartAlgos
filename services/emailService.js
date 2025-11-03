@@ -4,12 +4,17 @@ const axios = require('axios');
 // Send email via SendGrid API (HTTP-based, works on Railway free tier)
 const sendEmailViaSendGrid = async ({ to, subject, html, text }) => {
   const sendGridApiKey = process.env.SENDGRID_API_KEY;
-  // Use SENDGRID_FROM_EMAIL if set, otherwise use ADMIN_EMAIL
-  // This must be a verified sender in SendGrid
-  const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.ADMIN_EMAIL;
+  // SENDGRID_FROM_EMAIL MUST be set to the verified sender email in SendGrid
+  // This is different from ADMIN_EMAIL (which is where emails are sent TO)
+  const fromEmail = process.env.SENDGRID_FROM_EMAIL;
 
   if (!sendGridApiKey) {
     return null; // SendGrid not configured
+  }
+
+  if (!fromEmail) {
+    console.error('❌ SENDGRID_FROM_EMAIL not set - this must be your verified sender email in SendGrid');
+    throw new Error('SENDGRID_FROM_EMAIL environment variable is required');
   }
 
   try {

@@ -110,6 +110,7 @@ async function testUtilityImageFlow() {
     if (fs.existsSync(testImagePath)) {
       fs.unlinkSync(testImagePath);
       console.log('\n🧹 Cleaned up test image file');
+    }
 
     console.log('\n✅ TEST COMPLETE - All steps passed!');
     console.log('='.repeat(60));

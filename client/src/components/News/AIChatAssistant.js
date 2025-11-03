@@ -17,7 +17,7 @@ const AIChatAssistant = () => {
     {
       id: 'welcome',
       type: 'ai',
-      content: "Hi! I'm your AI trading assistant. Ask me anything about today's market news, why currencies are moving, or get explanations of economic events.",
+      content: "Hi! I'm your AI trading assistant. I can help you with:\n\n• EA installation and setup\n• Risk management guidelines\n• Market news and analysis\n• Trading strategies and configuration\n\nWhat would you like to know?",
       timestamp: new Date()
     }
   ]);
@@ -48,28 +48,46 @@ const AIChatAssistant = () => {
         }
       });
 
+      // Handle response structure: { success: true, data: { message, sources, ... } }
+      const responseData = response.data?.data || response.data;
       const aiResponse = {
         id: Date.now() + 1,
         type: 'ai',
-        content: response.data?.data?.message || 'I apologize, but I couldn\'t process your question right now. Please try again.',
+        content: responseData?.message || responseData?.content || 'I apologize, but I couldn\'t process your question right now. Please try again.',
         timestamp: new Date(),
-        sources: response.data?.data?.sources || []
+        sources: responseData?.sources || []
       };
+      
+      // Log for debugging if needed
+      if (process.env.NODE_ENV === 'development') {
+        console.log('AI Response:', responseData);
+      }
 
       setMessages(prev => [...prev, aiResponse]);
     } catch (error) {
       console.error('AI Chat error:', error);
       
-      // Fallback response
-      const aiResponse = {
-        id: Date.now() + 1,
-        type: 'ai',
-        content: 'Based on current market conditions, I can help explain news impact and market movements. Try asking: "Why is GBP weak today?" or "Explain today\'s Fed decision"',
-        timestamp: new Date(),
-        isError: true
-      };
-
-      setMessages(prev => [...prev, aiResponse]);
+      // Check if it's an authentication error or network error
+      if (error.response?.status === 401) {
+        const aiResponse = {
+          id: Date.now() + 1,
+          type: 'ai',
+          content: 'Please log in to use the AI Assistant. I can help with EA installation, risk management, market analysis, and more.',
+          timestamp: new Date(),
+          isError: true
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      } else {
+        // Fallback response - make it more helpful
+        const aiResponse = {
+          id: Date.now() + 1,
+          type: 'ai',
+          content: 'I can help you with:\n\n• EA installation and setup\n• Risk management guidelines\n• Market news and analysis\n• Trading strategies\n\nTry asking: "How do I install an EA?" or "How to set up SmartAlgos VIX75?" or "Why is GBP weak today?"',
+          timestamp: new Date(),
+          isError: true
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      }
     } finally {
       setLoading(false);
     }
@@ -83,10 +101,12 @@ const AIChatAssistant = () => {
   };
 
   const suggestedQuestions = [
+    "How do I install an EA?",
+    "How to set up SmartAlgos VIX75?",
     "Why is GBP so weak today?",
+    "What are daily trading limits?",
     "Explain today's Fed decision",
-    "What news moved EUR/USD?",
-    "Summarize today's market bias"
+    "How do I configure EA settings?"
   ];
 
   return (
@@ -206,7 +226,7 @@ const AIChatAssistant = () => {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        placeholder="Ask about market news, events, or movements..."
+                        placeholder="Ask about EA installation, risk management, market news..."
                         className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         disabled={loading}
                       />
@@ -219,7 +239,7 @@ const AIChatAssistant = () => {
                       </Button>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      💡 Tip: Ask "Why is GBP weak?" or "Explain today's market moves"
+                      💡 Tip: Ask "How do I install an EA?" or "Why is GBP weak?" or "Daily trading limits?"
                     </p>
                   </div>
                 </>

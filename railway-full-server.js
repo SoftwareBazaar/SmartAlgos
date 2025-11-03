@@ -159,18 +159,52 @@ try {
   console.log('Loading essential routes...');
   
   try {
+    console.log('📦 Loading route modules...');
+    
+    console.log('   Loading auth routes...');
     const authRoutes = require('./routes/auth');
+    console.log('   ✅ Auth routes loaded');
+    
+    console.log('   Loading user routes...');
     const usersRoutes = require('./routes/users'); // User routes including dashboard-stats
+    console.log('   ✅ User routes loaded');
+    
+    console.log('   Loading EA routes...');
     const eaRoutes = require('./routes/eas');
+    console.log('   ✅ EA routes loaded');
+    
+    console.log('   Loading subscription routes...');
     const subscriptionRoutes = require('./routes/subscriptions');
+    console.log('   ✅ Subscription routes loaded');
+    
+    console.log('   Loading downloads routes...');
     const downloadsRoutes = require('./routes/downloads');
+    console.log('   ✅ Downloads routes loaded');
+    
+    console.log('   Loading crypto payment routes...');
     const cryptoPaymentRoutes = require('./routes/cryptoPayments');
+    console.log('   ✅ Crypto payment routes loaded');
+    
+    console.log('   Loading payment routes...');
     const paymentRoutes = require('./routes/payments');
+    console.log('   ✅ Payment routes loaded');
+    
+    console.log('   Loading M-Pesa routes...');
     const mpesaRoutes = require('./routes/mpesa');
+    console.log('   ✅ M-Pesa routes loaded');
+    
     // MT5 routes - disabled for Railway (requires MT5 terminal installation)
     // const mt5Routes = require('./routes/mt5');
+    
+    console.log('   Loading portfolio routes...');
     const portfolioRoutes = require('./routes/portfolio');
+    console.log('   ✅ Portfolio routes loaded');
+    
+    console.log('   Loading admin routes...');
     const adminRoutes = require('./admin-panel'); // Admin panel with REAL database
+    console.log('   ✅ Admin routes loaded');
+    
+    console.log('📝 Registering route middleware...');
     
     // API Routes
     app.use('/api/auth', authRoutes);
@@ -185,7 +219,7 @@ try {
     app.use('/api/portfolio', portfolioRoutes); // Portfolio routes (MT5 integration disabled)
     app.use('/api/admin', adminRoutes); // Admin panel routes
     
-    console.log('✅ Essential routes loaded');
+    console.log('✅ Essential routes loaded and registered');
     console.log('   - /api/auth');
     console.log('   - /api/users');
     console.log('   - /api/eas');
@@ -198,8 +232,11 @@ try {
     console.log('   - /api/portfolio');
     console.log('   - /api/admin');
   } catch (error) {
-    console.error('❌ Routes loading error:', error.message);
-    console.error('Stack:', error.stack);
+    console.error('❌ CRITICAL: Routes loading error:', error.message);
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Full error object:', error);
+    // Don't throw - let healthcheck still work
   }
 
   // Test downloads route
@@ -212,14 +249,26 @@ try {
   });
 
   // Load utilities routes
-  const utilitiesRoutes = require('./routes/utilities');
-  app.use('/api/utilities', utilitiesRoutes);
-  console.log('✅ Utilities routes loaded');
+  try {
+    console.log('📦 Loading utilities routes...');
+    const utilitiesRoutes = require('./routes/utilities');
+    app.use('/api/utilities', utilitiesRoutes);
+    console.log('✅ Utilities routes loaded');
+  } catch (error) {
+    console.error('❌ Utilities routes failed to load:', error.message);
+    console.error('❌ Stack:', error.stack);
+  }
 
   // Load custom EA routes
-  const customEARoutes = require('./routes/customEA');
-  app.use('/api/custom-ea', customEARoutes);
-  console.log('✅ Custom EA routes loaded');
+  try {
+    console.log('📦 Loading custom EA routes...');
+    const customEARoutes = require('./routes/customEA');
+    app.use('/api/custom-ea', customEARoutes);
+    console.log('✅ Custom EA routes loaded');
+  } catch (error) {
+    console.error('❌ Custom EA routes failed to load:', error.message);
+    console.error('❌ Stack:', error.stack);
+  }
 
   // ========================================
   // FRONTEND SERVING - Serve React app

@@ -21,7 +21,8 @@ export const ImageWithFallback = ({
 }) => {
   const handleError = (e) => {
     console.log('Image error for:', src);
-    e.target.src = `/api/images/fallback/${fallbackType}`;
+    // Don't use non-existent endpoint - just hide the broken image
+    e.target.style.display = 'none';
     e.target.onerror = null; // Prevent infinite loop
     if (onError) onError(e);
   };
@@ -30,6 +31,11 @@ export const ImageWithFallback = ({
     console.log('Image loaded successfully:', src);
     if (onLoad) onLoad(e);
   };
+
+  // Don't render if no src
+  if (!src || src.includes('undefined')) {
+    return null;
+  }
 
   return (
     <img

@@ -189,7 +189,24 @@ router.post('/upload-image', [
       });
     }
 
-    const imageUrl = `/uploads/utilities/${req.file.filename}`;
+    // Upload to Supabase Storage (same as POST/PUT routes)
+    let imageUrl;
+    try {
+      console.log('📤 Uploading utility image to Supabase Storage...');
+      const uploadResult = await supabaseStorage.uploadImage(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype,
+        'utilities'
+      );
+      
+      imageUrl = uploadResult.url;
+      console.log('✅ Utility image uploaded to Supabase:', imageUrl);
+    } catch (uploadError) {
+      console.error('❌ Supabase upload failed, using local path:', uploadError.message);
+      // Fallback to local path if Supabase fails
+      imageUrl = `/uploads/utilities/${req.file.filename}`;
+    }
     
     console.log('✅ File uploaded successfully:', {
       filename: req.file.filename,

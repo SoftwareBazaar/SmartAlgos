@@ -94,6 +94,12 @@ const getEmailConfig = () => {
 
 // Create transporter
 const createTransporter = () => {
+  // Skip SMTP if SendGrid is configured (SendGrid uses HTTP API, not SMTP)
+  if (process.env.SENDGRID_API_KEY) {
+    console.log('✅ SendGrid API configured - skipping SMTP transporter');
+    return null;
+  }
+
   const config = getEmailConfig();
   if (!config) {
     console.warn('⚠️  No email configuration found. Emails will be logged only.');

@@ -1346,16 +1346,29 @@ const AdminDashboard = () => {
                       <div className="flex items-center">
                         {(() => {
                           const imageUrl = utility.image || utility.image_url;
-                          if (imageUrl) {
+                          // DEBUG: Log what we're working with
+                          console.log(`🖼️ [AdminDashboard] Utility "${utility.name}":`, {
+                            'utility.image': utility.image,
+                            'utility.image_url': utility.image_url,
+                            'resolved imageUrl': imageUrl,
+                            'type': typeof imageUrl
+                          });
+                          
+                          if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim() !== '' && !imageUrl.includes('undefined')) {
+                            const proxyUrl = getImageProxyUrl(imageUrl);
+                            console.log(`✅ [AdminDashboard] Rendering image for "${utility.name}":`, proxyUrl);
                             return (
                               <ImageWithFallback
-                                src={getImageProxyUrl(imageUrl)}
+                                src={proxyUrl}
                                 alt={utility.name}
                                 className="h-20 w-20 rounded-lg object-cover border border-gray-300 dark:border-gray-600"
                                 fallbackType="ea"
+                                onLoad={() => console.log('✅ Admin utility image loaded:', utility.name)}
+                                onError={() => console.log('❌ Admin utility image failed:', utility.name, imageUrl)}
                               />
                             );
                           }
+                          console.log(`⚠️ [AdminDashboard] No valid image for "${utility.name}" - showing placeholder`);
                           return (
                             <div className="h-20 w-20 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-300 dark:border-gray-600">
                               <Settings className="h-8 w-8 text-gray-400" />

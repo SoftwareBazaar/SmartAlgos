@@ -110,21 +110,35 @@ const transformUtilityFromApi = (utility) => {
   // CRITICAL: Explicitly extract image from multiple possible locations
   let resolvedImage = null;
   
+  console.log(`🔍 [transformUtilityFromApi] Extracting image for utility:`, {
+    'direct image (snake_case)': image,
+    'remaining.image': remaining?.image,
+    'rest.image': rest?.image,
+    'utility.image': utility.image,
+    'full utility keys': Object.keys(utility || {})
+  });
+  
   // Priority 1: Direct image field (snake_case)
   if (image && typeof image === 'string' && image.trim() !== '' && !image.includes('undefined')) {
     resolvedImage = image;
+    console.log(`✅ [transformUtilityFromApi] Found image in direct field:`, image.substring(0, 50));
   }
   // Priority 2: From remaining object (camelCase or other variations)
   else if (remaining?.image && typeof remaining.image === 'string' && remaining.image.trim() !== '' && !remaining.image.includes('undefined')) {
     resolvedImage = remaining.image;
+    console.log(`✅ [transformUtilityFromApi] Found image in remaining object:`, remaining.image.substring(0, 50));
   }
   // Priority 3: From rest object
   else if (rest?.image && typeof rest.image === 'string' && rest.image.trim() !== '' && !rest.image.includes('undefined')) {
     resolvedImage = rest.image;
+    console.log(`✅ [transformUtilityFromApi] Found image in rest object:`, rest.image.substring(0, 50));
   }
   // Priority 4: From original utility object
   else if (utility.image && typeof utility.image === 'string' && utility.image.trim() !== '' && !utility.image.includes('undefined')) {
     resolvedImage = utility.image;
+    console.log(`✅ [transformUtilityFromApi] Found image in utility object:`, utility.image.substring(0, 50));
+  } else {
+    console.warn(`⚠️ [transformUtilityFromApi] No valid image found for utility`);
   }
 
   return {

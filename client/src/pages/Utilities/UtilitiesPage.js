@@ -176,9 +176,19 @@ const UtilitiesPage = () => {
                 <div className="mb-3">
                   {(() => {
                     const imageUrl = utility.image || utility.image_url;
+                    // DEBUG: Log what we're working with
+                    console.log(`🖼️ [UtilitiesPage] Utility "${utility.name}":`, {
+                      'utility.image': utility.image,
+                      'utility.image_url': utility.image_url,
+                      'resolved imageUrl': imageUrl,
+                      'type': typeof imageUrl,
+                      'full utility object': utility
+                    });
+                    
                     // Only show image if URL is valid and not undefined
                     if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim() !== '' && !imageUrl.includes('undefined')) {
                       const proxyUrl = getImageProxyUrl(imageUrl);
+                      console.log(`✅ [UtilitiesPage] Rendering image for "${utility.name}":`, proxyUrl);
                       return (
                         <ImageWithFallback
                           src={proxyUrl}
@@ -191,6 +201,7 @@ const UtilitiesPage = () => {
                       );
                     }
                     // Show placeholder if no image
+                    console.log(`⚠️ [UtilitiesPage] No valid image for "${utility.name}" - showing placeholder`);
                     return (
                       <div className="w-full h-24 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                         <Icon className="h-8 w-8 text-gray-400" />

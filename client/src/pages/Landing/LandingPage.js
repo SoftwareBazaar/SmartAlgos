@@ -262,12 +262,15 @@ const LandingPage = () => {
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Support</h3>
+              <h3 className="font-semibold mb-4">Support & Legal</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><Link to="/auth/login" className="hover:text-white">Login</Link></li>
                 <li><Link to="/auth/register" className="hover:text-white">Register</Link></li>
                 <li><a href="mailto:support@smartalgos.com" className="hover:text-white">Contact</a></li>
                 <li><Link to="/desktop-features" className="hover:text-white">Desktop App</Link></li>
+                <li><Link to="/about" className="hover:text-white">About Us</Link></li>
+                <li><Link to="/privacy" className="hover:text-white">Privacy Policy</Link></li>
+                <li><Link to="/refund" className="hover:text-white">Refund Policy</Link></li>
               </ul>
             </div>
           </div>

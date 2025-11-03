@@ -67,6 +67,11 @@ import VismeDemo from './pages/Demo/VismeDemo';
 // Landing Page
 import LandingPage from './pages/Landing/LandingPage';
 
+// Documentation Pages
+import AboutMe from './pages/Documentation/AboutMe';
+import PrivacyPolicy from './pages/Documentation/PrivacyPolicy';
+import RefundPolicy from './pages/Documentation/RefundPolicy';
+
 function App() {
   return (
     <Router>
@@ -100,6 +105,11 @@ function App() {
 
                 {/* Landing Page - Public */}
                 <Route index element={<LandingPage />} />
+
+                {/* Documentation Pages - Public */}
+                <Route path="about" element={<AboutMe />} />
+                <Route path="privacy" element={<PrivacyPolicy />} />
+                <Route path="refund" element={<RefundPolicy />} />
 
                 {/* Main Application Routes - Protected */}
                 <Route path="/" element={<Layout />}>

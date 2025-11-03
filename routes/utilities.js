@@ -96,6 +96,14 @@ router.get('/', async (req, res) => {
       });
     }
     
+    // CRITICAL: Log image URLs to debug
+    if (data && data.length > 0) {
+      console.log('📊 Utilities fetched:', data.length);
+      data.forEach((util, index) => {
+        console.log(`   Utility ${index + 1} (${util.name}): image = ${util.image || 'NULL'}`);
+      });
+    }
+    
     res.json({
       success: true,
       data: data || []
@@ -675,11 +683,12 @@ router.put('/:id', [
     
     console.log('✅ Supabase client available, performing update...');
     
+    // CRITICAL: Explicitly select image field to ensure it's returned
     const { data, error } = await supabaseClient
       .from('utilities')
       .update(updates)
       .eq('id', req.params.id)
-      .select()
+      .select('*, image')  // Explicitly include image
       .single();
     
     if (error) {
@@ -707,6 +716,8 @@ router.put('/:id', [
     
     console.log('✅ Utility updated successfully');
     console.log('📊 Updated data ID:', data.id);
+    console.log('🖼️ Image URL in response:', data.image || 'NULL');
+    console.log('🖼️ Image URL type:', typeof data.image);
     
     res.json({
       success: true,

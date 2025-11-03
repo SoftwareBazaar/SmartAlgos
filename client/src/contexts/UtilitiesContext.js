@@ -107,12 +107,32 @@ const transformUtilityFromApi = (utility) => {
 
   const resolvedGuide = guide ?? camelGuide;
 
+  // CRITICAL: Explicitly extract image from multiple possible locations
+  let resolvedImage = null;
+  
+  // Priority 1: Direct image field (snake_case)
+  if (image && typeof image === 'string' && image.trim() !== '' && !image.includes('undefined')) {
+    resolvedImage = image;
+  }
+  // Priority 2: From remaining object (camelCase or other variations)
+  else if (remaining?.image && typeof remaining.image === 'string' && remaining.image.trim() !== '' && !remaining.image.includes('undefined')) {
+    resolvedImage = remaining.image;
+  }
+  // Priority 3: From rest object
+  else if (rest?.image && typeof rest.image === 'string' && rest.image.trim() !== '' && !rest.image.includes('undefined')) {
+    resolvedImage = rest.image;
+  }
+  // Priority 4: From original utility object
+  else if (utility.image && typeof utility.image === 'string' && utility.image.trim() !== '' && !utility.image.includes('undefined')) {
+    resolvedImage = utility.image;
+  }
+
   return {
     ...remaining,
 
     downloadUrl: download_url ?? camelDownloadUrl ?? "",
     
-    image: image ?? remaining.image ?? rest.image ?? null,
+    image: resolvedImage,
 
     imageTimestamp: image_timestamp ?? camelImageTimestamp ?? null,
 

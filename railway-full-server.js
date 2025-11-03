@@ -284,6 +284,27 @@ try {
     console.error('❌ Stack:', error.stack);
   }
 
+  // Load image proxy routes (CRITICAL for utility images)
+  try {
+    console.log('🖼️  Loading image proxy routes...');
+    const imagesRoutes = require('./routes/images');
+    app.use('/api/images', imagesRoutes);
+    console.log('✅ Image proxy routes loaded');
+    console.log('   - GET /api/images/proxy?url=...');
+    console.log('   - GET /api/images/fallback/:type');
+  } catch (error) {
+    console.error('❌ CRITICAL: Image proxy routes failed to load!');
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    // Create basic fallback
+    app.get('/api/images/proxy', (req, res) => {
+      res.status(503).json({
+        success: false,
+        message: 'Image proxy not available - check server logs'
+      });
+    });
+  }
+
   // ========================================
   // FRONTEND SERVING - Serve React app
   // ========================================

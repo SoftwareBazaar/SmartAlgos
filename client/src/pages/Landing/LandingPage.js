@@ -150,6 +150,128 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* EA Highlights Carousel Section */}
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <div className="container-custom">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Featured Expert Advisors
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Watch live trading performance from our top-performing EAs
+            </p>
+          </motion.div>
+
+          {/* Simplified EA Highlights for Public */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <Card className="overflow-hidden border-2 border-gray-200 dark:border-gray-800">
+              <div className="bg-gradient-to-r from-primary-500/10 via-primary-500/5 to-transparent dark:from-primary-400/20 dark:via-primary-400/10 p-6 border-b border-gray-200 dark:border-gray-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-primary-500/20 dark:bg-primary-400/30 rounded-lg">
+                      <Bot className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                        Live EA Performance
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Real-time trading stats
+                      </p>
+                    </div>
+                  </div>
+                  <Link to="/auth/register">
+                    <Button size="sm">
+                      Get Started
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Sample EA 1 */}
+                  <div className="bg-gradient-to-br from-success-500/10 via-success-500/5 to-transparent dark:from-success-400/20 dark:via-success-400/10 p-5 rounded-xl border border-success-200 dark:border-success-800">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-900 dark:text-white">Gold Scalper Pro</h4>
+                      <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Profit</span>
+                        <span className="text-sm font-bold text-success-600 dark:text-success-400">+$1,250</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Win Rate</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">68.5%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Active Trades</span>
+                        <span className="text-sm font-bold text-primary-600 dark:text-primary-400">3</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sample EA 2 */}
+                  <div className="bg-gradient-to-br from-primary-500/10 via-primary-500/5 to-transparent dark:from-primary-400/20 dark:via-primary-400/10 p-5 rounded-xl border border-primary-200 dark:border-primary-800">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-900 dark:text-white">Multi Indicator EA</h4>
+                      <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Profit</span>
+                        <span className="text-sm font-bold text-success-600 dark:text-success-400">+$890</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Win Rate</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">72.3%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Active Trades</span>
+                        <span className="text-sm font-bold text-primary-600 dark:text-primary-400">2</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sample EA 3 */}
+                  <div className="bg-gradient-to-br from-warning-500/10 via-warning-500/5 to-transparent dark:from-warning-400/20 dark:via-warning-400/10 p-5 rounded-xl border border-warning-200 dark:border-warning-800">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-900 dark:text-white">Institutional Scalper</h4>
+                      <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Profit</span>
+                        <span className="text-sm font-bold text-success-600 dark:text-success-400">+$2,100</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Win Rate</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">75.8%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Active Trades</span>
+                        <span className="text-sm font-bold text-primary-600 dark:text-primary-400">5</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-20">
         <div className="container-custom">

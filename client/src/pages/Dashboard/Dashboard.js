@@ -21,6 +21,7 @@ import {
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import PNLCalendar from '../../components/Analysis/PNLCalendar';
+import EACarousel from '../../components/EA/EACarousel';
 import { useAuth } from '../../contexts/AuthContext';
 import { useEA } from '../../contexts/EAContext';
 import apiClient from '../../lib/apiClient';
@@ -562,11 +563,20 @@ const Dashboard = () => {
           </Card>
         </motion.div>
 
-        {/* PnL Calendar */}
+        {/* My EA Highlights Carousel */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.45 }}
+        >
+          <EACarousel />
+        </motion.div>
+
+        {/* PnL Calendar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
         >
           <PNLCalendar />
         </motion.div>

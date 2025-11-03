@@ -606,24 +606,38 @@ router.put('/:id', [
     
     // Preserve existing image if no new file was uploaded and image URL is valid
     // Check if image is a valid URL (not base64 data URL)
-    if (!updates.image && existingImageUrl) {
-      const isBase64DataUrl = typeof existingImageUrl === 'string' && existingImageUrl.startsWith('data:');
-      const isValidUrl = typeof existingImageUrl === 'string' && 
-        (existingImageUrl.startsWith('http://') || 
-         existingImageUrl.startsWith('https://') || 
-         existingImageUrl.startsWith('/uploads/'));
-      
-      if (!isBase64DataUrl && isValidUrl) {
-        // Preserve existing image URL
-        updates.image = existingImageUrl;
-        console.log('✅ Preserving existing image URL:', existingImageUrl);
-      } else if (isBase64DataUrl) {
-        console.warn('⚠️  Base64 data URL detected in image field - skipping (should use uploaded URL instead)');
-        // Don't update image field if it's base64
-        delete updates.image;
+    if (!updates.image) {
+      // No new image uploaded - check if we should preserve existing
+      if (existingImageUrl) {
+        const isBase64DataUrl = typeof existingImageUrl === 'string' && existingImageUrl.startsWith('data:');
+        const isValidUrl = typeof existingImageUrl === 'string' && 
+          (existingImageUrl.startsWith('http://') || 
+           existingImageUrl.startsWith('https://') || 
+           existingImageUrl.startsWith('/uploads/'));
+        
+        if (!isBase64DataUrl && isValidUrl) {
+          // Preserve existing image URL
+          updates.image = existingImageUrl;
+          console.log('✅ Preserving existing image URL:', existingImageUrl);
+        } else if (isBase64DataUrl) {
+          console.warn('⚠️  Base64 data URL detected in image field - skipping (should use uploaded URL instead)');
+          // Don't update image field if it's base64
+          delete updates.image;
+        } else {
+          console.warn('⚠️  Invalid image URL format:', existingImageUrl);
+        }
+      } else {
+        console.log('ℹ️  No existing image URL to preserve');
       }
-    } else if (updates.image) {
+    } else {
       console.log('✅ Using new/updated image URL:', updates.image);
+    }
+    
+    // Ensure image field is explicitly included if we have a valid URL
+    if (updates.image && updates.image !== null && updates.image !== undefined) {
+      console.log('✅ Image will be saved to database:', updates.image.substring(0, 80) + '...');
+    } else {
+      console.warn('⚠️  WARNING: Image field is missing or invalid - image may be cleared!');
     }
     
     // Process features array if it's a string
@@ -645,7 +659,9 @@ router.put('/:id', [
     }
     
     console.log('🔄 Starting database update...');
-    console.log('📝 Final updates object:', updates);
+    console.log('📝 Final updates object:', JSON.stringify(updates, null, 2));
+    console.log('🖼️ Image field in updates:', updates.image);
+    console.log('🖼️ Image type:', typeof updates.image);
     
     // Use admin client for admin operations to bypass RLS
     const supabaseClient = databaseService.getClient();

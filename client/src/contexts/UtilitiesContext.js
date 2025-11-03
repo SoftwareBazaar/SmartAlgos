@@ -574,6 +574,9 @@ export const UtilitiesProvider = ({ children }) => {
       } else {
         // No file upload, use regular payload
         const payload = prepareUtilityPayload(utilityData);
+        
+        console.log("📤 Update payload (no file):", payload);
+        console.log("🖼️ Image in payload:", payload.image);
 
         const response = await apiClient.put(
           `/api/utilities/${utilityId}`,

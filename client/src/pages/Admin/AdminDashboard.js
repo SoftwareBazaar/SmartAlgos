@@ -42,6 +42,8 @@ import apiClient from "../../lib/apiClient";
 
 import EnhancedEAEditor from "../../components/Admin/EnhancedEAEditor";
 
+import { ImageWithFallback, getImageProxyUrl } from "../../utils/imageUtils";
+
 const AdminDashboard = () => {
   const { user } = useAuth();
 
@@ -1342,18 +1344,24 @@ const AdminDashboard = () => {
                   <tr key={utility.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        {utility.image ? (
-                          <img
-                            key={`utility-${utility.id}-${utility.imageTimestamp || utility.updated_at || 0}`}
-                            src={utility.image}
-                            alt={utility.name}
-                            className="h-20 w-20 rounded-lg object-cover border border-gray-300 dark:border-gray-600"
-                          />
-                        ) : (
-                          <div className="h-20 w-20 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-300 dark:border-gray-600">
-                            <Settings className="h-8 w-8 text-gray-400" />
-                          </div>
-                        )}
+                        {(() => {
+                          const imageUrl = utility.image || utility.image_url;
+                          if (imageUrl) {
+                            return (
+                              <ImageWithFallback
+                                src={getImageProxyUrl(imageUrl)}
+                                alt={utility.name}
+                                className="h-20 w-20 rounded-lg object-cover border border-gray-300 dark:border-gray-600"
+                                fallbackType="ea"
+                              />
+                            );
+                          }
+                          return (
+                            <div className="h-20 w-20 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-300 dark:border-gray-600">
+                              <Settings className="h-8 w-8 text-gray-400" />
+                            </div>
+                          );
+                        })()}
                       </div>
                     </td>
 

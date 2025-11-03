@@ -319,9 +319,17 @@ export const UtilitiesProvider = ({ children }) => {
       });
 
       if (response.data && response.data.success) {
-        const normalizedUtilities = transformUtilitiesFromApi(
-          response.data.data,
-        );
+        const rawUtilities = response.data.data || [];
+        console.log("📥 [UtilitiesContext] Raw utilities from API:", rawUtilities.length);
+        rawUtilities.forEach((util, index) => {
+          console.log(`   Raw Utility ${index + 1} (${util.name}): image = ${util.image || 'NULL'}`);
+        });
+        
+        const normalizedUtilities = transformUtilitiesFromApi(rawUtilities);
+        console.log("📤 [UtilitiesContext] Normalized utilities:", normalizedUtilities.length);
+        normalizedUtilities.forEach((util, index) => {
+          console.log(`   Normalized Utility ${index + 1} (${util.name}): image = ${util.image || 'NULL'}`);
+        });
 
         dispatch({ type: "SET_UTILITIES", payload: normalizedUtilities });
 

@@ -22,6 +22,24 @@ class SupabaseStorageService {
    */
   async uploadImage(fileBuffer, originalFilename, mimetype, bucket = 'ea-images') {
     try {
+      // Normalize MIME type (Supabase might reject some variations)
+      const normalizeMimeType = (mime) => {
+        if (!mime) return 'application/octet-stream';
+        
+        // Normalize common image MIME type variations
+        const mimeMap = {
+          'image/jpeg': 'image/jpg',
+          'image/x-jpeg': 'image/jpg',
+          'image/pjpeg': 'image/jpg',
+          'image/x-png': 'image/png',
+          'image/x-icon': 'image/x-icon',
+        };
+        
+        return mimeMap[mime.toLowerCase()] || mime;
+      };
+
+      const normalizedMimeType = normalizeMimeType(mimetype);
+
       // Generate unique filename
       const timestamp = Date.now();
       const random = Math.round(Math.random() * 1E9);
@@ -30,12 +48,13 @@ class SupabaseStorageService {
       const filePath = filename;
 
       console.log(`[Storage] Uploading to Supabase: ${bucket}/${filePath} (${fileBuffer.length} bytes)`);
+      console.log(`[Storage] MIME type: ${mimetype} -> ${normalizedMimeType}`);
 
       // Add timeout to upload
       const uploadPromise = this.supabase.storage
         .from(bucket)
         .upload(filePath, fileBuffer, {
-          contentType: mimetype,
+          contentType: normalizedMimeType,
           upsert: false
         });
 

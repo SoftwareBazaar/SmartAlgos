@@ -8,10 +8,16 @@ const getEmailConfig = () => {
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT) || 587,
       secure: process.env.SMTP_SECURE === 'true',
+      requireTLS: !process.env.SMTP_SECURE || process.env.SMTP_SECURE !== 'true', // Use TLS for port 587
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
-      }
+      },
+      // Add timeout configurations to prevent hanging
+      // Note: Nodemailer handles timeouts internally, but we'll also wrap with Promise.race
+      pool: true, // Use connection pooling for better performance
+      maxConnections: 1, // Limit concurrent connections
+      maxMessages: 3 // Max messages per connection
     };
   }
 
@@ -22,7 +28,11 @@ const getEmailConfig = () => {
       auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_PASS
-      }
+      },
+      // Gmail-specific settings
+      pool: true,
+      maxConnections: 1,
+      maxMessages: 3
     };
   }
 
@@ -40,7 +50,16 @@ const createTransporter = () => {
 
   try {
     const transporter = nodemailer.createTransport(config);
-    console.log('✅ Email transporter created successfully');
+    
+    // Verify transporter connection with timeout
+    transporter.verify((error, success) => {
+      if (error) {
+        console.warn('⚠️  Email transporter verification failed (will attempt to send anyway):', error.message);
+      } else {
+        console.log('✅ Email transporter created and verified successfully');
+      }
+    });
+    
     return transporter;
   } catch (error) {
     console.error('❌ Failed to create email transporter:', error);
@@ -50,8 +69,8 @@ const createTransporter = () => {
 
 const transporter = createTransporter();
 
-// Send email function
-const sendEmail = async ({ to, subject, html, text }) => {
+// Send email function with timeout protection
+const sendEmail = async ({ to, subject, html, text }, timeout = 15000) => {
   // Get admin email from environment or use default
   const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || process.env.GMAIL_USER;
   
@@ -72,7 +91,8 @@ const sendEmail = async ({ to, subject, html, text }) => {
   }
 
   try {
-    const info = await transporter.sendMail({
+    // Create a promise that will timeout if email sending takes too long
+    const sendPromise = transporter.sendMail({
       from: `"Smart Algos" <${adminEmail}>`,
       to: to,
       subject: subject,
@@ -80,16 +100,26 @@ const sendEmail = async ({ to, subject, html, text }) => {
       html: html
     });
 
+    // Add timeout wrapper
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Email sending timed out after ${timeout}ms`));
+      }, timeout);
+    });
+
+    // Race between sending and timeout
+    const info = await Promise.race([sendPromise, timeoutPromise]);
+
     console.log('✅ Email sent successfully:', info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('❌ Failed to send email:', error);
+    console.error('❌ Failed to send email:', error.message || error);
     // Log email to console as fallback
     console.log('📧 EMAIL FALLBACK LOG:');
     console.log('   To:', to);
     console.log('   Subject:', subject);
     console.log('   Text:', text);
-    return { success: false, message: error.message };
+    return { success: false, message: error.message || 'Email sending failed' };
   }
 };
 

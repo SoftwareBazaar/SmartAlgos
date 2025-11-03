@@ -138,15 +138,7 @@ router.post('/request', [
       ip: securityService.getClientIP(req)
     });
 
-    // Send email notification to admin
-    try {
-      await emailService.sendCustomEARequestNotification(requestData);
-      console.log('✅ Email notification sent for custom EA request:', requestData.id);
-    } catch (error) {
-      console.error('⚠️  Failed to send email notification:', error);
-      // Don't fail the request if email fails
-    }
-
+    // Send response immediately without waiting for email
     res.status(201).json({
       success: true,
       data: {
@@ -156,6 +148,21 @@ router.post('/request', [
       },
       message: 'Custom EA request submitted successfully'
     });
+
+    // Send email notification to admin asynchronously (non-blocking)
+    // This prevents email sending from blocking the API response
+    emailService.sendCustomEARequestNotification(requestData)
+      .then(result => {
+        if (result.success) {
+          console.log('✅ Email notification sent for custom EA request:', requestData.id);
+        } else {
+          console.warn('⚠️  Email notification failed for custom EA request:', requestData.id, result.message);
+        }
+      })
+      .catch(error => {
+        console.error('⚠️  Failed to send email notification:', error.message || error);
+        // Email failure is logged but doesn't affect the request
+      });
 
   } catch (error) {
     console.error('Submit custom EA request error:', error);

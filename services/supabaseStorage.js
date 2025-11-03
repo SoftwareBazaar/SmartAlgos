@@ -70,11 +70,16 @@ class SupabaseStorageService {
       }
 
       // Get public URL (no await needed - synchronous)
-      const { data: urlData } = this.supabase.storage
+      // CRITICAL: getPublicUrl returns { data: { publicUrl: ... } }
+      const { data: { publicUrl } } = this.supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
-
-      const publicUrl = urlData.publicUrl;
+      
+      // Validate URL format
+      if (!publicUrl || !publicUrl.startsWith('https://')) {
+        console.error('[Storage] ❌ Invalid public URL returned:', publicUrl);
+        throw new Error('Invalid public URL returned from Supabase Storage');
+      }
 
       console.log(`[Storage] ✅ Upload successful:`, publicUrl);
 

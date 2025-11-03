@@ -520,29 +520,6 @@ router.put('/:id', [
           });
         }
       }
-    }
-    
-    // Preserve existing image if no new file was uploaded and image URL is valid
-    // Check if image is a valid URL (not base64 data URL)
-    if (!updates.image && existingImageUrl) {
-      const isBase64DataUrl = typeof existingImageUrl === 'string' && existingImageUrl.startsWith('data:');
-      const isValidUrl = typeof existingImageUrl === 'string' && 
-        (existingImageUrl.startsWith('http://') || 
-         existingImageUrl.startsWith('https://') || 
-         existingImageUrl.startsWith('/uploads/'));
-      
-      if (!isBase64DataUrl && isValidUrl) {
-        // Preserve existing image URL
-        updates.image = existingImageUrl;
-        console.log('✅ Preserving existing image URL:', existingImageUrl);
-      } else if (isBase64DataUrl) {
-        console.warn('⚠️  Base64 data URL detected in image field - skipping (should use uploaded URL instead)');
-        // Don't update image field if it's base64
-        delete updates.image;
-      }
-    } else if (updates.image) {
-      console.log('✅ Using new/updated image URL:', updates.image);
-    }
       
       // Handle utility file upload to Supabase Storage
       if (req.files.uploadedFile && req.files.uploadedFile[0]) {
@@ -592,6 +569,28 @@ router.put('/:id', [
           // Continue without previews rather than failing
         }
       }
+    }
+    
+    // Preserve existing image if no new file was uploaded and image URL is valid
+    // Check if image is a valid URL (not base64 data URL)
+    if (!updates.image && existingImageUrl) {
+      const isBase64DataUrl = typeof existingImageUrl === 'string' && existingImageUrl.startsWith('data:');
+      const isValidUrl = typeof existingImageUrl === 'string' && 
+        (existingImageUrl.startsWith('http://') || 
+         existingImageUrl.startsWith('https://') || 
+         existingImageUrl.startsWith('/uploads/'));
+      
+      if (!isBase64DataUrl && isValidUrl) {
+        // Preserve existing image URL
+        updates.image = existingImageUrl;
+        console.log('✅ Preserving existing image URL:', existingImageUrl);
+      } else if (isBase64DataUrl) {
+        console.warn('⚠️  Base64 data URL detected in image field - skipping (should use uploaded URL instead)');
+        // Don't update image field if it's base64
+        delete updates.image;
+      }
+    } else if (updates.image) {
+      console.log('✅ Using new/updated image URL:', updates.image);
     }
     
     // Process features array if it's a string

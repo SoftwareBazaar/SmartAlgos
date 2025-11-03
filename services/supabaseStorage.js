@@ -39,8 +39,6 @@ class SupabaseStorageService {
         return mimeMap[lowerMime] || mime;
       };
 
-      const normalizedMimeType = normalizeMimeType(mimetype);
-
       // Generate unique filename
       const timestamp = Date.now();
       const random = Math.round(Math.random() * 1E9);
@@ -48,15 +46,15 @@ class SupabaseStorageService {
       const filename = `image-${timestamp}-${random}.${ext}`;
       const filePath = filename;
 
-      console.log(`[Storage] Uploading to Supabase: ${bucket}/${filePath} (${fileBuffer.length} bytes)`);
-      console.log(`[Storage] MIME type: ${mimetype} -> ${normalizedMimeType}`);
+      console.log(`[Storage] Uploading to Supabase: ${bucket}/${filePath} (${fileBuffer.length} bytes, type: ${mimetype})`);
 
-      // Add timeout to upload
+      // Don't specify contentType - let Supabase auto-detect or use bucket's allowed types
+      // This avoids MIME type restrictions
       const uploadPromise = this.supabase.storage
         .from(bucket)
         .upload(filePath, fileBuffer, {
-          contentType: normalizedMimeType,
           upsert: false
+          // Removed contentType to avoid MIME type restrictions
         });
 
       const timeoutPromise = new Promise((_, reject) =>

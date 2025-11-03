@@ -79,7 +79,7 @@ let customEARequests = [
 // @access  Private
 router.post('/request', [
   auth,
-  updateActivity,
+  // updateActivity, // TEMPORARILY DISABLED - causing timeout issues
   auditLog('custom_ea_request_submitted'),
   body('serviceType')
     .optional({ checkFalsy: true })

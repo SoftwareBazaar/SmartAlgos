@@ -342,6 +342,9 @@ console.log('✅ Server configuration complete');
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
 
+// Set server timeout for long-running operations
+server.timeout = 60000; // 60 seconds
+
 server.listen(PORT, HOST, () => {
   console.log(`✅ Smart Algos API running on http://${HOST}:${PORT}`);
   console.log(`📁 Health check available at /api/health`);

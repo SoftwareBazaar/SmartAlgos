@@ -254,9 +254,23 @@ try {
     const utilitiesRoutes = require('./routes/utilities');
     app.use('/api/utilities', utilitiesRoutes);
     console.log('✅ Utilities routes loaded');
+    console.log('   - POST /api/utilities/upload-image');
+    console.log('   - GET /api/utilities');
+    console.log('   - POST /api/utilities');
+    console.log('   - PUT /api/utilities/:id');
+    console.log('   - DELETE /api/utilities/:id');
   } catch (error) {
-    console.error('❌ Utilities routes failed to load:', error.message);
-    console.error('❌ Stack:', error.stack);
+    console.error('❌ CRITICAL: Utilities routes failed to load!');
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error stack:', error.stack);
+    // Create a basic fallback route
+    app.post('/api/utilities/upload-image', (req, res) => {
+      res.status(503).json({
+        success: false,
+        message: 'Utilities routes not loaded - check server logs'
+      });
+    });
   }
 
   // Load custom EA routes

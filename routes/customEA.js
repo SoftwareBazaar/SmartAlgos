@@ -1,5 +1,5 @@
 const express = require('express');
-const { body, query } = require('express-validator');
+const { body, query, validationResult } = require('express-validator');
 const { auth, updateActivity } = require('../middleware/auth');
 const securityService = require('../services/securityService');
 const emailService = require('../services/emailService');
@@ -80,9 +80,41 @@ let customEARequests = [
 router.post('/request', [
   auth,
   updateActivity,
-  auditLog('custom_ea_request_submitted')
+  auditLog('custom_ea_request_submitted'),
+  body('serviceType')
+    .optional({ checkFalsy: true })
+    .isIn(['new_ea', 'modify_ea', 'custom_indicator'])
+    .withMessage('Invalid service type'),
+  body('eaName')
+    .optional({ checkFalsy: true })
+    .isLength({ min: 3, max: 100 })
+    .withMessage('EA name must be between 3 and 100 characters'),
+  body('tradingStyle')
+    .optional({ checkFalsy: true })
+    .isIn(['scalping', 'swing', 'hedging', 'arbitrage', 'grid', 'martingale'])
+    .withMessage('Invalid trading style'),
+  body('platform')
+    .optional({ checkFalsy: true })
+    .isIn(['mt4', 'mt5', 'tradingview'])
+    .withMessage('Invalid platform')
 ], async (req, res) => {
   try {
+    // Log incoming request for debugging
+    console.log('📥 Custom EA request received:', {
+      body: req.body,
+      userId: req.user?._id
+    });
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.error('❌ Validation errors:', errors.array());
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
     const requestData = {
       id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       userId: req.user._id.toString(),

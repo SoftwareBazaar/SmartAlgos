@@ -1449,11 +1449,17 @@ const AdminDashboard = () => {
                 </label>
 
                 <div className="flex items-center space-x-4">
-                  {utilityFormData.image ? (
+                  {(utilityFormData.imagePreview || utilityFormData.image) ? (
                     <img
-                      src={utilityFormData.image}
+                      src={utilityFormData.imagePreview || utilityFormData.image}
                       alt="Utility Preview"
                       className="h-20 w-20 rounded-lg object-cover"
+                      onError={(e) => {
+                        // Fallback to image URL if preview fails
+                        if (utilityFormData.imagePreview && utilityFormData.image) {
+                          e.target.src = utilityFormData.image;
+                        }
+                      }}
                     />
                   ) : (
                     <div className="h-20 w-20 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
@@ -2180,46 +2186,50 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Create preview immediately
+      // Create preview immediately (keep in separate field for UI display)
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
+        const previewDataUrl = e.target.result;
+        
+        // Set preview immediately for UI
         setUtilityFormData((prev) => ({
           ...prev,
-          image: e.target.result, // Keep preview for immediate display
+          imagePreview: previewDataUrl, // Keep preview for immediate display only
           imageTimestamp: Date.now(),
         }));
+
+        // Upload the file to server
+        try {
+          const formData = new FormData();
+          formData.append('image', file);
+
+          const response = await apiClient.post('/api/utilities/upload-image', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+
+          if (response.data.success) {
+            // Update with server URL for actual storage (THIS is what gets saved)
+            setUtilityFormData((prev) => ({
+              ...prev,
+              image: response.data.data.imageUrl, // Use server URL for database storage
+              imagePreview: previewDataUrl, // Keep preview for UI display
+              imageTimestamp: Date.now(),
+            }));
+            
+            console.log('✅ Image uploaded successfully:', response.data.data.imageUrl);
+          } else {
+            console.error('Upload failed:', response.data.message);
+            alert('Failed to upload image: ' + response.data.message);
+          }
+        } catch (error) {
+          console.error('Upload error:', error);
+          const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+          alert('Failed to upload image: ' + errorMessage);
+        }
       };
       reader.readAsDataURL(file);
-
-      // Upload the file to server
-      try {
-        const formData = new FormData();
-        formData.append('image', file);
-
-        const response = await apiClient.post('/api/utilities/upload-image', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-
-        if (response.data.success) {
-          // Update with server URL for actual storage
-          setUtilityFormData((prev) => ({
-            ...prev,
-            image: response.data.data.imageUrl, // Use server URL for database storage
-            imageTimestamp: Date.now(),
-          }));
-          
-          console.log('✅ Image uploaded successfully:', response.data.data.imageUrl);
-        } else {
-          console.error('Upload failed:', response.data.message);
-          alert('Failed to upload image: ' + response.data.message);
-        }
-      } catch (error) {
-        console.error('Upload error:', error);
-        const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
-        alert('Failed to upload image: ' + errorMessage);
-      }
     }
   };
 

@@ -488,7 +488,11 @@ router.put('/:id', [
     delete updates.created_at;
     delete updates.downloads; // Don't allow manual download count updates
     
+    // Store original image value to preserve if no new upload
+    const existingImageUrl = updates.image;
+    
     console.log('📝 Initial updates object:', Object.keys(updates));
+    console.log('🖼️ Existing image URL from body:', existingImageUrl);
     
     // Handle uploaded files
     console.log('🔄 Processing file uploads...');
@@ -498,7 +502,7 @@ router.put('/:id', [
       // Handle image upload to Supabase Storage
       if (req.files.image && req.files.image[0]) {
         try {
-          console.log('🖼️ Processing image upload...');
+          console.log('🖼️ Processing NEW image upload...');
           const uploadResult = await supabaseStorage.uploadImage(
             req.files.image[0].buffer,
             req.files.image[0].originalname,
@@ -507,7 +511,7 @@ router.put('/:id', [
           );
           updates.image = uploadResult.url;
           updates.image_timestamp = Date.now();
-          console.log('✅ Image uploaded to Supabase:', updates.image);
+          console.log('✅ New image uploaded to Supabase:', updates.image);
         } catch (uploadError) {
           console.error('❌ Image upload failed:', uploadError);
           return res.status(500).json({
@@ -516,6 +520,29 @@ router.put('/:id', [
           });
         }
       }
+    }
+    
+    // Preserve existing image if no new file was uploaded and image URL is valid
+    // Check if image is a valid URL (not base64 data URL)
+    if (!updates.image && existingImageUrl) {
+      const isBase64DataUrl = typeof existingImageUrl === 'string' && existingImageUrl.startsWith('data:');
+      const isValidUrl = typeof existingImageUrl === 'string' && 
+        (existingImageUrl.startsWith('http://') || 
+         existingImageUrl.startsWith('https://') || 
+         existingImageUrl.startsWith('/uploads/'));
+      
+      if (!isBase64DataUrl && isValidUrl) {
+        // Preserve existing image URL
+        updates.image = existingImageUrl;
+        console.log('✅ Preserving existing image URL:', existingImageUrl);
+      } else if (isBase64DataUrl) {
+        console.warn('⚠️  Base64 data URL detected in image field - skipping (should use uploaded URL instead)');
+        // Don't update image field if it's base64
+        delete updates.image;
+      }
+    } else if (updates.image) {
+      console.log('✅ Using new/updated image URL:', updates.image);
+    }
       
       // Handle utility file upload to Supabase Storage
       if (req.files.uploadedFile && req.files.uploadedFile[0]) {

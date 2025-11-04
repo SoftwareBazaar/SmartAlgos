@@ -1,21 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Bot,
   TrendingUp,
   TrendingDown,
-  DollarSign,
   Activity,
   Target,
-  Users,
   Clock,
-  ChevronLeft,
-  ChevronRight,
   Play,
   Pause,
   Zap,
-  BarChart3,
   ArrowRight
 } from 'lucide-react';
 import Card from '../UI/Card';
@@ -27,7 +22,6 @@ const EACarousel = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [myEAs, setMyEAs] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [loading, setLoading] = useState(true);
   const [liveStats, setLiveStats] = useState({});
@@ -82,17 +76,6 @@ const EACarousel = () => {
     fetchMyEAs();
   }, [user]);
 
-  // Auto-play carousel
-  useEffect(() => {
-    if (!isAutoPlaying || myEAs.length <= 1) return;
-
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % myEAs.length);
-    }, 5000); // Change slide every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, myEAs.length]);
-
   // Simulate live stats updates
   useEffect(() => {
     if (myEAs.length === 0) return;
@@ -118,21 +101,6 @@ const EACarousel = () => {
 
     return () => clearInterval(interval);
   }, [myEAs.length]);
-
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % myEAs.length);
-    setIsAutoPlaying(false);
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + myEAs.length) % myEAs.length);
-    setIsAutoPlaying(false);
-  };
-
-  const goToSlide = (index) => {
-    setCurrentIndex(index);
-    setIsAutoPlaying(false);
-  };
 
   if (loading) {
     return (
@@ -167,8 +135,11 @@ const EACarousel = () => {
     );
   }
 
-  const currentEA = myEAs[currentIndex];
-  const stats = liveStats[currentEA.id || currentEA._id] || {};
+  // Duplicate EAs for seamless infinite scroll
+  const duplicatedEAs = [...myEAs, ...myEAs];
+  const cardWidth = 380;
+  const gap = 16;
+  const totalWidth = myEAs.length * (cardWidth + gap);
 
   return (
     <Card className="overflow-hidden border-2 border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all">
@@ -214,229 +185,165 @@ const EACarousel = () => {
         </div>
       </div>
 
-      {/* Carousel Container */}
-      <div className="relative">
-        {/* Main Content */}
-        <div className="relative overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.3 }}
-              className="p-6"
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* EA Info Section */}
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h4 className="text-xl font-bold text-gray-900 dark:text-white">
-                          {currentEA.name}
-                        </h4>
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                          currentEA.type === 'created'
-                            ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
-                            : 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
-                        }`}>
-                          {currentEA.type === 'created' ? 'Created' : 'Subscribed'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                        {currentEA.description || 'No description available'}
-                      </p>
-                      <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                        {currentEA.category && (
-                          <span className="flex items-center space-x-1">
-                            <Target className="h-3 w-3" />
-                            <span>{currentEA.category}</span>
+      {/* Horizontal Scrolling Carousel */}
+      <div className="relative overflow-hidden">
+        <div className="py-6">
+          <motion.div
+            className="flex space-x-4"
+            animate={{
+              x: isAutoPlaying ? [0, -totalWidth] : 0,
+            }}
+            transition={{
+              x: {
+                repeat: Infinity,
+                repeatType: "loop",
+                duration: myEAs.length * 20,
+                ease: "linear",
+              },
+            }}
+            style={{ width: 'max-content' }}
+          >
+            {duplicatedEAs.map((ea, index) => {
+              const stats = liveStats[ea.id || ea._id] || {};
+              return (
+                <motion.div
+                  key={`${ea.id || ea._id}-${index}`}
+                  className="flex-shrink-0"
+                  style={{ width: `${cardWidth}px` }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800 p-5 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all h-full">
+                    {/* EA Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h4 className="text-lg font-bold text-gray-900 dark:text-white">
+                            {ea.name}
+                          </h4>
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                            ea.type === 'created'
+                              ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
+                              : 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
+                          }`}>
+                            {ea.type === 'created' ? 'Created' : 'Subscribed'}
                           </span>
-                        )}
-                        {currentEA.subscribers !== undefined && (
-                          <span className="flex items-center space-x-1">
-                            <Users className="h-3 w-3" />
-                            <span>{currentEA.subscribers} subscribers</span>
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                          {ea.description || 'No description available'}
+                        </p>
+                      </div>
+                      <div className="ml-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          stats.status === 'active'
+                            ? 'bg-success-500 animate-pulse'
+                            : 'bg-gray-400'
+                        }`}></div>
+                      </div>
+                    </div>
+
+                    {/* Live Stats Grid */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-gradient-to-br from-success-500/10 via-success-500/5 to-transparent dark:from-success-400/20 dark:from-success-400/10 p-3 rounded-lg border border-success-200 dark:border-success-800">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                            Profit
                           </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <div className={`w-3 h-3 rounded-full ${
-                        stats.status === 'active'
-                          ? 'bg-success-500 animate-pulse'
-                          : 'bg-gray-400'
-                      }`}></div>
-                    </div>
-                  </div>
-
-                  {/* Live Stats Grid */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gradient-to-br from-success-500/10 via-success-500/5 to-transparent dark:from-success-400/20 dark:via-success-400/10 p-4 rounded-xl border border-success-200 dark:border-success-800">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                          Profit/Loss
-                        </span>
-                        {parseFloat(stats.profit || 0) >= 0 ? (
-                          <TrendingUp className="h-4 w-4 text-success-600 dark:text-success-400" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4 text-danger-600 dark:text-danger-400" />
-                        )}
-                      </div>
-                      <motion.div
-                        key={stats.profit}
-                        initial={{ scale: 1.1 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className={`text-lg font-bold ${
-                          parseFloat(stats.profit || 0) >= 0
-                            ? 'text-success-600 dark:text-success-400'
-                            : 'text-danger-600 dark:text-danger-400'
-                        }`}
-                      >
-                        ${Math.abs(parseFloat(stats.profit || 0)).toLocaleString()}
-                      </motion.div>
-                      <div className={`text-xs mt-1 ${
-                        parseFloat(stats.profitPercent || 0) >= 0
-                          ? 'text-success-600 dark:text-success-400'
-                          : 'text-danger-600 dark:text-danger-400'
-                      }`}>
-                        {parseFloat(stats.profitPercent || 0) >= 0 ? '+' : ''}
-                        {stats.profitPercent || '0.00'}%
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-primary-500/10 via-primary-500/5 to-transparent dark:from-primary-400/20 dark:via-primary-400/10 p-4 rounded-xl border border-primary-200 dark:border-primary-800">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                          Active Trades
-                        </span>
-                        <Activity className="h-4 w-4 text-primary-600 dark:text-primary-400" />
-                      </div>
-                      <motion.div
-                        key={stats.activeTrades}
-                        initial={{ scale: 1.1 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className="text-lg font-bold text-primary-600 dark:text-primary-400"
-                      >
-                        {stats.activeTrades || 0}
-                      </motion.div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Live
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-400/20 dark:via-blue-400/10 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                          Win Rate
-                        </span>
-                        <Target className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <motion.div
-                        key={stats.winRate}
-                        initial={{ scale: 1.1 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className="text-lg font-bold text-blue-600 dark:text-blue-400"
-                      >
-                        {stats.winRate || '0.0'}%
-                      </motion.div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {stats.totalTrades || 0} total trades
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-warning-500/10 via-warning-500/5 to-transparent dark:from-warning-400/20 dark:via-warning-400/10 p-4 rounded-xl border border-warning-200 dark:border-warning-800">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                          Status
-                        </span>
-                        <Zap className="h-4 w-4 text-warning-600 dark:text-warning-400" />
-                      </div>
-                      <div className="text-lg font-bold text-warning-600 dark:text-warning-400">
-                        {stats.status === 'active' ? 'Active' : 'Idle'}
-                      </div>
-                      <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        <Clock className="h-3 w-3" />
-                        <span>Updated {stats.lastUpdate ? new Date(stats.lastUpdate).toLocaleTimeString() : 'now'}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Chart/Visualization Section */}
-                <div className="flex items-center justify-center bg-gradient-to-br from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-                  <div className="text-center space-y-4 w-full">
-                    <div className="flex justify-center">
-                      <div className="relative">
-                        <div className="w-32 h-32 rounded-full border-8 border-primary-200 dark:border-primary-800 flex items-center justify-center">
-                          <div className="w-24 h-24 rounded-full border-8 border-primary-400 dark:border-primary-600 flex items-center justify-center">
-                            <BarChart3 className="h-12 w-12 text-primary-600 dark:text-primary-400" />
-                          </div>
+                          {parseFloat(stats.profit || 0) >= 0 ? (
+                            <TrendingUp className="h-3 w-3 text-success-600 dark:text-success-400" />
+                          ) : (
+                            <TrendingDown className="h-3 w-3 text-danger-600 dark:text-danger-400" />
+                          )}
                         </div>
                         <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                          className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary-500 dark:border-t-primary-400"
-                        />
+                          key={stats.profit}
+                          initial={{ scale: 1.1 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.3 }}
+                          className={`text-sm font-bold ${
+                            parseFloat(stats.profit || 0) >= 0
+                              ? 'text-success-600 dark:text-success-400'
+                              : 'text-danger-600 dark:text-danger-400'
+                          }`}
+                        >
+                          ${Math.abs(parseFloat(stats.profit || 0)).toLocaleString()}
+                        </motion.div>
+                        <div className={`text-[10px] mt-0.5 ${
+                          parseFloat(stats.profitPercent || 0) >= 0
+                            ? 'text-success-600 dark:text-success-400'
+                            : 'text-danger-600 dark:text-danger-400'
+                        }`}>
+                          {parseFloat(stats.profitPercent || 0) >= 0 ? '+' : ''}
+                          {stats.profitPercent || '0.00'}%
+                        </div>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-primary-500/10 via-primary-500/5 to-transparent dark:from-primary-400/20 dark:via-primary-400/10 p-3 rounded-lg border border-primary-200 dark:border-primary-800">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                            Trades
+                          </span>
+                          <Activity className="h-3 w-3 text-primary-600 dark:text-primary-400" />
+                        </div>
+                        <motion.div
+                          key={stats.activeTrades}
+                          initial={{ scale: 1.1 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.3 }}
+                          className="text-sm font-bold text-primary-600 dark:text-primary-400"
+                        >
+                          {stats.activeTrades || 0}
+                        </motion.div>
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                          Active
+                        </div>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-400/20 dark:via-blue-400/10 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                            Win Rate
+                          </span>
+                          <Target className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <motion.div
+                          key={stats.winRate}
+                          initial={{ scale: 1.1 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.3 }}
+                          className="text-sm font-bold text-blue-600 dark:text-blue-400"
+                        >
+                          {stats.winRate || '0.0'}%
+                        </motion.div>
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                          {stats.totalTrades || 0} total
+                        </div>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-warning-500/10 via-warning-500/5 to-transparent dark:from-warning-400/20 dark:via-warning-400/10 p-3 rounded-lg border border-warning-200 dark:border-warning-800">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                            Status
+                          </span>
+                          <Zap className="h-3 w-3 text-warning-600 dark:text-warning-400" />
+                        </div>
+                        <div className="text-sm font-bold text-warning-600 dark:text-warning-400">
+                          {stats.status === 'active' ? 'Active' : 'Idle'}
+                        </div>
+                        <div className="flex items-center space-x-1 text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                          <Clock className="h-2.5 w-2.5" />
+                          <span>Live</span>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                        Live Performance
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Real-time trading activity
-                      </p>
-                    </div>
                   </div>
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                </motion.div>
+              );
+            })}
+          </motion.div>
         </div>
-
-        {/* Navigation Arrows */}
-        {myEAs.length > 1 && (
-          <>
-            <button
-              onClick={prevSlide}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full p-2 shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all z-10"
-              aria-label="Previous EA"
-            >
-              <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            </button>
-            <button
-              onClick={nextSlide}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full p-2 shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all z-10"
-              aria-label="Next EA"
-            >
-              <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            </button>
-          </>
-        )}
       </div>
-
-      {/* Dots Indicator */}
-      {myEAs.length > 1 && (
-        <div className="flex items-center justify-center space-x-2 p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
-          {myEAs.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentIndex
-                  ? 'bg-primary-600 dark:bg-primary-400 w-8'
-                  : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
     </Card>
   );
 };

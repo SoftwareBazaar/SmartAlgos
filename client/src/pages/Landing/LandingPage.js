@@ -19,6 +19,49 @@ import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 
 const LandingPage = () => {
+  const sampleEAs = [
+    {
+      name: 'Gold Scalper Pro',
+      profit: '+$1,250',
+      winRate: '68.5%',
+      trades: '3',
+      gradient: 'linear-gradient(to bottom right, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05), transparent)',
+      borderColor: 'rgba(34, 197, 94, 0.2)'
+    },
+    {
+      name: 'Multi Indicator EA',
+      profit: '+$890',
+      winRate: '72.3%',
+      trades: '2',
+      gradient: 'linear-gradient(to bottom right, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05), transparent)',
+      borderColor: 'rgba(59, 130, 246, 0.2)'
+    },
+    {
+      name: 'Institutional Scalper',
+      profit: '+$2,100',
+      winRate: '75.8%',
+      trades: '5',
+      gradient: 'linear-gradient(to bottom right, rgba(251, 146, 60, 0.1), rgba(251, 146, 60, 0.05), transparent)',
+      borderColor: 'rgba(251, 146, 60, 0.2)'
+    },
+    {
+      name: 'Trend Master EA',
+      profit: '+$1,580',
+      winRate: '70.2%',
+      trades: '4',
+      gradient: 'linear-gradient(to bottom right, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05), transparent)',
+      borderColor: 'rgba(139, 92, 246, 0.2)'
+    },
+    {
+      name: 'HFT Pro Bot',
+      profit: '+$3,240',
+      winRate: '78.9%',
+      trades: '7',
+      gradient: 'linear-gradient(to bottom right, rgba(236, 72, 153, 0.1), rgba(236, 72, 153, 0.05), transparent)',
+      borderColor: 'rgba(236, 72, 153, 0.2)'
+    }
+  ];
+
   const features = [
     {
       icon: <TrendingUp className="h-8 w-8 text-primary-600" />,

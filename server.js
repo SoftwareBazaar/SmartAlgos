@@ -237,17 +237,25 @@ app.use(helmet({
 }));
 */
 
-// TEMPORARY WILDCARD CSP - TEST IF CSP IS THE ISSUE
+// Production CSP with Google Fonts support
 app.use((req, res, next) => {
-  // WILDCARD CSP - ALLOWS EVERYTHING (TEMPORARY TEST)
-  const csp = "default-src *; img-src * data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; connect-src *; font-src * data:; object-src *; base-uri *; frame-src *;";
+  // Production CSP - Allows Google Fonts and required resources
+  const csp = "default-src 'self'; " +
+    "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob: https:; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app ws: wss:; " +
+    "font-src 'self' data: https://fonts.gstatic.com; " +
+    "object-src 'none'; " +
+    "base-uri 'self'; " +
+    "frame-src 'self';";
   
   res.setHeader('Content-Security-Policy', csp);
   
   // Log CSP on first request only
   if (!global.cspLogged) {
-    console.log('🔒 WILDCARD CSP SET (TEMPORARY):', csp);
-    console.log('⚠️  WARNING: This allows ALL sources - for testing only!');
+    console.log('🔒 Production CSP SET with Google Fonts support:', csp);
     global.cspLogged = true;
   }
   

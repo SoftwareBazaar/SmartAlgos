@@ -26,9 +26,10 @@ app.get('/health', (req, res) => {
   const csp = "default-src 'self'; " +
     "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-    "style-src 'self' 'unsafe-inline'; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app; " +
-    "font-src 'self' data:; " +
+    "font-src 'self' data: https://fonts.gstatic.com; " +
     "object-src 'none'; " +
     "base-uri 'self'; " +
     "frame-src 'self';";
@@ -78,9 +79,10 @@ try {
       const csp = "default-src 'self'; " +
         "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
         "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-        "style-src 'self' 'unsafe-inline'; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+        "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
         "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app; " +
-        "font-src 'self' data:; " +
+        "font-src 'self' data: https://fonts.gstatic.com; " +
         "object-src 'none'; " +
         "base-uri 'self'; " +
         "frame-src 'self';";

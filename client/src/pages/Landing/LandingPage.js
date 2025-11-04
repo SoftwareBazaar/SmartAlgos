@@ -241,8 +241,22 @@ const LandingPage = () => {
                 </div>
               </div>
               
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-6 overflow-hidden">
+                <motion.div
+                  className="flex space-x-4"
+                  animate={{
+                    x: [0, -1400],
+                  }}
+                  transition={{
+                    x: {
+                      repeat: Infinity,
+                      repeatType: "loop",
+                      duration: 30,
+                      ease: "linear",
+                    },
+                  }}
+                  style={{ width: 'max-content' }}
+                >
                   {/* Sample EA 1 */}
                   <div className="bg-gradient-to-br from-success-500/10 via-success-500/5 to-transparent dark:from-success-400/20 dark:via-success-400/10 p-5 rounded-xl border border-success-200 dark:border-success-800">
                     <div className="flex items-center justify-between mb-3">

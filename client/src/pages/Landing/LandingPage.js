@@ -257,72 +257,36 @@ const LandingPage = () => {
                   }}
                   style={{ width: 'max-content' }}
                 >
-                  {/* Sample EA 1 */}
-                  <div className="bg-gradient-to-br from-success-500/10 via-success-500/5 to-transparent dark:from-success-400/20 dark:via-success-400/10 p-5 rounded-xl border border-success-200 dark:border-success-800">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-gray-900 dark:text-white">Gold Scalper Pro</h4>
-                      <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">Profit</span>
-                        <span className="text-sm font-bold text-success-600 dark:text-success-400">+$1,250</span>
+                  {[...sampleEAs, ...sampleEAs].map((ea, index) => (
+                    <div
+                      key={`${ea.name}-${index}`}
+                      className="flex-shrink-0 w-[280px] p-5 rounded-xl border h-full"
+                      style={{
+                        background: ea.gradient,
+                        borderColor: ea.borderColor
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-semibold text-gray-900 dark:text-white">{ea.name}</h4>
+                        <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">Win Rate</span>
-                        <span className="text-sm font-bold text-gray-900 dark:text-white">68.5%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">Active Trades</span>
-                        <span className="text-sm font-bold text-primary-600 dark:text-primary-400">3</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Sample EA 2 */}
-                  <div className="bg-gradient-to-br from-primary-500/10 via-primary-500/5 to-transparent dark:from-primary-400/20 dark:via-primary-400/10 p-5 rounded-xl border border-primary-200 dark:border-primary-800">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-gray-900 dark:text-white">Multi Indicator EA</h4>
-                      <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">Profit</span>
-                        <span className="text-sm font-bold text-success-600 dark:text-success-400">+$890</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">Win Rate</span>
-                        <span className="text-sm font-bold text-gray-900 dark:text-white">72.3%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">Active Trades</span>
-                        <span className="text-sm font-bold text-primary-600 dark:text-primary-400">2</span>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-600 dark:text-gray-400">Profit</span>
+                          <span className="text-sm font-bold text-success-600 dark:text-success-400">{ea.profit}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-600 dark:text-gray-400">Win Rate</span>
+                          <span className="text-sm font-bold text-gray-900 dark:text-white">{ea.winRate}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-600 dark:text-gray-400">Active Trades</span>
+                          <span className="text-sm font-bold text-primary-600 dark:text-primary-400">{ea.trades}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Sample EA 3 */}
-                  <div className="bg-gradient-to-br from-warning-500/10 via-warning-500/5 to-transparent dark:from-warning-400/20 dark:via-warning-400/10 p-5 rounded-xl border border-warning-200 dark:border-warning-800">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-gray-900 dark:text-white">Institutional Scalper</h4>
-                      <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">Profit</span>
-                        <span className="text-sm font-bold text-success-600 dark:text-success-400">+$2,100</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">Win Rate</span>
-                        <span className="text-sm font-bold text-gray-900 dark:text-white">75.8%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">Active Trades</span>
-                        <span className="text-sm font-bold text-primary-600 dark:text-primary-400">5</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  ))}
+                </motion.div>
               </div>
             </Card>
           </motion.div>

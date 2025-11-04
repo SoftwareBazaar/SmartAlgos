@@ -27,6 +27,7 @@ import { useEA } from '../../contexts/EAContext';
 import apiClient from '../../lib/apiClient';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { getActiveEAs } = useEA();
   
@@ -497,9 +498,20 @@ const Dashboard = () => {
                 ) : (
                   <div className="text-center py-8">
                     <Bot className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No active EAs
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                      No Active Expert Advisors
+                    </h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-4 max-w-xs mx-auto">
+                      Start automating your trading by subscribing to professional EAs from our marketplace.
                     </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate('/ea-marketplace')}
+                      className="text-primary-600 dark:text-primary-400 border-primary-300 dark:border-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                    >
+                      Browse EA Marketplace
+                    </Button>
                   </div>
                 )}
               </div>

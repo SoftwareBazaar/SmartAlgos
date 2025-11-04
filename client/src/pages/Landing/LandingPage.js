@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -17,8 +17,17 @@ import {
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
+import FeaturePreviewModal from '../../components/FeaturePreviewModal';
 
 const LandingPage = () => {
+  const [selectedFeature, setSelectedFeature] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleFeatureClick = (feature) => {
+    setSelectedFeature(feature);
+    setIsModalOpen(true);
+  };
+
   const sampleEAs = [
     {
       name: 'Gold Scalper Pro',
@@ -67,37 +76,140 @@ const LandingPage = () => {
       icon: <TrendingUp className="h-8 w-8 text-primary-600" />,
       title: "Real-time Markets",
       description: "Live market data, charts, and analysis for Forex, Crypto, and Stocks",
-      link: "/markets"
+      link: "/markets",
+      benefits: [
+        "Real-time price updates from 500+ trading pairs",
+        "Advanced charting with 50+ technical indicators",
+        "Multi-timeframe analysis (1m to monthly)",
+        "Customizable watchlists and alerts"
+      ],
+      stats: [
+        { value: "500+", label: "Trading Pairs" },
+        { value: "50+", label: "Indicators" },
+        { value: "<1ms", label: "Latency" }
+      ],
+      details: [
+        "Access live streaming data from major exchanges",
+        "Professional-grade charting tools with drawing capabilities",
+        "Automated alerts for price movements and patterns",
+        "Historical data analysis and backtesting capabilities"
+      ]
     },
     {
       icon: <Bot className="h-8 w-8 text-success-600" />,
       title: "EA Marketplace",
       description: "Expert Advisors and algorithmic trading solutions",
-      link: "/ea-marketplace"
+      link: "/ea-marketplace",
+      benefits: [
+        "Browse 100+ verified Expert Advisors",
+        "Real-time performance metrics and reviews",
+        "One-click installation and activation",
+        "Community ratings and testimonials"
+      ],
+      stats: [
+        { value: "100+", label: "EAs Available" },
+        { value: "4.8★", label: "Avg Rating" },
+        { value: "95%", label: "Uptime" }
+      ],
+      details: [
+        "Access to professionally developed trading algorithms",
+        "Automated trading without manual intervention",
+        "Backtested strategies with proven track records",
+        "Support for multiple trading platforms and brokers"
+      ]
     },
     {
       icon: <Zap className="h-8 w-8 text-warning-600" />,
       title: "HFT Bots",
       description: "High-frequency trading bots for advanced strategies",
-      link: "/hft-bots"
+      link: "/hft-bots",
+      isPremium: true,
+      benefits: [
+        "Microsecond execution speeds",
+        "Advanced market making strategies",
+        "Risk management and position sizing",
+        "24/7 automated trading operations"
+      ],
+      stats: [
+        { value: "<1μs", label: "Execution" },
+        { value: "24/7", label: "Operation" },
+        { value: "99.9%", label: "Reliability" }
+      ],
+      details: [
+        "Institutional-grade high-frequency trading algorithms",
+        "Co-location services for optimal latency",
+        "Advanced order types and execution strategies",
+        "Real-time monitoring and performance analytics"
+      ]
     },
     {
       icon: <BarChart3 className="h-8 w-8 text-info-600" />,
       title: "Portfolio Management",
       description: "Track and manage your trading portfolio",
-      link: "/portfolio"
+      link: "/portfolio",
+      benefits: [
+        "Real-time portfolio valuation",
+        "Performance analytics and reporting",
+        "Risk assessment and diversification",
+        "Tax reporting and documentation"
+      ],
+      stats: [
+        { value: "Real-time", label: "Tracking" },
+        { value: "Multi-asset", label: "Support" },
+        { value: "Auto", label: "Reports" }
+      ],
+      details: [
+        "Comprehensive portfolio dashboard with all positions",
+        "Advanced analytics including Sharpe ratio, drawdown analysis",
+        "Automated P&L calculations and tax reporting",
+        "Risk management tools and position sizing recommendations"
+      ]
     },
     {
       icon: <DollarSign className="h-8 w-8 text-success-600" />,
       title: "Payment Integration",
       description: "Secure payment processing with Paystack",
-      link: "/payments"
+      link: "/payments",
+      benefits: [
+        "Multiple payment methods supported",
+        "Bank-level encryption and security",
+        "Instant deposit and withdrawal processing",
+        "Transaction history and receipts"
+      ],
+      stats: [
+        { value: "Instant", label: "Processing" },
+        { value: "100%", label: "Secure" },
+        { value: "24/7", label: "Support" }
+      ],
+      details: [
+        "Seamless integration with major payment providers",
+        "Support for credit cards, bank transfers, and cryptocurrencies",
+        "Automated reconciliation and accounting",
+        "Multi-currency support for global traders"
+      ]
     },
     {
       icon: <Shield className="h-8 w-8 text-danger-600" />,
       title: "Security & Escrow",
       description: "Bank-level security and escrow services",
-      link: "/escrow"
+      link: "/escrow",
+      benefits: [
+        "Two-factor authentication (2FA)",
+        "Cold storage for digital assets",
+        "Escrow services for secure transactions",
+        "Insurance coverage for funds"
+      ],
+      stats: [
+        { value: "256-bit", label: "Encryption" },
+        { value: "99.99%", label: "Uptime" },
+        { value: "Insured", label: "Funds" }
+      ],
+      details: [
+        "Enterprise-grade security infrastructure",
+        "Regular security audits and penetration testing",
+        "Compliance with financial regulations",
+        "Dedicated security team monitoring 24/7"
+      ]
     }
   ];
 
@@ -323,11 +435,15 @@ const LandingPage = () => {
                   <p className="text-gray-600 dark:text-gray-300 mb-6">
                     {feature.description}
                   </p>
-                  <Link to={feature.link}>
-                    <Button variant="outline" size="sm" className="w-full">
-                      Explore Feature
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handleFeatureClick(feature)}
+                  >
+                    Explore Feature
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
                 </Card>
               </motion.div>
             ))}
@@ -417,6 +533,13 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Feature Preview Modal */}
+      <FeaturePreviewModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        feature={selectedFeature}
+      />
     </div>
   );
 };

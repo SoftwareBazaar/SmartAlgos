@@ -156,11 +156,6 @@ const LandingPage = () => {
                   <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
-              <Link to="/demo/visme">
-                <Button variant="outline" size="lg">
-                  View Demo
-                </Button>
-              </Link>
             </div>
           </motion.div>
         </div>

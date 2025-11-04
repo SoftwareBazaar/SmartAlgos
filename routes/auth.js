@@ -97,10 +97,13 @@ const EMAIL_NORMALIZE_OPTIONS = {
 
 // No longer using custom JWT tokens - using Supabase tokens only
 
-// Rate limiting for auth actions (very lenient for development)
-const loginRateLimit = createActionRateLimit(1000, 5 * 60 * 1000, 'login'); // 1000 attempts per 5 minutes (development)
-const registerRateLimit = createActionRateLimit(500, 10 * 60 * 1000, 'register'); // 500 attempts per 10 minutes (development)
-const passwordResetRateLimit = createActionRateLimit(200, 10 * 60 * 1000, 'password-reset'); // 200 attempts per 10 minutes
+// Rate limiting for auth actions (production-ready limits)
+const loginRateLimit = createActionRateLimit(5, 15 * 60 * 1000, 'login'); // 5 attempts per 15 minutes
+const registerRateLimit = createActionRateLimit(10, 10 * 60 * 1000, 'register'); // 10 attempts per 10 minutes
+const passwordResetRateLimit = createActionRateLimit(5, 10 * 60 * 1000, 'password-reset'); // 5 attempts per 10 minutes
+
+// Import account lockout middleware
+const { accountLockout, updateLockoutAttempts } = require('../middleware/security');
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -143,7 +146,7 @@ router.post('/register', [
       });
     }
 
-    const { firstName, lastName, email, password, phone, country, tradingExperience } = req.body;
+    const { firstName, lastName, email, password, phone, country, tradingExperience, accountTier, kycAccepted } = req.body;
 
     // For development: Create user directly in database (bypass Supabase Auth email confirmation)
     const supabase = databaseService.getClient();
@@ -164,6 +167,14 @@ router.post('/register', [
     const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
+    // Validate KYC acceptance
+    if (!kycAccepted) {
+      return res.status(400).json({
+        success: false,
+        message: 'You must accept the regulatory compliance and KYC/AML notice to register'
+      });
+    }
+
     // Create user profile in users_accounts table
     const userData = {
       id: userId,
@@ -174,10 +185,13 @@ router.post('/register', [
       phone,
       country,
       trading_experience: tradingExperience || 'beginner',
+      account_tier: accountTier || 'basic',
+      kyc_accepted: kycAccepted,
+      kyc_accepted_at: new Date().toISOString(),
       is_active: true,
       is_email_verified: true, // Auto-verify for development
       role: 'user',
-      subscription_type: 'free',
+      subscription_type: accountTier === 'basic' ? 'free' : accountTier === 'pro' ? 'pro' : 'enterprise',
       subscription_status: 'active',
       subscription_start_date: new Date().toISOString(),
       subscription_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
@@ -233,7 +247,8 @@ router.post('/register', [
 // @desc    Login user using Supabase
 // @access  Public
 router.post('/login', [
-  // loginRateLimit REMOVED - no rate limiting
+  loginRateLimit, // Re-enabled rate limiting
+  accountLockout(5, 15 * 60 * 1000), // 5 failed attempts = 15 min lockout
   body('email')
     .isEmail()
     .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
@@ -261,6 +276,7 @@ router.post('/login', [
     // Check if we're in mock mode
     if (!supabase) {
       console.log('[Auth] Mock mode: Skipping database lookup for login');
+      updateLockoutAttempts(req, false); // Record failed attempt
       return res.status(401).json({
         success: false,
         message: 'Authentication not available in mock mode. Please set up Supabase credentials.'
@@ -276,9 +292,32 @@ router.post('/login', [
 
     if (profileError || !profile) {
       console.warn('[login] User not found:', email);
+      updateLockoutAttempts(req, false); // Record failed attempt
+      // Log security event
+      securityService.logSecurityEvent('failed_login', {
+        email,
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.headers['user-agent'],
+        reason: 'user_not_found'
+      });
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
+      });
+    }
+
+    // Check if account is locked due to too many failed attempts
+    const lockoutData = req.accountLockout;
+    if (lockoutData && lockoutData.isLocked) {
+      const remainingTime = Math.ceil((lockoutData.attempts.lockedUntil - Date.now()) / 1000 / 60);
+      securityService.logSecurityEvent('login_blocked_locked', {
+        email,
+        ip: req.ip || req.connection.remoteAddress,
+        remainingTime
+      });
+      return res.status(423).json({
+        success: false,
+        message: `Account temporarily locked due to too many failed login attempts. Please try again in ${remainingTime} minute(s).`
       });
     }
 
@@ -286,28 +325,81 @@ router.post('/login', [
     const isPasswordValid = await bcrypt.compare(password, profile.password_hash);
     if (!isPasswordValid) {
       console.warn('[login] Invalid password for user:', email);
+      updateLockoutAttempts(req, false); // Record failed attempt
+      
+      // Update login attempts in database
+      const currentAttempts = (profile.login_attempts || 0) + 1;
+      const maxAttempts = 5;
+      
+      await supabase
+        .from('users_accounts')
+        .update({
+          login_attempts: currentAttempts,
+          last_failed_login: new Date().toISOString(),
+          ...(currentAttempts >= maxAttempts && {
+            account_locked_until: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+          })
+        })
+        .eq('id', profile.id);
+      
+      // Log security event
+      securityService.logSecurityEvent('failed_login', {
+        email,
+        userId: profile.id,
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.headers['user-agent'],
+        attempts: currentAttempts,
+        reason: 'invalid_password',
+        locked: currentAttempts >= maxAttempts
+      });
+      
+      const remainingAttempts = Math.max(0, maxAttempts - currentAttempts);
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: `Invalid email or password. ${remainingAttempts > 0 ? `${remainingAttempts} attempt(s) remaining.` : 'Account locked for 15 minutes.'}`
       });
     }
 
     // Check if account is active
     if (!profile.is_active) {
+      updateLockoutAttempts(req, false);
       return res.status(401).json({
         success: false,
         message: 'Account is deactivated'
       });
     }
 
-    // Update last login and activity
+    // Check if account is locked in database
+    if (profile.account_locked_until && new Date(profile.account_locked_until) > new Date()) {
+      const remainingTime = Math.ceil((new Date(profile.account_locked_until) - Date.now()) / 1000 / 60);
+      return res.status(423).json({
+        success: false,
+        message: `Account temporarily locked. Please try again in ${remainingTime} minute(s).`
+      });
+    }
+
+    // Reset login attempts on successful login
+    updateLockoutAttempts(req, true);
+    
+    // Update last login and activity, reset login attempts
     await supabase
       .from('users_accounts')
       .update({
         last_login: new Date().toISOString(),
-        last_activity: new Date().toISOString()
+        last_activity: new Date().toISOString(),
+        login_attempts: 0,
+        account_locked_until: null,
+        last_successful_login: new Date().toISOString()
       })
       .eq('id', profile.id);
+
+    // Log successful login
+    securityService.logSecurityEvent('successful_login', {
+      email,
+      userId: profile.id,
+      ip: req.ip || req.connection.remoteAddress,
+      userAgent: req.headers['user-agent']
+    });
 
     // For development: Generate a simple token
     const token = `dev_token_${profile.id}`;

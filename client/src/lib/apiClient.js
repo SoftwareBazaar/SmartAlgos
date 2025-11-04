@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { removeToken, clearAuth, isValidTokenFormat } from '../utils/authStorage';
+import { getErrorMessage, logError, isProduction } from '../utils/errorHandler';
 
 // Get API base URL from environment or use defaults
 const getBaseURL = () => {
@@ -58,8 +59,8 @@ apiClient.interceptors.request.use((config) => {
     }
   }
 
-  // Log requests in development
-  if (isDevRuntime) {
+  // Log requests only in development
+  if (isDevRuntime && !isProduction) {
     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
   }
 
@@ -73,17 +74,15 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    const url = error.config?.url;
+    const isAdminContext = typeof window !== 'undefined' && window.location.pathname.includes('/admin');
+    
+    // Log error with appropriate level of detail
+    logError(error, `API ${error.config?.method?.toUpperCase()} ${url}`);
+
     if (error.response) {
       // Server responded with error status
       const status = error.response.status;
-      const url = error.config?.url;
-      const isAdminContext = typeof window !== 'undefined' && window.location.pathname.includes('/admin');
-      
-      console.error(`[API Error ${status}] ${url}`, {
-        status,
-        data: error.response.data,
-        url: error.config?.baseURL + url
-      });
 
       // Handle specific error cases
       if (status === 401) {
@@ -99,20 +98,20 @@ apiClient.interceptors.response.use(
             clearAuth('user');
           }
           delete apiClient.defaults.headers.common.Authorization;
-        } else {
-          // For auth check endpoint, just log but don't clear
+        } else if (!isProduction) {
+          // For auth check endpoint, just log but don't clear (dev only)
           console.warn('[API Client] 401 on auth check - keeping cached session');
         }
-        // Do not auto-redirect on 401; let the view/state decide.
-      } else if (status === 404) {
-        console.warn(`[404 Not Found] Endpoint: ${error.config?.baseURL}${url}`);
       }
+      
+      // Enhance error with user-friendly message
+      error.userMessage = getErrorMessage(error);
     } else if (error.request) {
       // Request made but no response received
-      console.error('[API Network Error] No response received', error.message);
+      error.userMessage = getErrorMessage(error);
     } else {
       // Something else happened
-      console.error('[API Error]', error.message);
+      error.userMessage = getErrorMessage(error);
     }
 
     return Promise.reject(error);

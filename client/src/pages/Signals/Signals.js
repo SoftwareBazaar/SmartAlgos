@@ -15,6 +15,7 @@ import {
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
+import { EmptySignals } from '../../components/UI/EmptyState';
 
 const Signals = () => {
   const navigate = useNavigate();
@@ -594,15 +595,8 @@ const Signals = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-center py-12"
         >
-          <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-            No signals found
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400">
-            Try adjusting your search or filter criteria
-          </p>
+          <EmptySignals onRefresh={() => window.location.reload()} />
         </motion.div>
       )}
     </div>

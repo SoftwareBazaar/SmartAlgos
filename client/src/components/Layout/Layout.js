@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import LegalFooter from '../Compliance/LegalFooter';
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,6 +26,7 @@ const Layout = () => {
               <Outlet />
             </div>
           </main>
+          <LegalFooter />
         </div>
       </div>
     </div>

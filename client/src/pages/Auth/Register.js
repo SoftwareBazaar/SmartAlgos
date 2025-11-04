@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, Shield, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { getPasswordStrength, validatePassword } from '../../utils/passwordStrength';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedKYC, setAcceptedKYC] = useState(false);
   const { register: registerUser, loading } = useAuth();
   const navigate = useNavigate();
   
@@ -18,8 +20,14 @@ const Register = () => {
   } = useForm();
 
   const password = watch('password');
+  const passwordStrength = password ? getPasswordStrength(password) : null;
 
   const onSubmit = async (data) => {
+    // Validate KYC acceptance
+    if (!acceptedKYC) {
+      return;
+    }
+
     const userData = {
       firstName: data.firstName,
       lastName: data.lastName,
@@ -28,7 +36,9 @@ const Register = () => {
       confirmPassword: data.confirmPassword,
       phone: data.phone,
       country: data.country,
-      tradingExperience: data.tradingExperience
+      tradingExperience: data.tradingExperience,
+      accountTier: data.accountTier || 'basic',
+      kycAccepted: acceptedKYC
     };
 
     const result = await registerUser(userData);
@@ -177,6 +187,25 @@ const Register = () => {
                 </div>
               </div>
 
+              {/* Account Tier Selection */}
+              <div className="relative">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
+                  Account Tier <span className="text-red-500">*</span>
+                </label>
+                <select
+                  {...register('accountTier', {
+                    required: 'Please select an account tier',
+                  })}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                >
+                  <option value="" className="bg-white dark:bg-slate-800">Select account tier</option>
+                  <option value="basic" className="bg-white dark:bg-slate-800">Basic - Free tier with limited features</option>
+                  <option value="pro" className="bg-white dark:bg-slate-800">Pro - Advanced features and priority support</option>
+                  <option value="enterprise" className="bg-white dark:bg-slate-800">Enterprise - Full access with custom solutions</option>
+                </select>
+                {errors.accountTier && <p className="text-xs text-red-400 mt-1">{errors.accountTier.message}</p>}
+              </div>
+
               {/* Trading Experience */}
               <div className="relative">
                 <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
@@ -210,8 +239,12 @@ const Register = () => {
                         required: 'Password is required',
                         minLength: { value: 8, message: 'Min 8 characters' },
                         pattern: {
-                          value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+                          value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]/,
                           message: 'Must contain uppercase, lowercase, number & special char',
+                        },
+                        validate: (value) => {
+                          const validation = validatePassword(value);
+                          return validation.isValid || validation.errors[0];
                         },
                       })}
                       className="w-full px-3 py-2 pl-9 pr-9 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-gray-400 dark:group-hover:border-slate-500"
@@ -226,6 +259,84 @@ const Register = () => {
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                  
+                  {/* Password Strength Indicator */}
+                  {password && password.length > 0 && passwordStrength && (
+                    <div className="mt-2 space-y-1.5">
+                      {/* Strength Bar */}
+                      <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-300 ${
+                            passwordStrength.color === 'red' ? 'bg-red-500' :
+                            passwordStrength.color === 'yellow' ? 'bg-yellow-500' :
+                            passwordStrength.color === 'blue' ? 'bg-blue-500' :
+                            'bg-green-500'
+                          }`}
+                          style={{ width: `${passwordStrength.score}%` }}
+                        />
+                      </div>
+                      
+                      {/* Strength Label */}
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-xs font-medium ${
+                          passwordStrength.color === 'red' ? 'text-red-500' :
+                          passwordStrength.color === 'yellow' ? 'text-yellow-500' :
+                          passwordStrength.color === 'blue' ? 'text-blue-500' :
+                          'text-green-500'
+                        }`}>
+                          {passwordStrength.label}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-slate-400">
+                          {passwordStrength.feedback}
+                        </span>
+                      </div>
+                      
+                      {/* Requirements Checklist */}
+                      <div className="grid grid-cols-2 gap-1 text-xs">
+                        <div className={`flex items-center gap-1 ${passwordStrength.requirements.length ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-slate-500'}`}>
+                          {passwordStrength.requirements.length ? (
+                            <CheckCircle className="w-3 h-3" />
+                          ) : (
+                            <XCircle className="w-3 h-3" />
+                          )}
+                          <span>8+ characters</span>
+                        </div>
+                        <div className={`flex items-center gap-1 ${passwordStrength.requirements.hasLower ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-slate-500'}`}>
+                          {passwordStrength.requirements.hasLower ? (
+                            <CheckCircle className="w-3 h-3" />
+                          ) : (
+                            <XCircle className="w-3 h-3" />
+                          )}
+                          <span>Lowercase</span>
+                        </div>
+                        <div className={`flex items-center gap-1 ${passwordStrength.requirements.hasUpper ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-slate-500'}`}>
+                          {passwordStrength.requirements.hasUpper ? (
+                            <CheckCircle className="w-3 h-3" />
+                          ) : (
+                            <XCircle className="w-3 h-3" />
+                          )}
+                          <span>Uppercase</span>
+                        </div>
+                        <div className={`flex items-center gap-1 ${passwordStrength.requirements.hasNumber ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-slate-500'}`}>
+                          {passwordStrength.requirements.hasNumber ? (
+                            <CheckCircle className="w-3 h-3" />
+                          ) : (
+                            <XCircle className="w-3 h-3" />
+                          )}
+                          <span>Number</span>
+                        </div>
+                        <div className={`flex items-center gap-1 col-span-2 ${passwordStrength.requirements.hasSpecial ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-slate-500'}`}>
+                          {passwordStrength.requirements.hasSpecial ? (
+                            <CheckCircle className="w-3 h-3" />
+                          ) : (
+                            <XCircle className="w-3 h-3" />
+                          )}
+                          <span>Special character (@$!%*?&#)</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password.message}</p>}
                 </div>
 
@@ -256,6 +367,42 @@ const Register = () => {
                 </div>
               </div>
 
+              {/* KYC/AML Disclaimer */}
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-2">
+                <div className="flex items-start gap-2">
+                  <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="text-xs font-semibold text-amber-900 dark:text-amber-200 mb-1">
+                      Regulatory Compliance & KYC/AML Notice
+                    </h4>
+                    <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                      By creating an account, you acknowledge that trading financial instruments involves substantial risk of loss. 
+                      This platform operates in compliance with applicable financial regulations. You may be required to complete 
+                      Know Your Customer (KYC) and Anti-Money Laundering (AML) verification procedures. Trading may not be suitable 
+                      for all investors. Please ensure you understand the risks involved.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <input
+                    id="kyc"
+                    type="checkbox"
+                    checked={acceptedKYC}
+                    onChange={(e) => setAcceptedKYC(e.target.checked)}
+                    className="mt-0.5 rounded border-amber-300 dark:border-amber-600 bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-500 focus:ring-amber-500"
+                  />
+                  <label htmlFor="kyc" className="text-xs text-amber-900 dark:text-amber-200">
+                    I acknowledge and accept the regulatory compliance, KYC/AML requirements, and understand the risks involved in trading.
+                  </label>
+                </div>
+                {!acceptedKYC && (
+                  <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    You must accept the regulatory compliance notice to continue
+                  </p>
+                )}
+              </div>
+
               {/* Terms */}
               <div className="flex items-start gap-2 text-xs">
                 <input
@@ -282,8 +429,8 @@ const Register = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-2 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-600 text-white text-sm font-bold rounded-lg hover:from-purple-600 hover:via-pink-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl hover:shadow-purple-500/50 transform hover:scale-[1.01] active:scale-[0.99] relative overflow-hidden group"
-                disabled={loading}
+                className="w-full py-2 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-600 text-white text-sm font-bold rounded-lg hover:from-purple-600 hover:via-pink-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl hover:shadow-purple-500/50 transform hover:scale-[1.01] active:scale-[0.99] relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || !acceptedKYC}
               >
                 <span className="relative z-10">{loading ? 'Creating Account...' : 'Create Trading Account'}</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />

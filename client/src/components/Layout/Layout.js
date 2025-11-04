@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import LegalFooter from '../Compliance/LegalFooter';
+import Breadcrumbs from '../Navigation/Breadcrumbs';
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,6 +24,7 @@ const Layout = () => {
           <Header onMenuClick={() => setSidebarOpen(true)} />
           <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-brand-700 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-brand-600 scroll-smooth p-6">
             <div className="max-w-7xl mx-auto">
+              <Breadcrumbs />
               <Outlet />
             </div>
           </main>

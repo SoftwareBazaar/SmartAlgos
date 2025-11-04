@@ -149,7 +149,7 @@ const Register = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div className="relative">
                   <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
-                    Phone (Optional)
+                    Phone <span className="text-gray-500 dark:text-slate-400 font-normal">(Optional - for account recovery)</span>
                   </label>
                   <div className="relative group">
                     <input
@@ -157,15 +157,16 @@ const Register = () => {
                       {...register('phone', {
                         pattern: {
                           value: /^[\+]?[1-9][\d]{0,15}$/,
-                          message: 'Invalid phone format',
+                          message: 'Invalid phone format. Use international format: +1234567890',
                         },
                       })}
                       className="w-full px-3 py-2 pl-9 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-gray-400 dark:group-hover:border-slate-500"
-                      placeholder="+1234567890"
+                      placeholder="+1234567890 (optional)"
                     />
                     <Phone className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
                   </div>
                   {errors.phone && <p className="text-xs text-red-400 mt-1">{errors.phone.message}</p>}
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">This field is optional. You can skip it if you prefer.</p>
                 </div>
 
                 <div className="relative">

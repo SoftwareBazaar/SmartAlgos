@@ -270,6 +270,80 @@ const PrivacyPolicy = () => {
             </Card.Body>
           </Card>
 
+          {/* Data Retention */}
+          <Card>
+            <Card.Body>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Data Retention
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                We retain your personal information for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required or permitted by law. Specifically:
+              </p>
+              <ul className="space-y-2 text-gray-700 dark:text-gray-300 ml-4 list-disc">
+                <li><strong>Account Information:</strong> Retained for the duration of your account and up to 7 years after account closure for legal and regulatory compliance</li>
+                <li><strong>Trading Data:</strong> Retained for 7 years as required by financial regulations</li>
+                <li><strong>Marketing Data:</strong> Retained until you opt-out or request deletion</li>
+                <li><strong>Support Communications:</strong> Retained for 3 years for quality assurance and dispute resolution</li>
+              </ul>
+              <p className="text-gray-700 dark:text-gray-300 mt-4">
+                When we no longer need your personal information, we will securely delete or anonymize it in accordance with our data retention policies and applicable laws.
+              </p>
+            </Card.Body>
+          </Card>
+
+          {/* International Data Transfers */}
+          <Card>
+            <Card.Body>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                International Data Transfers
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                Your information may be transferred to and processed in countries other than your country of residence. These countries may have data protection laws that differ from those in your country. When we transfer your information internationally, we ensure appropriate safeguards are in place:
+              </p>
+              <ul className="space-y-2 text-gray-700 dark:text-gray-300 ml-4 list-disc">
+                <li>Standard contractual clauses approved by regulatory authorities</li>
+                <li>Adequacy decisions recognizing equivalent data protection levels</li>
+                <li>Other legally recognized transfer mechanisms ensuring your data protection rights</li>
+              </ul>
+              <p className="text-gray-700 dark:text-gray-300 mt-4">
+                By using our services, you consent to the transfer of your information to countries outside your jurisdiction, including but not limited to the United States, European Union, and other locations where our service providers operate.
+              </p>
+            </Card.Body>
+          </Card>
+
+          {/* Third-Party Services */}
+          <Card>
+            <Card.Body>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Third-Party Services and Integrations
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                Our platform integrates with various third-party services to provide enhanced functionality. These services have their own privacy policies:
+              </p>
+              <ul className="space-y-3 text-gray-700 dark:text-gray-300">
+                <li className="flex items-start space-x-3">
+                  <span className="text-primary-600 font-bold mt-1">•</span>
+                  <span><strong>Payment Processors:</strong> We use secure payment processors (Paystack, Stripe) that handle payment information according to PCI-DSS standards. We do not store full payment card details.</span>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <span className="text-primary-600 font-bold mt-1">•</span>
+                  <span><strong>Market Data Providers:</strong> We integrate with market data providers (Polygon, MarketAux) for real-time trading information. These providers may collect usage analytics.</span>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <span className="text-primary-600 font-bold mt-1">•</span>
+                  <span><strong>Cloud Infrastructure:</strong> We use cloud services (Supabase, Railway) for hosting and data storage. These providers maintain industry-standard security certifications.</span>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <span className="text-primary-600 font-bold mt-1">•</span>
+                  <span><strong>Analytics Services:</strong> We may use analytics tools to understand platform usage and improve our services. These tools collect anonymized usage data.</span>
+                </li>
+              </ul>
+              <p className="text-gray-700 dark:text-gray-300 mt-4">
+                We encourage you to review the privacy policies of these third-party services to understand how they handle your information.
+              </p>
+            </Card.Body>
+          </Card>
+
           {/* Children's Privacy */}
           <Card>
             <Card.Body>
@@ -277,7 +351,52 @@ const PrivacyPolicy = () => {
                 Children's Privacy
               </h3>
               <p className="text-gray-700 dark:text-gray-300">
-                Our services are not intended for individuals under the age of 18. We do not knowingly collect personal information from children. If you believe we have inadvertently collected information from a child, please contact us immediately.
+                Our services are not intended for individuals under the age of 18. We do not knowingly collect personal information from children. If you believe we have inadvertently collected information from a child, please contact us immediately at privacy@smartalgos.com. We will promptly delete such information upon verification.
+              </p>
+            </Card.Body>
+          </Card>
+
+          {/* California Privacy Rights */}
+          <Card>
+            <Card.Body>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                California Privacy Rights (CCPA)
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA):
+              </p>
+              <ul className="space-y-2 text-gray-700 dark:text-gray-300 ml-4 list-disc">
+                <li><strong>Right to Know:</strong> You can request information about the categories and specific pieces of personal information we collect, use, disclose, and sell</li>
+                <li><strong>Right to Delete:</strong> You can request deletion of your personal information, subject to certain exceptions</li>
+                <li><strong>Right to Opt-Out:</strong> You can opt-out of the sale of your personal information (we do not sell personal information)</li>
+                <li><strong>Right to Non-Discrimination:</strong> We will not discriminate against you for exercising your privacy rights</li>
+              </ul>
+              <p className="text-gray-700 dark:text-gray-300 mt-4">
+                To exercise these rights, please contact us at privacy@smartalgos.com or through your account settings.
+              </p>
+            </Card.Body>
+          </Card>
+
+          {/* GDPR Rights */}
+          <Card>
+            <Card.Body>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                European Privacy Rights (GDPR)
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                If you are located in the European Economic Area (EEA), you have additional rights under the General Data Protection Regulation (GDPR):
+              </p>
+              <ul className="space-y-2 text-gray-700 dark:text-gray-300 ml-4 list-disc">
+                <li><strong>Right of Access:</strong> Obtain confirmation of whether we process your personal data and access to that data</li>
+                <li><strong>Right to Rectification:</strong> Request correction of inaccurate or incomplete personal data</li>
+                <li><strong>Right to Erasure:</strong> Request deletion of your personal data under certain circumstances</li>
+                <li><strong>Right to Restrict Processing:</strong> Request limitation of processing of your personal data</li>
+                <li><strong>Right to Data Portability:</strong> Receive your personal data in a structured, commonly used format</li>
+                <li><strong>Right to Object:</strong> Object to processing of your personal data for certain purposes</li>
+                <li><strong>Right to Withdraw Consent:</strong> Withdraw consent where processing is based on consent</li>
+              </ul>
+              <p className="text-gray-700 dark:text-gray-300 mt-4">
+                You also have the right to lodge a complaint with a supervisory authority if you believe your data protection rights have been violated. To exercise these rights, contact us at privacy@smartalgos.com.
               </p>
             </Card.Body>
           </Card>

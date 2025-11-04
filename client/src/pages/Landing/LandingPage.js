@@ -488,53 +488,56 @@ const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-12">
+      <footer className="bg-gray-800 text-white py-16">
         <div className="container-custom">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
+              <div className="flex items-center space-x-2 mb-6">
                 <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                   <TrendingUp className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-xl font-bold">Smart Algos</span>
               </div>
-              <p className="text-gray-400">
-                Professional algorithmic trading platform for serious traders.
+              <p className="text-gray-400 leading-relaxed">
+                Professional algorithmic trading platform for serious traders and institutional investors.
               </p>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Features</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/markets" className="hover:text-white">Markets</Link></li>
-                <li><Link to="/signals" className="hover:text-white">Trading Signals</Link></li>
-                <li><Link to="/ea-marketplace" className="hover:text-white">EA Marketplace</Link></li>
-                <li><Link to="/hft-bots" className="hover:text-white">HFT Bots</Link></li>
+              <h3 className="font-semibold mb-6 text-lg">Features</h3>
+              <ul className="space-y-3 text-gray-400">
+                <li><Link to="/markets" className="hover:text-white transition-colors">Markets</Link></li>
+                <li><Link to="/signals" className="hover:text-white transition-colors">Trading Signals</Link></li>
+                <li><Link to="/ea-marketplace" className="hover:text-white transition-colors">EA Marketplace</Link></li>
+                <li><Link to="/hft-bots" className="hover:text-white transition-colors">HFT Bots</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Account</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/portfolio" className="hover:text-white">Portfolio</Link></li>
-                <li><Link to="/payments" className="hover:text-white">Payments</Link></li>
-                <li><Link to="/settings" className="hover:text-white">Settings</Link></li>
-                <li><Link to="/profile" className="hover:text-white">Profile</Link></li>
+              <h3 className="font-semibold mb-6 text-lg">Account</h3>
+              <ul className="space-y-3 text-gray-400">
+                <li><Link to="/portfolio" className="hover:text-white transition-colors">Portfolio</Link></li>
+                <li><Link to="/payments" className="hover:text-white transition-colors">Payments</Link></li>
+                <li><Link to="/settings" className="hover:text-white transition-colors">Settings</Link></li>
+                <li><Link to="/profile" className="hover:text-white transition-colors">Profile</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Support & Legal</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/auth/login" className="hover:text-white">Login</Link></li>
-                <li><Link to="/auth/register" className="hover:text-white">Register</Link></li>
-                <li><a href="mailto:support@smartalgos.com" className="hover:text-white">Contact</a></li>
-                <li><Link to="/desktop-features" className="hover:text-white">Desktop App</Link></li>
-                <li><Link to="/about" className="hover:text-white">About Us</Link></li>
-                <li><Link to="/privacy" className="hover:text-white">Privacy Policy</Link></li>
-                <li><Link to="/refund" className="hover:text-white">Refund Policy</Link></li>
+              <h3 className="font-semibold mb-6 text-lg">Support & Legal</h3>
+              <ul className="space-y-3 text-gray-400">
+                <li><Link to="/auth/login" className="hover:text-white transition-colors">Login</Link></li>
+                <li><Link to="/auth/register" className="hover:text-white transition-colors">Register</Link></li>
+                <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+                <li><a href="mailto:support@smartalgos.com" className="hover:text-white transition-colors">Contact</a></li>
+                <li><Link to="/desktop-features" className="hover:text-white transition-colors">Desktop App</Link></li>
+                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                <li><Link to="/refund" className="hover:text-white transition-colors">Refund Policy</Link></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 Smart Algos Trading Platform. All rights reserved.</p>
+          <div className="border-t border-gray-700 pt-8 text-center text-gray-400">
+            <p className="mb-2">&copy; 2025 Smart Algos Trading Platform. All rights reserved.</p>
+            <p className="text-sm">Embu, Kenya | Licensed Financial Services Provider</p>
           </div>
         </div>
       </footer>

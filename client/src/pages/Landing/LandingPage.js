@@ -472,6 +472,11 @@ const LandingPage = () => {
                   Create Free Account
                 </Button>
               </Link>
+              <Link to="/pricing">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary-600">
+                  View Pricing
+                </Button>
+              </Link>
               <Link to="/auth/login">
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary-600">
                   Sign In

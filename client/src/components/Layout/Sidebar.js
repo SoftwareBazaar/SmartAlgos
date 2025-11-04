@@ -47,10 +47,11 @@ const Sidebar = ({ isOpen, onClose }) => {
   };
 
   const linkClassNames = (href) => {
-    return `group flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 border ${
-      isActive(href)
-        ? 'bg-primary-500/20 dark:bg-primary-500/20 text-primary-700 dark:text-primary-100 border-primary-500/60 dark:border-primary-500/60 shadow-soft backdrop-blur'
-        : 'text-gray-700 dark:text-gray-300 border-transparent hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:border-primary-500/20 dark:hover:border-primary-500/20'
+    const active = isActive(href);
+    return `group flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 relative ${
+      active
+        ? 'bg-primary-500/15 dark:bg-primary-500/20 text-primary-700 dark:text-primary-100 font-semibold shadow-md border-l-4 border-primary-600 dark:border-primary-400'
+        : 'text-gray-700 dark:text-gray-300 border-l-4 border-transparent hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:border-l-primary-400 dark:hover:border-l-primary-500'
     }`;
   };
 

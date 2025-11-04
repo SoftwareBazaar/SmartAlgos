@@ -281,11 +281,11 @@ const Dashboard = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Card className="relative overflow-hidden border-2 border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all duration-300 group">
+                  <Card className="relative overflow-hidden border-2 border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all duration-300 group h-full">
                     {/* Background Gradient */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
                     
-                    <div className="relative p-6">
+                    <div className="relative p-6 flex flex-col h-full">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">

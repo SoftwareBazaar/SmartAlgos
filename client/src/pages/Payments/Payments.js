@@ -28,7 +28,7 @@ const Payments = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
   const [subscriptions, setSubscriptions] = useState([
-    // Sample subscriptions for testing
+    // User subscriptions
     {
       id: 'SUB_001',
       name: 'Gold Scalper Pro EA',
@@ -73,7 +73,7 @@ const Payments = () => {
     }
   ]);
   const [paymentHistory, setPaymentHistory] = useState([
-    // Sample transactions for testing
+    // Payment transaction history
     {
       id: 'TXN_001',
       description: 'Gold Scalper Pro EA - Monthly Subscription',
@@ -480,49 +480,6 @@ const Payments = () => {
           </div>
         </div>
         <div className="flex space-x-2">
-          <Button
-            onClick={() => {
-              setPaymentData(prev => ({ ...prev, amount: 299, description: 'Gold Scalper Pro EA - Monthly Subscription' }));
-              setShowPaymentModal(true);
-            }}
-            size="sm"
-            variant="outline"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Test Payment
-          </Button>
-          <Button
-            onClick={async () => {
-              try {
-                showNotification('Testing Paystack integration...', 'info');
-                const response = await apiClient.post('/api/payments/initialize', {
-                  amount: 299,
-                  currency: 'USD',
-                  email: user?.email || 'test@example.com',
-                  description: 'Test EA Subscription',
-                  metadata: {
-                    test: true,
-                    productType: 'ea',
-                    productId: 'EA_TEST_001'
-                  }
-                });
-                
-                if (response.data.success) {
-                  showNotification('Paystack integration working! Check console for details.', 'success');
-                  console.log('Paystack Test Response:', response.data);
-                } else {
-                  showNotification('Paystack test failed. Check console for details.', 'error');
-                }
-              } catch (error) {
-                console.error('Paystack test error:', error);
-                showNotification('Paystack test failed: ' + (error.response?.data?.message || error.message), 'error');
-              }
-            }}
-            size="sm"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Test Paystack
-          </Button>
           <Button
             onClick={fetchData}
             variant="outline"

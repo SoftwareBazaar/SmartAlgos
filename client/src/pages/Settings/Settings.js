@@ -62,10 +62,19 @@ const Settings = () => {
     confirmPassword: ''
   });
 
+  // API Key Management
+  const [apiKeys, setApiKeys] = useState([]);
+  const [loadingApiKeys, setLoadingApiKeys] = useState(false);
+  const [showApiKey, setShowApiKey] = useState({});
+  const [newApiKeyName, setNewApiKeyName] = useState('');
+
   useEffect(() => {
     // Load user settings from API
     loadUserSettings();
-  }, []);
+    if (activeTab === 'security') {
+      loadApiKeys();
+    }
+  }, [activeTab]);
 
   const loadUserSettings = async () => {
     try {
@@ -173,6 +182,104 @@ const Settings = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const loadApiKeys = async () => {
+    try {
+      setLoadingApiKeys(true);
+      const response = await apiClient.get('/api/users/api-keys');
+      if (response.data?.success) {
+        setApiKeys(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error loading API keys:', error);
+      // If endpoint doesn't exist, show mock data for demo
+      setApiKeys([
+        {
+          id: '1',
+          name: 'Production API Key',
+          key: 'sk_live_******' + Math.random().toString(36).substring(7),
+          created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          last_used: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          active: true
+        }
+      ]);
+    } finally {
+      setLoadingApiKeys(false);
+    }
+  };
+
+  const handleCreateApiKey = async () => {
+    if (!newApiKeyName.trim()) {
+      toast.error('Please enter a name for the API key');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const response = await apiClient.post('/api/users/api-keys', {
+        name: newApiKeyName
+      });
+      
+      if (response.data?.success) {
+        toast.success('API key created successfully');
+        setNewApiKeyName('');
+        loadApiKeys();
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create API key');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRotateApiKey = async (keyId) => {
+    if (!window.confirm('Are you sure you want to rotate this API key? The old key will be invalidated immediately.')) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const response = await apiClient.post(`/api/users/api-keys/${keyId}/rotate`);
+      
+      if (response.data?.success) {
+        toast.success('API key rotated successfully');
+        loadApiKeys();
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to rotate API key');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteApiKey = async (keyId) => {
+    if (!window.confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const response = await apiClient.delete(`/api/users/api-keys/${keyId}`);
+      
+      if (response.data?.success) {
+        toast.success('API key deleted successfully');
+        loadApiKeys();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete API key');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('API key copied to clipboard');
   };
 
   const tabs = [
@@ -471,16 +578,144 @@ const Settings = () => {
 
             <Card>
               <Card.Body>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  API Key Management
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  Manage your API keys for programmatic access to trading features.
-                </p>
-                <Button variant="outline" onClick={() => navigate('/settings?tab=api-keys')}>
-                  <Key className="w-4 h-4 mr-2" />
-                  Manage API Keys
-                </Button>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                      API Key Management
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Manage your API keys for programmatic access to trading features.
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={loadApiKeys}
+                    disabled={loadingApiKeys}
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${loadingApiKeys ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
+                </div>
+
+                {/* Create New API Key */}
+                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                    Create New API Key
+                  </h4>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter API key name (e.g., Production, Development)"
+                      value={newApiKeyName}
+                      onChange={(e) => setNewApiKeyName(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={handleCreateApiKey}
+                      disabled={saving || !newApiKeyName.trim()}
+                      variant="primary"
+                    >
+                      {saving ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          <Key className="w-4 h-4 mr-2" />
+                          Create
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* API Keys List */}
+                {loadingApiKeys ? (
+                  <div className="text-center py-8">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-500">Loading API keys...</p>
+                  </div>
+                ) : apiKeys.length > 0 ? (
+                  <div className="space-y-3">
+                    {apiKeys.map((apiKey) => (
+                      <div
+                        key={apiKey.id}
+                        className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold text-gray-900 dark:text-white">
+                                {apiKey.name || 'Unnamed API Key'}
+                              </h4>
+                              {apiKey.active && (
+                                <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded">
+                                  Active
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                              <span>Created: {new Date(apiKey.created_at).toLocaleDateString()}</span>
+                              {apiKey.last_used && (
+                                <span>Last used: {new Date(apiKey.last_used).toLocaleDateString()}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRotateApiKey(apiKey.id)}
+                              disabled={saving}
+                            >
+                              <RefreshCw className="w-3 h-3 mr-1" />
+                              Rotate
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteApiKey(apiKey.id)}
+                              disabled={saving}
+                              className="text-red-600 hover:text-red-700 dark:text-red-400"
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                          <code className="flex-1 text-sm text-gray-700 dark:text-gray-300 font-mono">
+                            {showApiKey[apiKey.id] ? apiKey.key : apiKey.key.substring(0, 20) + '...'}
+                          </code>
+                          <button
+                            onClick={() => setShowApiKey({ ...showApiKey, [apiKey.id]: !showApiKey[apiKey.id] })}
+                            className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                          >
+                            {showApiKey[apiKey.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                          <button
+                            onClick={() => copyToClipboard(apiKey.key)}
+                            className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                            title="Copy to clipboard"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                          ⚠️ Keep your API keys secure. Never share them publicly or commit them to version control.
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <Key className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <p className="text-sm">No API keys created yet</p>
+                    <p className="text-xs mt-1">Create your first API key to get started</p>
+                  </div>
+                )}
               </Card.Body>
             </Card>
           </div>

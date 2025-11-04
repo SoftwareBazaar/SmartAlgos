@@ -213,8 +213,16 @@ const Pricing = () => {
                   <div className="p-8 flex flex-col flex-1">
                     {/* Plan Header */}
                     <div className="text-center mb-6">
-                      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-${plan.color}-100 dark:bg-${plan.color}-900/30 mb-4`}>
-                        <Icon className={`w-8 h-8 text-${plan.color}-600 dark:text-${plan.color}-400`} />
+                      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+                        plan.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/30' :
+                        plan.color === 'primary' ? 'bg-primary-100 dark:bg-primary-900/30' :
+                        'bg-purple-100 dark:bg-purple-900/30'
+                      }`}>
+                        <Icon className={`w-8 h-8 ${
+                          plan.color === 'blue' ? 'text-blue-600 dark:text-blue-400' :
+                          plan.color === 'primary' ? 'text-primary-600 dark:text-primary-400' :
+                          'text-purple-600 dark:text-purple-400'
+                        }`} />
                       </div>
                       <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                         {plan.name}

@@ -225,10 +225,13 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Welcome back, {user?.name || 'Trader'}! 👋
+                {user?.first_name ? `Welcome back, ${user.first_name}!` : 'Welcome back, Trader!'} 👋
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Here's your trading overview for {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                {user?.first_name 
+                  ? `Here's your personalized trading overview for ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Track your portfolio performance, manage your positions, and discover new trading opportunities.`
+                  : `Here's your trading overview for ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Track your portfolio performance and discover new trading opportunities.`
+                }
               </p>
             </div>
             
@@ -321,8 +324,18 @@ const Dashboard = () => {
               );
             })
           ) : (
-            <div className="col-span-4 text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400">Unable to load dashboard statistics</p>
+            <div className="col-span-4">
+              <Card className="text-center py-12">
+                <div className="flex flex-col items-center">
+                  <BarChart3 className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Dashboard Statistics Loading
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md">
+                    We're preparing your personalized trading dashboard. Your portfolio metrics, trading signals, and performance analytics will appear here once data is available.
+                  </p>
+                </div>
+              </Card>
             </div>
           )}
         </motion.div>

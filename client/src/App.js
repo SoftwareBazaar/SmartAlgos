@@ -72,6 +72,7 @@ import LandingPage from './pages/Landing/LandingPage';
 import AboutMe from './pages/Documentation/AboutMe';
 import PrivacyPolicy from './pages/Documentation/PrivacyPolicy';
 import RefundPolicy from './pages/Documentation/RefundPolicy';
+import TermsOfService from './pages/Documentation/TermsOfService';
 
 function App() {
   return (
@@ -111,6 +112,7 @@ function App() {
                 {/* Documentation Pages - Public */}
                 <Route path="about" element={<AboutMe />} />
                 <Route path="privacy" element={<PrivacyPolicy />} />
+                <Route path="terms" element={<TermsOfService />} />
                 <Route path="refund" element={<RefundPolicy />} />
 
                 {/* Main Application Routes - Protected */}

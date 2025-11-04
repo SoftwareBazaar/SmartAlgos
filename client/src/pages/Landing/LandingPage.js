@@ -141,11 +141,11 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 px-4">
               Advanced Algorithmic
               <span className="text-gradient-primary"> Trading Platform</span>
             </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
               Professional-grade trading tools, real-time market data, and automated strategies 
               for serious traders and investors.
             </p>
@@ -202,10 +202,10 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
               Featured Expert Advisors
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto px-4">
               Watch live trading performance from our top-performing EAs
             </p>
           </motion.div>
@@ -241,9 +241,9 @@ const LandingPage = () => {
                 </div>
               </div>
               
-              <div className="p-6 overflow-hidden">
+              <div className="p-4 sm:p-6 overflow-hidden">
                 <motion.div
-                  className="flex space-x-4"
+                  className="flex space-x-3 sm:space-x-4"
                   animate={{
                     x: [0, -1400],
                   }}
@@ -260,28 +260,28 @@ const LandingPage = () => {
                   {[...sampleEAs, ...sampleEAs].map((ea, index) => (
                     <div
                       key={`${ea.name}-${index}`}
-                      className="flex-shrink-0 w-[280px] p-5 rounded-xl border h-full"
+                      className="flex-shrink-0 w-[260px] sm:w-[280px] md:w-[300px] p-4 sm:p-5 rounded-xl border h-full"
                       style={{
                         background: ea.gradient,
                         borderColor: ea.borderColor
                       }}
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-gray-900 dark:text-white">{ea.name}</h4>
-                        <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
+                      <div className="flex items-center justify-between mb-2 sm:mb-3">
+                        <h4 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate flex-1 mr-2">{ea.name}</h4>
+                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-success-500 rounded-full animate-pulse flex-shrink-0"></div>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-1.5 sm:space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-xs text-gray-600 dark:text-gray-400">Profit</span>
-                          <span className="text-sm font-bold text-success-600 dark:text-success-400">{ea.profit}</span>
+                          <span className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Profit</span>
+                          <span className="text-xs sm:text-sm font-bold text-success-600 dark:text-success-400">{ea.profit}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-xs text-gray-600 dark:text-gray-400">Win Rate</span>
-                          <span className="text-sm font-bold text-gray-900 dark:text-white">{ea.winRate}</span>
+                          <span className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Win Rate</span>
+                          <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">{ea.winRate}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-xs text-gray-600 dark:text-gray-400">Active Trades</span>
-                          <span className="text-sm font-bold text-primary-600 dark:text-primary-400">{ea.trades}</span>
+                          <span className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Active Trades</span>
+                          <span className="text-xs sm:text-sm font-bold text-primary-600 dark:text-primary-400">{ea.trades}</span>
                         </div>
                       </div>
                     </div>

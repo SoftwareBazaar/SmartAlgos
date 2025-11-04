@@ -137,49 +137,73 @@ const EACarousel = () => {
 
   // Duplicate EAs for seamless infinite scroll
   const duplicatedEAs = [...myEAs, ...myEAs];
-  const cardWidth = 380;
+  
+  // Responsive card width calculation
+  const getCardWidth = () => {
+    if (typeof window !== 'undefined') {
+      const width = window.innerWidth;
+      if (width < 640) return 280; // Mobile: smaller cards
+      if (width < 768) return 320; // Small tablet
+      if (width < 1024) return 340; // Tablet
+      if (width < 1280) return 360; // Laptop
+      return 380; // Desktop
+    }
+    return 380; // Default
+  };
+  
+  const [cardWidth, setCardWidth] = useState(getCardWidth());
   const gap = 16;
   const totalWidth = myEAs.length * (cardWidth + gap);
+
+  // Update card width on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setCardWidth(getCardWidth());
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <Card className="overflow-hidden border-2 border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary-500/10 via-primary-500/5 to-transparent dark:from-primary-400/20 dark:via-primary-400/10 p-4 border-b border-gray-200 dark:border-gray-800">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-primary-500/20 dark:bg-primary-400/30 rounded-lg">
-              <Bot className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+      <div className="bg-gradient-to-r from-primary-500/10 via-primary-500/5 to-transparent dark:from-primary-400/20 dark:via-primary-400/10 p-3 sm:p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="p-1.5 sm:p-2 bg-primary-500/20 dark:bg-primary-400/30 rounded-lg">
+              <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
                 My EA Highlights
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                 Live trading performance
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-              className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
+              className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 p-2"
             >
               {isAutoPlaying ? (
-                <Pause className="h-4 w-4" />
+                <Pause className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               ) : (
-                <Play className="h-4 w-4" />
+                <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               )}
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/ea-marketplace')}
-              className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
+              className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 text-xs sm:text-sm"
             >
-              View All
-              <ArrowRight className="h-4 w-4 ml-1" />
+              <span className="hidden sm:inline">View All</span>
+              <span className="sm:hidden">All</span>
+              <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1" />
             </Button>
           </div>
         </div>
@@ -187,9 +211,9 @@ const EACarousel = () => {
 
       {/* Horizontal Scrolling Carousel */}
       <div className="relative overflow-hidden">
-        <div className="py-6">
+        <div className="py-4 sm:py-6">
           <motion.div
-            className="flex space-x-4"
+            className="flex space-x-3 sm:space-x-4"
             animate={{
               x: isAutoPlaying ? [0, -totalWidth] : 0,
             }}
@@ -214,15 +238,15 @@ const EACarousel = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800 p-5 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all h-full">
+                  <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800 p-3 sm:p-4 md:p-5 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all h-full">
                     {/* EA Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h4 className="text-lg font-bold text-gray-900 dark:text-white">
+                    <div className="flex items-start justify-between mb-3 sm:mb-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                          <h4 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white truncate">
                             {ea.name}
                           </h4>
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                          <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-semibold flex-shrink-0 ${
                             ea.type === 'created'
                               ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
                               : 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
@@ -230,12 +254,12 @@ const EACarousel = () => {
                             {ea.type === 'created' ? 'Created' : 'Subscribed'}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                        <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 line-clamp-2">
                           {ea.description || 'No description available'}
                         </p>
                       </div>
-                      <div className="ml-2">
-                        <div className={`w-2 h-2 rounded-full ${
+                      <div className="ml-1.5 sm:ml-2 flex-shrink-0">
+                        <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
                           stats.status === 'active'
                             ? 'bg-success-500 animate-pulse'
                             : 'bg-gray-400'
@@ -244,16 +268,16 @@ const EACarousel = () => {
                     </div>
 
                     {/* Live Stats Grid */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-gradient-to-br from-success-500/10 via-success-500/5 to-transparent dark:from-success-400/20 dark:from-success-400/10 p-3 rounded-lg border border-success-200 dark:border-success-800">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                      <div className="bg-gradient-to-br from-success-500/10 via-success-500/5 to-transparent dark:from-success-400/20 dark:from-success-400/10 p-2 sm:p-3 rounded-lg border border-success-200 dark:border-success-800">
+                        <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+                          <span className="text-[9px] sm:text-[10px] font-medium text-gray-600 dark:text-gray-400">
                             Profit
                           </span>
                           {parseFloat(stats.profit || 0) >= 0 ? (
-                            <TrendingUp className="h-3 w-3 text-success-600 dark:text-success-400" />
+                            <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-success-600 dark:text-success-400" />
                           ) : (
-                            <TrendingDown className="h-3 w-3 text-danger-600 dark:text-danger-400" />
+                            <TrendingDown className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-danger-600 dark:text-danger-400" />
                           )}
                         </div>
                         <motion.div
@@ -261,7 +285,7 @@ const EACarousel = () => {
                           initial={{ scale: 1.1 }}
                           animate={{ scale: 1 }}
                           transition={{ duration: 0.3 }}
-                          className={`text-sm font-bold ${
+                          className={`text-xs sm:text-sm font-bold truncate ${
                             parseFloat(stats.profit || 0) >= 0
                               ? 'text-success-600 dark:text-success-400'
                               : 'text-danger-600 dark:text-danger-400'
@@ -269,7 +293,7 @@ const EACarousel = () => {
                         >
                           ${Math.abs(parseFloat(stats.profit || 0)).toLocaleString()}
                         </motion.div>
-                        <div className={`text-[10px] mt-0.5 ${
+                        <div className={`text-[9px] sm:text-[10px] mt-0.5 ${
                           parseFloat(stats.profitPercent || 0) >= 0
                             ? 'text-success-600 dark:text-success-400'
                             : 'text-danger-600 dark:text-danger-400'
@@ -280,59 +304,59 @@ const EACarousel = () => {
                       </div>
 
                       <div className="bg-gradient-to-br from-primary-500/10 via-primary-500/5 to-transparent dark:from-primary-400/20 dark:via-primary-400/10 p-3 rounded-lg border border-primary-200 dark:border-primary-800">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+                          <span className="text-[9px] sm:text-[10px] font-medium text-gray-600 dark:text-gray-400">
                             Trades
                           </span>
-                          <Activity className="h-3 w-3 text-primary-600 dark:text-primary-400" />
+                          <Activity className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary-600 dark:text-primary-400" />
                         </div>
                         <motion.div
                           key={stats.activeTrades}
                           initial={{ scale: 1.1 }}
                           animate={{ scale: 1 }}
                           transition={{ duration: 0.3 }}
-                          className="text-sm font-bold text-primary-600 dark:text-primary-400"
+                          className="text-xs sm:text-sm font-bold text-primary-600 dark:text-primary-400"
                         >
                           {stats.activeTrades || 0}
                         </motion.div>
-                        <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                        <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
                           Active
                         </div>
                       </div>
 
                       <div className="bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-400/20 dark:via-blue-400/10 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+                          <span className="text-[9px] sm:text-[10px] font-medium text-gray-600 dark:text-gray-400">
                             Win Rate
                           </span>
-                          <Target className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                          <Target className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-blue-600 dark:text-blue-400" />
                         </div>
                         <motion.div
                           key={stats.winRate}
                           initial={{ scale: 1.1 }}
                           animate={{ scale: 1 }}
                           transition={{ duration: 0.3 }}
-                          className="text-sm font-bold text-blue-600 dark:text-blue-400"
+                          className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400"
                         >
                           {stats.winRate || '0.0'}%
                         </motion.div>
-                        <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                        <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
                           {stats.totalTrades || 0} total
                         </div>
                       </div>
 
                       <div className="bg-gradient-to-br from-warning-500/10 via-warning-500/5 to-transparent dark:from-warning-400/20 dark:via-warning-400/10 p-3 rounded-lg border border-warning-200 dark:border-warning-800">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+                          <span className="text-[9px] sm:text-[10px] font-medium text-gray-600 dark:text-gray-400">
                             Status
                           </span>
-                          <Zap className="h-3 w-3 text-warning-600 dark:text-warning-400" />
+                          <Zap className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning-600 dark:text-warning-400" />
                         </div>
-                        <div className="text-sm font-bold text-warning-600 dark:text-warning-400">
+                        <div className="text-xs sm:text-sm font-bold text-warning-600 dark:text-warning-400 truncate">
                           {stats.status === 'active' ? 'Active' : 'Idle'}
                         </div>
-                        <div className="flex items-center space-x-1 text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
-                          <Clock className="h-2.5 w-2.5" />
+                        <div className="flex items-center space-x-1 text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                          <Clock className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
                           <span>Live</span>
                         </div>
                       </div>

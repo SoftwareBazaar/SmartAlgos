@@ -16,7 +16,10 @@ import {
   Unlock,
   RefreshCw,
   Download,
-  XCircle
+  XCircle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
@@ -42,6 +45,7 @@ const EAMarketplace = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ priceMin: '', priceMax: '', risk: '', period: 'any' });
+  const [sortBy, setSortBy] = useState('newest'); // newest, price_asc, price_desc, rating, win_rate, monthly_return
   const [loading, setLoading] = useState(false);
   const [selectedEA, setSelectedEA] = useState(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -255,7 +259,51 @@ const EAMarketplace = () => {
       return true;
     });
   };
-  const filteredEAs = applyFilters(baseEAs);
+
+  const applySorting = (list) => {
+    const sorted = [...list];
+    switch (sortBy) {
+      case 'price_asc':
+        return sorted.sort((a, b) => {
+          const aPrice = parseFloat(a.price_monthly) || parseFloat(a.price_weekly) || parseFloat(a.price_yearly) || 0;
+          const bPrice = parseFloat(b.price_monthly) || parseFloat(b.price_weekly) || parseFloat(b.price_yearly) || 0;
+          return aPrice - bPrice;
+        });
+      case 'price_desc':
+        return sorted.sort((a, b) => {
+          const aPrice = parseFloat(a.price_monthly) || parseFloat(a.price_weekly) || parseFloat(a.price_yearly) || 0;
+          const bPrice = parseFloat(b.price_monthly) || parseFloat(b.price_weekly) || parseFloat(b.price_yearly) || 0;
+          return bPrice - aPrice;
+        });
+      case 'rating':
+        return sorted.sort((a, b) => {
+          const aRating = parseFloat(a.average_rating) || 0;
+          const bRating = parseFloat(b.average_rating) || 0;
+          return bRating - aRating;
+        });
+      case 'win_rate':
+        return sorted.sort((a, b) => {
+          const aWinRate = parseFloat(a.win_rate) || 0;
+          const bWinRate = parseFloat(b.win_rate) || 0;
+          return bWinRate - aWinRate;
+        });
+      case 'monthly_return':
+        return sorted.sort((a, b) => {
+          const aReturn = parseFloat(a.monthly_return) || 0;
+          const bReturn = parseFloat(b.monthly_return) || 0;
+          return bReturn - aReturn;
+        });
+      case 'newest':
+      default:
+        return sorted.sort((a, b) => {
+          const aDate = new Date(a.created_at || a.createdAt || 0);
+          const bDate = new Date(b.created_at || b.createdAt || 0);
+          return bDate - aDate;
+        });
+    }
+  };
+
+  const filteredEAs = applySorting(applyFilters(baseEAs));
 
   const getCategoryColor = (category) => {
     const colors = {
@@ -333,7 +381,7 @@ const EAMarketplace = () => {
         </div>
       </motion.div>
 
-      {/* Search and Filters */}
+      {/* Search, Filters, and Sort */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -344,13 +392,28 @@ const EAMarketplace = () => {
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <Input
-                  placeholder="Search EAs..."
+                  placeholder="Search EAs by name, description, or creator..."
                   leftIcon={<Search className="h-4 w-4" />}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <div className="flex gap-2">
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 pr-8 text-sm font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent cursor-pointer"
+                  >
+                    <option value="newest">Newest First</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="win_rate">Best Win Rate</option>
+                    <option value="monthly_return">Highest Return</option>
+                  </select>
+                  <ArrowUpDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
                 <Button variant="outline" icon={<Filter className="h-4 w-4" />} onClick={() => setShowFilters(v => !v)}>
                   {showFilters ? 'Hide Filters' : 'Filters'}
                 </Button>

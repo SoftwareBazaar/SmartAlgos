@@ -28,7 +28,8 @@ import {
   DollarSign,
   BarChart3,
   Target,
-  Gauge
+  Gauge,
+  ArrowUpDown
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
@@ -44,6 +45,7 @@ const HFTBots = () => {
   const [activeStrategy, setActiveStrategy] = useState('all');
   const [activeExchange, setActiveExchange] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('newest'); // newest, price_asc, price_desc, rating, monthly_return
   const [bots, setBots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBot, setSelectedBot] = useState(null);
@@ -120,7 +122,7 @@ const HFTBots = () => {
     { id: 'kraken', name: 'Kraken', count: bots.filter(bot => bot.exchange === 'kraken').length }
   ];
 
-  const filteredBots = bots.filter(bot => {
+  const filteredBotsRaw = bots.filter(bot => {
     const matchesStrategy = activeStrategy === 'all' || bot.strategy === activeStrategy;
     const matchesExchange = activeExchange === 'all' || bot.exchange === activeExchange;
     const matchesSearch = bot.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -128,6 +130,45 @@ const HFTBots = () => {
     
     return matchesStrategy && matchesExchange && matchesSearch;
   });
+
+  const applySorting = (list) => {
+    const sorted = [...list];
+    switch (sortBy) {
+      case 'price_asc':
+        return sorted.sort((a, b) => {
+          const aPrice = parseFloat(a.price_monthly) || parseFloat(a.price_hourly) || 0;
+          const bPrice = parseFloat(b.price_monthly) || parseFloat(b.price_hourly) || 0;
+          return aPrice - bPrice;
+        });
+      case 'price_desc':
+        return sorted.sort((a, b) => {
+          const aPrice = parseFloat(a.price_monthly) || parseFloat(a.price_hourly) || 0;
+          const bPrice = parseFloat(b.price_monthly) || parseFloat(b.price_hourly) || 0;
+          return bPrice - aPrice;
+        });
+      case 'rating':
+        return sorted.sort((a, b) => {
+          const aRating = parseFloat(a.rating) || parseFloat(a.average_rating) || 0;
+          const bRating = parseFloat(b.rating) || parseFloat(b.average_rating) || 0;
+          return bRating - aRating;
+        });
+      case 'monthly_return':
+        return sorted.sort((a, b) => {
+          const aReturn = parseFloat(a.monthly_return) || parseFloat(a.avg_monthly_return) || 0;
+          const bReturn = parseFloat(b.monthly_return) || parseFloat(b.avg_monthly_return) || 0;
+          return bReturn - aReturn;
+        });
+      case 'newest':
+      default:
+        return sorted.sort((a, b) => {
+          const aDate = new Date(a.created_at || a.createdAt || 0);
+          const bDate = new Date(b.created_at || b.createdAt || 0);
+          return bDate - aDate;
+        });
+    }
+  };
+
+  const filteredBots = applySorting(filteredBotsRaw);
 
   const getStrategyColor = (strategy) => {
     const colors = {
@@ -184,7 +225,7 @@ const HFTBots = () => {
         </div>
       </motion.div>
 
-      {/* Search and Filters */}
+      {/* Search, Filters, and Sort */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -195,13 +236,27 @@ const HFTBots = () => {
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <Input
-                  placeholder="Search HFT bots..."
+                  placeholder="Search HFT bots by name, strategy, or exchange..."
                   leftIcon={<Search className="h-4 w-4" />}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <div className="flex gap-2">
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 pr-8 text-sm font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent cursor-pointer"
+                  >
+                    <option value="newest">Newest First</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="monthly_return">Highest Return</option>
+                  </select>
+                  <ArrowUpDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
                 <Button variant="outline" icon={<Filter className="h-4 w-4" />}>
                   Advanced Filters
                 </Button>

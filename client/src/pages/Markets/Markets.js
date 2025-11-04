@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Search, Filter, RefreshCw, Globe, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Search, Filter, RefreshCw, Globe, Activity, Bell, Target, Clock, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
@@ -27,6 +27,80 @@ const Markets = () => {
   });
   const [marketStatus, setMarketStatus] = useState({});
   const [realTimeData, setRealTimeData] = useState({});
+
+  // Sample trading signals based on current market data
+  const sampleSignals = useMemo(() => [
+    {
+      id: 1,
+      symbol: 'EUR/USD',
+      name: 'Euro/US Dollar',
+      action: 'BUY',
+      currentPrice: 1.0920,
+      targetPrice: 1.0985,
+      stopLoss: 1.0880,
+      confidence: 85,
+      timeframe: 'H4',
+      riskReward: '1:2.6',
+      category: 'forex',
+      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString()
+    },
+    {
+      id: 2,
+      symbol: 'BTC/USDT',
+      name: 'Bitcoin',
+      action: 'BUY',
+      currentPrice: 52450.00,
+      targetPrice: 53800.00,
+      stopLoss: 51500.00,
+      confidence: 78,
+      timeframe: 'H1',
+      riskReward: '1:1.5',
+      category: 'crypto',
+      timestamp: new Date(Date.now() - 8 * 60 * 1000).toISOString()
+    },
+    {
+      id: 3,
+      symbol: selectedMarket === 'NSE' ? 'SCOM' : 'AAPL',
+      name: selectedMarket === 'NSE' ? 'Safaricom PLC' : 'Apple Inc.',
+      action: selectedMarket === 'NSE' ? 'BUY' : 'SELL',
+      currentPrice: selectedMarket === 'NSE' ? 18.50 : 175.50,
+      targetPrice: selectedMarket === 'NSE' ? 19.20 : 172.00,
+      stopLoss: selectedMarket === 'NSE' ? 18.00 : 178.00,
+      confidence: selectedMarket === 'NSE' ? 82 : 72,
+      timeframe: 'D1',
+      riskReward: selectedMarket === 'NSE' ? '1:1.4' : '1:1.17',
+      category: 'stocks',
+      timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString()
+    },
+    {
+      id: 4,
+      symbol: 'GOLD',
+      name: 'Gold',
+      action: 'BUY',
+      currentPrice: 1950.50,
+      targetPrice: 1975.00,
+      stopLoss: 1935.00,
+      confidence: 75,
+      timeframe: 'H4',
+      riskReward: '1:1.6',
+      category: 'commodities',
+      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    },
+    {
+      id: 5,
+      symbol: 'GBP/USD',
+      name: 'British Pound/US Dollar',
+      action: 'SELL',
+      currentPrice: 1.2650,
+      targetPrice: 1.2580,
+      stopLoss: 1.2700,
+      confidence: 68,
+      timeframe: 'H1',
+      riskReward: '1:1.4',
+      category: 'forex',
+      timestamp: new Date(Date.now() - 12 * 60 * 1000).toISOString()
+    }
+  ], [selectedMarket]);
 
   // Mock market data - moved inside fetchMarketData to be reactive
   const getMockMarketData = (market) => ({
@@ -266,11 +340,116 @@ const Markets = () => {
         </Card>
       </motion.div>
 
-      {/* Market Tabs */}
+      {/* Sample Trading Signals */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Card>
+          <Card.Body>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <Bell className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                  Sample Trading Signals
+                </h2>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/signals')}
+              >
+                View All Signals
+              </Button>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Example trading signals based on current market conditions. These are for demonstration purposes only.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sampleSignals.map((signal, index) => (
+                <motion.div
+                  key={signal.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.25 + index * 0.1 }}
+                >
+                  <Card hover className="h-full border-l-4 border-l-primary-500">
+                    <Card.Body>
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <div className="flex items-center space-x-2 mb-1">
+                            <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                              {signal.symbol}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                              signal.action === 'BUY' 
+                                ? 'bg-success-100 text-success-700 dark:bg-success-900 dark:text-success-300'
+                                : 'bg-danger-100 text-danger-700 dark:bg-danger-900 dark:text-danger-300'
+                            }`}>
+                              {signal.action}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {signal.name}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          {signal.action === 'BUY' ? (
+                            <ArrowUpRight className="h-4 w-4 text-success-500" />
+                          ) : (
+                            <ArrowDownRight className="h-4 w-4 text-danger-500" />
+                          )}
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                            {signal.confidence}%
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Current Price:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            ${signal.currentPrice.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Target:</span>
+                          <span className="font-medium text-success-600 dark:text-success-400">
+                            ${signal.targetPrice.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Stop Loss:</span>
+                          <span className="font-medium text-danger-600 dark:text-danger-400">
+                            ${signal.stopLoss.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center space-x-1">
+                            <Clock className="h-3 w-3 text-gray-400" />
+                            <span className="text-gray-600 dark:text-gray-400">{signal.timeframe}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Target className="h-3 w-3 text-gray-400" />
+                            <span className="text-gray-600 dark:text-gray-400">{signal.riskReward}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </Card.Body>
+        </Card>
+      </motion.div>
+
+      {/* Market Tabs */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
       >
         <Card>
           <Card.Body>
@@ -302,7 +481,7 @@ const Markets = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
       >
         <Card>
           <Card.Body>

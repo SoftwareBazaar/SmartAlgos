@@ -103,8 +103,9 @@ const Portfolio = () => {
         }
         */
         
-        // Use mock data (default for web platform)
-        setPortfolios([
+        // Use demo/simulation data (default for web platform)
+        // This provides realistic portfolio examples for demonstration
+        const demoPortfolios = [
           {
             id: 1,
             name: "My Trading Portfolio",
@@ -126,11 +127,54 @@ const Portfolio = () => {
             created_at: "2023-01-15T10:30:00Z",
             updated_at: "2024-01-15T14:20:00Z"
           },
-        ]);
+          {
+            id: 2,
+            name: "Crypto Growth Fund",
+            description: "High-growth cryptocurrency portfolio focused on altcoins",
+            total_value: 85000,
+            total_invested: 60000,
+            total_profit: 25000,
+            profit_percentage: 41.7,
+            daily_change: -850,
+            daily_change_percentage: -0.99,
+            risk_level: "High",
+            max_drawdown: 15.2,
+            sharpe_ratio: 1.4,
+            win_rate: 72.3,
+            total_trades: 89,
+            profitable_trades: 64,
+            asset_count: 8,
+            is_featured: false,
+            created_at: "2023-06-10T09:15:00Z",
+            updated_at: "2024-01-15T14:20:00Z"
+          },
+          {
+            id: 3,
+            name: "Conservative Income",
+            description: "Low-risk portfolio focused on stable income generation",
+            total_value: 200000,
+            total_invested: 195000,
+            total_profit: 5000,
+            profit_percentage: 2.6,
+            daily_change: 200,
+            daily_change_percentage: 0.10,
+            risk_level: "Low",
+            max_drawdown: 3.2,
+            sharpe_ratio: 2.1,
+            win_rate: 85.7,
+            total_trades: 234,
+            profitable_trades: 201,
+            asset_count: 12,
+            is_featured: false,
+            created_at: "2022-11-20T14:45:00Z",
+            updated_at: "2024-01-15T14:20:00Z"
+          }
+        ];
+        setPortfolios(demoPortfolios);
       } catch (error) {
-        console.warn('[Portfolio] Failed to fetch MT5 data, using mock:', error.message);
-        // Fallback to mock
-        setPortfolios([
+        console.warn('[Portfolio] Failed to fetch MT5 data, using demo data:', error.message);
+        // Fallback to demo portfolios
+        const demoPortfolios = [
           {
             id: 1,
             name: "My Trading Portfolio",
@@ -152,7 +196,50 @@ const Portfolio = () => {
             created_at: "2023-01-15T10:30:00Z",
             updated_at: "2024-01-15T14:20:00Z"
           },
-        ]);
+          {
+            id: 2,
+            name: "Crypto Growth Fund",
+            description: "High-growth cryptocurrency portfolio focused on altcoins",
+            total_value: 85000,
+            total_invested: 60000,
+            total_profit: 25000,
+            profit_percentage: 41.7,
+            daily_change: -850,
+            daily_change_percentage: -0.99,
+            risk_level: "High",
+            max_drawdown: 15.2,
+            sharpe_ratio: 1.4,
+            win_rate: 72.3,
+            total_trades: 89,
+            profitable_trades: 64,
+            asset_count: 8,
+            is_featured: false,
+            created_at: "2023-06-10T09:15:00Z",
+            updated_at: "2024-01-15T14:20:00Z"
+          },
+          {
+            id: 3,
+            name: "Conservative Income",
+            description: "Low-risk portfolio focused on stable income generation",
+            total_value: 200000,
+            total_invested: 195000,
+            total_profit: 5000,
+            profit_percentage: 2.6,
+            daily_change: 200,
+            daily_change_percentage: 0.10,
+            risk_level: "Low",
+            max_drawdown: 3.2,
+            sharpe_ratio: 2.1,
+            win_rate: 85.7,
+            total_trades: 234,
+            profitable_trades: 201,
+            asset_count: 12,
+            is_featured: false,
+            created_at: "2022-11-20T14:45:00Z",
+            updated_at: "2024-01-15T14:20:00Z"
+          }
+        ];
+        setPortfolios(demoPortfolios);
       } finally {
         setPortfolioLoading(false);
       }

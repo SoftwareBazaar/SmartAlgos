@@ -5,6 +5,7 @@ import { TrendingUp, TrendingDown, Search, Filter, RefreshCw, Globe, Activity } 
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
+import RiskDisclaimer from '../../components/Compliance/RiskDisclaimer';
 import apiClient from '../../lib/apiClient';
 // import { useAuth } from '../../contexts/AuthContext';
 // import { useWebSocket } from '../../contexts/WebSocketContext';
@@ -219,6 +220,15 @@ const Markets = () => {
             </div>
           </div>
         </div>
+      </motion.div>
+
+      {/* Risk Disclaimer */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.05 }}
+      >
+        <RiskDisclaimer variant="compact" />
       </motion.div>
 
       {/* Search and Filters */}

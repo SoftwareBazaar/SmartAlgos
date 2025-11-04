@@ -6,6 +6,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 import { EAProvider } from './contexts/EAContext';
 import { UtilitiesProvider } from './contexts/UtilitiesContext';
+import SessionTimeoutWarning from './components/Security/SessionTimeoutWarning';
 
 // Layout Components
 import Layout from './components/Layout/Layout';
@@ -81,6 +82,7 @@ function App() {
             <EAProvider>
             <UtilitiesProvider>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+              <SessionTimeoutWarning />
               <Routes>
                 {/* Auth Routes */}
                 <Route path="/auth" element={<AuthLayout />}>

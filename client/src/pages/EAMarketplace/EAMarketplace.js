@@ -21,6 +21,7 @@ import {
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
+import RiskDisclaimer from '../../components/Compliance/RiskDisclaimer';
 import EscrowIntegration from '../../components/EscrowIntegration';
 import FloatingChatButton from '../../components/FloatingChatButton';
 import { useAuth } from '../../contexts/AuthContext';
@@ -271,11 +272,20 @@ const EAMarketplace = () => {
 
   return (
     <div className="space-y-6">
-      {/* Discount Banner */}
+      {/* Risk Disclaimer */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+      >
+        <RiskDisclaimer variant="compact" />
+      </motion.div>
+
+      {/* Discount Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
         className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-4 text-white"
       >
         <div className="flex items-center justify-between">

@@ -254,21 +254,25 @@ app.use((req, res, next) => {
   next();
 });
 
-// Global rate limiting (DISABLED for debugging)
-// const globalLimiter = securityService.createRateLimit({
-//   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-//   max: isProduction ? (parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 5000) : 10000,
-//   skip: (req) => true  // Skip ALL rate limiting
-// });
-// app.use(globalLimiter);
+// Global rate limiting - Production-ready limits
+const globalLimiter = securityService.createRateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  max: isProduction ? (parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100) : 200, // 100 requests per 15 min in production
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for health checks
+    return req.path === '/health' || req.path === '/api/health';
+  }
+});
 
-// TEMPORARY: Rate limiting completely disabled to fix admin login
-console.log('⚠️  Rate limiting is DISABLED for debugging');
+// Apply global rate limiting to all API routes
+app.use('/api', globalLimiter);
 
-// Authentication rate limiting (DISABLED for debugging)
-// const authLimiter = securityService.createAuthRateLimit();
-// TEMPORARY: Auth limiter completely disabled
-console.log('⚠️  Auth rate limiting is DISABLED for debugging');
+// More strict rate limiting for authentication endpoints
+const authLimiter = securityService.createAuthRateLimit();
+// Auth routes already have their own rate limiting in routes/auth.js
 
 // Input sanitization
 app.use(sanitizeInput);

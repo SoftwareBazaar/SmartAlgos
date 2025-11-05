@@ -1,9 +1,29 @@
 /**
  * Error Monitoring Setup
  * Integrates with Sentry for production error tracking
+ * Note: @sentry/react is optional - app works without it
  */
 
 let errorMonitoringInitialized = false;
+let SentryModule = null;
+
+// Helper to safely load Sentry module
+const loadSentry = async () => {
+  if (SentryModule !== null) {
+    return SentryModule;
+  }
+  
+  try {
+    // Use eval to prevent webpack from statically analyzing this import
+    const sentryModule = await new Function('return import("@sentry/react")')();
+    SentryModule = sentryModule;
+    return sentryModule;
+  } catch (error) {
+    // Module not available - return null
+    SentryModule = false;
+    return null;
+  }
+};
 
 export const initErrorMonitoring = () => {
   if (errorMonitoringInitialized) {
@@ -22,7 +42,14 @@ export const initErrorMonitoring = () => {
   try {
     // Dynamic import to avoid bundling Sentry in development
     if (process.env.REACT_APP_SENTRY_DSN) {
-      import('@sentry/react').then((Sentry) => {
+      // Use safe loader to prevent webpack from statically analyzing
+      loadSentry().then((Sentry) => {
+        if (!Sentry) {
+          console.log('[Error Monitoring] Sentry not available, using console logging');
+          errorMonitoringInitialized = true;
+          return;
+        }
+
         Sentry.init({
           dsn: process.env.REACT_APP_SENTRY_DSN,
           environment: process.env.NODE_ENV || 'development',
@@ -61,7 +88,8 @@ export const initErrorMonitoring = () => {
         console.log('[Error Monitoring] Sentry initialized successfully');
         errorMonitoringInitialized = true;
       }).catch((error) => {
-        console.warn('[Error Monitoring] Failed to load Sentry:', error);
+        console.warn('[Error Monitoring] Failed to load Sentry:', error.message || error);
+        errorMonitoringInitialized = true; // Still mark as initialized to use console fallback
       });
     } else {
       console.log('[Error Monitoring] Sentry DSN not configured, using console logging');
@@ -69,6 +97,7 @@ export const initErrorMonitoring = () => {
     }
   } catch (error) {
     console.warn('[Error Monitoring] Initialization error:', error);
+    errorMonitoringInitialized = true; // Still mark as initialized to use console fallback
   }
 };
 
@@ -81,12 +110,15 @@ export const captureError = (error, context = {}) => {
 
   try {
     if (process.env.REACT_APP_SENTRY_DSN) {
-      import('@sentry/react').then((Sentry) => {
-        Sentry.captureException(error, {
-          extra: context,
-        });
-      }).catch(() => {
-        console.error('[Error]', error, context);
+      // Use safe loader to prevent webpack from statically analyzing
+      loadSentry().then((Sentry) => {
+        if (Sentry) {
+          Sentry.captureException(error, {
+            extra: context,
+          });
+        } else {
+          console.error('[Error]', error, context);
+        }
       });
     } else {
       console.error('[Error]', error, context);
@@ -105,13 +137,16 @@ export const captureMessage = (message, level = 'info', context = {}) => {
 
   try {
     if (process.env.REACT_APP_SENTRY_DSN) {
-      import('@sentry/react').then((Sentry) => {
-        Sentry.captureMessage(message, {
-          level: level === 'info' ? 'info' : level === 'warning' ? 'warning' : 'error',
-          extra: context,
-        });
-      }).catch(() => {
-        console.log(`[${level.toUpperCase()}]`, message, context);
+      // Use safe loader to prevent webpack from statically analyzing
+      loadSentry().then((Sentry) => {
+        if (Sentry) {
+          Sentry.captureMessage(message, {
+            level: level === 'info' ? 'info' : level === 'warning' ? 'warning' : 'error',
+            extra: context,
+          });
+        } else {
+          console.log(`[${level.toUpperCase()}]`, message, context);
+        }
       });
     } else {
       console.log(`[${level.toUpperCase()}]`, message, context);
@@ -128,14 +163,15 @@ export const setUserContext = (user) => {
 
   try {
     if (process.env.REACT_APP_SENTRY_DSN) {
-      import('@sentry/react').then((Sentry) => {
-        Sentry.setUser({
-          id: user?.id || user?.userId,
-          email: user?.email,
-          username: user?.username || `${user?.first_name} ${user?.last_name}`,
-        });
-      }).catch(() => {
-        // Ignore Sentry errors
+      // Use safe loader to prevent webpack from statically analyzing
+      loadSentry().then((Sentry) => {
+        if (Sentry) {
+          Sentry.setUser({
+            id: user?.id || user?.userId,
+            email: user?.email,
+            username: user?.username || `${user?.first_name} ${user?.last_name}`,
+          });
+        }
       });
     }
   } catch (err) {
@@ -150,10 +186,11 @@ export const clearUserContext = () => {
 
   try {
     if (process.env.REACT_APP_SENTRY_DSN) {
-      import('@sentry/react').then((Sentry) => {
-        Sentry.setUser(null);
-      }).catch(() => {
-        // Ignore Sentry errors
+      // Use safe loader to prevent webpack from statically analyzing
+      loadSentry().then((Sentry) => {
+        if (Sentry) {
+          Sentry.setUser(null);
+        }
       });
     }
   } catch (err) {

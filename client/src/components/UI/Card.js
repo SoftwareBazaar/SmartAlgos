@@ -35,34 +35,33 @@ const Card = ({
   );
 };
 
-// Define subcomponents as proper React components
-// Using React.forwardRef to ensure they're recognized as valid React components
-const CardHeader = React.forwardRef(({ children, className = '', ...props }, ref) => (
-  <div ref={ref} className={`card-header ${className}`} {...props}>
-    {children}
-  </div>
-));
+// Simple functional components - NO forwardRef needed
+// Since refs are not used on these components, we can use simple functional components
+const CardHeader = ({ children, className = '', ...props }) => {
+  return (
+    <div className={`card-header ${className}`} {...props}>
+      {children}
+    </div>
+  );
+};
 
-CardHeader.displayName = 'CardHeader';
+const CardBody = ({ children, className = '', ...props }) => {
+  return (
+    <div className={`card-body ${className}`} {...props}>
+      {children}
+    </div>
+  );
+};
 
-const CardBody = React.forwardRef(({ children, className = '', ...props }, ref) => (
-  <div ref={ref} className={`card-body ${className}`} {...props}>
-    {children}
-  </div>
-));
+const CardFooter = ({ children, className = '', ...props }) => {
+  return (
+    <div className={`card-footer ${className}`} {...props}>
+      {children}
+    </div>
+  );
+};
 
-CardBody.displayName = 'CardBody';
-
-const CardFooter = React.forwardRef(({ children, className = '', ...props }, ref) => (
-  <div ref={ref} className={`card-footer ${className}`} {...props}>
-    {children}
-  </div>
-));
-
-CardFooter.displayName = 'CardFooter';
-
-// Attach subcomponents to Card component
-// Ensure they're properly attached BEFORE export
+// Attach subcomponents to Card
 Card.Header = CardHeader;
 Card.Body = CardBody;
 Card.Footer = CardFooter;

@@ -397,14 +397,14 @@ const Register = () => {
               </div>
 
               {/* KYC/AML Disclaimer */}
-              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-2">
+              <div className="bg-slate-50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700 rounded-lg p-3 space-y-2">
                 <div className="flex items-start gap-2">
-                  <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                  <Shield className="w-4 h-4 text-slate-600 dark:text-slate-400 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <h4 className="text-xs font-semibold text-amber-900 dark:text-amber-200 mb-1">
+                    <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">
                       Regulatory Compliance & KYC/AML Notice
                     </h4>
-                    <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                       By creating an account, you acknowledge that trading financial instruments involves substantial risk of loss. 
                       This platform operates in compliance with applicable financial regulations. You may be required to complete 
                       Know Your Customer (KYC) and Anti-Money Laundering (AML) verification procedures. Trading may not be suitable 
@@ -418,9 +418,9 @@ const Register = () => {
                     type="checkbox"
                     checked={acceptedKYC}
                     onChange={(e) => setAcceptedKYC(e.target.checked)}
-                    className="mt-0.5 rounded border-amber-300 dark:border-amber-600 bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-500 focus:ring-amber-500"
+                    className="mt-0.5 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-purple-600 dark:text-purple-500 focus:ring-purple-500"
                   />
-                  <label htmlFor="kyc" className="text-xs text-amber-900 dark:text-amber-200">
+                  <label htmlFor="kyc" className="text-xs text-slate-800 dark:text-slate-200">
                     I acknowledge and accept the regulatory compliance, KYC/AML requirements, and understand the risks involved in trading.
                   </label>
                 </div>

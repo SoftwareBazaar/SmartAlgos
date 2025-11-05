@@ -332,6 +332,18 @@ try {
     });
   }
 
+  // 404 handler for API routes - MUST be BEFORE frontend catch-all
+  // This catches any unmatched API routes
+  app.use('/api/*', (req, res) => {
+    console.warn(`⚠️  API route not found: ${req.method} ${req.path}`);
+    res.status(404).json({
+      success: false,
+      message: 'API route not found',
+      path: req.path,
+      method: req.method
+    });
+  });
+
   // ========================================
   // FRONTEND SERVING - Serve React app
   // ========================================
@@ -344,13 +356,15 @@ try {
   if (clientBuildExists) {
     console.log('✅ Client build found, serving React app');
     
-    // Serve static files from React build
+    // Serve static files from React build (CSS, JS, images, etc.)
     app.use(express.static(clientBuildPath));
     
     // Handle React routing - serve index.html for all non-API routes
+    // This MUST be LAST, after all API routes
     app.get('*', (req, res) => {
-      // Don't serve index.html for API routes
+      // Double-check: don't serve index.html for API routes
       if (req.path.startsWith('/api/')) {
+        // This should never happen since API 404 handler is above
         return res.status(404).json({
           success: false,
           message: 'API route not found'
@@ -402,18 +416,6 @@ try {
       `);
     });
   }
-
-  // 404 handler for API routes - must be AFTER all API routes but BEFORE frontend catch-all
-  // This should never be reached if routes are properly registered above
-  app.use('/api/*', (req, res) => {
-    console.warn(`⚠️  API route not found: ${req.method} ${req.path}`);
-    res.status(404).json({
-      success: false,
-      message: 'API route not found',
-      path: req.path,
-      method: req.method
-    });
-  });
 
   // Error handler
   app.use((err, req, res, next) => {

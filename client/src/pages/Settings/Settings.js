@@ -16,24 +16,29 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  RefreshCw
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import Input from '../../components/UI/Input';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useOnboarding } from '../../components/Onboarding/OnboardingWizard';
 import apiClient from '../../lib/apiClient';
 import { toast } from 'react-hot-toast';
 import ThemeSwitcher from '../../components/UI/ThemeSwitcher';
+import OnboardingWizard from '../../components/Onboarding/OnboardingWizard';
 
 const Settings = () => {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { resetOnboarding } = useOnboarding();
   const [activeTab, setActiveTab] = useState('profile');
   const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Profile Settings
   const [profileData, setProfileData] = useState({
@@ -816,11 +821,38 @@ const Settings = () => {
                   </div>
                   <ThemeSwitcher variant="dropdown" />
                 </div>
+
+                <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white">Onboarding Tour</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Restart the platform tour to get familiar with features
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      resetOnboarding();
+                      setShowOnboarding(true);
+                    }}
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Restart Tour
+                  </Button>
+                </div>
               </div>
             </Card.Body>
           </Card>
         )}
       </motion.div>
+
+      {/* Onboarding Wizard */}
+      <OnboardingWizard
+        show={showOnboarding}
+        onComplete={() => {
+          setShowOnboarding(false);
+        }}
+      />
     </div>
   );
 };

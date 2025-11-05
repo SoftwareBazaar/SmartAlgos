@@ -4,7 +4,15 @@ const { auth, requireSubscription, updateActivity } = require('../middleware/aut
 const databaseService = require('../services/databaseService');
 const marketDataService = require('../services/marketDataService');
 const aiSignalService = require('../services/aiSignalService');
-const technicalIndicators = require('technicalindicators');
+
+// Make technicalindicators optional - only needed for technical analysis routes
+let technicalIndicators = null;
+try {
+  technicalIndicators = require('technicalindicators');
+} catch (error) {
+  console.warn('[Analysis Routes] technicalindicators package not found. Technical analysis features will be limited.');
+}
+
 const router = express.Router();
 
 // @route   GET /api/analysis/technical/:symbol
@@ -811,6 +819,10 @@ router.get('/economic-calendar', [updateActivity], async (req, res) => {
 
 // Helper functions for analysis calculations
 async function calculateTechnicalIndicators(historicalData, indicators) {
+  if (!technicalIndicators) {
+    throw new Error('Technical indicators package not available. Please install technicalindicators.');
+  }
+  
   const prices = historicalData.map(d => parseFloat(d.close));
   const highs = historicalData.map(d => parseFloat(d.high));
   const lows = historicalData.map(d => parseFloat(d.low));

@@ -6,6 +6,8 @@ const databaseService = require('../services/databaseService');
 const mockAuthStore = require('../services/mockAuthStore');
 const { auth, createActionRateLimit } = require('../middleware/auth');
 const securityService = require('../services/securityService');
+const otpService = require('../services/otpService');
+const twoFactorService = require('../services/twoFactorService');
 const router = express.Router();
 
 const isPlaceholderKey = (value = '') => {
@@ -237,12 +239,36 @@ router.post('/register', [
       });
     }
 
+    // Check if user wants to enable 2FA during registration
+    const { enable2FA } = req.body;
+    let twoFactorData = null;
+
+    if (enable2FA) {
+      // Setup 2FA for the user
+      twoFactorData = await twoFactorService.setup2FA(userId, email);
+      
+      // Store 2FA secret temporarily (will be confirmed after verification)
+      // We'll update it after email verification is complete
+      await supabase
+        .from('users_accounts')
+        .update({
+          two_factor_secret: twoFactorData.secret,
+          two_factor_enabled: false // Will be enabled after verification
+        })
+        .eq('id', userId);
+    }
+
     // Return success but require OTP verification
     res.status(201).json({
       success: true,
       message: 'Registration successful. Please verify your email with the OTP sent to your inbox.',
       requiresVerification: true,
-      email: email
+      email: email,
+      twoFactorSetup: enable2FA ? {
+        qrCode: twoFactorData.qrCode,
+        secret: twoFactorData.secret,
+        backupCodes: twoFactorData.backupCodes
+      } : null
     });
 
   } catch (error) {
@@ -389,6 +415,35 @@ router.post('/login', [
       });
     }
 
+    // Check if 2FA is enabled and if code is provided
+    const { twoFactorCode } = req.body;
+    if (profile.two_factor_enabled && profile.two_factor_secret) {
+      if (!twoFactorCode) {
+        // Password is valid, but 2FA code is required
+        return res.status(200).json({
+          success: false,
+          requires2FA: true,
+          message: 'Two-factor authentication code required'
+        });
+      }
+
+      // Verify 2FA code
+      const isValid2FA = twoFactorService.verifyTOTP(profile.two_factor_secret, twoFactorCode);
+      if (!isValid2FA) {
+        updateLockoutAttempts(req, false);
+        securityService.logSecurityEvent('failed_login', {
+          email,
+          userId: profile.id,
+          ip: req.ip || req.connection.remoteAddress,
+          reason: 'invalid_2fa_code'
+        });
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid two-factor authentication code'
+        });
+      }
+    }
+
     // Reset login attempts on successful login
     updateLockoutAttempts(req, true);
     
@@ -409,7 +464,8 @@ router.post('/login', [
       email,
       userId: profile.id,
       ip: req.ip || req.connection.remoteAddress,
-      userAgent: req.headers['user-agent']
+      userAgent: req.headers['user-agent'],
+      twoFactorUsed: profile.two_factor_enabled || false
     });
 
     // For development: Generate a simple token
@@ -418,6 +474,7 @@ router.post('/login', [
     // Remove password from response
     const userResponse = { ...profile };
     delete userResponse.password_hash;
+    delete userResponse.two_factor_secret; // Never send secret to client
 
     res.json({
       success: true,

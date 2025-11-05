@@ -81,7 +81,7 @@ const Dashboard = () => {
       // Small delay to let dashboard load first
       const timer = setTimeout(() => {
         setShowOnboarding(true);
-      }, 1000);
+      }, 1500); // Increased delay to ensure everything is loaded
       return () => clearTimeout(timer);
     }
   }, [shouldShow, user]);

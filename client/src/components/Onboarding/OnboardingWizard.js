@@ -125,8 +125,26 @@ const OnboardingWizard = ({ onComplete, show = true }) => {
 
   if (!show) return null;
 
+  // Validate current step index
+  if (currentStep < 0 || currentStep >= steps.length) {
+    console.error('[OnboardingWizard] Invalid step index:', currentStep);
+    return null;
+  }
+
   const currentStepData = steps[currentStep];
+  if (!currentStepData || !currentStepData.component) {
+    console.error('[OnboardingWizard] Invalid step data:', currentStepData);
+    return null;
+  }
+
   const CurrentStepComponent = currentStepData.component;
+  
+  // Validate that CurrentStepComponent is actually a React component
+  if (typeof CurrentStepComponent !== 'function') {
+    console.error('[OnboardingWizard] Invalid component type:', typeof CurrentStepComponent, CurrentStepComponent);
+    return null;
+  }
+
   const isLastStep = currentStep === steps.length - 1;
   const isFirstStep = currentStep === 0;
   const progress = ((currentStep + 1) / steps.length) * 100;
@@ -211,13 +229,14 @@ const OnboardingWizard = ({ onComplete, show = true }) => {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                {CurrentStepComponent && (
-                  <CurrentStepComponent
-                    user={user || null}
-                    onNavigate={navigate || (() => {})}
-                    onComplete={handleComplete}
-                  />
-                )}
+                {typeof CurrentStepComponent === 'function' 
+                  ? React.createElement(CurrentStepComponent, {
+                      user: user || null,
+                      onNavigate: navigate || (() => {}),
+                      onComplete: handleComplete
+                    })
+                  : null
+                }
               </motion.div>
             </AnimatePresence>
           </div>

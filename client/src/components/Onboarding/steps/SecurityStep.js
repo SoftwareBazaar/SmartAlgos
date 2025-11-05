@@ -62,7 +62,7 @@ const SecurityStep = ({ onNavigate }) => {
               <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-3 flex-1">
                   <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg">
-                    <feature.icon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                    {React.createElement(feature.icon, { className: "h-5 w-5 text-primary-600 dark:text-primary-400" })}
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-1">

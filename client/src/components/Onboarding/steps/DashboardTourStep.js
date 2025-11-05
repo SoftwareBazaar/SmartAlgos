@@ -66,7 +66,7 @@ const DashboardTourStep = ({ onNavigate }) => {
             <Card className="p-4 hover:border-primary-500/50 transition-all hover:shadow-lg">
               <div className="flex items-start space-x-3">
                 <div className={`p-2 bg-gray-100 dark:bg-gray-700 rounded-lg ${feature.color}`}>
-                  <feature.icon className="h-5 w-5" />
+                  {React.createElement(feature.icon, { className: "h-5 w-5" })}
                 </div>
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-1">

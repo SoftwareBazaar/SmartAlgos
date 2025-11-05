@@ -155,7 +155,7 @@ const OnboardingWizard = ({ onComplete, show = true }) => {
             <div className="flex items-center justify-between mt-4">
               <div className="flex items-center space-x-4">
                 <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg">
-                  <currentStepData.icon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                  {React.createElement(currentStepData.icon, { className: "h-6 w-6 text-primary-600 dark:text-primary-400" })}
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -193,7 +193,7 @@ const OnboardingWizard = ({ onComplete, show = true }) => {
                   {completedSteps.has(index) ? (
                     <Check className="h-3 w-3" />
                   ) : (
-                    <step.icon className="h-3 w-3" />
+                    React.createElement(step.icon, { className: "h-3 w-3" })
                   )}
                   <span className="hidden sm:inline">{step.title}</span>
                 </button>

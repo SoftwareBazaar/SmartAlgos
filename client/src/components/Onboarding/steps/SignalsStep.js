@@ -65,7 +65,7 @@ const SignalsStep = ({ onNavigate }) => {
             <Card className={`p-4 ${signal.bgColor} border-2 hover:shadow-lg transition-all`}>
               <div className="flex items-start space-x-3">
                 <div className={`p-2 bg-white dark:bg-gray-800 rounded-lg ${signal.color}`}>
-                  <signal.icon className="h-5 w-5" />
+                  {React.createElement(signal.icon, { className: "h-5 w-5" })}
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-1">

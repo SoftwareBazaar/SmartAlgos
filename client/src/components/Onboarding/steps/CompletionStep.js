@@ -66,7 +66,7 @@ const CompletionStep = ({ user, onNavigate, onComplete }) => {
                 className="flex flex-col items-center text-center"
               >
                 <div className={`p-4 bg-gradient-to-br ${step.color} rounded-full mb-4 group-hover:scale-110 transition-transform`}>
-                  <step.icon className="h-6 w-6 text-white" />
+                  {React.createElement(step.icon, { className: "h-6 w-6 text-white" })}
                 </div>
                 <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
                   {step.title}

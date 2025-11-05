@@ -57,7 +57,7 @@ const EAMarketplaceStep = ({ onNavigate }) => {
             <Card className="p-4 hover:border-primary-500/50 transition-all">
               <div className="flex items-start space-x-3">
                 <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg">
-                  <benefit.icon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                  {React.createElement(benefit.icon, { className: "h-5 w-5 text-primary-600 dark:text-primary-400" })}
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-1">

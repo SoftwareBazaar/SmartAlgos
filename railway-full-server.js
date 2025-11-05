@@ -160,83 +160,90 @@ try {
   // Import routes (only the essential ones)
   console.log('Loading essential routes...');
   
+  // CRITICAL: Load CSRF routes FIRST and register immediately
+  let csrfRoutes = null;
+  try {
+    console.log('   Loading CSRF routes...');
+    csrfRoutes = require('./routes/csrf');
+    app.use('/api', csrfRoutes);
+    console.log('   ✅ CSRF routes loaded and registered');
+  } catch (error) {
+    console.error('❌ CRITICAL: CSRF routes failed to load:', error.message);
+  }
+  
+  // Load auth middleware early
+  let auth = null;
+  try {
+    console.log('   Loading auth middleware...');
+    const authModule = require('./middleware/auth');
+    auth = authModule.auth;
+    console.log('   ✅ Auth middleware loaded');
+  } catch (error) {
+    console.error('❌ CRITICAL: Auth middleware failed to load:', error.message);
+  }
+  
   try {
     console.log('📦 Loading route modules...');
     
     console.log('   Loading auth routes...');
     const authRoutes = require('./routes/auth');
-    console.log('   ✅ Auth routes loaded');
+    app.use('/api/auth', authRoutes);
+    console.log('   ✅ Auth routes loaded and registered');
     
     console.log('   Loading user routes...');
-    const usersRoutes = require('./routes/users'); // User routes including dashboard-stats
-    console.log('   ✅ User routes loaded');
+    const usersRoutes = require('./routes/users');
+    app.use('/api/users', usersRoutes);
+    console.log('   ✅ User routes loaded and registered');
     
     console.log('   Loading EA routes...');
     const eaRoutes = require('./routes/eas');
-    console.log('   ✅ EA routes loaded');
+    app.use('/api/eas', eaRoutes);
+    console.log('   ✅ EA routes loaded and registered');
     
     console.log('   Loading subscription routes...');
     const subscriptionRoutes = require('./routes/subscriptions');
-    console.log('   ✅ Subscription routes loaded');
+    app.use('/api/subscriptions', subscriptionRoutes);
+    console.log('   ✅ Subscription routes loaded and registered');
     
     console.log('   Loading downloads routes...');
     const downloadsRoutes = require('./routes/downloads');
-    console.log('   ✅ Downloads routes loaded');
+    app.use('/api/downloads', downloadsRoutes);
+    console.log('   ✅ Downloads routes loaded and registered');
     
     console.log('   Loading crypto payment routes...');
     const cryptoPaymentRoutes = require('./routes/cryptoPayments');
-    console.log('   ✅ Crypto payment routes loaded');
+    app.use('/api/payments/crypto', cryptoPaymentRoutes);
+    console.log('   ✅ Crypto payment routes loaded and registered');
     
     console.log('   Loading payment routes...');
     const paymentRoutes = require('./routes/payments');
-    console.log('   ✅ Payment routes loaded');
+    app.use('/api/payments', paymentRoutes);
+    console.log('   ✅ Payment routes loaded and registered');
     
     console.log('   Loading M-Pesa routes...');
     const mpesaRoutes = require('./routes/mpesa');
-    console.log('   ✅ M-Pesa routes loaded');
-    
-    // MT5 routes - disabled for Railway (requires MT5 terminal installation)
-    // const mt5Routes = require('./routes/mt5');
+    app.use('/api/mpesa', mpesaRoutes);
+    console.log('   ✅ M-Pesa routes loaded and registered');
     
     console.log('   Loading portfolio routes...');
     const portfolioRoutes = require('./routes/portfolio');
-    console.log('   ✅ Portfolio routes loaded');
+    app.use('/api/portfolio', portfolioRoutes);
+    console.log('   ✅ Portfolio routes loaded and registered');
     
     console.log('   Loading analysis routes...');
     const analysisRoutes = require('./routes/analysis');
-    console.log('   ✅ Analysis routes loaded');
+    if (auth) {
+      app.use('/api/analysis', auth, analysisRoutes);
+      console.log('   ✅ Analysis routes loaded and registered (with auth)');
+    } else {
+      app.use('/api/analysis', analysisRoutes);
+      console.log('   ⚠️  Analysis routes loaded without auth middleware');
+    }
     
     console.log('   Loading admin routes...');
-    const adminRoutes = require('./admin-panel'); // Admin panel with REAL database
-    console.log('   ✅ Admin routes loaded');
-    
-    console.log('   Loading CSRF routes...');
-    const csrfRoutes = require('./routes/csrf');
-    console.log('   ✅ CSRF routes loaded');
-    
-    // Load auth middleware for protected routes
-    console.log('   Loading auth middleware...');
-    const { auth } = require('./middleware/auth');
-    console.log('   ✅ Auth middleware loaded');
-    
-    console.log('📝 Registering route middleware...');
-    
-    // CSRF routes must be registered BEFORE other routes (especially auth routes)
-    app.use('/api', csrfRoutes);
-    
-    // API Routes
-    app.use('/api/auth', authRoutes);
-    app.use('/api/users', usersRoutes); // User routes - MUST come before other routes that might conflict
-    app.use('/api/eas', eaRoutes);
-    app.use('/api/subscriptions', subscriptionRoutes);
-    app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
-    app.use('/api/payments/crypto', cryptoPaymentRoutes); // Crypto payment routes - MUST come before /api/payments
-    app.use('/api/payments', paymentRoutes); // General payment routes
-    app.use('/api/mpesa', mpesaRoutes); // M-Pesa mobile money routes
-    // app.use('/api/mt5', mt5Routes); // MT5 routes disabled (requires MT5 terminal)
-    app.use('/api/portfolio', portfolioRoutes); // Portfolio routes (MT5 integration disabled)
-    app.use('/api/analysis', auth, analysisRoutes); // Analysis routes with auth middleware
-    app.use('/api/admin', adminRoutes); // Admin panel routes
+    const adminRoutes = require('./admin-panel');
+    app.use('/api/admin', adminRoutes);
+    console.log('   ✅ Admin routes loaded and registered');
     
     console.log('✅ Essential routes loaded and registered');
     console.log('   - /api/csrf-token (CSRF routes)');
@@ -248,7 +255,6 @@ try {
     console.log('   - /api/payments/crypto');
     console.log('   - /api/payments');
     console.log('   - /api/mpesa');
-    // console.log('   - /api/mt5'); // MT5 disabled
     console.log('   - /api/portfolio');
     console.log('   - /api/analysis');
     console.log('   - /api/admin');
@@ -257,7 +263,7 @@ try {
     console.error('❌ Error name:', error.name);
     console.error('❌ Error stack:', error.stack);
     console.error('❌ Full error object:', error);
-    // Don't throw - let healthcheck still work
+    // Don't throw - let healthcheck still work, but log detailed error
   }
 
   // Test downloads route

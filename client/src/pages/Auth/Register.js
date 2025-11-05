@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, Shield, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, Shield, CheckCircle, XCircle, AlertCircle, Key, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getPasswordStrength, validatePassword } from '../../utils/passwordStrength';
 
@@ -9,7 +9,11 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedKYC, setAcceptedKYC] = useState(false);
-  const { register: registerUser, loading } = useAuth();
+  const [showOTPStep, setShowOTPStep] = useState(false);
+  const [registrationEmail, setRegistrationEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [resendingOTP, setResendingOTP] = useState(false);
+  const { register: registerUser, verifyOTP, resendOTP, loading } = useAuth();
   const navigate = useNavigate();
   
   const {
@@ -43,8 +47,32 @@ const Register = () => {
 
     const result = await registerUser(userData);
     if (result.success) {
+      if (result.requiresVerification) {
+        // Show OTP verification step
+        setRegistrationEmail(data.email);
+        setShowOTPStep(true);
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  };
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    if (otp.length !== 6) {
+      return;
+    }
+
+    const result = await verifyOTP(registrationEmail, otp);
+    if (result.success) {
       navigate('/dashboard');
     }
+  };
+
+  const handleResendOTP = async () => {
+    setResendingOTP(true);
+    await resendOTP(registrationEmail);
+    setResendingOTP(false);
   };
 
   return (
@@ -437,6 +465,75 @@ const Register = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               </button>
             </form>
+
+            {/* OTP Verification Step */}
+            {showOTPStep && (
+              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="text-center mb-4">
+                  <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Mail className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Verify Your Email</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    We've sent a 6-digit verification code to
+                  </p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{registrationEmail}</p>
+                </div>
+
+                <form onSubmit={handleVerifyOTP} className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
+                      Enter Verification Code
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                        placeholder="000000"
+                        className="w-full px-3 py-2.5 text-center text-2xl font-mono tracking-widest bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                        autoFocus
+                      />
+                      <Key className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 dark:text-slate-400" />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 text-center">
+                      {otp.length}/6 digits
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading || otp.length !== 6}
+                    className="w-full py-2 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-600 text-white text-sm font-bold rounded-lg hover:from-purple-600 hover:via-pink-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl hover:shadow-purple-500/50 transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Verifying...' : 'Verify Email'}
+                  </button>
+
+                  <div className="flex items-center justify-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                    <span>Didn't receive the code?</span>
+                    <button
+                      type="button"
+                      onClick={handleResendOTP}
+                      disabled={resendingOTP}
+                      className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold flex items-center gap-1 disabled:opacity-50"
+                    >
+                      {resendingOTP ? (
+                        <>
+                          <RefreshCw className="w-3 h-3 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="w-3 h-3" />
+                          Resend Code
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
 
             <div className="pb-3 px-4 flex items-center justify-center gap-1.5 text-gray-500 dark:text-slate-400 text-xs mt-3">
               <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

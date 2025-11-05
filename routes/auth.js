@@ -175,7 +175,30 @@ router.post('/register', [
       });
     }
 
-    // Create user profile in users_accounts table
+    // Check if email is already registered
+    const { data: existingUser } = await supabase
+      .from('users_accounts')
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email already exists'
+      });
+    }
+
+    // Send OTP for email verification
+    const otpResult = await otpService.sendOTPEmail(email, 'email_verification');
+    
+    if (!otpResult.success) {
+      console.warn('[Registration] Failed to send OTP email, proceeding with registration anyway');
+      // Continue with registration even if OTP email fails (for development)
+    }
+
+    // Store registration data temporarily (in production, use Redis or database)
+    // For now, we'll create the user but mark email as unverified
     const userData = {
       id: userId,
       first_name: firstName,
@@ -189,7 +212,7 @@ router.post('/register', [
       kyc_accepted: kycAccepted,
       kyc_accepted_at: new Date().toISOString(),
       is_active: true,
-      is_email_verified: true, // Auto-verify for development
+      is_email_verified: false, // Require OTP verification
       role: 'user',
       subscription_type: accountTier === 'basic' ? 'free' : accountTier === 'pro' ? 'pro' : 'enterprise',
       subscription_status: 'active',
@@ -208,30 +231,18 @@ router.post('/register', [
 
     if (profileError) {
       console.error('Profile creation error:', profileError.message);
-      // If profile creation fails, we should clean up the auth user
-      // But for now, just log the error
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create user account'
+      });
     }
 
-    // For development: Generate a simple token (not JWT)
-    const token = `dev_token_${userId}`;
-
-    // Remove sensitive data from response
-    const userResponse = {
-      id: userId,
-      email: email,
-      first_name: firstName,
-      last_name: lastName,
-      role: 'user',
-      is_active: true,
-      is_email_verified: true,
-      created_at: new Date().toISOString()
-    };
-
+    // Return success but require OTP verification
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
-      token,
-      user: userResponse
+      message: 'Registration successful. Please verify your email with the OTP sent to your inbox.',
+      requiresVerification: true,
+      email: email
     });
 
   } catch (error) {
@@ -646,8 +657,169 @@ router.post('/change-password', [
   }
 });
 
+// @route   POST /api/auth/verify-otp
+// @desc    Verify email OTP
+// @access  Public
+router.post('/verify-otp', [
+  body('email')
+    .isEmail()
+    .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
+    .withMessage('Please provide a valid email'),
+  body('otp')
+    .isLength({ min: 6, max: 6 })
+    .isNumeric()
+    .withMessage('OTP must be a 6-digit number')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { email, otp } = req.body;
+
+    // Verify OTP
+    const verification = otpService.verifyOTP(email, otp, 'email_verification');
+    
+    if (!verification.valid) {
+      return res.status(400).json({
+        success: false,
+        message: verification.message
+      });
+    }
+
+    // OTP is valid - verify email in database
+    const supabase = databaseService.getClient();
+    if (!supabase) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database service unavailable'
+      });
+    }
+
+    // Update user email verification status
+    const { data: user, error: updateError } = await supabase
+      .from('users_accounts')
+      .update({ 
+        is_email_verified: true,
+        email_verified_at: new Date().toISOString()
+      })
+      .eq('email', email)
+      .select()
+      .single();
+
+    if (updateError || !user) {
+      console.error('Failed to verify email:', updateError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to verify email'
+      });
+    }
+
+    // Generate token for verified user
+    const token = `dev_token_${user.id}`;
+
+    // Remove sensitive data from response
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+      is_active: user.is_active,
+      is_email_verified: true,
+      created_at: user.created_at
+    };
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully',
+      token,
+      user: userResponse
+    });
+
+  } catch (error) {
+    console.error('OTP verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/auth/resend-otp
+// @desc    Resend OTP for email verification
+// @access  Public
+router.post('/resend-otp', [
+  body('email')
+    .isEmail()
+    .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
+    .withMessage('Please provide a valid email')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { email } = req.body;
+
+    // Check if user exists
+    const supabase = databaseService.getClient();
+    if (!supabase) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database service unavailable'
+      });
+    }
+
+    const { data: user } = await supabase
+      .from('users_accounts')
+      .select('id, is_email_verified')
+      .eq('email', email)
+      .single();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    if (user.is_email_verified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is already verified'
+      });
+    }
+
+    // Resend OTP
+    const result = await otpService.resendOTP(email, 'email_verification');
+
+    res.json({
+      success: result.success,
+      message: result.message || 'OTP resent successfully'
+    });
+
+  } catch (error) {
+    console.error('Resend OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
 // @route   POST /api/auth/verify-email
-// @desc    Verify email address
+// @desc    Verify email address (legacy endpoint - kept for compatibility)
 // @access  Public
 router.post('/verify-email', [
   body('token')
@@ -657,10 +829,10 @@ router.post('/verify-email', [
   try {
     const { token } = req.body;
 
-    // Email verification is handled by Supabase - no custom token verification needed
+    // Email verification is handled by OTP now
     return res.status(400).json({
       success: false,
-      message: 'Email verification is handled by Supabase. Use the verification link from your email.'
+      message: 'Please use /api/auth/verify-otp endpoint for email verification'
     });
 
   } catch (error) {

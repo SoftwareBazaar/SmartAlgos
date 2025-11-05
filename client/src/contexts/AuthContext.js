@@ -211,10 +211,21 @@ export const AuthProvider = ({ children }) => {
       
       const response = await apiClient.post(endpoint, userData);
       
+      // Check if OTP verification is required
+      if (response.data.requiresVerification) {
+        dispatch({ type: 'SET_LOADING', payload: false });
+        return { 
+          success: true, 
+          requiresVerification: true, 
+          email: response.data.email,
+          message: response.data.message || 'Please verify your email with the OTP sent to your inbox.'
+        };
+      }
+      
       const { token, user } = response.data;
       
       // Validate and store token using authStorage utility
-      if (isValidTokenFormat(token)) {
+      if (token && isValidTokenFormat(token)) {
         setToken(token, 'user');
         setUser(user);
         apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
@@ -223,6 +234,14 @@ export const AuthProvider = ({ children }) => {
         setUserContext(user);
         
         dispatch({ type: 'SET_USER', payload: user });
+      } else if (!token) {
+        // Registration succeeded but no token (waiting for verification)
+        return { 
+          success: true, 
+          requiresVerification: true,
+          email: userData.email,
+          message: 'Please verify your email to complete registration.'
+        };
       } else {
         throw new Error('Invalid token format received');
       }
@@ -242,6 +261,54 @@ export const AuthProvider = ({ children }) => {
       }
       
       dispatch({ type: 'SET_ERROR', payload: message });
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  };
+
+  // Verify OTP
+  const verifyOTP = async (email, otp) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      const response = await apiClient.post('/api/auth/verify-otp', { email, otp });
+      
+      if (response.data.success) {
+        const { token, user } = response.data;
+        
+        if (token && isValidTokenFormat(token)) {
+          setToken(token, 'user');
+          setUser(user);
+          apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+          
+          // Set user context for error monitoring
+          setUserContext(user);
+          
+          dispatch({ type: 'SET_USER', payload: user });
+        }
+        
+        toast.success(response.data.message || 'Email verified successfully');
+        return { success: true, user };
+      } else {
+        throw new Error(response.data.message || 'OTP verification failed');
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'OTP verification failed';
+      dispatch({ type: 'SET_ERROR', payload: message });
+      toast.error(message);
+      return { success: false, error: message };
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
+
+  // Resend OTP
+  const resendOTP = async (email) => {
+    try {
+      const response = await apiClient.post('/api/auth/resend-otp', { email });
+      toast.success(response.data.message || 'OTP resent successfully');
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to resend OTP';
       toast.error(message);
       return { success: false, error: message };
     }
@@ -388,6 +455,8 @@ export const AuthProvider = ({ children }) => {
     login,
     adminLogin,
     register,
+    verifyOTP,
+    resendOTP,
     logout,
     adminLogout,
     updateProfile,

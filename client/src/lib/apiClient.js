@@ -2,6 +2,12 @@ import axios from 'axios';
 import { removeToken, clearAuth, isValidTokenFormat } from '../utils/authStorage';
 import { getErrorMessage, logError, isProduction } from '../utils/errorHandler';
 
+// Import axios for CSRF token fetching (needed before apiClient is created)
+const axiosForCSRF = axios.create({
+  withCredentials: true,
+  timeout: 5000
+});
+
 // Get API base URL from environment or use defaults
 const getBaseURL = () => {
   // Priority: REACT_APP_API_URL > auto-detect > default
@@ -29,8 +35,35 @@ const apiClient = axios.create({
 console.log(`[API Client] Base URL: ${getBaseURL()}`);
 console.log(`[API Client] Environment: ${process.env.NODE_ENV || 'development'}`);
 
+// CSRF token management
+let csrfToken = null;
+let csrfTokenExpiry = 0;
+
+const getCSRFToken = async () => {
+  // Check if we have a valid token
+  if (csrfToken && Date.now() < csrfTokenExpiry) {
+    return csrfToken;
+  }
+
+  // Fetch new token
+  try {
+    const response = await axiosForCSRF.get(`${getBaseURL()}/api/csrf-token`);
+    
+    if (response.data?.success && response.data?.csrfToken) {
+      csrfToken = response.data.csrfToken;
+      csrfTokenExpiry = Date.now() + (response.data.expiresIn * 1000) - 60000; // Refresh 1 min before expiry
+      return csrfToken;
+    }
+  } catch (error) {
+    console.warn('[API Client] Failed to fetch CSRF token:', error.message);
+    // Don't block requests if CSRF token fetch fails (will be handled by server)
+  }
+
+  return null;
+};
+
 // Request interceptor
-apiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use(async (config) => {
   const isAdminContext = typeof window !== 'undefined' && window.location.pathname.includes('/admin');
   let token = isAdminContext ? localStorage.getItem('admin_token') : localStorage.getItem('token');
   const runtimeEnv = typeof window !== 'undefined' && window.env ? window.env.nodeEnv : undefined;
@@ -56,6 +89,15 @@ apiClient.interceptors.request.use((config) => {
     config.headers = config.headers || {};
     if (!config.headers.Authorization) {
       config.headers.Authorization = 'Bearer test_token';
+    }
+  }
+
+  // Add CSRF token for state-changing requests (POST, PUT, PATCH, DELETE)
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(config.method?.toUpperCase())) {
+    const token = await getCSRFToken();
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers['X-CSRF-Token'] = token;
     }
   }
 

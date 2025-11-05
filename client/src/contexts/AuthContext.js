@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
 import { adminLogin as bulletproofAdminLogin, getCurrentUser, logout as bulletproofLogout } from '../utils/auth';
 import { getToken, setToken, setUser, getUser, removeToken, removeUser, clearAuth, isValidTokenFormat } from '../utils/authStorage';
+import { setUserContext, clearUserContext } from '../utils/errorMonitoring';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -122,6 +123,9 @@ export const AuthProvider = ({ children }) => {
         setUser(user);
         apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
         
+        // Set user context for error monitoring
+        setUserContext(user);
+        
         dispatch({ type: 'SET_USER', payload: user });
         toast.success('Login successful!');
         return { success: true, message: 'Login successful!' };
@@ -214,6 +218,10 @@ export const AuthProvider = ({ children }) => {
         setToken(token, 'user');
         setUser(user);
         apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+        
+        // Set user context for error monitoring
+        setUserContext(user);
+        
         dispatch({ type: 'SET_USER', payload: user });
       } else {
         throw new Error('Invalid token format received');
@@ -252,6 +260,10 @@ export const AuthProvider = ({ children }) => {
       // Clear all tokens and user data using authStorage utility
       clearAuth('user');
       delete apiClient.defaults.headers.common.Authorization;
+      
+      // Clear user context from error monitoring
+      clearUserContext();
+      
       dispatch({ type: 'LOGOUT' });
       toast.success('Logged out successfully');
       
@@ -276,6 +288,10 @@ export const AuthProvider = ({ children }) => {
       removeToken('user'); // Also clear regular user token if any
       removeUser();
       delete apiClient.defaults.headers.common.Authorization;
+      
+      // Clear user context from error monitoring
+      clearUserContext();
+      
       dispatch({ type: 'LOGOUT' });
       toast.success('Admin session ended. Please login again for security.');
       

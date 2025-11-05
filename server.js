@@ -35,6 +35,8 @@ const adminCMSRoutes = require('./routes/admin-cms');
 const customEARoutes = require('./routes/customEA');
 const aiAssistantRoutes = require('./routes/aiAssistant');
 const downloadsRoutes = require('./routes/downloads');
+const csrfRoutes = require('./routes/csrf');
+const { validateCSRF } = require('./routes/csrf');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -375,32 +377,35 @@ const { addImageProxy, addFallbackImage } = require('./fix-image-display');
 addImageProxy(app);
 addFallbackImage(app);
 
-// API Routes
+// CSRF token endpoint (must be before CSRF validation)
+app.use('/api', csrfRoutes);
+
+// API Routes with CSRF protection for state-changing operations
 app.use('/api/auth', authRoutes);
-app.use('/api/users', auth, userRoutes);
+app.use('/api/users', auth, validateCSRF, userRoutes);
 app.use('/api/eas', eaRoutes); // Public routes - auth handled per-endpoint
-app.use('/api/hft', auth, hftRoutes);
-app.use('/api/signals', auth, signalRoutes);
-app.use('/api/markets', auth, marketRoutes);
-app.use('/api/news', auth, newsRoutes);
-app.use('/api/subscriptions', auth, subscriptionRoutes);
-app.use('/api/escrow', auth, escrowRoutes);
-app.use('/api/escrow', escrowWebhookRoutes); // Webhooks don't require auth
+app.use('/api/hft', auth, validateCSRF, hftRoutes);
+app.use('/api/signals', auth, validateCSRF, signalRoutes);
+app.use('/api/markets', auth, marketRoutes); // Read-only, no CSRF needed
+app.use('/api/news', auth, newsRoutes); // Read-only, no CSRF needed
+app.use('/api/subscriptions', auth, validateCSRF, subscriptionRoutes);
+app.use('/api/escrow', auth, validateCSRF, escrowRoutes);
+app.use('/api/escrow', escrowWebhookRoutes); // Webhooks don't require auth or CSRF
 app.use('/api/payments/crypto', cryptoPaymentRoutes); // MUST come before /api/payments
-app.use('/api/payments', auth, paymentRoutes);
+app.use('/api/payments', auth, validateCSRF, paymentRoutes);
 app.use('/api/mpesa', mpesaRoutes); // M-Pesa routes (callback doesn't require auth)
-app.use('/api/analysis', auth, analysisRoutes);
-app.use('/api/security', auth, securityRoutes);
+app.use('/api/analysis', auth, analysisRoutes); // Read-only, no CSRF needed
+app.use('/api/security', auth, validateCSRF, securityRoutes);
 app.use('/api/mt5', mt5Routes);
-app.use('/api/polygon', auth, polygonRoutes);
-app.use('/api/portfolio', auth, portfolioRoutes);
+app.use('/api/polygon', auth, polygonRoutes); // Read-only, no CSRF needed
+app.use('/api/portfolio', auth, validateCSRF, portfolioRoutes);
 app.use('/api/test', testRoutes); // Test routes for debugging
 app.use('/api/admin', adminRoutes); // Admin routes have their own auth middleware
 app.use('/api/admin', adminCMSRoutes); // Admin CMS routes
 app.use('/api/utilities', require('./routes/utilities')); // Utilities routes (public read, admin write)
 app.use('/api/economic-calendar', require('./routes/economic-calendar')); // Economic calendar routes (public)
-app.use('/api/custom-ea', auth, customEARoutes); // Custom EA development service
-app.use('/api/ai-assistant', auth, aiAssistantRoutes); // AI EA Assistant
+app.use('/api/custom-ea', auth, validateCSRF, customEARoutes); // Custom EA development service
+app.use('/api/ai-assistant', auth, validateCSRF, aiAssistantRoutes); // AI EA Assistant
 app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
 
 

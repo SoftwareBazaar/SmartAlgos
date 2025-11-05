@@ -35,24 +35,32 @@ const Card = ({
   );
 };
 
-const CardHeader = ({ children, className = '', ...props }) => (
+// Define subcomponents as proper React components
+const CardHeader = React.memo(({ children, className = '', ...props }) => (
   <div className={`card-header ${className}`} {...props}>
     {children}
   </div>
-);
+));
 
-const CardBody = ({ children, className = '', ...props }) => (
+CardHeader.displayName = 'CardHeader';
+
+const CardBody = React.memo(({ children, className = '', ...props }) => (
   <div className={`card-body ${className}`} {...props}>
     {children}
   </div>
-);
+));
 
-const CardFooter = ({ children, className = '', ...props }) => (
+CardBody.displayName = 'CardBody';
+
+const CardFooter = React.memo(({ children, className = '', ...props }) => (
   <div className={`card-footer ${className}`} {...props}>
     {children}
   </div>
-);
+));
 
+CardFooter.displayName = 'CardFooter';
+
+// Attach subcomponents to Card component
 Card.Header = CardHeader;
 Card.Body = CardBody;
 Card.Footer = CardFooter;

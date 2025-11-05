@@ -1439,20 +1439,24 @@ router.post('/:id/subscribe', [
 // @access  Private
 router.get('/my/created', [auth, updateActivity], async (req, res) => {
   try {
-    const eas = await EA.find({ creator: req.user._id })
-      .sort({ createdAt: -1 })
-      .select('-files.eaFile -files.setFile');
+    // Use databaseService to query Supabase (or mock store)
+    const eas = await databaseService.getEAs({
+      creator_id: req.user.id,
+      orderBy: 'created_at',
+      ascending: false
+    });
 
     res.json({
       success: true,
-      data: eas
+      data: eas || []
     });
 
   } catch (error) {
     console.error('Get my EAs error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

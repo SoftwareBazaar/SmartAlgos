@@ -211,11 +211,13 @@ const OnboardingWizard = ({ onComplete, show = true }) => {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <CurrentStepComponent
-                  user={user}
-                  onNavigate={navigate}
-                  onComplete={handleComplete}
-                />
+                {CurrentStepComponent && (
+                  <CurrentStepComponent
+                    user={user || null}
+                    onNavigate={navigate || (() => {})}
+                    onComplete={handleComplete}
+                  />
+                )}
               </motion.div>
             </AnimatePresence>
           </div>

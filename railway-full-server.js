@@ -210,12 +210,19 @@ try {
     const adminRoutes = require('./admin-panel'); // Admin panel with REAL database
     console.log('   ✅ Admin routes loaded');
     
+    console.log('   Loading CSRF routes...');
+    const csrfRoutes = require('./routes/csrf');
+    console.log('   ✅ CSRF routes loaded');
+    
     // Load auth middleware for protected routes
     console.log('   Loading auth middleware...');
     const { auth } = require('./middleware/auth');
     console.log('   ✅ Auth middleware loaded');
     
     console.log('📝 Registering route middleware...');
+    
+    // CSRF routes must be registered BEFORE other routes (especially auth routes)
+    app.use('/api', csrfRoutes);
     
     // API Routes
     app.use('/api/auth', authRoutes);
@@ -232,6 +239,7 @@ try {
     app.use('/api/admin', adminRoutes); // Admin panel routes
     
     console.log('✅ Essential routes loaded and registered');
+    console.log('   - /api/csrf-token (CSRF routes)');
     console.log('   - /api/auth');
     console.log('   - /api/users');
     console.log('   - /api/eas');
@@ -389,11 +397,15 @@ try {
     });
   }
 
-  // 404 handler for API routes
+  // 404 handler for API routes - must be AFTER all API routes but BEFORE frontend catch-all
+  // This should never be reached if routes are properly registered above
   app.use('/api/*', (req, res) => {
+    console.warn(`⚠️  API route not found: ${req.method} ${req.path}`);
     res.status(404).json({
       success: false,
-      message: 'API route not found'
+      message: 'API route not found',
+      path: req.path,
+      method: req.method
     });
   });
 

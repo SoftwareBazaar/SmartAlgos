@@ -25,6 +25,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import apiClient from '../../lib/apiClient';
 import { toast } from 'react-hot-toast';
+import ThemeSwitcher from '../../components/UI/ThemeSwitcher';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -797,28 +798,13 @@ const Settings = () => {
                 </h3>
                 
                 <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                <div>
+                  <div>
                     <h4 className="font-medium text-gray-900 dark:text-white">Theme</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Switch between light and dark mode
+                      Choose your preferred theme appearance
                     </p>
                   </div>
-                  <button
-                    onClick={toggleTheme}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-                  >
-                    {theme === 'dark' ? (
-                      <>
-                        <Sun className="w-4 h-4" />
-                        <span>Light Mode</span>
-                      </>
-                    ) : (
-                      <>
-                        <Moon className="w-4 h-4" />
-                        <span>Dark Mode</span>
-                      </>
-                    )}
-                  </button>
+                  <ThemeSwitcher variant="dropdown" />
                 </div>
               </div>
             </Card.Body>

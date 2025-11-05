@@ -16,6 +16,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 // import { useWebSocket } from '../../contexts/WebSocketContext';
 import Button from '../UI/Button';
+import ThemeSwitcher from '../UI/ThemeSwitcher';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = ({ onMenuClick }) => {
@@ -106,13 +107,7 @@ const Header = ({ onMenuClick }) => {
             </div>
 
             {/* Theme toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              onClick={toggleTheme}
-              className="p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-200 dark:text-gray-300 dark:hover:text-white dark:hover:bg-brand-800/60"
-            />
+            <ThemeSwitcher variant="button" />
 
             {/* Notifications */}
             <div className="relative">

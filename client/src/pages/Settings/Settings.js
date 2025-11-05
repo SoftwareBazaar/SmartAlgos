@@ -514,9 +514,19 @@ const Settings = () => {
             {/* Security Information */}
             <Card>
               <Card.Body>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Account Security Information
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Account Security Information
+                  </h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/audit-trail')}
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    View Audit Trail
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">

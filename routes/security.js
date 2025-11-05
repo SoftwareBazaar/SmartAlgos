@@ -141,6 +141,139 @@ router.get('/events', [
   }
 });
 
+// @route   GET /api/security/audit-trail
+// @desc    Get user audit trail (for regular users to view their own activity)
+// @access  Private
+router.get('/audit-trail', [
+  auth,
+  updateActivity,
+  query('severity').optional().isIn(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
+  query('eventType').optional(),
+  query('page').optional().isInt({ min: 1 }),
+  query('limit').optional().isInt({ min: 1, max: 100 })
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { severity, eventType, page = 1, limit = 50 } = req.query;
+    const userId = req.user?.userId || req.user?.id;
+    
+    // In production, this would query a security events database filtered by userId
+    // For now, return mock user-specific events
+    const mockEvents = [
+      {
+        id: '1',
+        timestamp: new Date().toISOString(),
+        event: 'successful_login',
+        severity: 'LOW',
+        details: {
+          ip: req.ip || '192.168.1.100',
+          userAgent: req.headers['user-agent'] || 'Mozilla/5.0',
+          location: 'New York, US'
+        },
+        status: 'success'
+      },
+      {
+        id: '2',
+        timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
+        event: 'password_changed',
+        severity: 'MEDIUM',
+        details: {
+          ip: req.ip || '192.168.1.100',
+          userAgent: req.headers['user-agent'] || 'Mozilla/5.0'
+        },
+        status: 'success'
+      },
+      {
+        id: '3',
+        timestamp: new Date(Date.now() - 24 * 3600000).toISOString(),
+        event: 'failed_login',
+        severity: 'MEDIUM',
+        details: {
+          ip: '10.0.0.1',
+          userAgent: 'Mozilla/5.0',
+          reason: 'invalid_password',
+          attempts: 1
+        },
+        status: 'failed'
+      },
+      {
+        id: '4',
+        timestamp: new Date(Date.now() - 3 * 24 * 3600000).toISOString(),
+        event: 'api_key_created',
+        severity: 'LOW',
+        details: {
+          keyName: 'Production API Key',
+          ip: req.ip || '192.168.1.100'
+        },
+        status: 'success'
+      },
+      {
+        id: '5',
+        timestamp: new Date(Date.now() - 5 * 24 * 3600000).toISOString(),
+        event: 'email_verified',
+        severity: 'LOW',
+        details: {
+          ip: req.ip || '192.168.1.100'
+        },
+        status: 'success'
+      },
+      {
+        id: '6',
+        timestamp: new Date(Date.now() - 7 * 24 * 3600000).toISOString(),
+        event: 'account_created',
+        severity: 'LOW',
+        details: {
+          ip: req.ip || '192.168.1.100',
+          registrationMethod: 'email'
+        },
+        status: 'success'
+      }
+    ];
+
+    let filteredEvents = mockEvents;
+    
+    // Filter by severity
+    if (severity) {
+      filteredEvents = filteredEvents.filter(event => event.severity === severity);
+    }
+    
+    // Filter by event type
+    if (eventType) {
+      filteredEvents = filteredEvents.filter(event => event.event === eventType);
+    }
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + parseInt(limit);
+    const paginatedEvents = filteredEvents.slice(startIndex, endIndex);
+
+    res.json({
+      success: true,
+      data: paginatedEvents,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(filteredEvents.length / parseInt(limit)),
+        totalItems: filteredEvents.length,
+        itemsPerPage: parseInt(limit)
+      }
+    });
+
+  } catch (error) {
+    console.error('Get audit trail error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
 // ==================== BLOCKCHAIN MONITORING ====================
 
 // @route   GET /api/security/blockchain/status

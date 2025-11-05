@@ -42,6 +42,7 @@ import Analysis from './pages/Analysis/Analysis';
 import AnalysisDetail from './pages/Analysis/AnalysisDetail';
 import Profile from './pages/Profile/Profile';
 import Settings from './pages/Settings/Settings';
+import AuditTrail from './pages/Security/AuditTrail';
 import Subscription from './pages/Subscription/Subscription';
 import Payments from './pages/Payments/Payments';
 import DesktopFeatures from './pages/DesktopFeatures/DesktopFeatures';
@@ -157,6 +158,7 @@ function App() {
                   {/* User Management */}
                   <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                  <Route path="audit-trail" element={<ProtectedRoute><AuditTrail /></ProtectedRoute>} />
                   <Route path="subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
                   <Route path="payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
                   <Route path="desktop-features" element={<ProtectedRoute><ErrorBoundary><DesktopFeatures /></ErrorBoundary></ProtectedRoute>} />

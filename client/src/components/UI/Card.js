@@ -36,24 +36,25 @@ const Card = ({
 };
 
 // Define subcomponents as proper React components
-const CardHeader = React.memo(({ children, className = '', ...props }) => (
-  <div className={`card-header ${className}`} {...props}>
+// Using React.forwardRef to ensure they're recognized as valid React components
+const CardHeader = React.forwardRef(({ children, className = '', ...props }, ref) => (
+  <div ref={ref} className={`card-header ${className}`} {...props}>
     {children}
   </div>
 ));
 
 CardHeader.displayName = 'CardHeader';
 
-const CardBody = React.memo(({ children, className = '', ...props }) => (
-  <div className={`card-body ${className}`} {...props}>
+const CardBody = React.forwardRef(({ children, className = '', ...props }, ref) => (
+  <div ref={ref} className={`card-body ${className}`} {...props}>
     {children}
   </div>
 ));
 
 CardBody.displayName = 'CardBody';
 
-const CardFooter = React.memo(({ children, className = '', ...props }) => (
-  <div className={`card-footer ${className}`} {...props}>
+const CardFooter = React.forwardRef(({ children, className = '', ...props }, ref) => (
+  <div ref={ref} className={`card-footer ${className}`} {...props}>
     {children}
   </div>
 ));
@@ -61,6 +62,7 @@ const CardFooter = React.memo(({ children, className = '', ...props }) => (
 CardFooter.displayName = 'CardFooter';
 
 // Attach subcomponents to Card component
+// Ensure they're properly attached BEFORE export
 Card.Header = CardHeader;
 Card.Body = CardBody;
 Card.Footer = CardFooter;

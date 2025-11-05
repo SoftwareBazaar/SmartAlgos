@@ -202,9 +202,18 @@ try {
     const portfolioRoutes = require('./routes/portfolio');
     console.log('   ✅ Portfolio routes loaded');
     
+    console.log('   Loading analysis routes...');
+    const analysisRoutes = require('./routes/analysis');
+    console.log('   ✅ Analysis routes loaded');
+    
     console.log('   Loading admin routes...');
     const adminRoutes = require('./admin-panel'); // Admin panel with REAL database
     console.log('   ✅ Admin routes loaded');
+    
+    // Load auth middleware for protected routes
+    console.log('   Loading auth middleware...');
+    const { auth } = require('./middleware/auth');
+    console.log('   ✅ Auth middleware loaded');
     
     console.log('📝 Registering route middleware...');
     
@@ -219,6 +228,7 @@ try {
     app.use('/api/mpesa', mpesaRoutes); // M-Pesa mobile money routes
     // app.use('/api/mt5', mt5Routes); // MT5 routes disabled (requires MT5 terminal)
     app.use('/api/portfolio', portfolioRoutes); // Portfolio routes (MT5 integration disabled)
+    app.use('/api/analysis', auth, analysisRoutes); // Analysis routes with auth middleware
     app.use('/api/admin', adminRoutes); // Admin panel routes
     
     console.log('✅ Essential routes loaded and registered');
@@ -232,6 +242,7 @@ try {
     console.log('   - /api/mpesa');
     // console.log('   - /api/mt5'); // MT5 disabled
     console.log('   - /api/portfolio');
+    console.log('   - /api/analysis');
     console.log('   - /api/admin');
   } catch (error) {
     console.error('❌ CRITICAL: Routes loading error:', error.message);

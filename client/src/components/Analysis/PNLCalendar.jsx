@@ -19,10 +19,25 @@ const PNLCalendar = () => {
     const fetchCalendar = async () => {
       try {
         setLoading(true);
+        setError(null);
         const response = await apiClient.get('/api/analysis/economic-calendar');
-        setEvents(response.data?.data || []);
+        
+        // Validate response data
+        if (response.data && response.data.success) {
+          const data = response.data.data;
+          // Ensure data is an array and filter out invalid entries
+          const validEvents = Array.isArray(data) 
+            ? data.filter(event => event && typeof event === 'object' && event.title)
+            : [];
+          setEvents(validEvents);
+        } else {
+          setEvents([]);
+        }
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to load P&L calendar');
+        console.error('Error fetching P&L calendar:', err);
+        const errorMessage = err.response?.data?.message || err.message || 'Failed to load P&L calendar';
+        setError(String(errorMessage));
+        setEvents([]);
       } finally {
         setLoading(false);
       }
@@ -75,38 +90,50 @@ const PNLCalendar = () => {
           </div>
         ) : (
           <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {events.map((event) => (
-              <li key={`${event.date}:${event.title}`} className="py-4 flex flex-col md:flex-row md:items-center md:justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span>{new Date(event.date).toLocaleString()}</span>
-                    {event.impact && (
-                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                        Impact: {event.impact}
-                      </span>
+            {events.map((event, index) => {
+              // Ensure event is valid and has required properties
+              if (!event || typeof event !== 'object' || !event.title) {
+                return null;
+              }
+              
+              const eventDate = event.date ? new Date(event.date) : null;
+              const dateString = eventDate && !isNaN(eventDate.getTime()) 
+                ? eventDate.toLocaleString() 
+                : 'Date TBD';
+              
+              return (
+                <li key={event.id || `event-${index}`} className="py-4 flex flex-col md:flex-row md:items-center md:justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                      <span>{dateString}</span>
+                      {event.impact && typeof event.impact === 'string' && (
+                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                          Impact: {event.impact}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-base font-medium text-gray-900 dark:text-gray-100">{String(event.title || 'Untitled Event')}</p>
+                    {event.description && typeof event.description === 'string' && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 max-w-2xl">{event.description}</p>
                     )}
                   </div>
-                  <p className="text-base font-medium text-gray-900 dark:text-gray-100">{event.title}</p>
-                  {event.description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 max-w-2xl">{event.description}</p>
-                  )}
-                </div>
-                <div className="mt-3 md:mt-0 flex items-center space-x-4">
-                  {event.sentiment && (
-                    <div className={`flex items-center space-x-1 text-sm font-medium ${sentimentColors[event.sentiment] || sentimentColors.neutral}`}>
-                      <TrendingUp className="h-4 w-4" />
-                      <span className="capitalize">{event.sentiment}</span>
-                    </div>
-                  )}
-                  {event.expectedPnlImpact && (
-                    <div className="text-right">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Expected P&L impact</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{event.expectedPnlImpact}</p>
-                    </div>
-                  )}
-                </div>
-              </li>
-            ))}
+                  <div className="mt-3 md:mt-0 flex items-center space-x-4">
+                    {event.sentiment && typeof event.sentiment === 'string' && (
+                      <div className={`flex items-center space-x-1 text-sm font-medium ${sentimentColors[event.sentiment] || sentimentColors.neutral}`}>
+                        <TrendingUp className="h-4 w-4" />
+                        <span className="capitalize">{event.sentiment}</span>
+                      </div>
+                    )}
+                    {event.expectedPnlImpact && typeof event.expectedPnlImpact === 'string' && (
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Expected P&L impact</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{event.expectedPnlImpact}</p>
+                      </div>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </Card.Body>

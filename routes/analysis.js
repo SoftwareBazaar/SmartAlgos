@@ -731,59 +731,67 @@ router.get('/market-sentiment', [auth, requireSubscription('basic'), updateActiv
 // @route   GET /api/analysis/economic-calendar
 // @desc    Get economic calendar
 // @access  Private
-router.get('/economic-calendar', [auth, updateActivity], async (req, res) => {
+router.get('/economic-calendar', [updateActivity], async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
     
-    // Mock economic calendar data
+    // Mock economic calendar data with properly formatted dates
     const economicEvents = [
       {
         id: 'evt_001',
         title: 'Federal Reserve Interest Rate Decision',
         country: 'US',
         importance: 'high',
-        date: new Date('2023-12-13T14:00:00Z'),
+        date: new Date('2023-12-13T14:00:00Z').toISOString(),
         previous: '5.25%',
         forecast: '5.50%',
         actual: null,
         impact: 'high',
-        description: 'Federal Open Market Committee meeting'
+        description: 'Federal Open Market Committee meeting',
+        sentiment: 'neutral',
+        expectedPnlImpact: '±2-5%'
       },
       {
         id: 'evt_002',
         title: 'Non-Farm Payrolls',
         country: 'US',
         importance: 'high',
-        date: new Date('2023-12-08T13:30:00Z'),
+        date: new Date('2023-12-08T13:30:00Z').toISOString(),
         previous: '150K',
         forecast: '180K',
         actual: '175K',
         impact: 'high',
-        description: 'Change in number of employed people'
+        description: 'Change in number of employed people',
+        sentiment: 'bullish',
+        expectedPnlImpact: '±3-7%'
       },
       {
         id: 'evt_003',
         title: 'CPI (Consumer Price Index)',
         country: 'US',
         importance: 'high',
-        date: new Date('2023-12-12T13:30:00Z'),
+        date: new Date('2023-12-12T13:30:00Z').toISOString(),
         previous: '3.2%',
         forecast: '3.1%',
         actual: null,
         impact: 'high',
-        description: 'Year-over-year inflation rate'
+        description: 'Year-over-year inflation rate',
+        sentiment: 'neutral',
+        expectedPnlImpact: '±2-4%'
       },
       {
         id: 'evt_004',
         title: 'GDP Growth Rate',
         country: 'US',
         importance: 'medium',
-        date: new Date('2023-12-21T13:30:00Z'),
+        date: new Date('2023-12-21T13:30:00Z').toISOString(),
         previous: '2.1%',
         forecast: '2.3%',
         actual: null,
         impact: 'medium',
-        description: 'Quarterly GDP growth rate'
+        description: 'Quarterly GDP growth rate',
+        sentiment: 'bullish',
+        expectedPnlImpact: '±1-3%'
       }
     ];
 

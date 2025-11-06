@@ -22,8 +22,8 @@ const Layout = () => {
         />
         <div className="relative flex-1 flex flex-col min-h-screen">
           <Header onMenuClick={() => setSidebarOpen(true)} />
-          <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-brand-700 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-brand-600 scroll-smooth p-6">
-            <div className="max-w-7xl mx-auto">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-brand-700 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-brand-600 scroll-smooth p-4 sm:p-6">
+            <div className="max-w-7xl mx-auto w-full">
               <Breadcrumbs />
               <Outlet />
             </div>

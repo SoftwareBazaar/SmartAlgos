@@ -235,16 +235,16 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 overflow-x-hidden">
       {/* Header Section */}
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800/50">
-        <div className="container-custom py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="container-custom py-4 sm:py-6 px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 {user?.first_name ? `Welcome back, ${user.first_name}!` : 'Welcome back, Trader!'} 👋
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 {user?.first_name 
                   ? `Here's your personalized trading overview for ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Track your portfolio performance, manage your positions, and discover new trading opportunities.`
                   : `Here's your trading overview for ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Track your portfolio performance and discover new trading opportunities.`
@@ -253,15 +253,16 @@ const Dashboard = () => {
             </div>
             
             {user?.role === 'admin' && user?.isAdminSession === true && (
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 flex-shrink-0">
                 <Button
                   onClick={() => window.open('/admin', '_blank')}
                   variant="outline"
                   size="sm"
-                  className="bg-primary-600 hover:bg-primary-700 text-white border-primary-600 dark:bg-primary-500 dark:hover:bg-primary-600"
+                  className="bg-primary-600 hover:bg-primary-700 text-white border-primary-600 dark:bg-primary-500 dark:hover:bg-primary-600 whitespace-nowrap"
                 >
                   <Shield className="h-4 w-4 mr-2" />
-                  Admin Access
+                  <span className="hidden sm:inline">Admin Access</span>
+                  <span className="sm:hidden">Admin</span>
                 </Button>
               </div>
             )}
@@ -269,7 +270,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="container-custom py-8 space-y-8">
+      <div className="container-custom py-6 sm:py-8 px-4 sm:px-6 space-y-6 sm:space-y-8">
         {/* Stats Grid - Professional Trading Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -366,41 +367,41 @@ const Dashboard = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="lg:col-span-2"
           >
-            <Card className="h-full">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg">
+            <Card className="h-full overflow-hidden">
+              <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg flex-shrink-0">
                       <Activity className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
                         Recent Trading Signals
                       </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                         Live market signals and alerts
                       </p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">
-                    View all
-                    <ChevronRight className="h-4 w-4 ml-1" />
+                  <Button variant="ghost" size="sm" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 flex-shrink-0">
+                    <span className="hidden sm:inline">View all</span>
+                    <ChevronRight className="h-4 w-4 sm:ml-1" />
                   </Button>
                 </div>
               </div>
-              <div className="p-6 space-y-3">
+              <div className="p-4 sm:p-6 space-y-3">
                 {recentSignals.map((signal, idx) => (
                   <motion.div
                     key={signal.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.3 + idx * 0.1 }}
-                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors border border-gray-200 dark:border-gray-800"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors border border-gray-200 dark:border-gray-800 overflow-hidden"
                   >
-                    <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                       <div className="flex-shrink-0">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-sm font-bold text-white">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 rounded-xl flex items-center justify-center shadow-lg">
+                          <span className="text-xs sm:text-sm font-bold text-white">
                             {signal.symbol}
                           </span>
                         </div>
@@ -410,20 +411,20 @@ const Dashboard = () => {
                           {signal.name}
                         </p>
                         <div className="flex items-center space-x-2 mt-1">
-                          <Clock className="h-3 w-3 text-gray-400 dark:text-gray-500" />
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <Clock className="h-3 w-3 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {signal.time}
                           </p>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-6">
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-gray-900 dark:text-white">
+                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 sm:flex-shrink-0">
+                      <div className="text-left sm:text-right">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
                           ${signal.price.toFixed(2)}
                         </p>
                         <p
-                          className={`text-xs font-semibold ${
+                          className={`text-xs font-semibold whitespace-nowrap ${
                             signal.change.startsWith('+')
                               ? 'text-success-600 dark:text-success-400'
                               : 'text-danger-600 dark:text-danger-400'
@@ -432,9 +433,9 @@ const Dashboard = () => {
                           {signal.change} ({signal.changePercent})
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-left sm:text-right flex-shrink-0">
                         <span
-                          className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold ${
+                          className={`inline-flex items-center px-2 sm:px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap ${
                             signal.signal === 'BUY'
                               ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400 border border-success-200 dark:border-success-800'
                               : signal.signal === 'SELL'
@@ -444,7 +445,7 @@ const Dashboard = () => {
                         >
                           {signal.signal}
                         </span>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">
                           {signal.confidence}% confidence
                         </p>
                       </div>
@@ -461,43 +462,43 @@ const Dashboard = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <Card className="h-full">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+            <Card className="h-full overflow-hidden">
+              <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg">
+                  <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg flex-shrink-0">
                     <Bot className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
                       Active EAs
                     </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       Running expert advisors
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-4 sm:p-6 space-y-4">
                 {activeEAs.length > 0 ? (
                   activeEAs.map((ea) => (
                     <div
                       key={ea.id}
-                      className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all"
+                      className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all overflow-hidden"
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                      <div className="flex items-center justify-between mb-3 gap-2">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate flex-1 min-w-0">
                           {ea.name}
                         </h4>
-                        <div className="relative">
+                        <div className="relative flex-shrink-0">
                           <span className="status-online animate-pulse"></span>
                           <span className="absolute inset-0 status-online animate-ping opacity-75"></span>
                         </div>
                       </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 truncate">
                         {ea.category}
                       </p>
-                      <div className="flex items-center justify-between text-xs">
-                        <div>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+                        <div className="flex-shrink-0">
                           <span className="font-bold text-success-600 dark:text-success-400">
                             {ea.performance}
                           </span>
@@ -505,7 +506,7 @@ const Dashboard = () => {
                             return
                           </span>
                         </div>
-                        <div className="text-gray-500 dark:text-gray-400">
+                        <div className="text-gray-500 dark:text-gray-400 whitespace-nowrap">
                           {ea.trades} trades • {ea.winRate} win rate
                         </div>
                       </div>
@@ -541,23 +542,23 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <Card>
-            <div className="p-6 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+          <Card className="overflow-hidden">
+            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg">
+                <div className="p-2 bg-primary-500/10 dark:bg-primary-400/20 rounded-lg flex-shrink-0">
                   <Globe className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                <div className="min-w-0">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
                     Market Overview
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                     Real-time market indices
                   </p>
                 </div>
               </div>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {marketOverview.map((market) => (
                   <div

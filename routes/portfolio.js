@@ -7,6 +7,7 @@ const XLSX = require('xlsx');
 const { auth, updateActivity } = require('../middleware/auth');
 const mt5APIService = require('../services/mt5APIService');
 const mt5Service = require('../services/mt5Service');
+const PortfolioPnL = require('../models/PortfolioPnL');
 
 const router = express.Router();
 
@@ -736,8 +737,11 @@ const convertCsvToPnL = (csvContents, options = {}) => {
   };
 };
 
-router.post('/upload-csv', (req, res, next) => {
-  upload.single('file')(req, res, (err) => {
+// @route   POST /api/portfolio/upload-csv
+// @desc    Upload and parse CSV/Excel file, save PnL data to database
+// @access  Private
+router.post('/upload-csv', [auth, updateActivity], (req, res, next) => {
+  upload.single('file')(req, res, async (err) => {
     if (err) {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({ message: 'File too large. Maximum size is 5MB.' });
@@ -750,6 +754,7 @@ router.post('/upload-csv', (req, res, next) => {
     }
 
     try {
+      const userId = req.user.id;
       const extension = path.extname(req.file.originalname).toLowerCase();
       const isExcelUpload = EXCEL_EXTENSIONS.has(extension) || EXCEL_MIME_TYPES.has(req.file.mimetype);
 
@@ -777,8 +782,26 @@ router.post('/upload-csv', (req, res, next) => {
         sheetName: csvResult ? csvResult.sheetName : null
       });
 
+      // Save PnL entries to database
+      if (analysis.pnlEntries && analysis.pnlEntries.length > 0) {
+        const sourceFile = {
+          originalName: req.file.originalname,
+          filename: req.file.filename,
+          uploadedAt: new Date()
+        };
+
+        await PortfolioPnL.upsertPnLEntries(
+          userId,
+          analysis.pnlEntries,
+          isExcelUpload ? 'excel' : 'csv',
+          sourceFile
+        );
+
+        console.log(`[Portfolio] ✅ Saved ${analysis.pnlEntries.length} PnL entries for user ${userId}`);
+      }
+
       return res.json({
-        message: 'File processed successfully',
+        message: 'File processed and saved successfully',
         originalName: req.file.originalname,
         filename: req.file.filename,
         size: req.file.size,
@@ -786,7 +809,9 @@ router.post('/upload-csv', (req, res, next) => {
         preview: previewLines,
         analysis,
         sourceType: isExcelUpload ? 'excel' : 'csv',
-        sheetName: csvResult ? csvResult.sheetName : null
+        sheetName: csvResult ? csvResult.sheetName : null,
+        saved: true,
+        entriesCount: analysis.pnlEntries?.length || 0
       });
     } catch (error) {
       if (error.statusCode === BAD_REQUEST_STATUS) {
@@ -797,6 +822,7 @@ router.post('/upload-csv', (req, res, next) => {
         console.error('File parsing failure:', error.cause);
       }
 
+      console.error('[Portfolio] CSV upload error:', error);
       return next(error);
     }
   });
@@ -805,72 +831,96 @@ router.post('/upload-csv', (req, res, next) => {
 // ==================== MT5 REAL DATA INTEGRATION ====================
 
 // @route   GET /api/portfolio/pnl
-// @desc    Get PnL calendar data from MT5 demo account
+// @desc    Get PnL calendar data - from database (CSV uploads) or MT5
 // @access  Private
 router.get('/pnl', [auth, updateActivity], async (req, res) => {
   try {
-    const demoAccount = mt5Service.getDefaultDemoAccount();
-    const connectionKey = `${demoAccount.login}@${demoAccount.server}`;
-    
+    const userId = req.user.id;
     let pnlEntries = [];
-    
+    let source = 'database';
+
+    // First, try to get data from database (CSV uploads)
     try {
-      // Connect to MT5 if not already connected
-      let connection = null;
-      try {
-        await mt5APIService.getAccountInfo(connectionKey);
-        // Already connected
-      } catch {
-        // Not connected, connect now
-        await mt5APIService.connect({
-          login: demoAccount.login,
-          password: demoAccount.password,
-          server: demoAccount.server
-        });
+      const dbEntries = await PortfolioPnL.getUserPnL(userId);
+      
+      if (dbEntries && dbEntries.length > 0) {
+        pnlEntries = dbEntries.map(entry => ({
+          date: entry.date,
+          pnl: entry.pnl
+        }));
+        console.log(`[Portfolio] ✅ Loaded ${pnlEntries.length} PnL entries from database for user ${userId}`);
+        source = 'database';
       }
+    } catch (dbError) {
+      console.warn('[Portfolio] Database fetch failed:', dbError.message);
+    }
 
-      // Get order history from last 30 days
-      const fromDate = new Date();
-      fromDate.setDate(fromDate.getDate() - 30);
-      
-      const history = await mt5APIService.getOrderHistory(connectionKey, {
-        from: fromDate.toISOString().split('T')[0],
-        to: new Date().toISOString().split('T')[0]
-      });
-
-      // Group trades by date and calculate daily PnL
-      const pnlByDate = new Map();
-      
-      history.forEach(trade => {
-        const tradeDate = new Date(trade.time);
-        const dateKey = tradeDate.toISOString().split('T')[0];
+    // If no database data, try MT5 as fallback
+    if (pnlEntries.length === 0) {
+      try {
+        const demoAccount = mt5Service.getDefaultDemoAccount();
+        const connectionKey = `${demoAccount.login}@${demoAccount.server}`;
         
-        const currentPnL = pnlByDate.get(dateKey) || 0;
-        pnlByDate.set(dateKey, currentPnL + (trade.profit || 0));
-      });
+        // Connect to MT5 if not already connected
+        try {
+          await mt5APIService.getAccountInfo(connectionKey);
+          // Already connected
+        } catch {
+          // Not connected, connect now
+          await mt5APIService.connect({
+            login: demoAccount.login,
+            password: demoAccount.password,
+            server: demoAccount.server
+          });
+        }
 
-      // Convert to array format
-      pnlEntries = Array.from(pnlByDate.entries())
-        .map(([date, pnl]) => ({
-          date,
-          pnl: parseFloat(pnl.toFixed(2))
-        }))
-        .sort((a, b) => a.date.localeCompare(b.date));
+        // Get order history from last 30 days
+        const fromDate = new Date();
+        fromDate.setDate(fromDate.getDate() - 30);
+        
+        const history = await mt5APIService.getOrderHistory(connectionKey, {
+          from: fromDate.toISOString().split('T')[0],
+          to: new Date().toISOString().split('T')[0]
+        });
 
-      console.log(`[Portfolio] ✅ Fetched ${pnlEntries.length} days of PnL data from MT5`);
-    } catch (mt5Error) {
-      console.warn('[Portfolio] MT5 connection failed, using fallback:', mt5Error.message);
-      // Fallback to empty or default data
-      pnlEntries = [];
+        // Group trades by date and calculate daily PnL
+        const pnlByDate = new Map();
+        
+        history.forEach(trade => {
+          const tradeDate = new Date(trade.time);
+          const dateKey = tradeDate.toISOString().split('T')[0];
+          
+          const currentPnL = pnlByDate.get(dateKey) || 0;
+          pnlByDate.set(dateKey, currentPnL + (trade.profit || 0));
+        });
+
+        // Convert to array format
+        pnlEntries = Array.from(pnlByDate.entries())
+          .map(([date, pnl]) => ({
+            date,
+            pnl: parseFloat(pnl.toFixed(2))
+          }))
+          .sort((a, b) => a.date.localeCompare(b.date));
+
+        if (pnlEntries.length > 0) {
+          // Save MT5 data to database for future use
+          await PortfolioPnL.upsertPnLEntries(userId, pnlEntries, 'mt5');
+          console.log(`[Portfolio] ✅ Fetched ${pnlEntries.length} days of PnL data from MT5 and saved to database`);
+          source = 'mt5';
+        }
+      } catch (mt5Error) {
+        console.warn('[Portfolio] MT5 connection failed:', mt5Error.message);
+        source = 'fallback';
+      }
     }
 
     res.json({
       success: true,
       data: pnlEntries,
-      source: pnlEntries.length > 0 ? 'mt5' : 'fallback'
+      source: source
     });
   } catch (error) {
-    console.error('Get PnL error:', error);
+    console.error('[Portfolio] Get PnL error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch PnL data',

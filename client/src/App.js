@@ -78,7 +78,7 @@ import Pricing from './pages/Pricing/Pricing';
 
 function App() {
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ThemeProvider>
         <AuthProvider>
           <WebSocketProvider>
@@ -120,7 +120,8 @@ function App() {
 
                 {/* Main Application Routes - Protected */}
                 <Route path="/" element={<Layout />}>
-                  <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  {/* TEMPORARY: Removed ProtectedRoute to test React Error #31 */}
+                  <Route path="dashboard" element={<Dashboard />} />
                   
                   {/* Markets */}
                   <Route path="markets" element={<ProtectedRoute><Markets /></ProtectedRoute>} />

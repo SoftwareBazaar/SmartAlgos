@@ -167,6 +167,7 @@ if (!isProduction && !process.env.VERCEL) {
 
 const corsOptions = {
   origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
       return callback(null, true);
     }
@@ -196,26 +197,30 @@ const corsOptions = {
       return normalizedOrigin === normalizedAllowed;
     });
 
+    // Return the specific origin (not true) when credentials are enabled
     if (matchesAllowed) {
-      return callback(null, true);
+      return callback(null, normalizedOrigin);
     }
 
     if (!isProduction && origin.startsWith("http://localhost")) {
-      return callback(null, true);
+      return callback(null, normalizedOrigin);
     }
 
     if (vercelUrl && origin === vercelUrl) {
-      return callback(null, true);
+      return callback(null, normalizedOrigin);
     }
 
     if (railwayUrl && origin === railwayUrl) {
-      return callback(null, true);
+      return callback(null, normalizedOrigin);
     }
 
     console.warn(`[cors] Blocked request from origin ${origin}`);
     return callback(new Error("Not allowed by CORS"));
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
 };
 
 const shouldLogRequestBodies = process.env.LOG_REQUEST_BODIES === "true" && !isProduction;
@@ -352,14 +357,20 @@ app.use(requestLogger);
 
 // Static files - serve uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
-  setHeaders: (res, filePath) => {
+  setHeaders: (res, filePath, stat, req) => {
     // Set proper content type for images
     if (filePath.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
       res.set('Content-Type', 'image/' + path.extname(filePath).slice(1));
     }
-    // Allow cross-origin access
+    // Allow cross-origin access - use specific origin if available, otherwise allow all
+    const origin = req.headers.origin;
+    if (origin && (origin.startsWith('http://localhost') || origin.includes('railway.app') || origin.includes('vercel.app'))) {
+      res.set('Access-Control-Allow-Origin', origin);
+      res.set('Access-Control-Allow-Credentials', 'true');
+    } else {
+      res.set('Access-Control-Allow-Origin', '*');
+    }
     res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-    res.set('Access-Control-Allow-Origin', '*');
   }
 }));
 

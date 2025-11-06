@@ -52,14 +52,25 @@ router.get('/proxy', async (req, res) => {
     const contentType = response.headers['content-type'] || 'image/jpeg';
 
     // Set CORS and cache headers
-    res.set({
+    // Use specific origin if credentials are needed, otherwise allow all
+    const origin = req.headers.origin;
+    const corsHeaders = {
       'Content-Type': contentType,
-      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Cache-Control': 'public, max-age=31536000', // 1 year cache
       'Content-Length': response.data.length
-    });
+    };
+    
+    // Set origin header - use specific origin if available and valid
+    if (origin && (origin.startsWith('http://localhost') || origin.includes('railway.app') || origin.includes('vercel.app'))) {
+      corsHeaders['Access-Control-Allow-Origin'] = origin;
+      corsHeaders['Access-Control-Allow-Credentials'] = 'true';
+    } else {
+      corsHeaders['Access-Control-Allow-Origin'] = '*';
+    }
+    
+    res.set(corsHeaders);
 
     console.log(`[Image Proxy] ✅ Serving image (${response.data.length} bytes, ${contentType})`);
 

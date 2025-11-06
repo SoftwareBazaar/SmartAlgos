@@ -62,7 +62,7 @@ const Breadcrumbs = () => {
   return (
     <nav className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-4 px-1" aria-label="Breadcrumb">
       {breadcrumbItems.map((item, index) => (
-        <React.Fragment key={item.path}>
+        <React.Fragment key={`${item.path}-${index}`}>
           {index === 0 ? (
             <Link
               to={item.path}

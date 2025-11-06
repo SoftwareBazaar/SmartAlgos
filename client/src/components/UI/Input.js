@@ -1,7 +1,8 @@
 import React, { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 
-const Input = forwardRef(({
+// Define the component separately, then wrap with forwardRef (safer pattern)
+function InputComponent({
   label,
   error,
   helperText,
@@ -13,7 +14,7 @@ const Input = forwardRef(({
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
   ...props
-}, ref) => {
+}, ref) {
   // Generate unique ID if not provided
   const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
   const errorId = `${inputId}-error`;
@@ -57,12 +58,10 @@ const Input = forwardRef(({
           </div>
         )}
         
-        <motion.input
+        <input
           ref={ref}
           id={inputId}
           className={inputClasses}
-          whileFocus={{ scale: 1.01 }}
-          transition={{ duration: 0.1 }}
           aria-label={ariaLabel || (!label ? props.placeholder : undefined)}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={describedBy}
@@ -106,8 +105,9 @@ const Input = forwardRef(({
       )}
     </div>
   );
-});
+}
 
-Input.displayName = 'Input';
+// Wrap with forwardRef and export (no displayName needed with this pattern)
+const Input = forwardRef(InputComponent);
 
 export default Input;

@@ -23,7 +23,8 @@ import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import PNLCalendar from '../../components/Analysis/PNLCalendar';
 import EACarousel from '../../components/EA/EACarousel';
-import OnboardingWizard, { useOnboarding } from '../../components/Onboarding/OnboardingWizard';
+// TEMPORARILY DISABLED: OnboardingWizard - Testing for React Error #31
+// import OnboardingWizard, { useOnboarding } from '../../components/Onboarding/OnboardingWizard';
 import { useAuth } from '../../contexts/AuthContext';
 import { useEA } from '../../contexts/EAContext';
 import apiClient from '../../lib/apiClient';
@@ -32,7 +33,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { getActiveEAs } = useEA();
-  const { shouldShow, markAsCompleted } = useOnboarding();
+  // TEMPORARILY DISABLED: const { shouldShow, markAsCompleted } = useOnboarding();
   
   const [statsData, setStatsData] = useState(null);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -75,16 +76,16 @@ const Dashboard = () => {
     fetchDashboardStats();
   }, []);
 
-  // Show onboarding wizard on first visit
-  useEffect(() => {
-    if (shouldShow && user) {
-      // Small delay to let dashboard load first
-      const timer = setTimeout(() => {
-        setShowOnboarding(true);
-      }, 1500); // Increased delay to ensure everything is loaded
-      return () => clearTimeout(timer);
-    }
-  }, [shouldShow, user]);
+  // TEMPORARILY DISABLED: Show onboarding wizard on first visit
+  // useEffect(() => {
+  //   if (shouldShow && user) {
+  //     // Small delay to let dashboard load first
+  //     const timer = setTimeout(() => {
+  //       setShowOnboarding(true);
+  //     }, 1500); // Increased delay to ensure everything is loaded
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [shouldShow, user]);
 
   // Transform API data to stats format
   const formatCurrency = (value) => {
@@ -622,14 +623,14 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      {/* Onboarding Wizard */}
-      <OnboardingWizard
+      {/* TEMPORARILY DISABLED: Onboarding Wizard - Testing for React Error #31 */}
+      {/* <OnboardingWizard
         show={showOnboarding}
         onComplete={() => {
           setShowOnboarding(false);
           markAsCompleted();
         }}
-      />
+      /> */}
     </div>
   );
 };

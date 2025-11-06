@@ -58,9 +58,12 @@ const Button = ({
     }
     
     if (icon) {
+      // Check if icon is a component function (needs to be rendered) or already JSX
+      const isComponent = typeof icon === 'function';
+      
       return (
         <span className={iconPosition === 'right' ? 'ml-2' : 'mr-2'}>
-          {icon}
+          {isComponent ? React.createElement(icon, { className: "h-4 w-4" }) : icon}
         </span>
       );
     }

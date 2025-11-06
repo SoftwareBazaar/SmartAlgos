@@ -10,10 +10,10 @@ const RiskDisclaimer = ({ variant = 'default', className = '' }) => {
   
   if (variant === 'compact') {
     return (
-      <div className={`${baseClasses} ${className}`}>
+      <div className={`${baseClasses} ${className} overflow-hidden`}>
         <div className="flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-amber-800 dark:text-amber-300">
+          <p className="text-xs text-amber-800 dark:text-amber-300 break-words">
             <strong>Risk Warning:</strong> Trading involves substantial risk of loss. Past performance does not guarantee future results.
           </p>
         </div>

@@ -263,30 +263,30 @@ const Markets = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-4 sm:px-6 overflow-x-hidden">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
               Markets
             </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
+            <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 break-words">
               Real-time market data and analysis across all asset classes
             </p>
           </div>
-          <div className="mt-4 sm:mt-0 flex items-center space-x-4">
+          <div className="mt-4 sm:mt-0 flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             {getMarketStatusIndicator()}
             <div className="flex items-center space-x-2">
-              <Globe className="h-4 w-4 text-gray-500" />
+              <Globe className="h-4 w-4 text-gray-500 flex-shrink-0" />
               <select
                 value={selectedMarket}
                 onChange={(e) => handleMarketChange(e.target.value)}
-                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm"
+                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-2 sm:px-3 py-1 text-xs sm:text-sm"
               >
                 <option value="US">US Markets</option>
                 <option value="NSE">NSE (Kenya)</option>
@@ -311,10 +311,10 @@ const Markets = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <Card>
-          <Card.Body>
+        <Card className="overflow-hidden">
+          <Card.Body className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <Input
                   placeholder="Search markets..."
                   leftIcon={<Search className="h-4 w-4" />}
@@ -322,17 +322,20 @@ const Markets = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" icon={<Filter className="h-4 w-4" />}>
-                  Filters
+              <div className="flex gap-2 flex-shrink-0">
+                <Button variant="outline" icon={<Filter className="h-4 w-4" />} className="whitespace-nowrap">
+                  <span className="hidden sm:inline">Filters</span>
+                  <span className="sm:hidden">Filter</span>
                 </Button>
                 <Button 
                   variant="outline" 
                   icon={<RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />}
                   onClick={handleRefresh}
                   disabled={loading}
+                  className="whitespace-nowrap"
                 >
-                  Refresh
+                  <span className="hidden sm:inline">Refresh</span>
+                  <span className="sm:hidden">↻</span>
                 </Button>
               </div>
             </div>
@@ -346,12 +349,12 @@ const Markets = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <Card>
-          <Card.Body>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <Bell className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+        <Card className="overflow-hidden">
+          <Card.Body className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <div className="flex items-center space-x-3 min-w-0 flex-1">
+                <Bell className="h-5 w-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
                   Sample Trading Signals
                 </h2>
               </div>
@@ -359,11 +362,13 @@ const Markets = () => {
                 variant="outline" 
                 size="sm"
                 onClick={() => navigate('/signals')}
+                className="flex-shrink-0 whitespace-nowrap"
               >
-                View All Signals
+                <span className="hidden sm:inline">View All Signals</span>
+                <span className="sm:hidden">View All</span>
               </Button>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 break-words">
               Example trading signals based on current market conditions. These are for demonstration purposes only.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -374,15 +379,15 @@ const Markets = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.25 + index * 0.1 }}
                 >
-                  <Card hover className="h-full border-l-4 border-l-primary-500">
-                    <Card.Body>
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  <Card hover className="h-full border-l-4 border-l-primary-500 overflow-hidden">
+                    <Card.Body className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center flex-wrap gap-2 mb-1">
+                            <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
                               {signal.symbol}
                             </span>
-                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                            <span className={`px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap flex-shrink-0 ${
                               signal.action === 'BUY' 
                                 ? 'bg-success-100 text-success-700 dark:bg-success-900 dark:text-success-300'
                                 : 'bg-danger-100 text-danger-700 dark:bg-danger-900 dark:text-danger-300'
@@ -390,48 +395,48 @@ const Markets = () => {
                               {signal.action}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 break-words">
                             {signal.name}
                           </p>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-1 flex-shrink-0">
                           {signal.action === 'BUY' ? (
-                            <ArrowUpRight className="h-4 w-4 text-success-500" />
+                            <ArrowUpRight className="h-4 w-4 text-success-500 flex-shrink-0" />
                           ) : (
-                            <ArrowDownRight className="h-4 w-4 text-danger-500" />
+                            <ArrowDownRight className="h-4 w-4 text-danger-500 flex-shrink-0" />
                           )}
-                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
                             {signal.confidence}%
                           </span>
                         </div>
                       </div>
                       
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
+                      <div className="space-y-2 text-xs sm:text-sm">
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                           <span className="text-gray-600 dark:text-gray-400">Current Price:</span>
-                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                          <span className="font-medium text-gray-900 dark:text-gray-100 sm:text-right break-all">
                             ${signal.currentPrice.toLocaleString()}
                           </span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                           <span className="text-gray-600 dark:text-gray-400">Target:</span>
-                          <span className="font-medium text-success-600 dark:text-success-400">
+                          <span className="font-medium text-success-600 dark:text-success-400 sm:text-right break-all">
                             ${signal.targetPrice.toLocaleString()}
                           </span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                           <span className="text-gray-600 dark:text-gray-400">Stop Loss:</span>
-                          <span className="font-medium text-danger-600 dark:text-danger-400">
+                          <span className="font-medium text-danger-600 dark:text-danger-400 sm:text-right break-all">
                             ${signal.stopLoss.toLocaleString()}
                           </span>
                         </div>
-                        <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                           <div className="flex items-center space-x-1">
-                            <Clock className="h-3 w-3 text-gray-400" />
+                            <Clock className="h-3 w-3 text-gray-400 flex-shrink-0" />
                             <span className="text-gray-600 dark:text-gray-400">{signal.timeframe}</span>
                           </div>
                           <div className="flex items-center space-x-1">
-                            <Target className="h-3 w-3 text-gray-400" />
+                            <Target className="h-3 w-3 text-gray-400 flex-shrink-0" />
                             <span className="text-gray-600 dark:text-gray-400">{signal.riskReward}</span>
                           </div>
                         </div>
@@ -451,22 +456,22 @@ const Markets = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-        <Card>
-          <Card.Body>
+        <Card className="overflow-hidden">
+          <Card.Body className="p-0">
             <div className="border-b border-gray-200 dark:border-gray-700">
-              <nav className="-mb-px flex space-x-8">
+              <nav className="-mb-px flex space-x-2 sm:space-x-8 overflow-x-auto scrollbar-hide px-4 sm:px-6">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    className={`py-2 px-1 sm:px-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
                       activeTab === tab.id
                         ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                     }`}
                   >
                     {tab.name}
-                    <span className="ml-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 py-0.5 px-2 rounded-full text-xs">
+                    <span className="ml-1 sm:ml-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 py-0.5 px-1.5 sm:px-2 rounded-full text-xs">
                       {tab.count}
                     </span>
                   </button>
@@ -483,28 +488,28 @@ const Markets = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        <Card>
-          <Card.Body>
-            <div className="overflow-x-auto">
+        <Card className="overflow-hidden">
+          <Card.Body className="p-0 sm:p-6">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
                       Symbol
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Name
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
                       Price
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
                       Change
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">
                       Volume
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
                       Actions
                     </th>
                   </tr>
@@ -512,7 +517,7 @@ const Markets = () => {
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {loading ? (
                     <tr>
-                      <td colSpan="6" className="px-6 py-12 text-center">
+                      <td colSpan="6" className="px-4 sm:px-6 py-8 sm:py-12 text-center">
                         <div className="flex items-center justify-center">
                           <RefreshCw className="h-6 w-6 animate-spin text-primary-500 mr-2" />
                           <span className="text-gray-500 dark:text-gray-400">Loading market data...</span>
@@ -521,7 +526,7 @@ const Markets = () => {
                     </tr>
                   ) : filteredData.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="px-6 py-12 text-center">
+                      <td colSpan="6" className="px-4 sm:px-6 py-8 sm:py-12 text-center">
                         <div className="text-gray-500 dark:text-gray-400">
                           <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
                           <p>No market data available</p>
@@ -538,39 +543,39 @@ const Markets = () => {
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
-                            <span className="text-sm font-bold text-primary-600 dark:text-primary-400">
-                              {item.symbol.split('/')[0]}
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <div className="flex items-center gap-2 sm:gap-0">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs sm:text-sm font-bold text-primary-600 dark:text-primary-400">
+                              {item.symbol.split('/')[0].substring(0, 2)}
                             </span>
                           </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <div className="ml-0 sm:ml-4 min-w-0">
+                            <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                               {item.symbol}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-100">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <div className="text-xs sm:text-sm text-gray-900 dark:text-gray-100 truncate">
                           {item.name}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right">
                         <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           <span>{selectedMarket === 'NSE' ? 'KES ' : '$'}{(item.price || 0).toLocaleString()}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="flex items-center justify-end">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right">
+                        <div className="flex items-center justify-end gap-1">
                           {(item.change || 0) >= 0 ? (
-                            <TrendingUp className="h-4 w-4 text-success-500 mr-1" />
+                            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-success-500 flex-shrink-0" />
                           ) : (
-                            <TrendingDown className="h-4 w-4 text-danger-500 mr-1" />
+                            <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-danger-500 flex-shrink-0" />
                           )}
                           <span
-                            className={`text-sm font-medium ${
+                            className={`text-xs sm:text-sm font-medium ${
                               (item.change || 0) >= 0
                                 ? 'text-success-600 dark:text-success-400'
                                 : 'text-danger-600 dark:text-danger-400'
@@ -580,12 +585,12 @@ const Markets = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right hidden sm:table-cell">
+                        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                           {item.volume}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center space-x-2">
                           <Button 
                             size="sm" 

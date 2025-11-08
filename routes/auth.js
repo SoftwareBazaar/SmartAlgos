@@ -148,7 +148,40 @@ router.post('/register', [
       });
     }
 
-    const { firstName, lastName, email, password, phone, country, tradingExperience, accountTier, kycAccepted } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      country,
+      tradingExperience,
+      accountTier,
+      kycAccepted
+    } = req.body;
+
+    const normalizedAccountTier = (() => {
+      if (!accountTier) {
+        return 'basic';
+      }
+
+      const tier = String(accountTier).toLowerCase();
+      if (['basic', 'pro', 'enterprise'].includes(tier)) {
+        return tier;
+      }
+
+      return 'basic';
+    })();
+
+    const derivedSubscriptionType = (() => {
+      const subscriptionMap = {
+        basic: 'free',
+        pro: 'premium',
+        enterprise: 'institutional'
+      };
+
+      return subscriptionMap[normalizedAccountTier] || 'free';
+    })();
 
     // For development: Create user directly in database (bypass Supabase Auth email confirmation)
     const supabase = databaseService.getClient();
@@ -210,13 +243,13 @@ router.post('/register', [
       phone,
       country,
       trading_experience: tradingExperience || 'beginner',
-      account_tier: accountTier || 'basic',
+      account_tier: normalizedAccountTier,
       kyc_accepted: kycAccepted,
       kyc_accepted_at: new Date().toISOString(),
       is_active: true,
       is_email_verified: false, // Require OTP verification
       role: 'user',
-      subscription_type: accountTier === 'basic' ? 'free' : accountTier === 'pro' ? 'pro' : 'enterprise',
+      subscription_type: derivedSubscriptionType,
       subscription_status: 'active',
       subscription_start_date: new Date().toISOString(),
       subscription_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),

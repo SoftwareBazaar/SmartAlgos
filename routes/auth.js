@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const { body, validationResult } = require('express-validator');
+const { OAuth2Client } = require('google-auth-library');
 const databaseService = require('../services/databaseService');
 const mockAuthStore = require('../services/mockAuthStore');
 const { auth, createActionRateLimit } = require('../middleware/auth');
@@ -106,6 +107,9 @@ const passwordResetRateLimit = createActionRateLimit(5, 10 * 60 * 1000, 'passwor
 
 // Import account lockout middleware
 const { accountLockout, updateLockoutAttempts } = require('../middleware/security');
+
+const googleClientId = process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_OAUTH_CLIENT_ID;
+const googleOAuthClient = googleClientId ? new OAuth2Client(googleClientId) : null;
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -309,6 +313,166 @@ router.post('/register', [
     res.status(500).json({
       success: false,
       message: 'Server error during registration'
+    });
+  }
+});
+
+// @route   POST /api/auth/google
+// @desc    Login or register user via Google Sign-In
+// @access  Public
+router.post('/google', async (req, res) => {
+  try {
+    if (!googleOAuthClient) {
+      return res.status(503).json({
+        success: false,
+        message: 'Google login is not configured. Please contact support.'
+      });
+    }
+
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing Google credential token'
+      });
+    }
+
+    let ticket;
+    try {
+      ticket = await googleOAuthClient.verifyIdToken({
+        idToken: credential,
+        audience: googleClientId
+      });
+    } catch (verifyError) {
+      console.error('[Google Auth] Token verification failed:', verifyError.message);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid Google token'
+      });
+    }
+
+    const payload = ticket.getPayload();
+    const email = payload?.email;
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google account does not have a public email address'
+      });
+    }
+
+    const supabase = databaseService.getClient();
+    if (!supabase) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database service unavailable. Please try again later.'
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    const { data: existingProfile, error: profileError } = await supabase
+      .from('users_accounts')
+      .select('*')
+      .eq('email', normalizedEmail)
+      .single();
+
+    if (profileError && profileError.code !== 'PGRST116') {
+      console.error('[Google Auth] Failed to fetch user profile:', profileError.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to process Google login'
+      });
+    }
+
+    let userProfile = existingProfile;
+
+    if (!userProfile) {
+      const googleFirstName = payload.given_name || payload.name?.split(' ')?.[0] || 'Trader';
+      const googleLastName = payload.family_name || payload.name?.split(' ')?.slice(1).join(' ') || 'User';
+      const randomPassword = `${uuidv4()}_${Date.now()}`;
+      const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
+      const passwordHash = await bcrypt.hash(randomPassword, saltRounds);
+      const userId = uuidv4();
+
+      const newUser = {
+        id: userId,
+        first_name: googleFirstName,
+        last_name: googleLastName,
+        email: normalizedEmail,
+        password_hash: passwordHash,
+        phone: null,
+        country: null,
+        trading_experience: 'beginner',
+        account_tier: 'basic',
+        kyc_accepted: true,
+        kyc_accepted_at: new Date().toISOString(),
+        is_active: true,
+        is_email_verified: true,
+        role: 'user',
+        subscription_type: 'free',
+        subscription_status: 'active',
+        subscription_start_date: new Date().toISOString(),
+        subscription_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        preferences: {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        avatar_url: payload.picture || null
+      };
+
+      const { data: insertedUser, error: insertError } = await supabase
+        .from('users_accounts')
+        .insert(newUser)
+        .select('*')
+        .single();
+
+      if (insertError) {
+        console.error('[Google Auth] Failed to create user profile:', insertError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to create account with Google'
+        });
+      }
+
+      userProfile = insertedUser;
+    } else {
+      // Update existing profile with latest avatar/provider info
+      const updates = {};
+      if (payload.picture && userProfile.avatar_url !== payload.picture) {
+        updates.avatar_url = payload.picture;
+      }
+      if (Object.keys(updates).length > 0) {
+        updates.updated_at = new Date().toISOString();
+        await supabase
+          .from('users_accounts')
+          .update(updates)
+          .eq('id', userProfile.id);
+        userProfile = { ...userProfile, ...updates };
+      }
+    }
+
+    if (!userProfile.is_active) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account is deactivated. Please contact support.'
+      });
+    }
+
+    const token = `dev_token_${userProfile.id}`;
+    const userResponse = { ...userProfile };
+    delete userResponse.password_hash;
+    delete userResponse.two_factor_secret;
+
+    res.json({
+      success: true,
+      message: 'Google login successful',
+      token,
+      user: userResponse
+    });
+  } catch (error) {
+    console.error('[Google Auth] Unexpected error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during Google login'
     });
   }
 });

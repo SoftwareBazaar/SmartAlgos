@@ -142,6 +142,42 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async (credential) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      const response = await apiClient.post('/api/auth/google', { credential });
+
+      if (response.data.success) {
+        const { token, user } = response.data;
+
+        if (!isValidTokenFormat(token)) {
+          throw new Error('Invalid token format received from server');
+        }
+
+        setToken(token, 'user');
+        setUser(user);
+        apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+        setUserContext(user);
+
+        dispatch({ type: 'SET_USER', payload: user });
+        toast.success('Signed in with Google');
+        return { success: true, message: 'Login successful!' };
+      }
+
+      const message = response.data.message || 'Google login failed';
+      dispatch({ type: 'SET_ERROR', payload: message });
+      toast.error(message);
+      return { success: false, message };
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Google login failed';
+      dispatch({ type: 'SET_ERROR', payload: message });
+      toast.error(message);
+      return { success: false, message };
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
+
   // Admin login function - NO PERSISTENT STORAGE
   const adminLogin = async (email, password) => {
     try {
@@ -453,6 +489,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     ...state,
     login,
+    loginWithGoogle,
     adminLogin,
     register,
     verifyOTP,

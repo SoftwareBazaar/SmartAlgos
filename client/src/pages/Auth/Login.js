@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Eye, EyeOff, Mail, Lock, Shield, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
+const heroImage =
+  'https://images.unsplash.com/photo-1523961131990-5ea7c61b2107?auto=format&fit=crop&w=1600&q=80';
 
 export default function SmartAlgosLogin() {
   const [email, setEmail] = useState('');
@@ -14,7 +17,7 @@ export default function SmartAlgosLogin() {
   const [showCompliance, setShowCompliance] = useState(false);
 
   const googleButtonRef = useRef(null);
-  const googleInitialized = useRef(false);
+  const googleReady = useRef(false);
 
   const { login, loginWithGoogle, loading } = useAuth();
   const navigate = useNavigate();
@@ -25,24 +28,27 @@ export default function SmartAlgosLogin() {
     navigate(redirectTo, { replace: true });
   }, [location.state, navigate]);
 
-  const handleGoogleCredential = useCallback(async (response) => {
-    try {
-      if (!response?.credential) {
-        setGoogleError('Google did not return a credential. Please try again.');
-        return;
+  const handleGoogleCredential = useCallback(
+    async (response) => {
+      try {
+        if (!response?.credential) {
+          setGoogleError('Google did not return a credential. Please try again.');
+          return;
+        }
+        setGoogleError('');
+        const result = await loginWithGoogle(response.credential);
+        if (result.success) {
+          redirectAfterLogin();
+        } else {
+          setGoogleError(result.message || 'Unable to sign in with Google right now.');
+        }
+      } catch (err) {
+        console.error('[Google Login] Error:', err);
+        setGoogleError('Google login failed. Please try again.');
       }
-      setGoogleError('');
-      const result = await loginWithGoogle(response.credential);
-      if (result.success) {
-        redirectAfterLogin();
-      } else {
-        setGoogleError(result.message || 'Unable to sign in with Google right now.');
-      }
-    } catch (err) {
-      console.error('[Google Login] Error:', err);
-      setGoogleError('Google login failed. Please try again.');
-    }
-  }, [loginWithGoogle, redirectAfterLogin]);
+    },
+    [loginWithGoogle, redirectAfterLogin]
+  );
 
   useEffect(() => {
     if (!googleClientId) {
@@ -58,18 +64,17 @@ export default function SmartAlgosLogin() {
         client_id: googleClientId,
         callback: handleGoogleCredential
       });
-      googleButtonRef.current.innerHTML = '';
       window.google.accounts.id.renderButton(googleButtonRef.current, {
         theme: 'outline',
         size: 'large',
         text: 'signin_with',
         shape: 'pill',
-        width: 280
+        width: 320
       });
-      googleInitialized.current = true;
+      googleReady.current = true;
     };
 
-    if (window.google && window.google.accounts && window.google.accounts.id) {
+    if (window.google?.accounts?.id) {
       renderGoogleButton();
       return;
     }
@@ -90,9 +95,7 @@ export default function SmartAlgosLogin() {
     }
 
     return () => {
-      if (script) {
-        script.removeEventListener?.('load', renderGoogleButton);
-      }
+      script?.removeEventListener?.('load', renderGoogleButton);
     };
   }, [handleGoogleCredential]);
 
@@ -108,110 +111,101 @@ export default function SmartAlgosLogin() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 flex items-center justify-center py-12 px-4">
-      <div className="w-full max-w-4xl grid overflow-hidden rounded-3xl border border-slate-800 shadow-[0_30px_120px_-50px_rgba(56,189,248,0.45)] backdrop-blur">
-        <div className="hidden bg-gradient-to-br from-slate-900/90 via-slate-900/50 to-slate-900/30 p-12 text-slate-200 lg:flex lg:flex-col lg:justify-between">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/70 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-slate-300/90">
-              <span className="block h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Smart Algos
-            </span>
-            <h2 className="mt-6 text-3xl font-semibold leading-tight text-white">
-              Institutional-grade trading intelligence, now one tap away.
-            </h2>
-            <p className="mt-4 text-sm text-slate-300/80">
-              Sign in to access real-time strategies, portfolio automation, and AI-driven risk controls. Switch between Google and secure email sign-in anytime.
-            </p>
-          </div>
-          <div className="mt-12 space-y-4 text-sm text-slate-300/80">
-            <div className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 rounded-full bg-emerald-400" />
-              <p>Latency-monitored execution across FX, indices, and commodities.</p>
+    <div className="min-h-screen bg-slate-950 text-white">
+      <div className="mx-auto flex min-h-screen flex-col lg:flex-row">
+        <div className="relative flex-1 overflow-hidden">
+          <img
+            src={heroImage}
+            alt="Smart trading interface"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-slate-900/85" />
+          <div className="relative z-10 flex h-full flex-col justify-between px-10 pb-12 pt-14 lg:px-16">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-sm font-medium text-slate-200 transition hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </button>
+            <div className="space-y-6">
+              <h1 className="text-3xl font-semibold leading-tight md:text-4xl">
+                Look first. Then leap.
+              </h1>
+              <p className="max-w-md text-sm text-slate-200/80 md:text-base">
+                Seamless access to AI-powered signals, institutional analytics, and automated execution. Sign in,
+                align your risk, and deploy strategies within seconds.
+              </p>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 rounded-full bg-sky-400" />
-              <p>Granular compliance logging to satisfy institutional KYC/AML requirements.</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="mt-1 h-2 w-2 rounded-full bg-violet-400" />
-              <p>AI portfolio coach that adapts to your risk appetite in real-time.</p>
+            <div className="space-y-4 text-xs text-slate-200/70">
+              <p>• AI-curated market snapshots each session</p>
+              <p>• Institutional-grade compliance and logging</p>
+              <p>• 24/7 monitoring across FX, indices, and crypto</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-slate-950/90 p-10 sm:p-12">
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-semibold text-white">Welcome back</h1>
-                <p className="mt-1 text-sm text-slate-400">Sign in to continue to your trading console</p>
-              </div>
-              <Link
-                to="/"
-                className="hidden text-xs font-medium text-slate-400 transition-colors hover:text-slate-200 sm:flex items-center gap-1"
-              >
-                Go home <ArrowRight className="h-3 w-3" />
-              </Link>
+        <div className="flex w-full max-w-lg flex-col justify-center bg-slate-950 px-8 py-12 sm:px-12">
+          <div className="mx-auto w-full max-w-md space-y-8">
+            <div className="space-y-2">
+              <h2 className="text-2xl font-semibold">Sign in to Smart Algos</h2>
+              <p className="text-sm text-slate-400">Use Google or your secure trading credentials.</p>
             </div>
 
             <div className="space-y-3">
               {googleClientId ? (
                 <>
-                  <div ref={googleButtonRef} className="flex items-center justify-center" />
+                  <div ref={googleButtonRef} className="flex w-full items-center justify-center" />
+                  {googleError && (
+                    <p className="text-center text-xs font-medium text-rose-400">{googleError}</p>
+                  )}
                   <button
                     type="button"
-                    onClick={() => {
-                      if (googleInitialized.current) {
-                        window.google?.accounts?.id?.prompt();
-                      }
-                    }}
-                    className="w-full text-xs font-medium text-slate-500 transition-colors hover:text-slate-200"
+                    onClick={() => googleReady.current && window.google?.accounts?.id?.prompt()}
+                    className="w-full text-xs font-medium text-slate-400 transition hover:text-white"
                   >
-                    Having trouble with the button? Try again
+                    Button missing? Click to retry Google sign in.
                   </button>
                 </>
               ) : (
-                <div className="rounded-lg border border-slate-800/70 bg-slate-900/70 px-4 py-3 text-center text-sm text-slate-400">
-                  Google login is not configured yet. Ask an administrator to set <span className="font-semibold">GOOGLE_CLIENT_ID</span>.
+                <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-4 py-3 text-center text-sm text-slate-300">
+                  Google login is not yet configured. Ask an administrator to set <span className="font-semibold">GOOGLE_CLIENT_ID</span>.
                 </div>
               )}
-              {googleError && (
-                <p className="text-center text-xs font-medium text-rose-400">{googleError}</p>
-              )}
             </div>
 
-            <div className="flex items-center gap-3 text-xs text-slate-500">
-              <span className="h-px flex-1 bg-slate-800/80" />
-              <span>or continue with email</span>
-              <span className="h-px flex-1 bg-slate-800/80" />
+            <div className="flex items-center gap-4 text-xs text-slate-500">
+              <span className="h-px flex-1 bg-slate-800" />
+              <span>Or continue with email</span>
+              <span className="h-px flex-1 bg-slate-800" />
             </div>
 
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <form className="space-y-5" onSubmit={handleSubmit}>
               {error && (
-                <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-xs font-medium text-rose-200">
+                <div className="rounded-lg border border-rose-500/50 bg-rose-500/10 px-4 py-3 text-xs font-medium text-rose-200">
                   {error}
                 </div>
               )}
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">
-                  Email address
+                  Email
                 </label>
                 <div className="relative">
                   <input
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    placeholder="trader@smartalgos.com"
+                    placeholder="you@institutional.com"
                     autoComplete="email"
-                    className="w-full rounded-xl border border-slate-800/80 bg-slate-900/80 px-4 py-3 pl-11 text-sm text-white placeholder-slate-500 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/40"
+                    className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 pl-11 text-sm text-white placeholder-slate-500 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
                     required
                   />
                   <Mail className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-slate-500" />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">
                   Password
                 </label>
@@ -222,14 +216,14 @@ export default function SmartAlgosLogin() {
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Enter your password"
                     autoComplete="current-password"
-                    className="w-full rounded-xl border border-slate-800/80 bg-slate-900/80 px-4 py-3 pl-11 pr-11 text-sm text-white placeholder-slate-500 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/40"
+                    className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 pl-11 pr-11 text-sm text-white placeholder-slate-500 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
                     required
                   />
                   <Lock className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-slate-500" />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-3 top-2.5 rounded-full p-1 text-slate-500 transition-colors hover:text-sky-400"
+                    className="absolute right-3 top-2.5 rounded-full p-1 text-slate-500 transition hover:text-sky-400"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -238,35 +232,42 @@ export default function SmartAlgosLogin() {
 
               <button
                 type="submit"
-                className="w-full rounded-xl bg-gradient-to-r from-sky-500 via-indigo-500 to-emerald-500 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition-all hover:shadow-sky-500/40 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 disabled:opacity-60"
+                className="w-full rounded-full bg-white py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-white disabled:opacity-60"
                 disabled={loading}
               >
-                {loading ? 'Signing you in...' : 'Launch trading dashboard'}
+                {loading ? 'Signing you in…' : 'Sign in'}
               </button>
             </form>
 
-            <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 px-4 py-3 text-xs text-slate-400">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-3 text-xs text-slate-400">
               <button
                 type="button"
                 onClick={() => setShowCompliance((prev) => !prev)}
-                className="flex w-full items-center justify-between text-left font-medium text-slate-300 transition hover:text-slate-100"
+                className="flex w-full items-center justify-between text-left font-medium text-slate-200 transition hover:text-white"
               >
                 <span className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-slate-400" />
-                  Regulatory compliance notice
+                  <ShieldCheck className="h-4 w-4 text-slate-400" />
+                  Regulatory compliance & risk notice
                 </span>
                 <span>{showCompliance ? 'Hide' : 'View'}</span>
               </button>
               {showCompliance && (
-                <p className="mt-2 leading-relaxed text-slate-400">
-                  Smart Algos operates under strict KYC/AML protocols. By signing in you confirm you are an authorized
-                  user and accept the associated trading risks. Activity may be monitored for regulatory compliance.
+                <p className="mt-3 leading-relaxed">
+                  Smart Algos enforces strict KYC/AML standards. By signing in you confirm that you are authorized
+                  to access this platform and accept the financial risks involved. Activity may be monitored for
+                  compliance.
                 </p>
               )}
             </div>
 
             <div className="space-y-3 text-center text-xs text-slate-500">
               <p>
+                Need an account?{' '}
+                <Link to="/auth/register" className="font-semibold text-sky-400 hover:text-sky-300">
+                  Create one now
+                </Link>
+              </p>
+              <p className="text-slate-500">
                 By signing in you agree to our{' '}
                 <Link to="/terms" className="text-sky-400 hover:text-sky-300">
                   Terms of Service
@@ -277,13 +278,7 @@ export default function SmartAlgosLogin() {
                 </Link>
                 .
               </p>
-              <p className="text-slate-400">
-                Need an account?{' '}
-                <Link to="/auth/register" className="font-semibold text-sky-400 hover:text-sky-300">
-                  Create one now
-                </Link>
-              </p>
-              <p className="text-slate-500">© {new Date().getFullYear()} Smart Algos · AI Powered Trading Platform</p>
+              <p className="text-slate-600">© {new Date().getFullYear()} Smart Algos · AI Powered Trading Platform</p>
             </div>
           </div>
         </div>

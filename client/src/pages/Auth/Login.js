@@ -246,17 +246,17 @@ export default function SmartAlgosLogin() {
                   {googleError && (
                     <p className="text-center text-xs font-medium text-rose-400">{googleError}</p>
                   )}
-      <button
+                  <button
                     type="button"
                     onClick={() => googleReady.current && window.google?.accounts?.id?.prompt()}
                     className="w-full text-xs font-medium text-slate-400 transition hover:text-white"
-      >
+                  >
                     Trouble seeing the button? Retry Google sign in.
-      </button>
+                  </button>
                 </>
               ) : (
                 <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-4 py-3 text-center text-sm text-slate-300">
-                  Google login is not yet configured. Ask an administrator to set <span className="font-semibold">GOOGLE_CLIENT_ID</span>.
+                  Google login is disabled on this build; contact support to enable OAuth.
                 </div>
               )}
             </div>

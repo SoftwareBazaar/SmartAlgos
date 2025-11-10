@@ -168,18 +168,18 @@ const Register = () => {
               </div>
               <div className="space-y-4">
                 <h1 className="text-3xl font-semibold leading-snug md:text-4xl">
-                  Build your trading edge.
+                  Smart Algos. Built for institutional desks.
                 </h1>
                 <p className="max-w-md text-sm text-slate-200/85 md:text-base">
-                  Set up your institutional-grade account, configure compliance preferences, and unlock AI automation in minutes.
+                  Create your account to tap into AI-driven decisioning, secure execution flows, and global infrastructure.
                 </p>
               </div>
             </div>
             <AnimatedGlobe />
             <div className="grid w-full gap-4 text-sm md:grid-cols-3">
-              <StatusIndicator color="#38bdf8" label="5 min onboarding" />
-              <StatusIndicator color="#22c55e" label="KYC/AML ready" />
-              <StatusIndicator color="#f97316" label="Dedicated support" />
+              <StatusIndicator color="#38bdf8" label="5-minute onboarding" />
+              <StatusIndicator color="#22c55e" label="Institutional-grade compliance" />
+              <StatusIndicator color="#f97316" label="24/7 trading support" />
             </div>
           </div>
         </div>

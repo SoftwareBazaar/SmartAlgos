@@ -199,19 +199,18 @@ export default function SmartAlgosLogin() {
               </div>
               <div className="space-y-4">
                 <h1 className="text-3xl font-semibold leading-snug md:text-4xl">
-                  Look first.<br />Then leap.
+                  Empower your trading with Smart Algos.
                 </h1>
                 <p className="max-w-md text-sm text-slate-200/85 md:text-base">
-                  Monitor global markets with AI. Generate institutional insights, deploy risk-aware strategies, and
-                  trade securely across every timezone.
+                  AI-driven insights, secure execution, and ultra-fast global access—for hedge funds, quant traders, and institutional teams.
                 </p>
               </div>
             </div>
             <AnimatedGlobe />
             <div className="grid w-full gap-4 text-sm md:grid-cols-3">
-              <StatusIndicator color="#38bdf8" label="Real-time Data Streams" />
-              <StatusIndicator color="#22c55e" label="Secure Trading Channels" />
-              <StatusIndicator color="#f97316" label="24/7 Institutional Support" />
+              <StatusIndicator color="#38bdf8" label="Real-time institutional streams" />
+              <StatusIndicator color="#22c55e" label="Secure, compliant execution" />
+              <StatusIndicator color="#f97316" label="24/7 trading support" />
             </div>
             <div className="grid gap-4 text-sm text-slate-200/80 md:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur">
@@ -225,9 +224,9 @@ export default function SmartAlgosLogin() {
                 <p className="mt-1 text-xs text-slate-300/80">Markets monitored continuously</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.25em] text-emerald-300">Signals</p>
+                <p className="text-xs uppercase tracking-[0.25em] text-emerald-300">Reliability</p>
                 <p className="mt-2 text-2xl font-semibold text-white">99.9%</p>
-                <p className="mt-1 text-xs text-slate-300/80">Uptime for AI signal engine</p>
+                <p className="mt-1 text-xs text-slate-300/80">Signal uptime across desks</p>
               </div>
             </div>
           </div>

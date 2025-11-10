@@ -233,7 +233,7 @@ export default function SmartAlgosLogin() {
         </div>
 
         <div className="flex w-full flex-[0.9] flex-col justify-center bg-[#050611] px-10 py-14 sm:px-14">
-          <div className="mx-auto w-full max-w-[700px] space-y-8 lg:max-w-[55vw]">
+          <div className="mx-auto w-full max-w-[700px] space-y-8 lg:max-w-[55vw] lg:mt-[-3rem]">
             <div className="space-y-2 text-center">
               <h2 className="text-2xl font-semibold">Sign in to Smart Algos</h2>
               <p className="text-sm text-slate-400">Authenticate with Google or use your secure access credentials.</p>
@@ -246,13 +246,13 @@ export default function SmartAlgosLogin() {
                   {googleError && (
                     <p className="text-center text-xs font-medium text-rose-400">{googleError}</p>
                   )}
-                  <button
+      <button
                     type="button"
                     onClick={() => googleReady.current && window.google?.accounts?.id?.prompt()}
                     className="w-full text-xs font-medium text-slate-400 transition hover:text-white"
-                  >
+      >
                     Trouble seeing the button? Retry Google sign in.
-                  </button>
+      </button>
                 </>
               ) : (
                 <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-4 py-3 text-center text-sm text-slate-300">
@@ -260,75 +260,75 @@ export default function SmartAlgosLogin() {
                 </div>
               )}
             </div>
-
+            
             <div className="flex items-center gap-4 text-xs text-slate-500">
               <span className="h-px flex-1 bg-slate-800" />
               <span>Or continue with email</span>
               <span className="h-px flex-1 bg-slate-800" />
-            </div>
+          </div>
 
             <form className="space-y-5" onSubmit={handleSubmit}>
-              {error && (
+            {error && (
                 <div className="rounded-lg border border-rose-500/50 bg-rose-500/10 px-4 py-3 text-xs font-medium text-rose-200">
                   {error}
-                </div>
-              )}
-
+              </div>
+            )}
+            
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">
                   Email
-                </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                     placeholder="you@institutional.com"
                     autoComplete="email"
                     className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 pl-11 text-sm text-white placeholder-slate-500 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
-                    required
-                  />
+                  required
+                />
                   <Mail className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-slate-500" />
                 </div>
-              </div>
+            </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
+                Password
+              </label>
+              <div className="relative">
+                <input
                     type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
                     placeholder="Enter your password"
                     autoComplete="current-password"
                     className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 pl-11 pr-11 text-sm text-white placeholder-slate-500 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
-                    required
-                  />
+                  required
+                />
                   <Lock className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-slate-500" />
-                  <button
-                    type="button"
+                <button
+                  type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
                     className="absolute right-3 top-2.5 rounded-full p-1 text-slate-500 transition hover:text-sky-400"
-                  >
+                >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
+                </button>
               </div>
+            </div>
 
-              <button
-                type="submit"
+            <button
+              type="submit"
                 className="w-full rounded-full bg-white py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#050611] focus:ring-white disabled:opacity-60"
-                disabled={loading}
-              >
+              disabled={loading}
+            >
                 {loading ? 'Signing you in…' : 'Sign in'}
-              </button>
+            </button>
             </form>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-3 text-xs text-slate-400">
-              <button
-                type="button"
+            <button
+              type="button"
                 onClick={() => setShowCompliance((prev) => !prev)}
                 className="flex w-full items-center justify-between text-left font-medium text-slate-200 transition hover:text-white"
               >
@@ -337,7 +337,7 @@ export default function SmartAlgosLogin() {
                   Regulatory compliance & risk notice
                 </span>
                 <span>{showCompliance ? 'Hide' : 'View'}</span>
-              </button>
+            </button>
               {showCompliance && (
                 <p className="mt-3 leading-relaxed">
                   Smart Algos enforces strict KYC/AML standards. By signing in you confirm that you are authorized to

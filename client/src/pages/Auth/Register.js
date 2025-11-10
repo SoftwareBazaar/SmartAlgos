@@ -159,7 +159,7 @@ const Register = () => {
         }
       `}</style>
       <div className="mx-auto flex min-h-screen w-full flex-col lg:flex-row">
-        <div className="relative flex-1 overflow-hidden bg-gradient-to-br from-[#0b1220] via-[#081733] to-[#160b36] px-8 py-12 sm:px-12 lg:px-16">
+        <div className="relative flex-[1.1] overflow-hidden bg-gradient-to-br from-[#0b1220] via-[#081733] to-[#160b36] px-10 py-14 sm:px-14 lg:px-16">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(168,85,247,0.22),_transparent_60%)]" />
           <div className="relative z-10 flex h-full flex-col justify-center gap-16">
             <div className="space-y-6">
@@ -184,8 +184,8 @@ const Register = () => {
           </div>
         </div>
 
-        <div className="flex w-full max-w-xl flex-col justify-center bg-[#050611] px-8 py-14 sm:px-12">
-          <div className="mx-auto w-full max-w-lg space-y-8">
+        <div className="flex w-full flex-[0.9] flex-col justify-center bg-[#050611] px-10 py-14 sm:px-14">
+          <div className="mx-auto w-full max-w-xl space-y-8">
             <div className="space-y-2 text-center">
               <h2 className="text-2xl font-semibold">Create your trading account</h2>
               <p className="text-sm text-slate-400">Secure onboarding. No spam.</p>

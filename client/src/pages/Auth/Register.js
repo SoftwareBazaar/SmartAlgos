@@ -1,15 +1,83 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, Shield, CheckCircle, XCircle, AlertCircle, Key, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, ShieldCheck, CheckCircle, XCircle, AlertCircle, Key, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getPasswordStrength, validatePassword } from '../../utils/passwordStrength';
+
+const AnimatedGlobe = () => {
+  const particleConfigs = useMemo(
+    () => [
+      { size: 6, distance: 108, duration: 18, delay: 0 },
+      { size: 4, distance: 92, duration: 14, delay: -3 },
+      { size: 5, distance: 128, duration: 22, delay: -6 },
+      { size: 3, distance: 76, duration: 12, delay: -1.5 },
+      { size: 7, distance: 140, duration: 26, delay: -10 },
+      { size: 4, distance: 100, duration: 16, delay: -4 },
+      { size: 5, distance: 118, duration: 20, delay: -7 },
+      { size: 3, distance: 86, duration: 15, delay: -2.5 }
+    ],
+    []
+  );
+
+  return (
+    <div className="relative h-72 w-72 md:h-80 md:w-80">
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-sky-500/10 via-indigo-400/10 to-transparent blur-3xl" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative h-60 w-60 md:h-64 md:w-64">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-sky-400 via-indigo-500 to-purple-500 opacity-70 blur" />
+          <div className="absolute inset-0 rounded-full bg-slate-950/60 backdrop-blur-md shadow-[0_25px_80px_-30px_rgba(56,189,248,0.55)]" />
+          <div className="absolute inset-0 rounded-full border border-sky-500/50 opacity-70" />
+          <div className="absolute inset-6 rounded-full border border-sky-400/30 opacity-50" />
+          <div className="absolute inset-x-10 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-transparent via-sky-300/40 to-transparent" />
+          <div className="absolute inset-y-10 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-gradient-to-b from-transparent via-sky-300/40 to-transparent" />
+          {particleConfigs.map((particle, index) => (
+            <span
+              // eslint-disable-next-line react/no-array-index-key
+              key={index}
+              className="absolute left-1/2 top-1/2 block rounded-full bg-sky-300 shadow-[0_0_12px_rgba(125,211,252,0.8)]"
+              style={{
+                width: particle.size,
+                height: particle.size,
+                marginLeft: -particle.size / 2,
+                marginTop: -particle.size / 2,
+                transformOrigin: `0 ${particle.distance}px`,
+                animation: `orbit ${particle.duration}s linear infinite`,
+                animationDelay: `${particle.delay}s`,
+                filter: 'drop-shadow(0 0 10px rgba(125,211,252,0.65))'
+              }}
+            />
+          ))}
+          <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-sky-400/30 via-indigo-400/20 to-purple-500/30 opacity-70" />
+        </div>
+      </div>
+      <div className="pointer-events-none absolute -inset-8 -z-10 rounded-full border border-sky-400/10" />
+    </div>
+  );
+};
+
+const StatusIndicator = ({ color, label }) => (
+  <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur">
+    <span
+      className="relative block h-2.5 w-2.5 rounded-full"
+      style={{ backgroundColor: color, boxShadow: `0 0 12px ${color}` }}
+    >
+      <span
+        className="absolute inset-0 rounded-full opacity-60"
+        style={{
+          backgroundColor: color,
+          animation: 'pulse 2.4s ease-out infinite'
+        }}
+      />
+    </span>
+    <p className="text-xs font-medium tracking-wide text-slate-200">{label}</p>
+  </div>
+);
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedKYC, setAcceptedKYC] = useState(false);
-  const [showComplianceDetails, setShowComplianceDetails] = useState(false);
   const [showOTPStep, setShowOTPStep] = useState(false);
   const [registrationEmail, setRegistrationEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -26,6 +94,8 @@ const Register = () => {
 
   const password = watch('password');
   const passwordStrength = password ? getPasswordStrength(password) : null;
+  const inputWithIconClasses = 'h-12 w-full rounded-xl border border-slate-800 bg-slate-900 px-4 pl-11 text-sm text-white placeholder-slate-500 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30';
+  const inputClasses = 'h-12 w-full rounded-xl border border-slate-800 bg-slate-900 px-4 text-sm text-white placeholder-slate-500 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30';
 
   const onSubmit = async (data) => {
     // Validate KYC acceptance
@@ -76,43 +146,56 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center relative overflow-hidden py-12 px-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-12 left-8 w-56 h-56 bg-purple-100/60 dark:bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-16 right-8 w-72 h-72 bg-blue-100/60 dark:bg-blue-500/10 rounded-full blur-3xl" />
-      </div>
-
-      <div className="w-full max-w-3xl relative z-10">
-        <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 dark:border-purple-500/20 overflow-hidden">
-          {/* Logo Header */}
-          <div className="bg-gray-50 dark:bg-slate-900/80 backdrop-blur-xl border-b border-purple-200 dark:border-purple-500/20 py-3 px-4">
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 dark:from-purple-400 dark:via-pink-400 dark:to-blue-400 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-[#050611] text-white">
+      <style>{`
+        @keyframes orbit {
+          from { transform: rotate(0deg) translateY(-50%); }
+          to { transform: rotate(360deg) translateY(-50%); }
+        }
+        @keyframes pulse {
+          0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+          70% { transform: translate(-50%, -50%) scale(1.35); opacity: 0; }
+          100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+        }
+      `}</style>
+      <div className="mx-auto flex min-h-screen w-full flex-col lg:flex-row">
+        <div className="relative flex-1 overflow-hidden bg-gradient-to-br from-[#0b1220] via-[#081733] to-[#160b36] px-8 py-12 sm:px-12 lg:px-16">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(168,85,247,0.22),_transparent_60%)]" />
+          <div className="relative z-10 flex h-full flex-col justify-center gap-16">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200/80 backdrop-blur">
                 Smart Algos
-              </h1>
+              </div>
+              <div className="space-y-4">
+                <h1 className="text-3xl font-semibold leading-snug md:text-4xl">
+                  Build your trading edge.
+                </h1>
+                <p className="max-w-md text-sm text-slate-200/85 md:text-base">
+                  Set up your institutional-grade account, configure compliance preferences, and unlock AI automation in minutes.
+                </p>
+              </div>
             </div>
-            <p className="text-gray-600 dark:text-slate-400 text-center mt-0.5 text-xs">Join the AI Trading Revolution</p>
+            <AnimatedGlobe />
+            <div className="grid w-full gap-4 text-sm md:grid-cols-3">
+              <StatusIndicator color="#38bdf8" label="5 min onboarding" />
+              <StatusIndicator color="#22c55e" label="KYC/AML ready" />
+              <StatusIndicator color="#f97316" label="Dedicated support" />
+            </div>
           </div>
+        </div>
 
-          <div className="p-6 md:p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create Your Trading Account</h2>
-              <p className="text-gray-600 dark:text-slate-400 text-sm mt-1">Start your journey with AI-powered strategies</p>
+        <div className="flex w-full max-w-xl flex-col justify-center bg-[#050611] px-8 py-14 sm:px-12">
+          <div className="mx-auto w-full max-w-lg space-y-8">
+            <div className="space-y-2 text-center">
+              <h2 className="text-2xl font-semibold">Create your trading account</h2>
+              <p className="text-sm text-slate-400">Secure onboarding. No spam.</p>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {/* Personal Info Row */}
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="relative">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-700 dark:text-slate-300 mb-1">
-                    First Name
-                  </label>
-                  <div className="relative group">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">First name</label>
+                  <div className="relative">
                     <input
                       type="text"
                       {...register('firstName', {
@@ -120,19 +203,16 @@ const Register = () => {
                         minLength: { value: 2, message: 'Min 2 characters' },
                         maxLength: { value: 50, message: 'Max 50 characters' },
                       })}
-                      className="w-full px-3 py-2 pl-9 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-gray-400 dark:group-hover:border-gray-400 dark:group-hover:border-slate-500"
-                      placeholder="John"
+                      className={`${inputWithIconClasses}`}
+                      placeholder="Jane"
                     />
-                    <User className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+                    <User className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-500" />
                   </div>
-                  {errors.firstName && <p className="text-xs text-red-400 mt-1">{errors.firstName.message}</p>}
+                  {errors.firstName && <p className="text-xs text-rose-400">{errors.firstName.message}</p>}
                 </div>
-
-                <div className="relative">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-700 dark:text-slate-300 mb-1">
-                    Last Name
-                  </label>
-                  <div className="relative group">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Last name</label>
+                  <div className="relative">
                     <input
                       type="text"
                       {...register('lastName', {
@@ -140,21 +220,18 @@ const Register = () => {
                         minLength: { value: 2, message: 'Min 2 characters' },
                         maxLength: { value: 50, message: 'Max 50 characters' },
                       })}
-                      className="w-full px-3 py-2 pl-9 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-gray-400 dark:group-hover:border-gray-400 dark:group-hover:border-slate-500"
+                      className={`${inputWithIconClasses}`}
                       placeholder="Doe"
                     />
-                    <User className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+                    <User className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-500" />
                   </div>
-                  {errors.lastName && <p className="text-xs text-red-400 mt-1">{errors.lastName.message}</p>}
+                  {errors.lastName && <p className="text-xs text-rose-400">{errors.lastName.message}</p>}
                 </div>
               </div>
 
-              {/* Email */}
-              <div className="relative">
-                <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
-                  Email Address
-                </label>
-                <div className="relative group">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Email</label>
+                <div className="relative">
                   <input
                     type="email"
                     {...register('email', {
@@ -164,84 +241,72 @@ const Register = () => {
                         message: 'Invalid email address',
                       },
                     })}
-                    className="w-full px-3 py-2 pl-9 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-gray-400 dark:group-hover:border-slate-500"
-                    placeholder="john@example.com"
+                    className={`${inputWithIconClasses}`}
+                    placeholder="you@institutional.com"
                   />
-                  <Mail className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+                  <Mail className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-500" />
                 </div>
-                {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email.message}</p>}
+                {errors.email && <p className="text-xs text-rose-400">{errors.email.message}</p>}
               </div>
 
-              {/* Contact Info Row */}
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="relative">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
-                    Phone <span className="text-gray-500 dark:text-slate-400 font-normal">(Optional - for account recovery)</span>
-                  </label>
-                  <div className="relative group">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Phone (optional)</label>
+                  <div className="relative">
                     <input
                       type="tel"
                       {...register('phone', {
                         pattern: {
                           value: /^[\+]?[1-9][\d]{0,15}$/,
-                          message: 'Invalid phone format. Use international format: +1234567890',
+                          message: 'Invalid phone format. Use +1234567890',
                         },
                       })}
-                      className="w-full px-3 py-2 pl-9 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-gray-400 dark:group-hover:border-slate-500"
-                      placeholder="+1234567890 (optional)"
+                      className={`${inputWithIconClasses}`}
+                      placeholder="+1234567890"
                     />
-                    <Phone className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+                    <Phone className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-500" />
                   </div>
-                  {errors.phone && <p className="text-xs text-red-400 mt-1">{errors.phone.message}</p>}
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">This field is optional. You can skip it if you prefer.</p>
+                  {errors.phone && <p className="text-xs text-rose-400">{errors.phone.message}</p>}
+                  <p className="text-xs text-slate-500">Used only for account recovery.</p>
                 </div>
-
-                <div className="relative">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
-                    Country (Optional)
-                  </label>
-                  <div className="relative group">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Country (optional)</label>
+                  <div className="relative">
                     <input
                       type="text"
                       {...register('country', {
                         maxLength: { value: 100, message: 'Max 100 characters' },
                       })}
-                      className="w-full px-3 py-2 pl-9 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-gray-400 dark:group-hover:border-slate-500"
+                      className={`${inputWithIconClasses}`}
                       placeholder="United States"
                     />
-                    <MapPin className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+                    <MapPin className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-500" />
                   </div>
-                  {errors.country && <p className="text-xs text-red-400 mt-1">{errors.country.message}</p>}
+                  {errors.country && <p className="text-xs text-rose-400">{errors.country.message}</p>}
                 </div>
               </div>
 
-              {/* Trading Experience */}
-              <div className="relative">
-                <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
-                  Trading Experience
-                </label>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Trading experience</label>
                 <select
                   {...register('tradingExperience', {
                     required: 'Please select your trading experience',
                   })}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  className={`${inputClasses} appearance-none`}
                 >
-                  <option value="" className="bg-white dark:bg-slate-800">Select your experience level</option>
-                  <option value="beginner" className="bg-white dark:bg-slate-800">Beginner (0-1 years)</option>
-                  <option value="intermediate" className="bg-white dark:bg-slate-800">Intermediate (1-3 years)</option>
-                  <option value="advanced" className="bg-white dark:bg-slate-800">Advanced (3-5 years)</option>
-                  <option value="expert" className="bg-white dark:bg-slate-800">Expert (5+ years)</option>
+                  <option value="">Select experience level</option>
+                  <option value="beginner">Beginner (0-1 years)</option>
+                  <option value="intermediate">Intermediate (1-3 years)</option>
+                  <option value="advanced">Advanced (3-5 years)</option>
+                  <option value="expert">Expert (5+ years)</option>
                 </select>
-                {errors.tradingExperience && <p className="text-xs text-red-400 mt-1">{errors.tradingExperience.message}</p>}
+                {errors.tradingExperience && <p className="text-xs text-rose-400">{errors.tradingExperience.message}</p>}
               </div>
 
-              {/* Password Row */}
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="relative">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
-                    Password
-                  </label>
-                  <div className="relative group">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Password</label>
+                  <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       {...register('password', {
@@ -256,231 +321,161 @@ const Register = () => {
                           return validation.isValid || validation.errors[0];
                         },
                       })}
-                      className="w-full px-3 py-2 pl-9 pr-9 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-gray-400 dark:group-hover:border-slate-500"
-                      placeholder="••••••••"
+                      className={`${inputWithIconClasses} pr-12`}
+                      placeholder="Create a password"
                     />
-                    <Lock className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+                    <Lock className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-500" />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2.5 top-2.5 text-gray-400 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-3 top-2.5 rounded-full p-1 text-slate-500 transition hover:text-sky-400"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  
-                  {/* Password Strength Indicator */}
-                  {password && password.length > 0 && passwordStrength && (
-                    <div className="mt-2 space-y-1.5">
-                      {/* Strength Bar */}
-                      <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                  {password && passwordStrength && (
+                    <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-xs">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
                         <div
                           className={`h-full transition-all duration-300 ${
-                            passwordStrength.color === 'red' ? 'bg-red-500' :
-                            passwordStrength.color === 'yellow' ? 'bg-yellow-500' :
-                            passwordStrength.color === 'blue' ? 'bg-blue-500' :
-                            'bg-green-500'
+                            passwordStrength.color === 'red'
+                              ? 'bg-rose-500'
+                              : passwordStrength.color === 'yellow'
+                              ? 'bg-amber-400'
+                              : passwordStrength.color === 'blue'
+                              ? 'bg-sky-400'
+                              : 'bg-emerald-400'
                           }`}
                           style={{ width: `${passwordStrength.score}%` }}
                         />
                       </div>
-                      
-                      {/* Strength Label */}
-                      <div className="flex items-center gap-1.5">
-                        <span className={`text-xs font-medium ${
-                          passwordStrength.color === 'red' ? 'text-red-500' :
-                          passwordStrength.color === 'yellow' ? 'text-yellow-500' :
-                          passwordStrength.color === 'blue' ? 'text-blue-500' :
-                          'text-green-500'
-                        }`}>
-                          {passwordStrength.label}
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-slate-400">
-                          {passwordStrength.feedback}
-                        </span>
+                      <div className="flex flex-wrap items-center gap-2 text-slate-300">
+                        <span className="font-medium text-slate-100">{passwordStrength.label}</span>
+                        <span className="text-slate-400">{passwordStrength.feedback}</span>
                       </div>
-                      
-                      {/* Requirements Checklist */}
-                      <div className="grid grid-cols-2 gap-1 text-xs">
-                        <div className={`flex items-center gap-1 ${passwordStrength.requirements.length ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-slate-500'}`}>
-                          {passwordStrength.requirements.length ? (
-                            <CheckCircle className="w-3 h-3" />
-                          ) : (
-                            <XCircle className="w-3 h-3" />
-                          )}
-                          <span>8+ characters</span>
-                        </div>
-                        <div className={`flex items-center gap-1 ${passwordStrength.requirements.hasLower ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-slate-500'}`}>
-                          {passwordStrength.requirements.hasLower ? (
-                            <CheckCircle className="w-3 h-3" />
-                          ) : (
-                            <XCircle className="w-3 h-3" />
-                          )}
-                          <span>Lowercase</span>
-                        </div>
-                        <div className={`flex items-center gap-1 ${passwordStrength.requirements.hasUpper ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-slate-500'}`}>
-                          {passwordStrength.requirements.hasUpper ? (
-                            <CheckCircle className="w-3 h-3" />
-                          ) : (
-                            <XCircle className="w-3 h-3" />
-                          )}
-                          <span>Uppercase</span>
-                        </div>
-                        <div className={`flex items-center gap-1 ${passwordStrength.requirements.hasNumber ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-slate-500'}`}>
-                          {passwordStrength.requirements.hasNumber ? (
-                            <CheckCircle className="w-3 h-3" />
-                          ) : (
-                            <XCircle className="w-3 h-3" />
-                          )}
-                          <span>Number</span>
-                        </div>
-                        <div className={`flex items-center gap-1 col-span-2 ${passwordStrength.requirements.hasSpecial ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-slate-500'}`}>
-                          {passwordStrength.requirements.hasSpecial ? (
-                            <CheckCircle className="w-3 h-3" />
-                          ) : (
-                            <XCircle className="w-3 h-3" />
-                          )}
-                          <span>Special character (@$!%*?&#)</span>
-                        </div>
+                      <div className="grid grid-cols-2 gap-1 text-slate-400">
+                        <span className="flex items-center gap-1">
+                          {passwordStrength.requirements.length ? <CheckCircle className="h-3 w-3 text-emerald-400" /> : <XCircle className="h-3 w-3 text-rose-400" />}
+                          8+ characters
+                        </span>
+                        <span className="flex items-center gap-1">
+                          {passwordStrength.requirements.hasLower ? <CheckCircle className="h-3 w-3 text-emerald-400" /> : <XCircle className="h-3 w-3 text-rose-400" />}
+                          Lowercase
+                        </span>
+                        <span className="flex items-center gap-1">
+                          {passwordStrength.requirements.hasUpper ? <CheckCircle className="h-3 w-3 text-emerald-400" /> : <XCircle className="h-3 w-3 text-rose-400" />}
+                          Uppercase
+                        </span>
+                        <span className="flex items-center gap-1">
+                          {passwordStrength.requirements.hasNumber ? <CheckCircle className="h-3 w-3 text-emerald-400" /> : <XCircle className="h-3 w-3 text-rose-400" />}
+                          Number
+                        </span>
+                        <span className="col-span-2 flex items-center gap-1">
+                          {passwordStrength.requirements.hasSpecial ? <CheckCircle className="h-3 w-3 text-emerald-400" /> : <XCircle className="h-3 w-3 text-rose-400" />}
+                          Special character
+                        </span>
                       </div>
                     </div>
                   )}
-                  
-                  {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password.message}</p>}
+                  {errors.password && <p className="text-xs text-rose-400">{errors.password.message}</p>}
                 </div>
-
-                <div className="relative">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
-                    Confirm Password
-                  </label>
-                  <div className="relative group">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Confirm password</label>
+                  <div className="relative">
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       {...register('confirmPassword', {
                         required: 'Please confirm your password',
                         validate: (value) => value === password || 'Passwords do not match',
                       })}
-                      className="w-full px-3 py-2 pl-9 pr-9 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all group-hover:border-gray-400 dark:group-hover:border-slate-500"
-                      placeholder="••••••••"
+                      className={`${inputWithIconClasses} pr-12`}
+                      placeholder="Repeat password"
                     />
-                    <Lock className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+                    <Lock className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-500" />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-2.5 top-2.5 text-gray-400 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      className="absolute right-3 top-2.5 rounded-full p-1 text-slate-500 transition hover:text-sky-400"
                     >
-                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  {errors.confirmPassword && <p className="text-xs text-red-400 mt-1">{errors.confirmPassword.message}</p>}
+                  {errors.confirmPassword && <p className="text-xs text-rose-400">{errors.confirmPassword.message}</p>}
                 </div>
               </div>
 
-              {/* KYC/AML Disclaimer */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-lg p-4 space-y-3">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-start gap-2">
-                    <Shield className="w-4 h-4 text-slate-600 dark:text-slate-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                        Regulatory Compliance & KYC/AML Notice
-                      </h4>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                        Please review and acknowledge our risk disclosure and compliance requirements.
-                      </p>
-                    </div>
+              <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/80 px-5 py-5">
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="mt-1 h-5 w-5 flex-shrink-0 text-sky-400" />
+                  <div className="space-y-1 text-sm text-slate-200/80">
+                    <p>We comply with global KYC/AML policies to protect every account.</p>
+                    <ul className="space-y-1 text-xs text-slate-400">
+                      <li>• Identity verification may be requested after sign up.</li>
+                      <li>• Trading activity is monitored to prevent fraud.</li>
+                      <li>• You can update compliance preferences in your profile.</li>
+                    </ul>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowComplianceDetails((prev) => !prev)}
-                    className="inline-flex items-center self-start rounded-full border border-purple-200 dark:border-purple-500/40 bg-white/70 dark:bg-slate-900/50 px-3 py-1 text-xs font-medium text-purple-600 dark:text-purple-300 hover:bg-purple-50 hover:text-purple-700 dark:hover:bg-purple-500/10 transition-colors"
-                  >
-                    {showComplianceDetails ? 'Hide details' : 'View details'}
-                  </button>
                 </div>
-                {showComplianceDetails && (
-                  <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/40 p-3">
-                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                      By creating an account, you acknowledge that trading financial instruments involves substantial risk of loss.
-                      This platform operates in compliance with applicable financial regulations. You may be required to complete
-                      Know Your Customer (KYC) and Anti-Money Laundering (AML) verification procedures. Trading may not be suitable
-                      for all investors. Please ensure you understand the risks involved before proceeding.
-                    </p>
-                  </div>
-                )}
-                <div className="flex items-start gap-2">
+                <label className="flex items-start gap-2 text-xs text-slate-300">
                   <input
-                    id="kyc"
                     type="checkbox"
                     checked={acceptedKYC}
                     onChange={(e) => setAcceptedKYC(e.target.checked)}
-                    className="mt-0.5 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-purple-600 dark:text-purple-500 focus:ring-purple-500"
+                    className="mt-0.5 rounded border-slate-600 bg-slate-800 text-sky-400 focus:ring-sky-500"
                   />
-                  <label htmlFor="kyc" className="text-xs text-slate-800 dark:text-slate-200">
-                    I acknowledge and accept the regulatory compliance, KYC/AML requirements, and understand the risks involved in trading.
-                  </label>
-                </div>
+                  <span>I understand the regulatory requirements and agree to proceed.</span>
+                </label>
                 {!acceptedKYC && (
-                  <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    You must accept the regulatory compliance notice to continue
+                  <p className="flex items-center gap-1 text-xs text-rose-400">
+                    <AlertCircle className="h-3 w-3" />
+                    Accept the compliance notice to continue.
                   </p>
                 )}
               </div>
 
-              {/* Terms */}
-              <div className="flex items-start gap-2 text-xs">
+              <label className="flex items-start gap-2 text-xs text-slate-400">
                 <input
-                  id="terms"
                   type="checkbox"
                   {...register('terms', {
                     required: 'You must accept the terms and conditions',
                   })}
-                  className="mt-0.5 rounded border-gray-300 dark:border-slate-600 bg-gray-100 dark:bg-slate-700 text-purple-600 dark:text-purple-500 focus:ring-purple-500"
+                  className="mt-0.5 rounded border-slate-600 bg-slate-800 text-sky-400 focus:ring-sky-500"
                 />
-                <label htmlFor="terms" className="text-gray-700 dark:text-slate-300">
+                <span>
                   I agree to the{' '}
-                  <Link to="/terms" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition hover:underline">
+                  <Link to="/terms" className="text-sky-400 hover:text-sky-300">
                     Terms of Service
                   </Link>{' '}
                   and{' '}
-                  <Link to="/privacy" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition hover:underline">
+                  <Link to="/privacy" className="text-sky-400 hover:text-sky-300">
                     Privacy Policy
                   </Link>
-                </label>
-              </div>
-              {errors.terms && <p className="text-xs text-red-400">{errors.terms.message}</p>}
+                  .
+                </span>
+              </label>
+              {errors.terms && <p className="text-xs text-rose-400">{errors.terms.message}</p>}
 
-              {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-2 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-600 text-white text-sm font-bold rounded-lg hover:from-purple-600 hover:via-pink-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl hover:shadow-purple-500/50 transform hover:scale-[1.01] active:scale-[0.99] relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-full bg-white py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#050611] focus:ring-white disabled:opacity-60"
                 disabled={loading || !acceptedKYC}
               >
-                <span className="relative z-10">{loading ? 'Creating Account...' : 'Create Trading Account'}</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                {loading ? 'Creating account…' : 'Create account'}
               </button>
             </form>
 
-            {/* OTP Verification Step */}
             {showOTPStep && (
-              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <div className="text-center mb-4">
-                  <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Mail className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <div className="space-y-4 rounded-2xl border border-sky-500/30 bg-slate-900/80 px-6 py-6">
+                <div className="space-y-2 text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-sky-500/20">
+                    <Mail className="h-6 w-6 text-sky-300" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Verify Your Email</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    We've sent a 6-digit verification code to
-                  </p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{registrationEmail}</p>
+                  <h3 className="text-lg font-semibold">Verify your email</h3>
+                  <p className="text-sm text-slate-400">Enter the 6-digit code sent to {registrationEmail}.</p>
                 </div>
-
-                <form onSubmit={handleVerifyOTP} className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
-                      Enter Verification Code
-                    </label>
+                <form onSubmit={handleVerifyOTP} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Verification code</label>
                     <div className="relative">
                       <input
                         type="text"
@@ -488,41 +483,37 @@ const Register = () => {
                         value={otp}
                         onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                         placeholder="000000"
-                        className="w-full px-3 py-2.5 text-center text-2xl font-mono tracking-widest bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                        className="h-14 w-full rounded-xl border border-slate-800 bg-slate-900 text-center text-2xl font-mono tracking-[0.75em] text-white outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
                         autoFocus
                       />
-                      <Key className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 dark:text-slate-400" />
+                      <Key className="pointer-events-none absolute right-3 top-4 h-5 w-5 text-slate-500" />
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 text-center">
-                      {otp.length}/6 digits
-                    </p>
+                    <p className="text-xs text-slate-500">{otp.length}/6 digits entered.</p>
                   </div>
-
                   <button
                     type="submit"
                     disabled={loading || otp.length !== 6}
-                    className="w-full py-2 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-600 text-white text-sm font-bold rounded-lg hover:from-purple-600 hover:via-pink-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl hover:shadow-purple-500/50 transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded-full bg-sky-500 py-3 text-sm font-semibold text-white transition hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#050611] focus:ring-sky-500 disabled:opacity-60"
                   >
-                    {loading ? 'Verifying...' : 'Verify Email'}
+                    {loading ? 'Verifying…' : 'Verify email'}
                   </button>
-
-                  <div className="flex items-center justify-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                    <span>Didn't receive the code?</span>
+                  <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+                    <span>Didn’t receive the code?</span>
                     <button
                       type="button"
                       onClick={handleResendOTP}
                       disabled={resendingOTP}
-                      className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold flex items-center gap-1 disabled:opacity-50"
+                      className="inline-flex items-center gap-1 font-semibold text-sky-400 hover:text-sky-300 disabled:opacity-60"
                     >
                       {resendingOTP ? (
                         <>
-                          <RefreshCw className="w-3 h-3 animate-spin" />
-                          Sending...
+                          <RefreshCw className="h-3 w-3 animate-spin" />
+                          Sending…
                         </>
                       ) : (
                         <>
-                          <RefreshCw className="w-3 h-3" />
-                          Resend Code
+                          <RefreshCw className="h-3 w-3" />
+                          Resend code
                         </>
                       )}
                     </button>
@@ -531,17 +522,16 @@ const Register = () => {
               </div>
             )}
 
-            <div className="pb-3 px-4 flex items-center justify-center gap-1.5 text-gray-500 dark:text-slate-400 text-xs mt-3">
-              <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span>256-bit SSL Encrypted</span>
-            </div>
+            <p className="text-center text-xs text-slate-500">
+              Already have an account?{' '}
+              <Link to="/auth/login" className="text-sky-400 hover:text-sky-300">
+                Sign in
+              </Link>
+            </p>
+            <p className="text-center text-xs text-slate-600">
+              © {new Date().getFullYear()} Smart Algos · AI Powered Trading Platform
+            </p>
           </div>
-
-          <p className="text-center text-gray-600 dark:text-slate-400 text-xs mt-3 pb-3">
-            © 2025 Smart Algos · AI Powered Trading Platform
-          </p>
         </div>
       </div>
     </div>

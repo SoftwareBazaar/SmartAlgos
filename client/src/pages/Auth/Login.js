@@ -192,13 +192,13 @@ export default function SmartAlgosLogin() {
       <div className="mx-auto flex min-h-screen w-full flex-col lg:flex-row">
         <div className="relative flex-1 overflow-hidden bg-gradient-to-br from-[#0b1220] via-[#081733] to-[#160b36] px-8 py-12 sm:px-12 lg:px-16">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(168,85,247,0.22),_transparent_60%)]" />
-          <div className="relative z-10 flex h-full flex-col justify-between">
-            <div className="space-y-8">
+          <div className="relative z-10 flex h-full flex-col justify-center gap-16">
+            <div className="space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200/80 backdrop-blur">
                 Smart Algos
               </div>
-              <div className="space-y-5">
-                <h1 className="text-4xl font-semibold leading-tight md:text-5xl">
+              <div className="space-y-4">
+                <h1 className="text-3xl font-semibold leading-snug md:text-4xl">
                   Look first.<br />Then leap.
                 </h1>
                 <p className="max-w-md text-sm text-slate-200/85 md:text-base">
@@ -207,17 +207,13 @@ export default function SmartAlgosLogin() {
                 </p>
               </div>
             </div>
-
-            <div className="flex flex-col items-center justify-center gap-10">
-              <AnimatedGlobe />
-              <div className="grid w-full gap-4 text-sm md:grid-cols-3">
-                <StatusIndicator color="#38bdf8" label="Real-time Data Streams" />
-                <StatusIndicator color="#22c55e" label="Secure Trading Channels" />
-                <StatusIndicator color="#f97316" label="24/7 Institutional Support" />
-              </div>
+            <AnimatedGlobe />
+            <div className="grid w-full gap-4 text-sm md:grid-cols-3">
+              <StatusIndicator color="#38bdf8" label="Real-time Data Streams" />
+              <StatusIndicator color="#22c55e" label="Secure Trading Channels" />
+              <StatusIndicator color="#f97316" label="24/7 Institutional Support" />
             </div>
-
-            <div className="mt-10 grid gap-4 text-sm text-slate-200/80 md:grid-cols-3">
+            <div className="grid gap-4 text-sm text-slate-200/80 md:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur">
                 <p className="text-xs uppercase tracking-[0.25em] text-sky-300">Latency</p>
                 <p className="mt-2 text-2xl font-semibold text-white">12ms</p>

@@ -185,7 +185,7 @@ const Register = () => {
         </div>
 
         <div className="flex w-full flex-[0.9] flex-col justify-center bg-[#050611] px-10 py-14 sm:px-14">
-          <div className="mx-auto w-full max-w-xl space-y-8">
+          <div className="mx-auto w-full max-w-[700px] space-y-8 lg:max-w-[55vw]">
             <div className="space-y-2 text-center">
               <h2 className="text-2xl font-semibold">Create your trading account</h2>
               <p className="text-sm text-slate-400">Secure onboarding. No spam.</p>

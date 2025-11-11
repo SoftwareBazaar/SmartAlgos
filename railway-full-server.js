@@ -99,7 +99,48 @@ try {
   });
 
   // Basic middleware
-  app.use(cors());
+  const allowedOrigins = [
+    process.env.CLIENT_URL,
+    process.env.PUBLIC_URL,
+    'http://localhost:3000',
+    'http://localhost:5000',
+    'https://localhost:3000',
+    'https://localhost:5000',
+    'https://web-production-fdb58.up.railway.app'
+  ].filter(Boolean);
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin) {
+          // Allow non-browser (curl/postman) or same-origin requests
+          return callback(null, true);
+        }
+
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+
+        // Also allow subdomains of Railway app (custom domains)
+        if (/\.up\.railway\.app$/.test(origin.replace(/^https?:\/\//, ''))) {
+          return callback(null, true);
+        }
+
+        console.warn(`[CORS] Blocked origin: ${origin}`);
+        return callback(new Error('Not allowed by CORS'));
+      },
+      credentials: true,
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-Requested-With',
+        'X-CSRF-Token'
+      ],
+      exposedHeaders: ['Set-Cookie'],
+      optionsSuccessStatus: 204
+    })
+  );
   
   // EMERGENCY CSP FIX - Replace helmet with custom CSP
   // app.use(helmet()); // DISABLED - was blocking Supabase images

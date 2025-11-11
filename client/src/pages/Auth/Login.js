@@ -1,61 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, ShieldCheck } from 'lucide-react';
-import { GoogleLogin } from '@react-oauth/google';
+import FinancialGlobe from '../../components/animations/FinancialGlobe';
 
 const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-
-const AnimatedGlobe = () => {
-  const particleConfigs = useMemo(
-    () => [
-      { size: 6, distance: 108, duration: 18, delay: 0 },
-      { size: 4, distance: 92, duration: 14, delay: -3 },
-      { size: 5, distance: 128, duration: 22, delay: -6 },
-      { size: 3, distance: 76, duration: 12, delay: -1.5 },
-      { size: 7, distance: 140, duration: 26, delay: -10 },
-      { size: 4, distance: 100, duration: 16, delay: -4 },
-      { size: 5, distance: 118, duration: 20, delay: -7 },
-      { size: 3, distance: 86, duration: 15, delay: -2.5 }
-    ],
-    []
-  );
-
-  return (
-    <div className="relative h-80 w-80 md:h-96 md:w-96">
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-sky-500/10 via-sky-300/5 to-transparent blur-3xl" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative h-64 w-64 overflow-visible md:h-72 md:w-72">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-sky-400 via-indigo-500 to-purple-500 opacity-70 blur" />
-          <div className="absolute inset-0 rounded-full bg-slate-950/60 backdrop-blur-md shadow-[0_25px_80px_-30px_rgba(56,189,248,0.55)]" />
-          <div className="absolute inset-0 rounded-full border border-sky-500/50 opacity-70" />
-          <div className="absolute inset-6 rounded-full border border-sky-400/30 opacity-50" />
-          <div className="absolute inset-x-10 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-transparent via-sky-300/40 to-transparent" />
-          <div className="absolute inset-y-10 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-gradient-to-b from-transparent via-sky-300/40 to-transparent" />
-          {particleConfigs.map((particle, index) => (
-            <span
-              // eslint-disable-next-line react/no-array-index-key
-              key={index}
-              className="absolute left-1/2 top-1/2 block rounded-full bg-sky-300 shadow-[0_0_12px_rgba(125,211,252,0.8)]"
-              style={{
-                width: particle.size,
-                height: particle.size,
-                marginLeft: -particle.size / 2,
-                marginTop: -particle.size / 2,
-                transformOrigin: `0 ${particle.distance}px`,
-                animation: `orbit ${particle.duration}s linear infinite`,
-                animationDelay: `${particle.delay}s`,
-                filter: 'drop-shadow(0 0 10px rgba(125,211,252,0.65))'
-              }}
-            />
-          ))}
-          <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-sky-400/30 via-indigo-400/20 to-purple-500/30 opacity-70" />
-        </div>
-      </div>
-      <div className="pointer-events-none absolute -inset-8 -z-10 rounded-full border border-sky-400/10" />
-    </div>
-  );
-};
 
 const StatusIndicator = ({ color, label }) => (
   <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur">
@@ -75,6 +24,18 @@ const StatusIndicator = ({ color, label }) => (
   </div>
 );
 
+const GoogleIcon = () => (
+  <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      d="M12 10.2v4.08h5.78c-.25 1.32-1.75 3.88-5.78 3.88a6.68 6.68 0 0 1 0-13.36 5.82 5.82 0 0 1 4.1 1.6l2.77-2.67A9.64 9.64 0 0 0 12 2a10 10 0 1 0 0 20c5.76 0 9.6-4 9.6-9.64a8.78 8.78 0 0 0-.16-1.76Z"
+      fill="#4285F4"
+    />
+    <path d="M3.16 7.36 6.38 9.72A4 4 0 0 1 9.6 7.64a4 4 0 0 1 2.4.8l2.93-2.93A8.84 8.84 0 0 0 9.6 4 10 10 0 0 0 3.16 7.36Z" fill="#EA4335" />
+    <path d="M12 20c2.72 0 5-1 6.7-2.68l-3.1-2.42a4.43 4.43 0 0 1-3.6 1.08 4.41 4.41 0 0 1-3.4-2.5l-3.2 2.5A9.84 9.84 0 0 0 12 20Z" fill="#34A853" />
+    <path d="M3.2 7.36a10 10 0 0 0 0 9.28l3.2-2.5a4.33 4.33 0 0 1 0-4.3Z" fill="#FBBC04" />
+  </svg>
+);
+
 export default function SmartAlgosLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -82,6 +43,8 @@ export default function SmartAlgosLogin() {
   const [error, setError] = useState('');
   const [googleError, setGoogleError] = useState('');
   const [showCompliance, setShowCompliance] = useState(false);
+  const [googleReady, setGoogleReady] = useState(false);
+  const googleInitialized = useRef(false);
 
   const { login, loginWithGoogle, loading } = useAuth();
   const navigate = useNavigate();
@@ -92,31 +55,122 @@ export default function SmartAlgosLogin() {
     navigate(redirectTo, { replace: true });
   }, [location.state, navigate]);
 
-  const handleGoogleSuccess = useCallback(
+  const handleGoogleCredential = useCallback(
     async (credentialResponse) => {
+      console.info('[Google Login] Credential callback received', {
+        hasCredential: Boolean(credentialResponse?.credential),
+        clientId: credentialResponse?.clientId,
+        select_by: credentialResponse?.select_by
+      });
       const credential = credentialResponse?.credential;
       try {
         if (!credential) {
           setGoogleError('Google did not return a credential. Please try again.');
+          console.warn('[Google Login] Missing credential field in response');
           return;
         }
         setGoogleError('');
         const result = await loginWithGoogle(credential);
         if (result.success) {
+          console.info('[Google Login] Backend authentication succeeded');
           redirectAfterLogin();
         } else {
+          console.error('[Google Login] Backend authentication failed', result);
           setGoogleError(result.message || 'Unable to sign in with Google right now.');
         }
       } catch (err) {
-        console.error('[Google Login] Error:', err);
+        console.error('[Google Login] Error during login flow:', err);
         setGoogleError('Google login failed. Please try again.');
       }
     },
     [loginWithGoogle, redirectAfterLogin]
   );
 
-  const handleGoogleError = useCallback(() => {
-    setGoogleError('Google sign in failed. Please try again.');
+  useEffect(() => {
+    if (!googleClientId) {
+      console.warn('[Google Login] Google client ID missing; button disabled.');
+      return;
+    }
+
+    const initializeGoogle = () => {
+      if (!window.google?.accounts?.id) {
+        console.error('[Google Login] Google Identity Services unavailable after script load');
+        setGoogleError('Google sign in is unavailable right now. Please retry shortly.');
+        return;
+      }
+
+      if (!googleInitialized.current) {
+        window.google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: handleGoogleCredential,
+          context: 'signin',
+          ux_mode: 'popup',
+          itp_support: true
+        });
+        googleInitialized.current = true;
+        setGoogleReady(true);
+        console.info('[Google Login] Google Identity initialized successfully');
+      }
+    };
+
+    if (window.google?.accounts?.id) {
+      initializeGoogle();
+      return;
+    }
+
+    const scriptId = 'google-identity-services';
+    let script = document.getElementById(scriptId);
+
+    if (!script) {
+      script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeGoogle;
+      script.onerror = () => {
+        console.error('[Google Login] Failed to load Google Identity script');
+        setGoogleError('Unable to load Google sign in. Please check your network and try again.');
+      };
+      document.head.appendChild(script);
+    } else {
+      script.addEventListener('load', initializeGoogle);
+    }
+
+    return () => {
+      script?.removeEventListener?.('load', initializeGoogle);
+    };
+  }, [handleGoogleCredential]);
+
+  const handleGoogleButtonClick = useCallback(() => {
+    console.info('[Google Login] Sign-in button clicked');
+    setGoogleError('');
+
+    if (!googleInitialized.current) {
+      console.warn('[Google Login] Google Identity not ready yet');
+      setGoogleError('Google sign in is still initializing. Please retry in a moment.');
+      return;
+    }
+
+    const google = window.google;
+    if (!google?.accounts?.id) {
+      console.error('[Google Login] Google Identity object missing at click time');
+      setGoogleError('Google sign in is unavailable right now. Please refresh and try again.');
+      return;
+    }
+
+    google.accounts.id.prompt((notification) => {
+      if (notification?.isNotDisplayed?.()) {
+        console.warn('[Google Login] Prompt not displayed', notification.getNotDisplayedReason?.());
+        setGoogleError('Google sign in popup was blocked. Please disable popup blockers and retry.');
+      } else if (notification?.isSkippedMoment?.()) {
+        console.warn('[Google Login] Prompt skipped', notification.getSkippedReason?.());
+      } else if (notification?.isDismissedMoment?.()) {
+        console.info('[Google Login] Prompt dismissed', notification.getDismissedReason?.());
+      } else {
+        console.info('[Google Login] Prompt displayed successfully');
+      }
+    }, { prompt_parent_id: 'google-signin-prompt' });
   }, []);
 
   const handleSubmit = async (event) => {
@@ -160,7 +214,7 @@ export default function SmartAlgosLogin() {
                 </p>
               </div>
             </div>
-            <AnimatedGlobe />
+            <FinancialGlobe size="lg" />
             <div className="grid w-full gap-4 text-sm md:grid-cols-3">
               <StatusIndicator color="#38bdf8" label="Real-time institutional streams" />
               <StatusIndicator color="#22c55e" label="Secure, compliant execution" />
@@ -196,15 +250,18 @@ export default function SmartAlgosLogin() {
             <div className="space-y-3">
               {googleClientId ? (
                 <>
-                  <div className="flex w-full items-center justify-center">
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={handleGoogleError}
-                      theme="outline"
-                      text="continue_with"
-                      shape="pill"
-                      width="320"
-                    />
+                  <div id="google-signin-prompt" className="flex w-full items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={handleGoogleButtonClick}
+                      disabled={!googleReady}
+                      className="flex w-full max-w-[320px] items-center justify-center gap-3 rounded-full border border-slate-700 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#050611] focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <span className="flex items-center justify-center rounded-full bg-white">
+                        <GoogleIcon />
+                      </span>
+                      <span>Continue with Google</span>
+                    </button>
                   </div>
                   {googleError && (
                     <p className="text-center text-xs font-medium text-rose-400">{googleError}</p>

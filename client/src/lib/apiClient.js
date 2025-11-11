@@ -9,12 +9,36 @@ const axiosForCSRF = axios.create({
 });
 
 // Get API base URL from environment or use defaults
+const getRuntimeOrigin = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const { origin } = window.location;
+  if (!origin) {
+    return null;
+  }
+
+  // If we're running on localhost (CRA dev server), do not use window origin
+  const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+  if (isLocalhost) {
+    return null;
+  }
+
+  return origin;
+};
+
 const getBaseURL = () => {
   // Priority: REACT_APP_API_URL > auto-detect > default
   if (process.env.REACT_APP_API_URL) {
     return process.env.REACT_APP_API_URL;
   }
   
+  const runtimeOrigin = getRuntimeOrigin();
+  if (runtimeOrigin) {
+    return runtimeOrigin;
+  }
+
   if (process.env.NODE_ENV === 'development') {
     return 'http://localhost:5000';
   }

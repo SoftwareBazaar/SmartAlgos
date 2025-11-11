@@ -1,60 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, ShieldCheck, CheckCircle, XCircle, AlertCircle, Key, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getPasswordStrength, validatePassword } from '../../utils/passwordStrength';
-
-const AnimatedGlobe = () => {
-  const particleConfigs = useMemo(
-    () => [
-      { size: 6, distance: 108, duration: 18, delay: 0 },
-      { size: 4, distance: 92, duration: 14, delay: -3 },
-      { size: 5, distance: 128, duration: 22, delay: -6 },
-      { size: 3, distance: 76, duration: 12, delay: -1.5 },
-      { size: 7, distance: 140, duration: 26, delay: -10 },
-      { size: 4, distance: 100, duration: 16, delay: -4 },
-      { size: 5, distance: 118, duration: 20, delay: -7 },
-      { size: 3, distance: 86, duration: 15, delay: -2.5 }
-    ],
-    []
-  );
-
-  return (
-    <div className="relative h-72 w-72 md:h-80 md:w-80">
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-sky-500/10 via-indigo-400/10 to-transparent blur-3xl" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative h-60 w-60 md:h-64 md:w-64">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-sky-400 via-indigo-500 to-purple-500 opacity-70 blur" />
-          <div className="absolute inset-0 rounded-full bg-slate-950/60 backdrop-blur-md shadow-[0_25px_80px_-30px_rgba(56,189,248,0.55)]" />
-          <div className="absolute inset-0 rounded-full border border-sky-500/50 opacity-70" />
-          <div className="absolute inset-6 rounded-full border border-sky-400/30 opacity-50" />
-          <div className="absolute inset-x-10 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-transparent via-sky-300/40 to-transparent" />
-          <div className="absolute inset-y-10 left-1/2 w-0.5 -translate-x-1/2 rounded-full bg-gradient-to-b from-transparent via-sky-300/40 to-transparent" />
-          {particleConfigs.map((particle, index) => (
-            <span
-              // eslint-disable-next-line react/no-array-index-key
-              key={index}
-              className="absolute left-1/2 top-1/2 block rounded-full bg-sky-300 shadow-[0_0_12px_rgba(125,211,252,0.8)]"
-              style={{
-                width: particle.size,
-                height: particle.size,
-                marginLeft: -particle.size / 2,
-                marginTop: -particle.size / 2,
-                transformOrigin: `0 ${particle.distance}px`,
-                animation: `orbit ${particle.duration}s linear infinite`,
-                animationDelay: `${particle.delay}s`,
-                filter: 'drop-shadow(0 0 10px rgba(125,211,252,0.65))'
-              }}
-            />
-          ))}
-          <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-sky-400/30 via-indigo-400/20 to-purple-500/30 opacity-70" />
-        </div>
-      </div>
-      <div className="pointer-events-none absolute -inset-8 -z-10 rounded-full border border-sky-400/10" />
-    </div>
-  );
-};
+import FinancialGlobe from '../../components/animations/FinancialGlobe';
 
 const StatusIndicator = ({ color, label }) => (
   <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur">
@@ -147,17 +97,6 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-[#050611] text-white">
-      <style>{`
-        @keyframes orbit {
-          from { transform: rotate(0deg) translateY(-50%); }
-          to { transform: rotate(360deg) translateY(-50%); }
-        }
-        @keyframes pulse {
-          0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
-          70% { transform: translate(-50%, -50%) scale(1.35); opacity: 0; }
-          100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
-        }
-      `}</style>
       <div className="mx-auto flex min-h-screen w-full flex-col lg:flex-row">
         <div className="relative flex-[1.1] overflow-hidden bg-gradient-to-br from-[#0b1220] via-[#081733] to-[#160b36] px-10 py-14 sm:px-14 lg:px-16">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(168,85,247,0.22),_transparent_60%)]" />
@@ -175,7 +114,7 @@ const Register = () => {
                 </p>
               </div>
             </div>
-            <AnimatedGlobe />
+            <FinancialGlobe size="md" />
             <div className="grid w-full gap-4 text-sm md:grid-cols-3">
               <StatusIndicator color="#38bdf8" label="5-minute onboarding" />
               <StatusIndicator color="#22c55e" label="Institutional-grade compliance" />

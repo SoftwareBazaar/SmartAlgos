@@ -98,9 +98,9 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-[#050611] text-white">
       <div className="mx-auto flex min-h-screen w-full flex-col lg:flex-row">
-        <div className="relative flex-[1.1] overflow-hidden bg-gradient-to-br from-[#0b1220] via-[#081733] to-[#160b36] px-10 py-14 sm:px-14 lg:px-16">
+        <div className="relative flex-[1.1] overflow-hidden bg-gradient-to-br from-[#0b1220] via-[#081733] to-[#160b36] px-10 py-10 sm:px-14 lg:px-16">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(168,85,247,0.22),_transparent_60%)]" />
-          <div className="relative z-10 flex h-full flex-col justify-center gap-16">
+          <div className="relative z-10 flex h-full flex-col justify-start gap-12 pt-6 lg:pt-8">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200/80 backdrop-blur">
                 Smart Algos

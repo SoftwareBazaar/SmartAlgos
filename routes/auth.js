@@ -80,14 +80,17 @@ const extractMissingColumnName = (message = '') => {
     return null;
   }
 
-  const match = message.match(/column\s+"?([a-zA-Z0-9_]+)"?\s+(of\s+relation\s+"?[a-zA-Z0-9_]+"?\s+)?does not exist/i);
-  if (match && match[1]) {
-    return match[1];
-  }
+  const patterns = [
+    /column\s+"?([a-zA-Z0-9_]+)"?\s+(of\s+relation\s+"?[a-zA-Z0-9_]+"?\s+)?does not exist/i,
+    /column\s+"?([a-zA-Z0-9_]+)"?\s+of\s+relation/i,
+    /could\s+not\s+find\s+the\s+['"]?([a-zA-Z0-9_]+)['"]?\s+column/i
+  ];
 
-  const altMatch = message.match(/column\s+"?([a-zA-Z0-9_]+)"?\s+of\s+relation/i);
-  if (altMatch && altMatch[1]) {
-    return altMatch[1];
+  for (const pattern of patterns) {
+    const match = message.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
   }
 
   return null;

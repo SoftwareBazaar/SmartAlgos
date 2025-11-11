@@ -42,9 +42,23 @@ class DatabaseService {
       return;
     }
 
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const rawServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const rawAnonKey = process.env.SUPABASE_ANON_KEY;
+    const supabaseUrl =
+      process.env.SUPABASE_URL ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.REACT_APP_SUPABASE_URL;
+
+    const rawServiceRoleKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_SERVICE_KEY ||
+      process.env.SUPABASE_SECRET_KEY ||
+      process.env.SUPABASE_ADMIN_KEY ||
+      process.env.SUPABASE_SERVICE_API_KEY;
+
+    const rawAnonKey =
+      process.env.SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.REACT_APP_SUPABASE_ANON_KEY ||
+      process.env.SUPABASE_PUBLIC_ANON_KEY;
 
     if (!supabaseUrl) {
       throw new Error('SUPABASE_URL environment variable is required');
@@ -58,7 +72,7 @@ class DatabaseService {
     }
 
     if (rawServiceRoleKey && !serviceRoleKey) {
-      console.warn('[database] Ignoring SUPABASE_SERVICE_ROLE_KEY because it looks like a placeholder value. Falling back to anon key.');
+      console.warn('[database] Supabase service key provided but ignored because it looks like a placeholder. Falling back to anon key.');
     }
 
     if (!serviceRoleKey && process.env.NODE_ENV === 'production') {
@@ -77,6 +91,10 @@ class DatabaseService {
         }
       }
     });
+
+    console.log(
+      `[database] Supabase client initialized (service role: ${serviceRoleKey ? 'yes' : 'no'}, url: ${supabaseUrl})`
+    );
   }
 
   getClient() {

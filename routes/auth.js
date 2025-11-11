@@ -23,6 +23,112 @@ const isPlaceholderKey = (value = '') => {
 const explicitMockFlag = (process.env.MOCK_AUTH || '').toLowerCase();
 const useMockAuth = explicitMockFlag === 'true' || (explicitMockFlag !== 'false' && isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY));
 
+const FALLBACK_ERROR_CODES = new Set(['42501', 'PGRST301', 'PGRST302']);
+const FALLBACK_ERROR_PATTERNS = [
+  /row[-\s]?level security/i,
+  /permission denied/i,
+  /not authorized/i,
+  /violates policy/i
+];
+
+const OPTIONAL_COLUMN_DEPENDENCIES = {
+  kyc_accepted: ['kyc_accepted_at'],
+  kyc_accepted_at: ['kyc_accepted'],
+  account_tier: [],
+  trading_experience: [],
+  phone: [],
+  country: [],
+  preferences: [],
+  metadata: [],
+  two_factor_secret: [],
+  two_factor_enabled: []
+};
+
+const shouldFallbackToMock = (error) => {
+  if (!error) {
+    return false;
+  }
+
+  const code = error.code || error.status || error.name;
+  if (code && FALLBACK_ERROR_CODES.has(String(code))) {
+    return true;
+  }
+
+  const combinedMessage = `${error.message || ''} ${error.details || ''}`.trim();
+  if (!combinedMessage) {
+    return false;
+  }
+
+  return FALLBACK_ERROR_PATTERNS.some((pattern) => pattern.test(combinedMessage));
+};
+
+const removeUnsupportedColumn = (payload, column) => {
+  if (payload && Object.prototype.hasOwnProperty.call(payload, column)) {
+    delete payload[column];
+  }
+
+  const dependents = OPTIONAL_COLUMN_DEPENDENCIES[column] || [];
+  dependents.forEach((dependentColumn) => {
+    if (payload && Object.prototype.hasOwnProperty.call(payload, dependentColumn)) {
+      delete payload[dependentColumn];
+    }
+  });
+};
+
+const extractMissingColumnName = (message = '') => {
+  if (!message) {
+    return null;
+  }
+
+  const match = message.match(/column\s+"?([a-zA-Z0-9_]+)"?\s+(of\s+relation\s+"?[a-zA-Z0-9_]+"?\s+)?does not exist/i);
+  if (match && match[1]) {
+    return match[1];
+  }
+
+  const altMatch = message.match(/column\s+"?([a-zA-Z0-9_]+)"?\s+of\s+relation/i);
+  if (altMatch && altMatch[1]) {
+    return altMatch[1];
+  }
+
+  return null;
+};
+
+const insertUserWithColumnFallback = async (supabase, payload) => {
+  let workingPayload = { ...payload };
+  const removedColumns = new Set();
+  const maxAttempts = 8;
+  let attempt = 0;
+
+  while (attempt < maxAttempts) {
+    attempt += 1;
+
+    const { data, error } = await supabase
+      .from('users_accounts')
+      .insert(workingPayload)
+      .select('*')
+      .single();
+
+    if (!error) {
+      return { data, removedColumns: [...removedColumns] };
+    }
+
+    const missingColumn = extractMissingColumnName(error.message);
+    if (missingColumn && Object.prototype.hasOwnProperty.call(workingPayload, missingColumn)) {
+      console.warn(`[Registration] Removing unsupported column "${missingColumn}" and retrying insert.`);
+      removeUnsupportedColumn(workingPayload, missingColumn);
+      removedColumns.add(missingColumn);
+      continue;
+    }
+
+    return { error, removedColumns: [...removedColumns] };
+  }
+
+  return {
+    error: new Error('Exceeded maximum attempts while inserting user record'),
+    removedColumns: [...removedColumns]
+  };
+};
+
 const authStore = {
   async createUser(payload) {
     if (useMockAuth) {
@@ -173,6 +279,14 @@ router.post('/register', [
       kycAccepted
     } = req.body;
 
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if (!normalizedEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
     const normalizedAccountTier = (() => {
       if (!accountTier) {
         return 'basic';
@@ -223,12 +337,40 @@ router.post('/register', [
       });
     }
 
-    // Check if email is already registered
-    const { data: existingUser } = await supabase
-      .from('users_accounts')
-      .select('id')
-      .eq('email', email)
-      .single();
+    let existingUser = null;
+    try {
+      if (supabase) {
+        const { data: existingData, error: existingError } = await supabase
+          .from('users_accounts')
+          .select('id')
+          .eq('email', normalizedEmail)
+          .maybeSingle();
+
+        if (existingError && existingError.code !== 'PGRST116') {
+          if (!shouldFallbackToMock(existingError)) {
+            throw existingError;
+          }
+        }
+
+        if (!existingError && existingData) {
+          existingUser = existingData;
+        }
+      }
+
+      if (!existingUser && (useMockAuth || !supabase)) {
+        existingUser = await mockAuthStore.getUserByEmail(normalizedEmail);
+      }
+    } catch (lookupError) {
+      console.error('[Registration] Failed to check existing user:', lookupError);
+      if (shouldFallbackToMock(lookupError) || useMockAuth || !supabase) {
+        existingUser = await mockAuthStore.getUserByEmail(normalizedEmail);
+      } else {
+        return res.status(500).json({
+          success: false,
+          message: 'Unable to verify existing accounts. Please try again later.'
+        });
+      }
+    }
 
     if (existingUser) {
       return res.status(400).json({
@@ -238,7 +380,7 @@ router.post('/register', [
     }
 
     // Send OTP for email verification
-    const otpResult = await otpService.sendOTPEmail(email, 'email_verification');
+    const otpResult = await otpService.sendOTPEmail(normalizedEmail, 'email_verification');
     
     if (!otpResult.success) {
       console.warn('[Registration] Failed to send OTP email, proceeding with registration anyway');
@@ -247,18 +389,22 @@ router.post('/register', [
 
     // Store registration data temporarily (in production, use Redis or database)
     // For now, we'll create the user but mark email as unverified
+    const basePreferences = {
+      phone: phone || null,
+      country: country || null,
+      tradingExperience: tradingExperience || 'beginner',
+      accountTier: normalizedAccountTier,
+      kycAccepted: !!kycAccepted,
+      kycAcceptedAt: new Date().toISOString(),
+      metadataVersion: 1
+    };
+
     const userData = {
       id: userId,
       first_name: firstName,
       last_name: lastName,
-      email,
+      email: normalizedEmail,
       password_hash: passwordHash,
-      phone,
-      country,
-      trading_experience: tradingExperience || 'beginner',
-      account_tier: normalizedAccountTier,
-      kyc_accepted: kycAccepted,
-      kyc_accepted_at: new Date().toISOString(),
       is_active: true,
       is_email_verified: false, // Require OTP verification
       role: 'user',
@@ -266,23 +412,50 @@ router.post('/register', [
       subscription_status: 'active',
       subscription_start_date: new Date().toISOString(),
       subscription_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-      preferences: {},
+      trading_experience: tradingExperience || 'beginner',
+      account_tier: normalizedAccountTier,
+      kyc_accepted: kycAccepted,
+      kyc_accepted_at: new Date().toISOString(),
+      preferences: basePreferences,
+      phone: phone || null,
+      country: country || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
-    const { data: profileData, error: profileError } = await supabase
-      .from('users_accounts')
-      .insert(userData)
-      .select()
-      .single();
+    let userProfile = null;
+    let createdInMockStore = false;
+    let removedColumns = [];
 
-    if (profileError) {
-      console.error('Profile creation error:', profileError.message);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to create user account'
-      });
+    if (supabase) {
+      const { data: profileData, error: profileError, removedColumns: removed } = await insertUserWithColumnFallback(
+        supabase,
+        userData
+      );
+
+      if (profileError) {
+        console.error('[Registration] Supabase profile creation error:', profileError);
+
+        if (!shouldFallbackToMock(profileError)) {
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to create user account'
+          });
+        }
+      } else {
+        userProfile = profileData;
+        removedColumns = removed || [];
+      }
+    }
+
+    if (!userProfile) {
+      console.warn('[Registration] Using mock auth store for new user profile.');
+      userProfile = await mockAuthStore.createUser({ ...userData });
+      createdInMockStore = true;
+    }
+
+    if (removedColumns.length > 0) {
+      console.warn(`[Registration] Skipped unsupported columns during insert: ${removedColumns.join(', ')}`);
     }
 
     // Check if user wants to enable 2FA during registration
@@ -314,7 +487,8 @@ router.post('/register', [
         qrCode: twoFactorData.qrCode,
         secret: twoFactorData.secret,
         backupCodes: twoFactorData.backupCodes
-      } : null
+      } : null,
+      mockAuth: createdInMockStore
     });
 
   } catch (error) {

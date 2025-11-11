@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { initErrorMonitoring } from './utils/errorMonitoring';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 // Initialize error monitoring
 initErrorMonitoring();
@@ -46,10 +49,20 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+if (!googleClientId) {
+  console.warn('Google OAuth client ID is missing. Google login button will be hidden.');
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    {googleClientId ? (
+      <GoogleOAuthProvider clientId={googleClientId}>
+        <App />
+      </GoogleOAuthProvider>
+    ) : (
+      <App />
+    )}
   </React.StrictMode>
 );
 

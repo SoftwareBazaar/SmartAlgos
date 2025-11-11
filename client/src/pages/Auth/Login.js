@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, ShieldCheck } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 
 const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
@@ -82,9 +83,6 @@ export default function SmartAlgosLogin() {
   const [googleError, setGoogleError] = useState('');
   const [showCompliance, setShowCompliance] = useState(false);
 
-  const googleButtonRef = useRef(null);
-  const googleReady = useRef(false);
-
   const { login, loginWithGoogle, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -94,15 +92,16 @@ export default function SmartAlgosLogin() {
     navigate(redirectTo, { replace: true });
   }, [location.state, navigate]);
 
-  const handleGoogleCredential = useCallback(
-    async (response) => {
+  const handleGoogleSuccess = useCallback(
+    async (credentialResponse) => {
+      const credential = credentialResponse?.credential;
       try {
-        if (!response?.credential) {
+        if (!credential) {
           setGoogleError('Google did not return a credential. Please try again.');
           return;
         }
         setGoogleError('');
-        const result = await loginWithGoogle(response.credential);
+        const result = await loginWithGoogle(credential);
         if (result.success) {
           redirectAfterLogin();
         } else {
@@ -116,54 +115,9 @@ export default function SmartAlgosLogin() {
     [loginWithGoogle, redirectAfterLogin]
   );
 
-  useEffect(() => {
-    if (!googleClientId) {
-      return;
-    }
-
-    const renderGoogleButton = () => {
-      if (!window.google || !googleButtonRef.current) {
-        return;
-      }
-
-      window.google.accounts.id.initialize({
-        client_id: googleClientId,
-        callback: handleGoogleCredential
-      });
-      window.google.accounts.id.renderButton(googleButtonRef.current, {
-        theme: 'outline',
-        size: 'large',
-        text: 'signin_with',
-        shape: 'pill',
-        width: 320
-      });
-      googleReady.current = true;
-    };
-
-    if (window.google?.accounts?.id) {
-      renderGoogleButton();
-      return;
-    }
-
-    const scriptId = 'google-identity-services';
-    let script = document.getElementById(scriptId);
-
-    if (!script) {
-      script = document.createElement('script');
-      script.id = scriptId;
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = renderGoogleButton;
-      document.head.appendChild(script);
-    } else {
-      script.addEventListener('load', renderGoogleButton);
-    }
-
-    return () => {
-      script?.removeEventListener?.('load', renderGoogleButton);
-    };
-  }, [handleGoogleCredential]);
+  const handleGoogleError = useCallback(() => {
+    setGoogleError('Google sign in failed. Please try again.');
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -242,17 +196,19 @@ export default function SmartAlgosLogin() {
             <div className="space-y-3">
               {googleClientId ? (
                 <>
-                  <div ref={googleButtonRef} className="flex w-full items-center justify-center" />
+                  <div className="flex w-full items-center justify-center">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={handleGoogleError}
+                      theme="outline"
+                      text="continue_with"
+                      shape="pill"
+                      width="320"
+                    />
+                  </div>
                   {googleError && (
                     <p className="text-center text-xs font-medium text-rose-400">{googleError}</p>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => googleReady.current && window.google?.accounts?.id?.prompt()}
-                    className="w-full text-xs font-medium text-slate-400 transition hover:text-white"
-                  >
-                    Trouble seeing the button? Retry Google sign in.
-                  </button>
                 </>
               ) : (
                 <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-4 py-3 text-center text-sm text-slate-300">

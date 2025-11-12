@@ -550,6 +550,7 @@ router.post('/google', async (req, res) => {
     const normalizedEmail = email.toLowerCase();
 
     let userProfile = null;
+    const nowIso = new Date().toISOString();
 
     if (supabase) {
       const { data: existingProfile, error: profileError } = await supabase
@@ -596,17 +597,21 @@ router.post('/google', async (req, res) => {
           subscription_start_date: new Date().toISOString(),
           subscription_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
           preferences: {},
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          created_at: nowIso,
+          updated_at: nowIso,
           avatar_url: payload.picture || null,
-          auth_provider: 'google'
+          auth_provider: 'google',
+          last_login: nowIso,
+          last_activity: nowIso,
+          login_attempts: 0,
+          account_locked_until: null
         };
 
-        const { data: insertedUser, error: insertError } = await supabase
-          .from('users_accounts')
-          .insert(newUser)
-          .select('*')
-          .single();
+        const {
+          data: insertedUser,
+          error: insertError,
+          removedColumns
+        } = await insertUserWithColumnFallback(supabase, newUser);
 
         if (insertError) {
           console.error('[Google Auth] Failed to create user profile:', insertError);
@@ -616,23 +621,42 @@ router.post('/google', async (req, res) => {
           });
         }
 
+        if (removedColumns && removedColumns.length) {
+          console.warn(
+            `[Google Auth] Insert succeeded after removing unsupported columns: ${removedColumns.join(', ')}`
+          );
+        }
+
         userProfile = insertedUser;
       } else {
         // Update existing profile with latest avatar/provider info
-        const updates = {};
+        const updates = {
+          last_login: nowIso,
+          last_activity: nowIso,
+          login_attempts: 0,
+          account_locked_until: null
+        };
+
         if (payload.picture && userProfile.avatar_url !== payload.picture) {
           updates.avatar_url = payload.picture;
         }
         if (!userProfile.auth_provider) {
           updates.auth_provider = 'google';
         }
+        if (!userProfile.is_email_verified) {
+          updates.is_email_verified = true;
+        }
         if (Object.keys(updates).length > 0) {
-          updates.updated_at = new Date().toISOString();
-          await supabase
+          updates.updated_at = nowIso;
+          const { error: updateError } = await supabase
             .from('users_accounts')
             .update(updates)
             .eq('id', userProfile.id);
-          userProfile = { ...userProfile, ...updates };
+          if (updateError) {
+            console.error('[Google Auth] Failed updating existing user profile:', updateError);
+          } else {
+            userProfile = { ...userProfile, ...updates };
+          }
         }
       }
     } else {
@@ -656,12 +680,23 @@ router.post('/google', async (req, res) => {
           preferences: {},
           avatar_url: payload.picture || null,
           auth_provider: 'google',
-          password_hash: null
+          password_hash: null,
+          last_login: nowIso,
+          last_activity: nowIso,
+          login_attempts: 0
         });
       } else {
-        const updates = { auth_provider: 'google' };
+        const updates = {
+          auth_provider: 'google',
+          last_login: nowIso,
+          last_activity: nowIso,
+          login_attempts: 0
+        };
         if (payload.picture && userProfile.avatar_url !== payload.picture) {
           updates.avatar_url = payload.picture;
+        }
+        if (!userProfile.is_email_verified) {
+          updates.is_email_verified = true;
         }
         userProfile = await mockAuthStore.updateUser(userProfile.id, updates);
       }
@@ -678,6 +713,14 @@ router.post('/google', async (req, res) => {
     const userResponse = { ...userProfile };
     delete userResponse.password_hash;
     delete userResponse.two_factor_secret;
+
+    securityService.logSecurityEvent('successful_login', {
+      provider: 'google',
+      email: userProfile.email,
+      userId: userProfile.id,
+      ip: req.ip || req.connection?.remoteAddress,
+      userAgent: req.headers['user-agent']
+    });
 
     res.json({
       success: true,

@@ -1,10 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, ShieldCheck } from 'lucide-react';
 import FinancialGlobe from '../../components/animations/FinancialGlobe';
-
-const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 const StatusIndicator = ({ color, label }) => (
   <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur">
@@ -24,29 +22,14 @@ const StatusIndicator = ({ color, label }) => (
   </div>
 );
 
-const GoogleIcon = () => (
-  <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-    <path
-      d="M12 10.2v4.08h5.78c-.25 1.32-1.75 3.88-5.78 3.88a6.68 6.68 0 0 1 0-13.36 5.82 5.82 0 0 1 4.1 1.6l2.77-2.67A9.64 9.64 0 0 0 12 2a10 10 0 1 0 0 20c5.76 0 9.6-4 9.6-9.64a8.78 8.78 0 0 0-.16-1.76Z"
-      fill="#4285F4"
-    />
-    <path d="M3.16 7.36 6.38 9.72A4 4 0 0 1 9.6 7.64a4 4 0 0 1 2.4.8l2.93-2.93A8.84 8.84 0 0 0 9.6 4 10 10 0 0 0 3.16 7.36Z" fill="#EA4335" />
-    <path d="M12 20c2.72 0 5-1 6.7-2.68l-3.1-2.42a4.43 4.43 0 0 1-3.6 1.08 4.41 4.41 0 0 1-3.4-2.5l-3.2 2.5A9.84 9.84 0 0 0 12 20Z" fill="#34A853" />
-    <path d="M3.2 7.36a10 10 0 0 0 0 9.28l3.2-2.5a4.33 4.33 0 0 1 0-4.3Z" fill="#FBBC04" />
-  </svg>
-);
-
 export default function SmartAlgosLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [googleError, setGoogleError] = useState('');
   const [showCompliance, setShowCompliance] = useState(false);
-  const [googleReady, setGoogleReady] = useState(false);
-  const googleInitialized = useRef(false);
 
-  const { login, loginWithGoogle, loading } = useAuth();
+  const { login, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -54,124 +37,6 @@ export default function SmartAlgosLogin() {
     const redirectTo = location.state?.from?.pathname || '/dashboard';
     navigate(redirectTo, { replace: true });
   }, [location.state, navigate]);
-
-  const handleGoogleCredential = useCallback(
-    async (credentialResponse) => {
-      console.info('[Google Login] Credential callback received', {
-        hasCredential: Boolean(credentialResponse?.credential),
-        clientId: credentialResponse?.clientId,
-        select_by: credentialResponse?.select_by
-      });
-      const credential = credentialResponse?.credential;
-      try {
-        if (!credential) {
-          setGoogleError('Google did not return a credential. Please try again.');
-          console.warn('[Google Login] Missing credential field in response');
-          return;
-        }
-        setGoogleError('');
-        const result = await loginWithGoogle(credential);
-        if (result.success) {
-          console.info('[Google Login] Backend authentication succeeded');
-          redirectAfterLogin();
-        } else {
-          console.error('[Google Login] Backend authentication failed', result);
-          setGoogleError(result.message || 'Unable to sign in with Google right now.');
-        }
-      } catch (err) {
-        console.error('[Google Login] Error during login flow:', err);
-        setGoogleError('Google login failed. Please try again.');
-      }
-    },
-    [loginWithGoogle, redirectAfterLogin]
-  );
-
-  useEffect(() => {
-    if (!googleClientId) {
-      console.warn('[Google Login] Google client ID missing; button disabled.');
-      return;
-    }
-
-    const initializeGoogle = () => {
-      if (!window.google?.accounts?.id) {
-        console.error('[Google Login] Google Identity Services unavailable after script load');
-        setGoogleError('Google sign in is unavailable right now. Please retry shortly.');
-        return;
-      }
-
-      if (!googleInitialized.current) {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleGoogleCredential,
-          context: 'signin',
-          ux_mode: 'popup',
-          itp_support: true
-        });
-        googleInitialized.current = true;
-        setGoogleReady(true);
-        console.info('[Google Login] Google Identity initialized successfully');
-      }
-    };
-
-    if (window.google?.accounts?.id) {
-      initializeGoogle();
-      return;
-    }
-
-    const scriptId = 'google-identity-services';
-    let script = document.getElementById(scriptId);
-
-    if (!script) {
-      script = document.createElement('script');
-      script.id = scriptId;
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = initializeGoogle;
-      script.onerror = () => {
-        console.error('[Google Login] Failed to load Google Identity script');
-        setGoogleError('Unable to load Google sign in. Please check your network and try again.');
-      };
-      document.head.appendChild(script);
-    } else {
-      script.addEventListener('load', initializeGoogle);
-    }
-
-    return () => {
-      script?.removeEventListener?.('load', initializeGoogle);
-    };
-  }, [handleGoogleCredential]);
-
-  const handleGoogleButtonClick = useCallback(() => {
-    console.info('[Google Login] Sign-in button clicked');
-    setGoogleError('');
-
-    if (!googleInitialized.current) {
-      console.warn('[Google Login] Google Identity not ready yet');
-      setGoogleError('Google sign in is still initializing. Please retry in a moment.');
-      return;
-    }
-
-    const google = window.google;
-    if (!google?.accounts?.id) {
-      console.error('[Google Login] Google Identity object missing at click time');
-      setGoogleError('Google sign in is unavailable right now. Please refresh and try again.');
-      return;
-    }
-
-    google.accounts.id.prompt((notification) => {
-      if (notification?.isNotDisplayed?.()) {
-        console.warn('[Google Login] Prompt not displayed', notification.getNotDisplayedReason?.());
-        setGoogleError('Google sign in popup was blocked. Please disable popup blockers and retry.');
-      } else if (notification?.isSkippedMoment?.()) {
-        console.warn('[Google Login] Prompt skipped', notification.getSkippedReason?.());
-      } else if (notification?.isDismissedMoment?.()) {
-        console.info('[Google Login] Prompt dismissed', notification.getDismissedReason?.());
-      } else {
-        console.info('[Google Login] Prompt displayed successfully');
-      }
-    }, { prompt_parent_id: 'google-signin-prompt' });
-  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -244,41 +109,8 @@ export default function SmartAlgosLogin() {
           <div className="mx-auto w-full max-w-[700px] space-y-8 lg:max-w-[55vw] lg:mt-[-3rem]">
             <div className="space-y-2 text-center">
               <h2 className="text-2xl font-semibold">Sign in to Smart Algos</h2>
-              <p className="text-sm text-slate-400">Authenticate with Google or use your secure access credentials.</p>
+              <p className="text-sm text-slate-400">Use your verified email and password to access your account.</p>
             </div>
-
-            <div className="space-y-3">
-              {googleClientId ? (
-                <>
-                  <div id="google-signin-prompt" className="flex w-full items-center justify-center">
-                    <button
-                      type="button"
-                      onClick={handleGoogleButtonClick}
-                      disabled={!googleReady}
-                      className="flex w-full max-w-[320px] items-center justify-center gap-3 rounded-full border border-slate-700 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#050611] focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <span className="flex items-center justify-center rounded-full bg-white">
-                        <GoogleIcon />
-                      </span>
-                      <span>Continue with Google</span>
-                    </button>
-                  </div>
-                  {googleError && (
-                    <p className="text-center text-xs font-medium text-rose-400">{googleError}</p>
-                  )}
-                </>
-              ) : (
-                <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-4 py-3 text-center text-sm text-slate-300">
-                  Google login is disabled on this build; contact support to enable OAuth.
-                </div>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-4 text-xs text-slate-500">
-              <span className="h-px flex-1 bg-slate-800" />
-              <span>Or continue with email</span>
-              <span className="h-px flex-1 bg-slate-800" />
-          </div>
 
             <form className="space-y-5" onSubmit={handleSubmit}>
             {error && (

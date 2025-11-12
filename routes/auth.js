@@ -1216,12 +1216,14 @@ router.post('/verify-otp', [
     }
 
     // Update user email verification status
+    const verificationUpdates = { 
+      is_email_verified: true,
+      last_email_verification_at: new Date().toISOString()
+    };
+
     const { data: user, error: updateError } = await supabase
       .from('users_accounts')
-      .update({ 
-        is_email_verified: true,
-        email_verified_at: new Date().toISOString()
-      })
+      .update(verificationUpdates)
       .eq('email', email)
       .select()
       .single();

@@ -65,14 +65,18 @@ router.post('/initialize', [
 
     const result = await paystackService.initializeTransaction(transactionData);
 
-    // Log payment initialization
-    securityService.logSecurityEvent('payment_initialized', {
-      userId: req.user._id,
-      amount,
-      currency,
-      reference,
-      ip: securityService.getClientIP(req)
-    });
+    // Log payment initialization (non-blocking)
+    try {
+      securityService.logSecurityEvent('payment_initialized', {
+        userId: req.user._id,
+        amount,
+        currency,
+        reference,
+        ip: securityService.getClientIP(req)
+      });
+    } catch (logError) {
+      console.error('Security logging failed (non-fatal):', logError.message);
+    }
 
     res.json({
       success: true,
@@ -82,9 +86,15 @@ router.post('/initialize', [
 
   } catch (error) {
     console.error('Initialize payment error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      response: error.response?.data
+    });
     res.status(500).json({
       success: false,
-      message: 'Failed to initialize payment'
+      message: 'Failed to initialize payment',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -916,7 +926,7 @@ router.post('/webhook/paystack', async (req, res) => {
     }
 
     const event = paystackService.parseWebhookEvent(payload);
-    
+
     // Log webhook event
     securityService.logSecurityEvent('webhook_received', {
       event: event.event,
@@ -1145,9 +1155,9 @@ router.post('/crypto/initialize', [
     }
 
     const { amount, currency } = req.body;
-    
+
     const cryptoPayment = await cryptoPaymentService.createPaymentRequest(amount, currency);
-    
+
     // Log crypto payment initialization
     securityService.logSecurityEvent('crypto_payment_initialized', {
       userId: req.user._id,
@@ -1192,9 +1202,9 @@ router.post('/crypto/verify', [
     }
 
     const { paymentId, txHash, cryptoType } = req.body;
-    
+
     const verified = await cryptoPaymentService.verifyPayment(paymentId, txHash, cryptoType);
-    
+
     if (verified) {
       // Log successful verification
       securityService.logSecurityEvent('crypto_payment_verified', {
@@ -1204,7 +1214,7 @@ router.post('/crypto/verify', [
         cryptoType,
         ip: securityService.getClientIP(req)
       });
-      
+
       res.json({
         success: true,
         message: 'Payment verified successfully',
@@ -1240,7 +1250,7 @@ router.get('/crypto/status', [
 ], async (req, res) => {
   try {
     const status = cryptoPaymentService.getStatus();
-    
+
     res.json({
       success: true,
       data: status,
@@ -1292,9 +1302,9 @@ router.post('/crypto/subscribe', [
 
     // Create payment request with blockchain monitoring
     const paymentRequest = await cryptoPaymentService.createPaymentRequest(
-      amount, 
-      currency, 
-      eaId, 
+      amount,
+      currency,
+      eaId,
       subscriptionType
     );
 
@@ -1380,7 +1390,7 @@ router.post('/crypto/confirm', [
     if (verified) {
       // Grant immediate access
       // TODO: Implement database update to grant EA access
-      
+
       res.json({
         success: true,
         message: 'Payment confirmed and access granted',

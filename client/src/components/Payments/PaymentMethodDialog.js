@@ -4,10 +4,10 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { 
-  CreditCard, 
-  Smartphone, 
-  Bitcoin, 
+import {
+  CreditCard,
+  Smartphone,
+  Bitcoin,
   X,
   ChevronRight,
   DollarSign
@@ -15,10 +15,10 @@ import {
 import MpesaPayment from '../MpesaPayment';
 import CryptoPayment from '../CryptoPayment';
 
-const PaymentMethodDialog = ({ 
-  isOpen, 
-  onClose, 
-  amount, 
+const PaymentMethodDialog = ({
+  isOpen,
+  onClose,
+  amount,
   currency = 'USD',
   onPaymentSuccess,
   onPaymentError,
@@ -78,7 +78,7 @@ const PaymentMethodDialog = ({
   // Convert amount to KES if needed for M-Pesa
   const getConvertedAmount = (targetCurrency) => {
     if (currency === targetCurrency) return amount;
-    
+
     // Simple conversion rates (in production, use real-time rates)
     const conversionRates = {
       'USD': { 'KES': 150 },
@@ -181,11 +181,10 @@ const PaymentMethodDialog = ({
                   key={method.id}
                   onClick={() => handleMethodSelect(method.id)}
                   disabled={!method.available || !amountValid}
-                  className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
-                    method.available && amountValid
+                  className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${method.available && amountValid
                       ? `border-gray-200 dark:border-gray-700 hover:border-${method.color}-500 hover:bg-${method.color}-50 dark:hover:bg-${method.color}-900/20`
                       : 'border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center space-x-4">
                     <div className={`p-3 rounded-full bg-${method.color}-100 dark:bg-${method.color}-900/30`}>
@@ -195,7 +194,7 @@ const PaymentMethodDialog = ({
                       <h3 className="font-semibold text-gray-900 dark:text-white">
                         {method.name}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
                         {method.description}
                       </p>
                       {method.id === 'mpesa' && currency !== 'KES' && (
@@ -261,7 +260,7 @@ const PaymentMethodDialog = ({
               >
                 ← Back to payment methods
               </button>
-              
+
               <div className="space-y-4">
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                   <div className="flex items-center space-x-3">
@@ -281,6 +280,9 @@ const PaymentMethodDialog = ({
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email Address
                   </label>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">
+                    💳 You'll enter your card details on the next page (Paystack secure checkout)
+                  </p>
                   <input
                     type="email"
                     value={paystackData.email}

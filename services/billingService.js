@@ -69,7 +69,7 @@ class BillingService {
       } = subscriptionData;
 
       // Validate user
-      const user = await User.findById(userId);
+      const user = await databaseService.getUserById(userId);
       if (!user) {
         throw new Error('User not found');
       }
@@ -82,9 +82,9 @@ class BillingService {
       // Get product details
       let product;
       if (productType === 'ea') {
-        product = await EA.findById(productId);
+        product = await databaseService.getEAById(productId);
       } else if (productType === 'hft') {
-        product = await HFTBot.findById(productId);
+        product = await databaseService.getHFTBotById(productId);
       } else {
         throw new Error('Invalid product type');
       }
@@ -115,20 +115,20 @@ class BillingService {
       }
 
       // Create subscription record
-      const subscription = new Subscription({
-        user: userId,
-        subscriptionType: subscriptionType,
-        product: productId,
-        productType: productType,
+      const subscription = await databaseService.insert('subscriptions', {
+        user_id: userId,
+        subscription_type: subscriptionType,
+        product_id: productId,
+        product_type: productType,
         price: totalPrice,
         currency: planDetails.currency,
         interval: interval,
         status: 'pending',
-        paymentStatus: 'pending',
-        paymentMethod: paymentMethod,
-        paystackPlanId: paystackPlanId,
-        startDate: new Date(),
-        endDate: new Date(Date.now() + this.billingIntervals[interval]),
+        payment_status: 'pending',
+        payment_method: paymentMethod,
+        paystack_plan_id: paystackPlanId,
+        start_date: new Date().toISOString(),
+        end_date: new Date(Date.now() + this.billingIntervals[interval]).toISOString(),
         features: planDetails.features,
         limits: planDetails.limits,
         metadata: {
@@ -137,8 +137,6 @@ class BillingService {
           created_at: new Date().toISOString()
         }
       });
-
-      await subscription.save();
 
       // Create escrow if required - DISABLED
       // if (productType === 'ea' && product.requiresEscrow) {
@@ -165,9 +163,10 @@ class BillingService {
 
   async processPayment(subscriptionId, paymentData) {
     try {
-      const subscription = await Subscription.findById(subscriptionId)
-        .populate('user')
-        .populate('product');
+      const subscription = await databaseService.query('subscriptions', {
+        filter: { id: subscriptionId },
+        single: true
+      });
 
       if (!subscription) {
         throw new Error('Subscription not found');
@@ -188,23 +187,25 @@ class BillingService {
 
       if (paymentResult.success) {
         // Update subscription status
-        subscription.status = 'active';
-        subscription.paymentStatus = 'paid';
-        subscription.paymentReference = paymentResult.reference;
-        subscription.paymentDate = new Date();
-        await subscription.save();
+        await databaseService.update('subscriptions', subscription.id, {
+          status: 'active',
+          payment_status: 'paid',
+          payment_reference: paymentResult.reference,
+          payment_date: new Date().toISOString()
+        });
 
         // Update user subscription
-        const user = subscription.user;
-        user.subscription = {
-          type: subscription.subscriptionType,
-          status: 'active',
-          startDate: subscription.startDate,
-          endDate: subscription.endDate,
-          features: subscription.features,
-          limits: subscription.limits
-        };
-        await user.save();
+        const user = await databaseService.getUserById(subscription.user_id);
+        await databaseService.update('users_accounts', user.id, {
+          subscription: {
+            type: subscription.subscription_type,
+            status: 'active',
+            startDate: subscription.start_date,
+            endDate: subscription.end_date,
+            features: subscription.features,
+            limits: subscription.limits
+          }
+        });
 
         // Send notification
         await this.sendSubscriptionNotification(user, subscription, 'activated');
@@ -262,9 +263,10 @@ class BillingService {
 
   async activateSubscription(subscriptionId) {
     try {
-      const subscription = await Subscription.findById(subscriptionId)
-        .populate('user')
-        .populate('product');
+      const subscription = await databaseService.query('subscriptions', {
+        filter: { id: subscriptionId },
+        single: true
+      });
 
       if (!subscription) {
         throw new Error('Subscription not found');
@@ -298,30 +300,33 @@ class BillingService {
 
   async cancelSubscription(subscriptionId, reason = 'User request') {
     try {
-      const subscription = await Subscription.findById(subscriptionId)
-        .populate('user')
-        .populate('product');
+      const subscription = await databaseService.query('subscriptions', {
+        filter: { id: subscriptionId },
+        single: true
+      });
 
       if (!subscription) {
         throw new Error('Subscription not found');
       }
 
-      subscription.status = 'cancelled';
-      subscription.cancelledAt = new Date();
-      subscription.cancellationReason = reason;
-      await subscription.save();
+      await databaseService.update('subscriptions', subscription.id, {
+        status: 'cancelled',
+        cancelled_at: new Date().toISOString(),
+        cancellation_reason: reason
+      });
 
       // Update user subscription
-      const user = subscription.user;
-      user.subscription = {
-        type: 'free',
-        status: 'cancelled',
-        startDate: null,
-        endDate: null,
-        features: [],
-        limits: {}
-      };
-      await user.save();
+      const user = await databaseService.getUserById(subscription.user_id);
+      await databaseService.update('users_accounts', user.id, {
+        subscription: {
+          type: 'free',
+          status: 'cancelled',
+          startDate: null,
+          endDate: null,
+          features: [],
+          limits: {}
+        }
+      });
 
       // Cancel Paystack subscription if exists
       if (subscription.paystackSubscriptionId) {
@@ -344,9 +349,10 @@ class BillingService {
 
   async renewSubscription(subscriptionId) {
     try {
-      const subscription = await Subscription.findById(subscriptionId)
-        .populate('user')
-        .populate('product');
+      const subscription = await databaseService.query('subscriptions', {
+        filter: { id: subscriptionId },
+        single: true
+      });
 
       if (!subscription) {
         throw new Error('Subscription not found');
@@ -357,17 +363,19 @@ class BillingService {
       }
 
       // Calculate new end date
-      const newEndDate = new Date(subscription.endDate.getTime() + this.billingIntervals[subscription.interval]);
+      const currentEndDate = new Date(subscription.end_date);
+      const newEndDate = new Date(currentEndDate.getTime() + this.billingIntervals[subscription.interval]);
 
-      subscription.endDate = newEndDate;
-      subscription.renewedAt = new Date();
-      subscription.renewalCount = (subscription.renewalCount || 0) + 1;
-      await subscription.save();
+      await databaseService.update('subscriptions', subscription.id, {
+        end_date: newEndDate.toISOString(),
+        renewed_at: new Date().toISOString(),
+        renewal_count: (subscription.renewal_count || 0) + 1
+      });
 
       // Update user subscription end date
-      const user = subscription.user;
-      user.subscription.endDate = newEndDate;
-      await user.save();
+      await databaseService.update('users_accounts', subscription.user_id, {
+        'subscription.endDate': newEndDate.toISOString()
+      });
 
       // Send notification
       await this.sendSubscriptionNotification(user, subscription, 'renewed');
@@ -384,11 +392,13 @@ class BillingService {
   async processRecurringBilling() {
     try {
       // Find subscriptions that need renewal
-      const expiringSubscriptions = await Subscription.find({
-        status: 'active',
-        endDate: { $lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }, // Expiring in 7 days
-        autoRenew: true
-      }).populate('user').populate('product');
+      const expiringSubscriptions = await databaseService.query('subscriptions', {
+        filter: {
+          status: 'active',
+          auto_renew: true,
+          end_date: { lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() }
+        }
+      });
 
       for (const subscription of expiringSubscriptions) {
         try {
@@ -443,9 +453,10 @@ class BillingService {
 
   async processRefund(subscriptionId, refundData) {
     try {
-      const subscription = await Subscription.findById(subscriptionId)
-        .populate('user')
-        .populate('product');
+      const subscription = await databaseService.query('subscriptions', {
+        filter: { id: subscriptionId },
+        single: true
+      });
 
       if (!subscription) {
         throw new Error('Subscription not found');
@@ -469,24 +480,24 @@ class BillingService {
 
       if (refundResult.success) {
         // Update subscription status
-        subscription.status = 'refunded';
-        subscription.refundedAt = new Date();
-        subscription.refundAmount = refundAmount;
-        subscription.refundReason = reason;
-        await subscription.save();
+        await databaseService.update('subscriptions', subscription.id, {
+          status: 'refunded',
+          refunded_at: new Date().toISOString(),
+          refund_amount: refundAmount,
+          refund_reason: reason
+        });
 
         // Update user subscription
-        const user = subscription.user;
-        user.subscription = {
-          type: 'free',
-          status: 'refunded',
-          startDate: null,
-          endDate: null,
-          features: [],
-          limits: {}
-        };
-        await user.save();
-
+        await databaseService.update('users_accounts', subscription.user_id, {
+          subscription: {
+            type: 'free',
+            status: 'refunded',
+            startDate: null,
+            endDate: null,
+            features: [],
+            limits: {}
+          }
+        });
         // Send notification
         await this.sendSubscriptionNotification(user, subscription, 'refunded');
 
@@ -519,10 +530,10 @@ class BillingService {
         createdAt: { $gte: startDate, $lte: endDate }
       };
 
-      if (subscriptionType) filter.subscriptionType = subscriptionType;
+      if (subscriptionType) filter.subscription_type = subscriptionType;
       if (status) filter.status = status;
 
-      const subscriptions = await Subscription.find(filter);
+      const subscriptions = await databaseService.query('subscriptions', { filter });
 
       const analytics = {
         total: subscriptions.length,
@@ -629,13 +640,14 @@ class BillingService {
       if (type) filter.subscriptionType = type;
 
       const skip = (page - 1) * limit;
-      const subscriptions = await Subscription.find(filter)
-        .populate('product', 'name description')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
+      const subscriptions = await databaseService.query('subscriptions', {
+        filter: filter,
+        sort: { created_at: 'desc' },
+        limit: limit,
+        offset: skip
+      });
 
-      const total = await Subscription.countDocuments(filter);
+      const total = await databaseService.count('subscriptions', { filter });
 
       return {
         subscriptions,
@@ -654,9 +666,10 @@ class BillingService {
 
   async getSubscriptionDetails(subscriptionId) {
     try {
-      const subscription = await Subscription.findById(subscriptionId)
-        .populate('user', 'firstName lastName email')
-        .populate('product', 'name description pricing');
+      const subscription = await databaseService.query('subscriptions', {
+        filter: { id: subscriptionId },
+        single: true
+      });
 
       if (!subscription) {
         throw new Error('Subscription not found');

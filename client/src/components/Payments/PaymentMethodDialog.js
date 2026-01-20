@@ -181,8 +181,8 @@ const PaymentMethodDialog = ({
                   key={method.id}
                   onClick={() => handleMethodSelect(method.id)}
                   disabled={!method.available || !amountValid}
-                  className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${method.available && amountValid
-                      ? `border-gray-200 dark:border-gray-700 hover:border-${method.color}-500 hover:bg-${method.color}-50 dark:hover:bg-${method.color}-900/20`
+                  className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all bg-gray-50 dark:bg-gray-700 ${method.available && amountValid
+                      ? 'border-gray-300 dark:border-gray-600 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                       : 'border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed'
                     }`}
                 >

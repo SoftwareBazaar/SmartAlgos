@@ -33,9 +33,9 @@ app.get('/health', (req, res) => {
     "object-src 'none'; " +
     "base-uri 'self'; " +
     "frame-src 'self';";
-  
+
   res.setHeader('Content-Security-Policy', csp);
-  
+
   const cspHeader = res.getHeader('Content-Security-Policy');
   res.status(200).json({
     status: 'OK',
@@ -86,7 +86,7 @@ try {
         "object-src 'none'; " +
         "base-uri 'self'; " +
         "frame-src 'self';";
-      
+
       res.setHeader('Content-Security-Policy', csp);
       console.log('🔒 CSP Header Set for:', req.url);
       console.log('🔒 CSP Value:', csp);
@@ -141,10 +141,10 @@ try {
       optionsSuccessStatus: 204
     })
   );
-  
+
   // EMERGENCY CSP FIX - Replace helmet with custom CSP
   // app.use(helmet()); // DISABLED - was blocking Supabase images
-  
+
   app.use(compression());
   app.use(morgan('combined'));
   app.use(express.json({ limit: '50mb' }));
@@ -180,7 +180,7 @@ try {
   //   legacyHeaders: false
   // });
   // app.use(limiter);
-  
+
   console.log('⚠️  Rate limiting DISABLED in railway-full-server.js');
 
   // Serve static files from uploads with fallback to placeholder
@@ -200,7 +200,7 @@ try {
 
   // Import routes (only the essential ones)
   console.log('Loading essential routes...');
-  
+
   // CRITICAL: Load CSRF routes FIRST and register immediately
   let csrfRoutes = null;
   try {
@@ -211,7 +211,7 @@ try {
   } catch (error) {
     console.error('❌ CRITICAL: CSRF routes failed to load:', error.message);
   }
-  
+
   // Load auth middleware early
   let auth = null;
   try {
@@ -222,55 +222,55 @@ try {
   } catch (error) {
     console.error('❌ CRITICAL: Auth middleware failed to load:', error.message);
   }
-  
+
   try {
     console.log('📦 Loading route modules...');
-    
+
     console.log('   Loading auth routes...');
     const authRoutes = require('./routes/auth');
     app.use('/api/auth', authRoutes);
     console.log('   ✅ Auth routes loaded and registered');
-    
+
     console.log('   Loading user routes...');
     const usersRoutes = require('./routes/users');
     app.use('/api/users', usersRoutes);
     console.log('   ✅ User routes loaded and registered');
-    
+
     console.log('   Loading EA routes...');
     const eaRoutes = require('./routes/eas');
     app.use('/api/eas', eaRoutes);
     console.log('   ✅ EA routes loaded and registered');
-    
+
     console.log('   Loading subscription routes...');
     const subscriptionRoutes = require('./routes/subscriptions');
     app.use('/api/subscriptions', subscriptionRoutes);
     console.log('   ✅ Subscription routes loaded and registered');
-    
+
     console.log('   Loading downloads routes...');
     const downloadsRoutes = require('./routes/downloads');
     app.use('/api/downloads', downloadsRoutes);
     console.log('   ✅ Downloads routes loaded and registered');
-    
+
     console.log('   Loading crypto payment routes...');
     const cryptoPaymentRoutes = require('./routes/cryptoPayments');
     app.use('/api/payments/crypto', cryptoPaymentRoutes);
     console.log('   ✅ Crypto payment routes loaded and registered');
-    
+
     console.log('   Loading payment routes...');
     const paymentRoutes = require('./routes/payments');
     app.use('/api/payments', paymentRoutes);
     console.log('   ✅ Payment routes loaded and registered');
-    
+
     console.log('   Loading M-Pesa routes...');
     const mpesaRoutes = require('./routes/mpesa');
     app.use('/api/mpesa', mpesaRoutes);
     console.log('   ✅ M-Pesa routes loaded and registered');
-    
+
     console.log('   Loading portfolio routes...');
     const portfolioRoutes = require('./routes/portfolio');
     app.use('/api/portfolio', portfolioRoutes);
     console.log('   ✅ Portfolio routes loaded and registered');
-    
+
     console.log('   Loading analysis routes...');
     const analysisRoutes = require('./routes/analysis');
     if (auth) {
@@ -280,12 +280,12 @@ try {
       app.use('/api/analysis', analysisRoutes);
       console.log('   ⚠️  Analysis routes loaded without auth middleware');
     }
-    
+
     console.log('   Loading admin routes...');
     const adminRoutes = require('./admin-panel');
     app.use('/api/admin', adminRoutes);
     console.log('   ✅ Admin routes loaded and registered');
-    
+
     console.log('✅ Essential routes loaded and registered');
     console.log('   - /api/csrf-token (CSRF routes)');
     console.log('   - /api/auth');
@@ -389,17 +389,17 @@ try {
   // FRONTEND SERVING - Serve React app
   // ========================================
   console.log('Configuring frontend serving...');
-  
+
   // Check if client build exists
   const clientBuildPath = path.join(__dirname, 'client', 'build');
   const clientBuildExists = fs.existsSync(clientBuildPath);
-  
+
   if (clientBuildExists) {
     console.log('✅ Client build found, serving React app');
-    
+
     // Serve static files from React build (CSS, JS, images, etc.)
     app.use(express.static(clientBuildPath));
-    
+
     // Handle React routing - serve index.html for all non-API routes
     // This MUST be LAST, after all API routes
     app.get('*', (req, res) => {
@@ -411,15 +411,15 @@ try {
           message: 'API route not found'
         });
       }
-      
+
       // Serve React app for all other routes
       res.sendFile(path.join(clientBuildPath, 'index.html'));
     });
-    
+
     console.log('✅ React app serving configured');
   } else {
     console.log('⚠️ Client build not found, serving fallback');
-    
+
     // Fallback: serve basic HTML if no React build
     app.get('/', (req, res) => {
       res.send(`
@@ -468,19 +468,19 @@ try {
   });
 
   // Start crypto payment monitor (automatic blockchain verification)
-try {
-  const cryptoPaymentMonitor = require('./services/cryptoPaymentMonitor');
-  cryptoPaymentMonitor.start();
-  console.log('✅ Crypto payment monitor started');
-} catch (error) {
-  console.warn('⚠️  Crypto payment monitor not available:', error.message);
-}
+  try {
+    const cryptoPaymentMonitor = require('./services/cryptoPaymentMonitor');
+    cryptoPaymentMonitor.start();
+    console.log('✅ Crypto payment monitor started');
+  } catch (error) {
+    console.warn('⚠️  Crypto payment monitor not available:', error.message);
+  }
 
-console.log('✅ Server configuration complete');
+  console.log('✅ Server configuration complete');
 
 } catch (error) {
   console.error('❌ Error loading server components:', error);
-  
+
   // Fallback minimal server
   app.get('/', (req, res) => {
     res.send(`
@@ -500,12 +500,52 @@ console.log('✅ Server configuration complete');
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
 
+// Ensure London Breakout Bot exists in database
+const ensureLondonBreakoutBot = async () => {
+  try {
+    const databaseService = require('./services/databaseService');
+    const eas = await databaseService.getEAs({ search: 'London Breakout' });
+
+    if (eas.length === 0) {
+      console.log('🚀 [Startup] London Breakout Bot not found, injecting...');
+      const botData = {
+        name: "London Breakout Bot v1.0",
+        description: "High-performance session breakout strategy for Gold, US30, and Nasdaq. Automatically captures volatility at 10:00 AM London open.",
+        category: "trend",
+        price_weekly: 9.99,
+        price_monthly: 29.00,
+        price_quarterly: 75.00,
+        price_yearly: 199.00,
+        win_rate: 72,
+        max_drawdown: 8.5,
+        supported_pairs: ['XAUUSD', 'US30', 'NAS100'],
+        timeframes: ['M15', 'M30'],
+        is_active: true,
+        status: "approved",
+        image: "https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-images/placeholder-breakout.png",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      await databaseService.createEA(botData);
+      console.log('✅ [Startup] London Breakout Bot injected successfully');
+    } else {
+      console.log('✅ [Startup] London Breakout Bot already exists');
+    }
+  } catch (error) {
+    console.error('⚠️ [Startup] Failed to ensure London Breakout Bot:', error.message);
+  }
+};
+
 // Set server timeout for long-running operations
 server.timeout = 60000; // 60 seconds
 
-server.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, async () => {
   console.log(`✅ Smart Algos API running on http://${HOST}:${PORT}`);
   console.log(`📁 Health check available at /api/health`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🚀 Railway deployment ready - health check should respond immediately`);
+
+  // Run bot injection after server is up
+  await ensureLondonBreakoutBot();
 });

@@ -51,7 +51,9 @@ const PaymentMethodDialog = ({
       name: 'Card Payment',
       description: 'Pay with Credit/Debit Card via Paystack',
       icon: CreditCard,
-      color: 'blue',
+      color: '#3b82f6', // Premium Blue
+      iconColor: 'text-blue-500',
+      bgColor: 'bg-blue-500/10',
       currencies: ['NGN', 'USD', 'GHS', 'ZAR', 'KES'],
       available: true
     },
@@ -60,7 +62,9 @@ const PaymentMethodDialog = ({
       name: 'M-Pesa',
       description: 'Pay with M-Pesa Mobile Money (Kenya)',
       icon: Smartphone,
-      color: 'green',
+      color: '#10b981', // M-Pesa Green
+      iconColor: 'text-emerald-500',
+      bgColor: 'bg-emerald-500/10',
       currencies: ['KES'],
       available: currency === 'KES' || amount // Always show, we'll convert
     },
@@ -69,7 +73,9 @@ const PaymentMethodDialog = ({
       name: 'Cryptocurrency',
       description: 'Pay with BTC, ETH, USDT, USDC',
       icon: Bitcoin,
-      color: 'orange',
+      color: '#f59e0b', // Bitcoin Orange
+      iconColor: 'text-orange-500',
+      bgColor: 'bg-orange-500/10',
       currencies: ['USD', 'EUR', 'GBP'],
       available: true
     }
@@ -182,13 +188,13 @@ const PaymentMethodDialog = ({
                   onClick={() => handleMethodSelect(method.id)}
                   disabled={!method.available || !amountValid}
                   className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all bg-gray-50 dark:bg-gray-700 ${method.available && amountValid
-                      ? 'border-gray-300 dark:border-gray-600 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed'
+                    ? 'border-gray-300 dark:border-gray-600 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                    : 'border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed'
                     }`}
                 >
                   <div className="flex items-center space-x-4">
-                    <div className={`p-3 rounded-full bg-${method.color}-100 dark:bg-${method.color}-900/30`}>
-                      <method.icon className={`h-6 w-6 text-${method.color}-600`} />
+                    <div className={`p-3 rounded-xl ${method.bgColor}`}>
+                      <method.icon className={`h-6 w-6 ${method.iconColor}`} />
                     </div>
                     <div className="text-left">
                       <h3 className="font-semibold text-gray-900 dark:text-white">

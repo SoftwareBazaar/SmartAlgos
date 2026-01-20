@@ -5,19 +5,19 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-  Smartphone, 
-  CheckCircle, 
-  XCircle, 
-  Loader, 
+import {
+  Smartphone,
+  CheckCircle,
+  XCircle,
+  Loader,
   AlertCircle,
   Phone
 } from 'lucide-react';
 
-const MpesaPayment = ({ 
-  amount, 
-  onSuccess, 
-  onError, 
+const MpesaPayment = ({
+  amount,
+  onSuccess,
+  onError,
   onClose,
   accountReference,
   transactionDesc,
@@ -48,7 +48,7 @@ const MpesaPayment = ({
 
           if (response.data.success) {
             const { resultCode, resultDesc } = response.data.data;
-            
+
             if (resultCode === '0') {
               // Payment successful
               setStatus('success');
@@ -84,17 +84,17 @@ const MpesaPayment = ({
   const formatPhoneNumber = (phone) => {
     // Remove any non-digit characters
     let cleanPhone = phone.replace(/\D/g, '');
-    
+
     // If starts with 0, replace with 254
     if (cleanPhone.startsWith('0')) {
       cleanPhone = '254' + cleanPhone.substring(1);
     }
-    
+
     // If starts with 7 or 1 (without country code), add 254
     if (cleanPhone.length === 9 && (cleanPhone.startsWith('7') || cleanPhone.startsWith('1'))) {
       cleanPhone = '254' + cleanPhone;
     }
-    
+
     return cleanPhone;
   };
 
@@ -106,7 +106,7 @@ const MpesaPayment = ({
 
   const handleInitiatePayment = async (e) => {
     e.preventDefault();
-    
+
     // Validate phone number
     if (!phoneNumber) {
       setErrorMessage('Please enter your phone number');
@@ -167,10 +167,10 @@ const MpesaPayment = ({
     } catch (error) {
       console.error('M-Pesa payment error:', error);
       setStatus('failed');
-      
+
       // Extract the most detailed error message
       let detailedError = 'Failed to initiate M-Pesa payment';
-      
+
       if (error.response?.data?.error?.errorMessage) {
         // M-Pesa API error format
         detailedError = error.response.data.error.errorMessage;
@@ -182,7 +182,7 @@ const MpesaPayment = ({
       } else if (error.message) {
         detailedError = error.message;
       }
-      
+
       // Show helpful message for common errors
       if (detailedError.includes('Merchant does not exist') || detailedError.includes('500.001.1001')) {
         detailedError = 'M-Pesa Configuration Error: Invalid Business Shortcode. Please contact support.';
@@ -191,7 +191,7 @@ const MpesaPayment = ({
       } else if (detailedError.includes('Bad Request') || detailedError.includes('400.008.01')) {
         detailedError = 'Invalid phone number format. Please use format: 254712345678';
       }
-      
+
       setErrorMessage(detailedError);
       onError?.(error);
     } finally {
@@ -229,9 +229,9 @@ const MpesaPayment = ({
         </div>
         <h2 className="text-2xl font-bold text-gray-800 mb-2">
           {status === 'success' ? 'Payment Successful!' :
-           status === 'failed' ? 'Payment Failed' :
-           status === 'pending' ? 'Waiting for Payment...' :
-           'Pay with M-Pesa'}
+            status === 'failed' ? 'Payment Failed' :
+              status === 'pending' ? 'Waiting for Payment...' :
+                'Pay with M-Pesa'}
         </h2>
         <p className="text-gray-600">
           Amount: <span className="font-bold text-green-600">KES {amount}</span>
@@ -251,7 +251,7 @@ const MpesaPayment = ({
               value={phoneNumber}
               onChange={handlePhoneChange}
               placeholder="0712345678 or 254712345678"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 dark:text-white bg-white dark:bg-gray-800 placeholder-gray-400"
               disabled={loading}
               required
             />
@@ -270,7 +270,7 @@ const MpesaPayment = ({
           <button
             type="submit"
             disabled={loading || !phoneNumber}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-green-500/20 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
           >
             {loading ? (
               <>
@@ -289,7 +289,7 @@ const MpesaPayment = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors"
+              className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold py-3 px-4 rounded-xl transition-colors"
             >
               Cancel
             </button>

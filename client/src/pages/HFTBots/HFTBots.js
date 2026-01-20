@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Zap, 
-  TrendingUp, 
-  TrendingDown, 
-  Search, 
+import {
+  Zap,
+  TrendingUp,
+  TrendingDown,
+  Search,
   Filter,
   Play,
   Pause,
@@ -53,7 +53,7 @@ const HFTBots = () => {
   const [rentalType, setRentalType] = useState('professional');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [renting, setRenting] = useState(false);
-  const [useEscrow, setUseEscrow] = useState(true);
+  const [useEscrow, setUseEscrow] = useState(false); // Escrow disabled by default
   const [escrowTransaction, setEscrowTransaction] = useState(null);
 
   // Fetch real HFT bots from API
@@ -65,7 +65,7 @@ const HFTBots = () => {
         if (activeStrategy !== 'all') params.strategy = activeStrategy;
         if (activeExchange !== 'all') params.exchange = activeExchange;
         if (searchTerm.trim()) params.search = searchTerm.trim();
-        
+
         const response = await apiClient.get('/api/hft', { params });
         setBots(response.data?.data || []);
       } catch (error) {
@@ -86,12 +86,12 @@ const HFTBots = () => {
 
   const handleRentalSubmit = async () => {
     if (!selectedBot) return;
-    
+
     try {
       setRenting(true);
       // Simulate rental process
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       alert('Bot rental initiated successfully!');
       setShowRentalModal(false);
       setSelectedBot(null);
@@ -127,7 +127,7 @@ const HFTBots = () => {
     const matchesExchange = activeExchange === 'all' || bot.exchange === activeExchange;
     const matchesSearch = bot.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       bot.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     return matchesStrategy && matchesExchange && matchesSearch;
   });
 
@@ -279,11 +279,10 @@ const HFTBots = () => {
                 <button
                   key={strategy.id}
                   onClick={() => setActiveStrategy(strategy.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeStrategy === strategy.id
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeStrategy === strategy.id
                       ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
+                    }`}
                 >
                   {strategy.name}
                   <span className="ml-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 py-0.5 px-2 rounded-full text-xs">
@@ -309,11 +308,10 @@ const HFTBots = () => {
                 <button
                   key={exchange.id}
                   onClick={() => setActiveExchange(exchange.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeExchange === exchange.id
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeExchange === exchange.id
                       ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
+                    }`}
                 >
                   <span className="mr-2">{getExchangeIcon(exchange.id)}</span>
                   {exchange.name}
@@ -366,7 +364,7 @@ const HFTBots = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   <Card.Body>
                     <div className="flex items-start justify-between mb-3">
                       <div>
@@ -450,16 +448,16 @@ const HFTBots = () => {
                     </div>
 
                     <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="primary" 
+                      <Button
+                        size="sm"
+                        variant="primary"
                         fullWidth
                         onClick={() => handleRent(bot)}
                       >
                         Rent Bot
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={() => navigate(`/hft-bots/${bot.id}`)}
                       >
@@ -502,11 +500,10 @@ const HFTBots = () => {
                     </span>
                   </div>
                   <div className="absolute top-4 right-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      bot.status === 'working' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${bot.status === 'working'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                         : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
-                    }`}>
+                      }`}>
                       {bot.status === 'working' ? 'Working' : 'Incoming'}
                     </span>
                   </div>
@@ -516,7 +513,7 @@ const HFTBots = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <Card.Body>
                   <div className="flex items-start justify-between mb-3">
                     <div>
@@ -600,16 +597,16 @@ const HFTBots = () => {
                   </div>
 
                   <div className="flex space-x-2">
-                    <Button 
-                      size="sm" 
-                      variant="primary" 
+                    <Button
+                      size="sm"
+                      variant="primary"
                       fullWidth
                       onClick={() => handleRent(bot)}
                     >
                       Rent Bot
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => navigate(`/hft-bots/${bot.id}`)}
                     >
@@ -697,11 +694,10 @@ const HFTBots = () => {
                     <button
                       key={plan.id}
                       onClick={() => setRentalType(plan.id)}
-                      className={`w-full p-3 rounded-lg border text-left transition-colors ${
-                        rentalType === plan.id
+                      className={`w-full p-3 rounded-lg border text-left transition-colors ${rentalType === plan.id
                           ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
                           : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                      }`}
+                        }`}
                     >
                       <div className="flex justify-between items-start">
                         <div>
@@ -731,11 +727,10 @@ const HFTBots = () => {
                     <button
                       key={method.id}
                       onClick={() => setPaymentMethod(method.id)}
-                      className={`w-full p-3 rounded-lg border flex items-center space-x-3 transition-colors ${
-                        paymentMethod === method.id
+                      className={`w-full p-3 rounded-lg border flex items-center space-x-3 transition-colors ${paymentMethod === method.id
                           ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
                           : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                      }`}
+                        }`}
                     >
                       <method.icon className="h-5 w-5" />
                       <span>{method.name}</span>
@@ -779,7 +774,7 @@ const HFTBots = () => {
                   </label>
                 </div>
                 <p className="text-sm text-green-700 dark:text-green-300">
-                  {useEscrow 
+                  {useEscrow
                     ? "Your payment is held in escrow until you confirm the HFT bot is working as expected."
                     : "Direct payment - no escrow protection. Payment goes directly to the provider."
                   }
@@ -828,7 +823,7 @@ const HFTBots = () => {
                         Total
                       </span>
                       <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                        ${useEscrow 
+                        ${useEscrow
                           ? (selectedBot.pricing[rentalType] * 1.0089).toFixed(2)
                           : selectedBot.pricing[rentalType]
                         }
@@ -863,7 +858,7 @@ const HFTBots = () => {
                   <Button
                     variant="primary"
                     fullWidth
-                    onClick={useEscrow ? () => {} : handleRentalSubmit}
+                    onClick={useEscrow ? () => { } : handleRentalSubmit}
                     disabled={renting || (useEscrow && !escrowTransaction)}
                   >
                     {renting ? 'Processing...' : useEscrow ? 'Create Escrow Transaction' : 'Rent Now'}

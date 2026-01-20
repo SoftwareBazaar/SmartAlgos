@@ -85,7 +85,7 @@ router.get('/events', [
     }
 
     const { severity, page = 1, limit = 50 } = req.query;
-    
+
     // In production, this would query a security events database
     const mockEvents = [
       {
@@ -164,7 +164,7 @@ router.get('/audit-trail', [
 
     const { severity, eventType, page = 1, limit = 50 } = req.query;
     const userId = req.user?.userId || req.user?.id;
-    
+
     // In production, this would query a security events database filtered by userId
     // For now, return mock user-specific events
     const mockEvents = [
@@ -239,12 +239,12 @@ router.get('/audit-trail', [
     ];
 
     let filteredEvents = mockEvents;
-    
+
     // Filter by severity
     if (severity) {
       filteredEvents = filteredEvents.filter(event => event.severity === severity);
     }
-    
+
     // Filter by event type
     if (eventType) {
       filteredEvents = filteredEvents.filter(event => event.event === eventType);
@@ -296,7 +296,7 @@ router.get('/blockchain/status', [
           if (provider) {
             const blockNumber = await provider.getBlockNumber();
             const networkInfo = blockchainService.getNetworkInfo(network.network, chain);
-            
+
             networkStatus[network.network][chain] = {
               status: 'connected',
               blockNumber,
@@ -414,15 +414,18 @@ router.get('/escrow/monitoring', [
 ], async (req, res) => {
   try {
     const monitoringData = {
-      expiring: await escrowService.getExpiringEscrows(7),
-      disputed: await escrowService.getDisputedEscrows(),
+      // Escrow monitoring DISABLED
+      // expiring: await escrowService.getExpiringEscrows(7),
+      // disputed: await escrowService.getDisputedEscrows(),
+      expiring: [],
+      disputed: [],
       statistics: {
-        total: await Escrow.countDocuments(),
-        pending: await Escrow.countDocuments({ status: 'pending' }),
-        active: await Escrow.countDocuments({ status: 'active' }),
-        disputed: await Escrow.countDocuments({ status: 'disputed' }),
-        released: await Escrow.countDocuments({ status: 'released' }),
-        refunded: await Escrow.countDocuments({ status: 'refunded' })
+        total: 0, // await Escrow.countDocuments(),
+        pending: 0, // await Escrow.countDocuments({ status: 'pending' }),
+        active: 0, // await Escrow.countDocuments({ status: 'active' }),
+        disputed: 0, // await Escrow.countDocuments({ status: 'disputed' }),
+        released: 0, // await Escrow.countDocuments({ status: 'released' }),
+        refunded: 0 // await Escrow.countDocuments({ status: 'refunded' })
       }
     };
 
@@ -554,7 +557,7 @@ router.post('/scan', [
     const { scanType } = req.body;
 
     const scanTypes = ['vulnerability', 'malware', 'configuration', 'compliance'];
-    
+
     if (!scanType || !scanTypes.includes(scanType)) {
       return res.status(400).json({
         success: false,

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Bot, 
-  Star, 
-  Search, 
+import {
+  Bot,
+  Star,
+  Search,
   Filter,
   Settings,
   Eye,
@@ -52,7 +52,7 @@ const EAMarketplace = () => {
   const [subscriptionType, setSubscriptionType] = useState('monthly');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [subscribing, setSubscribing] = useState(false);
-  const [useEscrow, setUseEscrow] = useState(true);
+  const [useEscrow, setUseEscrow] = useState(false); // Escrow disabled by default
   const [escrowTransaction, setEscrowTransaction] = useState(null);
   const [userSubscriptions, setUserSubscriptions] = useState([]);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
@@ -79,9 +79,9 @@ const EAMarketplace = () => {
 
   // Check if user has active subscription for an EA
   const hasActiveSubscription = (eaId) => {
-    return userSubscriptions.some(sub => 
-      sub.ea_id === eaId && 
-      sub.status === 'active' && 
+    return userSubscriptions.some(sub =>
+      sub.ea_id === eaId &&
+      sub.status === 'active' &&
       new Date(sub.end_date) > new Date()
     );
   };
@@ -102,10 +102,10 @@ const EAMarketplace = () => {
     try {
       console.log('Downloading file type:', fileType);
       console.log('Download URL:', downloadLinks[fileType]);
-      
+
       // Open download link in new tab
       window.open(downloadLinks[fileType], '_blank');
-      
+
       // Record the download
       if (currentSubscriptionId) {
         try {
@@ -149,15 +149,15 @@ const EAMarketplace = () => {
     if (hasActiveSubscription(ea.id)) {
       // User has paid subscription, get download links and show modal
       try {
-        const subscription = userSubscriptions.find(sub => 
-          sub.ea_id === ea.id && 
-          sub.status === 'active' && 
+        const subscription = userSubscriptions.find(sub =>
+          sub.ea_id === ea.id &&
+          sub.status === 'active' &&
           new Date(sub.end_date) > new Date()
         );
-        
+
         if (subscription) {
           const downloadResponse = await apiClient.get(`/api/subscriptions/${subscription.id}/files`);
-          
+
           if (downloadResponse.data.success && downloadResponse.data.data.files) {
             setShowDownloadModal(true);
             setDownloadLinks(downloadResponse.data.data.files);
@@ -179,31 +179,31 @@ const EAMarketplace = () => {
 
   const handleSubscriptionSubmit = async () => {
     if (!selectedEA) return;
-    
+
     // Close subscription type selection modal
     setShowSubscriptionModal(false);
-    
+
     // Show payment dialog
     setShowPaymentDialog(true);
   };
-  
+
   const handlePaymentSuccess = async (paymentResult) => {
     try {
       console.log('💰 Payment successful:', paymentResult);
-      
+
       // Wait a moment for backend to create subscription
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // Refresh user subscriptions
       await fetchUserSubscriptions();
-      
+
       // Find the newly created subscription
       const newSubscriptions = await getUserSubscriptions();
-      const newSub = newSubscriptions.find(sub => 
-        sub.ea_id === selectedEA.id && 
+      const newSub = newSubscriptions.find(sub =>
+        sub.ea_id === selectedEA.id &&
         sub.status === 'active'
       );
-      
+
       if (newSub) {
         // Get download links
         const downloadData = await getSubscriptionDownloadLinks(newSub.id);
@@ -213,16 +213,16 @@ const EAMarketplace = () => {
       } else {
         setResultDialog({ open: true, status: 'success', message: 'Subscription created. It may take a moment to activate.' });
       }
-      
+
       setShowPaymentDialog(false);
       setSelectedEA(null);
-      
+
     } catch (error) {
       console.error('Post-payment error:', error);
       alert('Payment successful but there was an error loading downloads. Please check "My Subscriptions".');
     }
   };
-  
+
   const handlePaymentError = (error) => {
     console.error('Payment error:', error);
     setResultDialog({ open: true, status: 'failed', message: 'Payment failed. Please try again.' });
@@ -481,11 +481,10 @@ const EAMarketplace = () => {
                 <button
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeCategory === category.id
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeCategory === category.id
                       ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
+                    }`}
                 >
                   {category.name}
                   <span className="ml-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 py-0.5 px-2 rounded-full text-xs">
@@ -532,7 +531,7 @@ const EAMarketplace = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   <Card.Body>
                     <div className="flex items-start justify-between mb-3">
                       <div>
@@ -588,7 +587,7 @@ const EAMarketplace = () => {
                             </>
                           );
                         })()}
-                        
+
                         <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
                           LOW ENTRY
                         </div>
@@ -609,24 +608,24 @@ const EAMarketplace = () => {
                     </div>
 
                     <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="primary" 
+                      <Button
+                        size="sm"
+                        variant="primary"
                         fullWidth
                         onClick={() => handleSubscribe(ea)}
                       >
                         Subscribe
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={() => navigate(`/ea-marketplace/${ea.id}`)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
                       {ea.documentation && (
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => window.open(`/src/pages/EAMarketplace/${ea.documentation}`, '_blank')}
                           title="View Documentation"
@@ -664,7 +663,7 @@ const EAMarketplace = () => {
                 <div className="relative">
                   <div className="h-32 bg-gradient-to-br from-primary-500 to-primary-600 rounded-t-lg flex items-center justify-center overflow-hidden">
                     {ea.image ? (
-                      <SimpleEAImage 
+                      <SimpleEAImage
                         ea={ea}
                         className="w-full h-full object-cover"
                       />
@@ -678,11 +677,10 @@ const EAMarketplace = () => {
                     </span>
                   </div>
                   <div className="absolute top-4 right-4 flex flex-col space-y-1">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      ea.status === 'active' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${ea.status === 'active'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                         : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                    }`}>
+                      }`}>
                       {ea.status === 'active' ? 'Active' : ea.status ? ea.status.charAt(0).toUpperCase() + ea.status.slice(1) : 'Pending'}
                     </span>
                     {ea.is_verified && (
@@ -692,7 +690,7 @@ const EAMarketplace = () => {
                     )}
                   </div>
                 </div>
-                
+
                 <Card.Body className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
@@ -726,19 +724,19 @@ const EAMarketplace = () => {
 
                   <div className="flex items-center justify-between mb-3">
                     <div className="relative">
-                    {(() => {
-                      const weekly = Number.isFinite(parseFloat(ea.price_weekly)) ? parseFloat(ea.price_weekly) : null;
-                      const monthly = Number.isFinite(parseFloat(ea.price_monthly)) ? parseFloat(ea.price_monthly) : null;
-                      const yearly = Number.isFinite(parseFloat(ea.price_yearly)) ? parseFloat(ea.price_yearly) : null;
-                      const display = weekly ?? monthly ?? yearly ?? 0;
-                      const unit = weekly ? '/week' : monthly ? '/month' : yearly ? 'lifetime' : '';
-                      return (
-                        <>
-                          <div className="text-xl font-bold text-white">${display}</div>
-                          <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{ea.risk_level ? `Risk: ${ea.risk_level}` : unit}</div>
-                        </>
-                      );
-                    })()}
+                      {(() => {
+                        const weekly = Number.isFinite(parseFloat(ea.price_weekly)) ? parseFloat(ea.price_weekly) : null;
+                        const monthly = Number.isFinite(parseFloat(ea.price_monthly)) ? parseFloat(ea.price_monthly) : null;
+                        const yearly = Number.isFinite(parseFloat(ea.price_yearly)) ? parseFloat(ea.price_yearly) : null;
+                        const display = weekly ?? monthly ?? yearly ?? 0;
+                        const unit = weekly ? '/week' : monthly ? '/month' : yearly ? 'lifetime' : '';
+                        return (
+                          <>
+                            <div className="text-xl font-bold text-white">${display}</div>
+                            <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{ea.risk_level ? `Risk: ${ea.risk_level}` : unit}</div>
+                          </>
+                        );
+                      })()}
                     </div>
                     <div className="flex items-center space-x-1">
                       <div className="flex items-center">
@@ -759,11 +757,10 @@ const EAMarketplace = () => {
                       {['monthly', 'quarterly', 'yearly'].map((period) => (
                         <button
                           key={period}
-                          className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
-                            (ea.currentPeriod || 'monthly') === period
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${(ea.currentPeriod || 'monthly') === period
                               ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200'
                               : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                          }`}
+                            }`}
                         >
                           {period.charAt(0).toUpperCase() + period.slice(1)}
                         </button>
@@ -773,9 +770,9 @@ const EAMarketplace = () => {
 
                   <div className="flex space-x-1">
                     {hasAnySubscription(ea.id) ? (
-                      <Button 
-                        size="sm" 
-                        variant="primary" 
+                      <Button
+                        size="sm"
+                        variant="primary"
                         fullWidth
                         onClick={() => handleDownload(ea)}
                         className="text-xs"
@@ -784,9 +781,9 @@ const EAMarketplace = () => {
                         Download
                       </Button>
                     ) : (
-                      <Button 
-                        size="sm" 
-                        variant="primary" 
+                      <Button
+                        size="sm"
+                        variant="primary"
                         fullWidth
                         onClick={() => handleSubscribe(ea)}
                         className="text-xs"
@@ -794,16 +791,16 @@ const EAMarketplace = () => {
                         Subscribe
                       </Button>
                     )}
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => navigate(`/ea-marketplace/${ea.id}`)}
                       className="px-2"
                     >
                       <Eye className="h-3 w-3" />
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => navigate(`/edit-ea/${ea.id}`)}
                       title="Edit EA"
@@ -899,18 +896,16 @@ const EAMarketplace = () => {
                     <button
                       key={option.type}
                       onClick={() => setSubscriptionType(option.type)}
-                      className={`relative p-4 rounded-lg border-2 text-left transition-all ${
-                        subscriptionType === option.type
+                      className={`relative p-4 rounded-lg border-2 text-left transition-all ${subscriptionType === option.type
                           ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 shadow-lg scale-105'
                           : 'border-gray-200 bg-white hover:border-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-primary-500'
-                      }`}
+                        }`}
                     >
                       {option.badge && (
-                        <div className={`absolute -top-2 right-2 px-2 py-0.5 rounded-full text-xs font-bold ${
-                          option.type === 'lifetime' 
+                        <div className={`absolute -top-2 right-2 px-2 py-0.5 rounded-full text-xs font-bold ${option.type === 'lifetime'
                             ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white'
                             : 'bg-primary-500 text-white'
-                        }`}>
+                          }`}>
                           {option.badge}
                         </div>
                       )}
@@ -954,11 +949,10 @@ const EAMarketplace = () => {
                     <button
                       key={method.id}
                       onClick={() => setPaymentMethod(method.id)}
-                      className={`w-full p-3 rounded-lg border flex items-center space-x-3 transition-colors ${
-                        paymentMethod === method.id
+                      className={`w-full p-3 rounded-lg border flex items-center space-x-3 transition-colors ${paymentMethod === method.id
                           ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
                           : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                      }`}
+                        }`}
                     >
                       <method.icon className="h-5 w-5" />
                       <span>{method.name}</span>
@@ -987,7 +981,7 @@ const EAMarketplace = () => {
                   </label>
                 </div>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  {useEscrow 
+                  {useEscrow
                     ? "Your payment is held in escrow until you confirm the EA is working as expected."
                     : "Direct payment - no escrow protection. Payment goes directly to the seller."
                   }
@@ -1000,15 +994,15 @@ const EAMarketplace = () => {
                   productType="ea_subscription"
                   productId={selectedEA.id}
                   productName={selectedEA.name}
-                      productPrice={(() => {
-                        const w = Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : null;
-                        const m = Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : null;
-                        const y = Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : null;
-                        if (subscriptionType === 'weekly') return w ?? m ?? y ?? 0;
-                        if (subscriptionType === 'monthly') return m ?? w ?? y ?? 0;
-                        if (subscriptionType === 'lifetime') return y ?? m ?? w ?? 0;
-                        return m ?? w ?? y ?? 0;
-                      })()}
+                  productPrice={(() => {
+                    const w = Number.isFinite(parseFloat(selectedEA.price_weekly)) ? parseFloat(selectedEA.price_weekly) : null;
+                    const m = Number.isFinite(parseFloat(selectedEA.price_monthly)) ? parseFloat(selectedEA.price_monthly) : null;
+                    const y = Number.isFinite(parseFloat(selectedEA.price_yearly)) ? parseFloat(selectedEA.price_yearly) : null;
+                    if (subscriptionType === 'weekly') return w ?? m ?? y ?? 0;
+                    if (subscriptionType === 'monthly') return m ?? w ?? y ?? 0;
+                    if (subscriptionType === 'lifetime') return y ?? m ?? w ?? 0;
+                    return m ?? w ?? y ?? 0;
+                  })()}
                   sellerEmail={selectedEA.creator || selectedEA.creatorName}
                   onTransactionCreated={(transaction) => {
                     setEscrowTransaction(transaction);
@@ -1098,13 +1092,13 @@ const EAMarketplace = () => {
                     Only show a secondary CTA when a transaction exists. */}
                 {useEscrow ? (
                   escrowTransaction ? (
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    onClick={() => window.open(`/api/escrow/transactions/${escrowTransaction.id}`, '_blank')}
-                  >
-                    View Escrow Transaction
-                  </Button>
+                    <Button
+                      variant="primary"
+                      fullWidth
+                      onClick={() => window.open(`/api/escrow/transactions/${escrowTransaction.id}`, '_blank')}
+                    >
+                      View Escrow Transaction
+                    </Button>
                   ) : null
                 ) : (
                   <Button
@@ -1293,7 +1287,7 @@ const EAMarketplace = () => {
           onClose={() => setResultDialog({ open: false, status: 'success' })}
         />
       )}
-      
+
       {/* Floating Chat Assistant */}
       <FloatingChatButton context="general" />
     </div>

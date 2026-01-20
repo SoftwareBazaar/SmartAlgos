@@ -140,16 +140,16 @@ class BillingService {
 
       await subscription.save();
 
-      // Create escrow if required
-      if (productType === 'ea' && product.requiresEscrow) {
-        await escrowService.createEscrow(subscription._id, {
-          walletAddress: user.walletAddress,
-          userAgent: metadata.userAgent,
-          ipAddress: metadata.ipAddress
-        }, {
-          walletAddress: product.creator.walletAddress
-        });
-      }
+      // Create escrow if required - DISABLED
+      // if (productType === 'ea' && product.requiresEscrow) {
+      //   await escrowService.createEscrow(subscription._id, {
+      //     walletAddress: user.walletAddress,
+      //     userAgent: metadata.userAgent,
+      //     ipAddress: metadata.ipAddress
+      //   }, {
+      //     walletAddress: product.creator.walletAddress
+      //   });
+      // }
 
       // Send notification
       await this.sendSubscriptionNotification(user, subscription, 'created');
@@ -226,7 +226,7 @@ class BillingService {
   async processPaystackPayment(subscription, paymentDetails) {
     try {
       const { email, callback_url } = paymentDetails;
-      
+
       const transactionData = {
         email: email || subscription.user.email,
         amount: subscription.price,
@@ -242,7 +242,7 @@ class BillingService {
       };
 
       const result = await paystackService.initializeTransaction(transactionData);
-      
+
       return {
         success: true,
         reference: result.data.reference,
@@ -358,7 +358,7 @@ class BillingService {
 
       // Calculate new end date
       const newEndDate = new Date(subscription.endDate.getTime() + this.billingIntervals[subscription.interval]);
-      
+
       subscription.endDate = newEndDate;
       subscription.renewedAt = new Date();
       subscription.renewalCount = (subscription.renewalCount || 0) + 1;
@@ -523,7 +523,7 @@ class BillingService {
       if (status) filter.status = status;
 
       const subscriptions = await Subscription.find(filter);
-      
+
       const analytics = {
         total: subscriptions.length,
         byType: {},
@@ -544,10 +544,10 @@ class BillingService {
       subscriptions.forEach(sub => {
         // By type
         analytics.byType[sub.subscriptionType] = (analytics.byType[sub.subscriptionType] || 0) + 1;
-        
+
         // By status
         analytics.byStatus[sub.status] = (analytics.byStatus[sub.status] || 0) + 1;
-        
+
         // Revenue
         analytics.revenue.total += sub.price;
         analytics.revenue.byType[sub.subscriptionType] = (analytics.revenue.byType[sub.subscriptionType] || 0) + sub.price;
@@ -623,7 +623,7 @@ class BillingService {
   async getUserSubscriptions(userId, options = {}) {
     try {
       const { status, type, page = 1, limit = 20 } = options;
-      
+
       const filter = { user: userId };
       if (status) filter.status = status;
       if (type) filter.subscriptionType = type;
@@ -680,7 +680,7 @@ class BillingService {
     try {
       const currentPlan = this.subscriptionTypes[subscription.subscriptionType];
       const newPlan = this.subscriptionTypes[newPlanType];
-      
+
       if (!currentPlan || !newPlan) {
         throw new Error('Invalid plan type');
       }

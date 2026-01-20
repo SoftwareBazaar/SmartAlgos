@@ -46,20 +46,45 @@ router.post('/initialize', [
 
     const { amount, currency, email, callback_url, metadata = {} } = req.body;
 
+    // Currency conversion for Paystack (KES only)
+    let paymentAmount = amount;
+    let paymentCurrency = currency;
+    const originalCurrency = currency;
+    const originalAmount = amount;
+
+    // Convert to KES if needed (Paystack account only supports KES)
+    if (currency !== 'KES') {
+      const conversionRates = {
+        'USD': 150,  // 1 USD = 150 KES
+        'EUR': 165,  // 1 EUR = 165 KES
+        'GBP': 185,  // 1 GBP = 185 KES
+        'NGN': 0.33  // 1 NGN = 0.33 KES
+      };
+
+      const rate = conversionRates[currency] || 1;
+      paymentAmount = Math.round(amount * rate * 100) / 100; // Round to 2 decimals
+      paymentCurrency = 'KES';
+
+      console.log(`Currency conversion: ${originalAmount} ${originalCurrency} → ${paymentAmount} ${paymentCurrency} (rate: ${rate})`);
+    }
+
     // Generate unique reference
     const reference = paystackService.generateReference('PAY');
 
     const transactionData = {
       email,
-      amount,
-      currency,
+      amount: paymentAmount,
+      currency: paymentCurrency,
       reference,
       callback_url: callback_url || `${process.env.CLIENT_URL || 'http://localhost:3000'}/payments?reference=${reference}`,
       metadata: {
         ...metadata,
         userId: req.user._id.toString(),
         userEmail: req.user.email,
-        platform: 'smart-algos'
+        platform: 'smart-algos',
+        originalAmount,
+        originalCurrency,
+        conversionRate: paymentCurrency !== originalCurrency ? (paymentAmount / originalAmount) : 1
       }
     };
 

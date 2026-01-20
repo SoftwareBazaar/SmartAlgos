@@ -225,7 +225,7 @@ class MockAuthStore {
     if (this._ensureDefaultAccounts()) {
       this._persist();
     }
-    
+
     // Add test EAs with files matching production database IDs and structure
     this.eas = [
       {
@@ -279,9 +279,33 @@ class MockAuthStore {
         ],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
+      },
+      {
+        id: 7,
+        name: 'London Breakout Bot v1.0',
+        description: 'High-performance session breakout strategy for Gold, US30, and Nasdaq. Automatically captures volatility at 10:00 AM London open.',
+        category: 'trend',
+        price_weekly: 9.99,
+        price_monthly: 29.00,
+        price_quarterly: 75.00,
+        price_yearly: 199.00,
+        win_rate: 72,
+        max_drawdown: 8.5,
+        supported_pairs: ['XAUUSD', 'US30', 'NAS100'],
+        timeframes: ['M15', 'M30'],
+        is_active: true,
+        status: 'approved',
+        image: 'https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-images/placeholder-breakout.png',
+        ea_file_path: 'https://example.com/london-breakout-bot.ex4',
+        set_file_path: 'https://example.com/london-breakout-bot.set',
+        manual_file_path: 'https://example.com/london-breakout-bot.pdf',
+        screenshots: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
     ];
-    
+
+
     this._persist();
   }
 
@@ -418,7 +442,7 @@ class MockDataStore {
   // EA methods
   async getEAs(filters = {}) {
     let filteredEAs = [...this.eas];
-    
+
     if (filters.category) {
       filteredEAs = filteredEAs.filter(ea => ea.category === filters.category);
     }
@@ -428,7 +452,7 @@ class MockDataStore {
     if (filters.is_active !== undefined) {
       filteredEAs = filteredEAs.filter(ea => ea.is_active === filters.is_active);
     }
-    
+
     return filteredEAs;
   }
 
@@ -451,13 +475,13 @@ class MockDataStore {
       status: 'approved',
       ...eaData
     };
-    
+
     // Add to EAs array
     this.eas.push(newEA);
-    
+
     // Persist to file system
     this._persist();
-    
+
     console.log('[MockAuthStore] Created EA with files:', {
       id: newEA.id,
       name: newEA.name,
@@ -468,7 +492,7 @@ class MockDataStore {
       is_active: newEA.is_active,
       status: newEA.status
     });
-    
+
     return newEA;
   }
 
@@ -499,9 +523,9 @@ class MockDataStore {
   async getSubscriptions(filters = {}) {
     console.log('[MockDataStore] Getting subscriptions with filters:', filters);
     console.log('[MockDataStore] Available subscriptions:', this.subscriptions);
-    
+
     let filteredSubscriptions = [...this.subscriptions];
-    
+
     if (filters.user_id) {
       filteredSubscriptions = filteredSubscriptions.filter(sub => sub.user_id === filters.user_id);
     }
@@ -511,7 +535,7 @@ class MockDataStore {
     if (filters.ea_id) {
       filteredSubscriptions = filteredSubscriptions.filter(sub => sub.ea_id === filters.ea_id);
     }
-    
+
     console.log('[MockDataStore] Filtered subscriptions:', filteredSubscriptions);
     return filteredSubscriptions;
   }
@@ -541,7 +565,7 @@ class MockDataStore {
   async updateSubscription(id, updates) {
     const index = this.subscriptions.findIndex(sub => sub.id === id);
     if (index === -1) return null;
-    
+
     this.subscriptions[index] = {
       ...this.subscriptions[index],
       ...updates,

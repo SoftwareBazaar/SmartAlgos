@@ -16,6 +16,7 @@ const testEA = {
   supported_pairs: ["EURUSD", "GBPUSD", "USDJPY"],
   timeframes: ["M1", "M5", "M15"],
   version: "1.0.0",
+  strategy_type: "scalping",
   is_active: true,
   status: "approved"
 };
@@ -35,6 +36,7 @@ async function createTestEA() {
     formData.append('price_monthly', testEA.price_monthly);
     formData.append('price_yearly', testEA.price_yearly);
     formData.append('version', testEA.version);
+    formData.append('strategy_type', testEA.strategy_type || testEA.category);
     formData.append('win_rate', testEA.win_rate);
     formData.append('max_drawdown', testEA.max_drawdown);
     formData.append('supported_pairs', JSON.stringify(testEA.supported_pairs));

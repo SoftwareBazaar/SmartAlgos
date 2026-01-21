@@ -520,6 +520,7 @@ const ensureLondonBreakoutBot = async () => {
         supported_pairs: ['XAUUSD', 'US30', 'NAS100'],
         timeframes: ['M15', 'M30'],
         version: "1.0.0",
+        strategy_type: "trend",
         is_active: true,
         status: "approved",
         image: "https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-images/placeholder-breakout.png",

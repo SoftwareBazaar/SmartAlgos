@@ -179,9 +179,12 @@ class DatabaseService {
       delete eaData.files;
     }
 
-    // Ensure version is present (database NOT NULL constraint)
+    // Ensure version and strategy_type are present (database NOT NULL constraints)
     if (!eaData.version) {
       eaData.version = '1.0.0';
+    }
+    if (!eaData.strategy_type) {
+      eaData.strategy_type = eaData.category || 'scalping';
     }
 
     console.log('[DatabaseService] Creating EA with data:', JSON.stringify(eaData, null, 2));

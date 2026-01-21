@@ -272,21 +272,25 @@ class BillingService {
         throw new Error('Subscription not found');
       }
 
-      subscription.status = 'active';
-      subscription.activatedAt = new Date();
-      await subscription.save();
+      const updatedSubscription = await databaseService.update('subscriptions', subscriptionId, {
+        status: 'active',
+        activated_at: new Date().toISOString()
+      });
 
       // Update user subscription
-      const user = subscription.user;
-      user.subscription = {
-        type: subscription.subscriptionType,
-        status: 'active',
-        startDate: subscription.startDate,
-        endDate: subscription.endDate,
-        features: subscription.features,
-        limits: subscription.limits
-      };
-      await user.save();
+      const userId = subscription.user_id;
+      const user = await databaseService.getUserById(userId);
+
+      await databaseService.update('users_accounts', user.id, {
+        subscription: {
+          type: updatedSubscription.subscription_type,
+          status: 'active',
+          startDate: updatedSubscription.start_date,
+          endDate: updatedSubscription.end_date,
+          features: updatedSubscription.features,
+          limits: updatedSubscription.limits
+        }
+      });
 
       // Send notification
       await this.sendSubscriptionNotification(user, subscription, 'activated');
@@ -373,8 +377,12 @@ class BillingService {
       });
 
       // Update user subscription end date
-      await databaseService.update('users_accounts', subscription.user_id, {
-        'subscription.endDate': newEndDate.toISOString()
+      const user = await databaseService.getUserById(subscription.user_id);
+      await databaseService.update('users_accounts', user.id, {
+        subscription: {
+          ...user.subscription,
+          endDate: newEndDate.toISOString()
+        }
       });
 
       // Send notification
@@ -635,9 +643,9 @@ class BillingService {
     try {
       const { status, type, page = 1, limit = 20 } = options;
 
-      const filter = { user: userId };
+      const filter = { user_id: userId };
       if (status) filter.status = status;
-      if (type) filter.subscriptionType = type;
+      if (type) filter.subscription_type = type;
 
       const skip = (page - 1) * limit;
       const subscriptions = await databaseService.query('subscriptions', {

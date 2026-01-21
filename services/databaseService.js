@@ -571,6 +571,18 @@ class DatabaseService {
     return data;
   }
 
+  async updatePerformanceRecord(id, updates) {
+    if (this.mockMode) return { id, ...updates };
+    const { data, error } = await this.supabase
+      .from('performance_records')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   // HFT Bot operations
   async createHFTBot(botData) {
     if (this.mockMode) return { id: 'mock-hft', ...botData };
@@ -760,6 +772,133 @@ class DatabaseService {
       .eq('id', id);
     if (error) throw error;
     return true;
+  }
+
+  // Generic Insert Method
+  async insert(table, data) {
+    if (this.mockMode) return { id: Date.now(), ...data };
+
+    const { data: inserted, error } = await this.supabase
+      .from(table)
+      .insert([data])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return inserted;
+  }
+
+  // Generic Update Method
+  async update(table, id, updates) {
+    if (this.mockMode) return { id, ...updates };
+
+    const { data, error } = await this.supabase
+      .from(table)
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  // Generic Query Method
+  async query(table, options = {}) {
+    if (this.mockMode) {
+      console.log(`[database] Mock query on table: ${table}`);
+      return [];
+    }
+
+    let query = this.supabase.from(table).select(options.select || '*');
+
+    if (options.filter || options.filters) {
+      const filters = options.filter || options.filters;
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+
+        if (typeof value === 'object' && !Array.isArray(value)) {
+          // Handle complex filters like { lte: ... }
+          Object.entries(value).forEach(([op, val]) => {
+            switch (op) {
+              case 'eq': query = query.eq(key, val); break;
+              case 'neq': query = query.neq(key, val); break;
+              case 'gt': query = query.gt(key, val); break;
+              case 'gte': query = query.gte(key, val); break;
+              case 'lt': query = query.lt(key, val); break;
+              case 'lte': query = query.lte(key, val); break;
+              case 'like': query = query.like(key, val); break;
+              case 'ilike': query = query.ilike(key, val); break;
+              case 'in': query = query.in(key, val); break;
+            }
+          });
+        } else {
+          // Default to equality
+          query = query.eq(key, value);
+        }
+      });
+    }
+
+    if (options.sort) {
+      Object.entries(options.sort).forEach(([key, value]) => {
+        query = query.order(key, { ascending: value === 'asc' || value === 1 });
+      });
+    }
+
+    if (options.limit) {
+      query = query.limit(options.limit);
+    }
+
+    if (options.offset) {
+      query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    if (options.single) {
+      return data && data.length > 0 ? data[0] : null;
+    }
+
+    return data;
+  }
+
+  // Generic Count Method
+  async count(table, options = {}) {
+    if (this.mockMode) return 0;
+
+    let query = this.supabase
+      .from(table)
+      .select('*', { count: 'exact', head: true });
+
+    if (options.filter || options.filters) {
+      const filters = options.filter || options.filters;
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+
+        if (typeof value === 'object' && !Array.isArray(value)) {
+          Object.entries(value).forEach(([op, val]) => {
+            switch (op) {
+              case 'eq': query = query.eq(key, val); break;
+              case 'neq': query = query.neq(key, val); break;
+              case 'gt': query = query.gt(key, val); break;
+              case 'gte': query = query.gte(key, val); break;
+              case 'lt': query = query.lt(key, val); break;
+              case 'lte': query = query.lte(key, val); break;
+              case 'like': query = query.like(key, val); break;
+              case 'ilike': query = query.ilike(key, val); break;
+              case 'in': query = query.in(key, val); break;
+            }
+          });
+        } else {
+          query = query.eq(key, value);
+        }
+      });
+    }
+
+    const { count, error } = await query;
+    if (error) throw error;
+    return count;
   }
 }
 

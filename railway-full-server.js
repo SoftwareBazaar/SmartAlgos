@@ -514,7 +514,6 @@ const ensureLondonBreakoutBot = async () => {
         category: "trend",
         price_weekly: 10.00,
         price_monthly: 29.00,
-        price_quarterly: 75.00,
         price_yearly: 199.00,
         win_rate: 72,
         max_drawdown: 8.5,

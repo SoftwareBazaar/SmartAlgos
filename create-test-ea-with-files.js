@@ -35,14 +35,13 @@ async function createTestEAWithFiles() {
 
     // Create form data
     const formData = new FormData();
-    
+
     // Add EA data
     formData.append('name', 'Test Download EA');
     formData.append('description', 'Test EA for verifying download functionality works correctly');
     formData.append('category', 'scalping');
     formData.append('price_weekly', '6.99');
     formData.append('price_monthly', '18.00');
-    formData.append('price_quarterly', '45.00');
     formData.append('price_yearly', '97.00');
     formData.append('win_rate', '75');
     formData.append('max_drawdown', '5.2');
@@ -50,12 +49,12 @@ async function createTestEAWithFiles() {
     formData.append('timeframes', JSON.stringify(['M1', 'M5', 'M15']));
     formData.append('is_active', 'true');
     formData.append('status', 'approved');
-    
+
     // Add files
     formData.append('eaFile', fs.createReadStream(testFiles.eaFile));
     formData.append('setFile', fs.createReadStream(testFiles.setFile));
     formData.append('manualFile', fs.createReadStream(testFiles.manualFile));
-    
+
     // Create a test screenshot
     const testScreenshot = Buffer.from('Test Screenshot Data');
     formData.append('screenshots', testScreenshot, {
@@ -64,7 +63,7 @@ async function createTestEAWithFiles() {
     });
 
     console.log('📤 Uploading test EA with files...');
-    
+
     // Make API call
     const response = await axios.post('http://localhost:5000/api/eas', formData, {
       headers: {
@@ -72,7 +71,7 @@ async function createTestEAWithFiles() {
         'Authorization': 'Bearer test-token' // You'll need to get a real token
       }
     });
-    
+
     if (response.data.success) {
       console.log('✅ Test EA created successfully!');
       console.log('EA ID:', response.data.data.id);
@@ -82,16 +81,16 @@ async function createTestEAWithFiles() {
       console.log('- Settings File:', response.data.data.set_file ? 'Yes' : 'No');
       console.log('- Manual File:', response.data.data.manual_file ? 'Yes' : 'No');
       console.log('- Screenshots:', response.data.data.screenshots ? 'Yes' : 'No');
-      
+
       console.log('\n🎯 Next steps:');
       console.log('1. Test subscription flow with this EA');
       console.log('2. Verify download functionality works');
       console.log('3. Check that all files are downloadable');
-      
+
     } else {
       console.error('❌ Failed to create test EA:', response.data.message);
     }
-    
+
   } catch (error) {
     console.error('❌ Error creating test EA:', error.message);
     if (error.response) {

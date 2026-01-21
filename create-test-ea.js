@@ -10,7 +10,6 @@ const testEA = {
   category: "scalping",
   price_weekly: 6.99,
   price_monthly: 18.00,
-  price_quarterly: 45.00,
   price_yearly: 97.00,
   win_rate: 75,
   max_drawdown: 5.2,
@@ -23,10 +22,10 @@ const testEA = {
 async function createTestEA() {
   try {
     console.log('Creating test EA for subscription flow testing...');
-    
+
     // Create form data
     const formData = new FormData();
-    
+
     // Add EA data
     formData.append('name', testEA.name);
     formData.append('description', testEA.description);
@@ -41,27 +40,27 @@ async function createTestEA() {
     formData.append('timeframes', JSON.stringify(testEA.timeframes));
     formData.append('is_active', testEA.is_active);
     formData.append('status', testEA.status);
-    
+
     // Add files
     if (fs.existsSync('test-ea-file.ex4')) {
       formData.append('eaFile', fs.createReadStream('test-ea-file.ex4'));
     }
-    
+
     if (fs.existsSync('test-ea-settings.set')) {
       formData.append('setFile', fs.createReadStream('test-ea-settings.set'));
     }
-    
+
     if (fs.existsSync('test-ea-manual.pdf')) {
       formData.append('manualFile', fs.createReadStream('test-ea-manual.pdf'));
     }
-    
+
     // Create a test screenshot (simple text file for testing)
     const testScreenshot = Buffer.from('Test Screenshot Data');
     formData.append('screenshots', testScreenshot, {
       filename: 'test-screenshot.png',
       contentType: 'image/png'
     });
-    
+
     // Make API call
     const response = await axios.post('http://localhost:5000/api/eas', formData, {
       headers: {
@@ -69,7 +68,7 @@ async function createTestEA() {
         'Authorization': 'Bearer test-token' // You'll need to get a real token
       }
     });
-    
+
     if (response.data.success) {
       console.log('✅ Test EA created successfully!');
       console.log('EA ID:', response.data.data.id);
@@ -77,7 +76,7 @@ async function createTestEA() {
     } else {
       console.error('❌ Failed to create test EA:', response.data.message);
     }
-    
+
   } catch (error) {
     console.error('❌ Error creating test EA:', error.message);
     if (error.response) {

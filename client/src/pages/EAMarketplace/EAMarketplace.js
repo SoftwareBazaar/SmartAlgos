@@ -191,32 +191,44 @@ const EAMarketplace = () => {
     try {
       console.log('💰 Payment successful:', paymentResult);
 
-      // Wait a moment for backend to create subscription
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Polling mechanism: Wait for subscription to be created (max 5 attempts)
+      let newSub = null;
+      for (let i = 0; i < 5; i++) {
+        console.log(`[Payment] Checking for subscription attempt ${i + 1}/5...`);
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s between checks
 
-      // Refresh user subscriptions
-      await fetchUserSubscriptions();
+        await fetchUserSubscriptions(); // Refresh list
+        const currentSubscriptions = await getUserSubscriptions();
 
-      // Find the newly created subscription
-      const newSubscriptions = await getUserSubscriptions();
-      const newSub = newSubscriptions.find(sub =>
-        sub.ea_id === selectedEA.id &&
-        sub.status === 'active'
-      );
+        // Debugging logs
+        console.log('[Payment] Selected EA ID:', selectedEA?.id);
+        console.log('[Payment] Current Subscriptions:', currentSubscriptions.map(s => ({ id: s.id, ea_id: s.ea_id, status: s.status })));
+
+        newSub = currentSubscriptions.find(sub =>
+          (String(sub.ea_id) === String(selectedEA.id)) && // robust ID check
+          sub.status === 'active'
+        );
+
+        if (newSub) {
+          console.log('[Payment] Found active subscription:', newSub.id);
+          break;
+        }
+      }
 
       if (newSub) {
         // Get download links
         const downloadData = await getSubscriptionDownloadLinks(newSub.id);
+        console.log('[Payment] Download links fetched:', downloadData);
+
         setDownloadLinks(downloadData.files);
         setCurrentSubscriptionId(newSub.id);
 
-        // Show Download Modal IMMEDIATELY so user checks files
+        // Show Download Modal IMMEDIATELY
         setShowDownloadModal(true);
 
         // Also attempt auto-download in background
         if (downloadData.files) {
           Object.keys(downloadData.files).forEach(fileType => {
-            // Using a slight delay between downloads to avoid browser blocking multiple downloads
             setTimeout(() => {
               const link = document.createElement('a');
               link.href = downloadData.files[fileType];
@@ -229,7 +241,8 @@ const EAMarketplace = () => {
           });
         }
       } else {
-        setResultDialog({ open: true, status: 'success', message: 'Subscription created. It may take a moment to activate.' });
+        console.warn('[Payment] Timeout: Could not find active subscription after payment.');
+        setResultDialog({ open: true, status: 'success', message: 'Payment successful! Your subscription is being created. Please check "My Hub" or refreshing the page in a moment to download your files.' });
       }
 
       setShowPaymentDialog(false);

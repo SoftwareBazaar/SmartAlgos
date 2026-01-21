@@ -209,7 +209,23 @@ const EAMarketplace = () => {
         const downloadData = await getSubscriptionDownloadLinks(newSub.id);
         setDownloadLinks(downloadData.files);
         setCurrentSubscriptionId(newSub.id);
-        setResultDialog({ open: true, status: 'success', message: 'Your subscription is active. You can download files now.' });
+        setResultDialog({ open: true, status: 'success', message: 'Your subscription is active. Auto-downloading files now...' });
+
+        // Auto-download all files
+        if (downloadData.files) {
+          Object.keys(downloadData.files).forEach(fileType => {
+            // Using a slight delay between downloads to avoid browser blocking multiple downloads
+            setTimeout(() => {
+              const link = document.createElement('a');
+              link.href = downloadData.files[fileType];
+              link.download = `${selectedEA?.name || 'EA'}_${fileType}`;
+              link.target = '_blank';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }, 500);
+          });
+        }
       } else {
         setResultDialog({ open: true, status: 'success', message: 'Subscription created. It may take a moment to activate.' });
       }
@@ -482,8 +498,8 @@ const EAMarketplace = () => {
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeCategory === category.id
-                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                    ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                     }`}
                 >
                   {category.name}
@@ -678,8 +694,8 @@ const EAMarketplace = () => {
                   </div>
                   <div className="absolute top-4 right-4 flex flex-col space-y-1">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${ea.status === 'active'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                       }`}>
                       {ea.status === 'active' ? 'Active' : ea.status ? ea.status.charAt(0).toUpperCase() + ea.status.slice(1) : 'Pending'}
                     </span>
@@ -758,8 +774,8 @@ const EAMarketplace = () => {
                         <button
                           key={period}
                           className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${(ea.currentPeriod || 'monthly') === period
-                              ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200'
-                              : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                            ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200'
+                            : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                             }`}
                         >
                           {period.charAt(0).toUpperCase() + period.slice(1)}
@@ -897,14 +913,14 @@ const EAMarketplace = () => {
                       key={option.type}
                       onClick={() => setSubscriptionType(option.type)}
                       className={`relative p-4 rounded-lg border-2 text-left transition-all ${subscriptionType === option.type
-                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 shadow-lg scale-105'
-                          : 'border-gray-200 bg-white hover:border-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-primary-500'
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 shadow-lg scale-105'
+                        : 'border-gray-200 bg-white hover:border-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-primary-500'
                         }`}
                     >
                       {option.badge && (
                         <div className={`absolute -top-2 right-2 px-2 py-0.5 rounded-full text-xs font-bold ${option.type === 'lifetime'
-                            ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white'
-                            : 'bg-primary-500 text-white'
+                          ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white'
+                          : 'bg-primary-500 text-white'
                           }`}>
                           {option.badge}
                         </div>
@@ -950,8 +966,8 @@ const EAMarketplace = () => {
                       key={method.id}
                       onClick={() => setPaymentMethod(method.id)}
                       className={`w-full p-3 rounded-lg border flex items-center space-x-3 transition-colors ${paymentMethod === method.id
-                          ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-                          : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
+                        : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                         }`}
                     >
                       <method.icon className="h-5 w-5" />

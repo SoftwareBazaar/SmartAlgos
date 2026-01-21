@@ -20,6 +20,7 @@ import Card from '../../components/UI/Card';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import { formatDate, formatDateTime, formatCurrency } from '../../utils/formatting';
 import { calculateSubscriptionStats } from '../../utils/subscriptionStats';
+import { downloadWithPersistence, getSubscriptionDownloadLinks } from '../../utils/subscriptionUtils';
 
 const Payments = () => {
   const { user } = useAuth();
@@ -163,14 +164,16 @@ const Payments = () => {
 
   useEffect(() => {
     fetchData();
-    
+
     // Check for payment callback
     const urlParams = new URLSearchParams(window.location.search);
-    const reference = urlParams.get('reference');
+    const reference = urlParams.get('reference') || urlParams.get('trxref');
     const status = urlParams.get('status');
-    
-    if (reference && status) {
-      handlePaymentCallback(reference, status);
+
+    // If we have a reference, we should attempt to verify it even if status is not explicitly "success"
+    // The verifyTransaction endpoint will confirm the true status
+    if (reference) {
+      handlePaymentCallback(reference, status || 'success');
     }
   }, []);
 
@@ -187,12 +190,31 @@ const Payments = () => {
           const pendingSubscription = localStorage.getItem('pendingSubscription');
           if (pendingSubscription) {
             const subscriptionData = JSON.parse(pendingSubscription);
-            
+
             // Create the subscription
             const subscriptionResponse = await apiClient.post('/api/payments/subscriptions/create', subscriptionData);
-            
+
             if (subscriptionResponse.data.success) {
               showNotification('Payment successful! Your subscription has been activated.', 'success');
+
+              // New: Auto-download purchased items
+              const newSub = subscriptionResponse.data.data;
+              if (newSub && newSub._id) {
+                try {
+                  const downloadData = await getSubscriptionDownloadLinks(newSub._id);
+                  if (downloadData && downloadData.files) {
+                    showNotification('Auto-downloading your files...', 'info');
+                    // Download each available file
+                    Object.keys(downloadData.files).forEach(fileType => {
+                      downloadWithPersistence(newSub._id, newSub.productId || 'EA', fileType);
+                    });
+                  }
+                } catch (downloadError) {
+                  console.error('Auto-download failed:', downloadError);
+                  showNotification('Subscription active but auto-download failed. You can download manually below.', 'warning');
+                }
+              }
+
               localStorage.removeItem('pendingSubscription');
               await fetchData();
             }
@@ -210,7 +232,7 @@ const Payments = () => {
     } else {
       showNotification('Payment was not successful. Please try again.', 'error');
     }
-    
+
     // Clean up URL parameters
     window.history.replaceState({}, document.title, window.location.pathname);
   };
@@ -446,11 +468,10 @@ const Payments = () => {
     <div className="space-y-6">
       {/* Notification */}
       {notification.show && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-          notification.type === 'success' ? 'bg-green-500 text-white' :
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-500 text-white' :
           notification.type === 'error' ? 'bg-red-500 text-white' :
-          'bg-blue-500 text-white'
-        }`}>
+            'bg-blue-500 text-white'
+          }`}>
           <div className="flex items-center space-x-2">
             <span>{notification.message}</span>
             <button
@@ -505,11 +526,10 @@ const Payments = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === tab.id
-                  ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-              }`}
+              className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
             >
               <tab.icon className="h-4 w-4 mr-2" />
               {tab.label}
@@ -678,7 +698,7 @@ const Payments = () => {
       {activeTab === 'history' && (
         <div className="space-y-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Payment History</h2>
-          
+
           {paymentHistory.length === 0 ? (
             <Card>
               <div className="p-8 text-center">
@@ -762,7 +782,7 @@ const Payments = () => {
       {activeTab === 'invoices' && (
         <div className="space-y-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Invoices</h2>
-          
+
           {invoices.length === 0 ? (
             <Card>
               <div className="p-8 text-center">
@@ -830,7 +850,7 @@ const Payments = () => {
       {activeTab === 'plans' && (
         <div className="space-y-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Available Plans</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {plans.map((plan) => (
               <Card key={plan.type} className="relative">
@@ -849,7 +869,7 @@ const Payments = () => {
                       {plan.description}
                     </p>
                   </div>
-                  
+
                   <div className="space-y-3 mb-6">
                     {plan.features.map((feature, index) => (
                       <div key={index} className="flex items-center">
@@ -860,7 +880,7 @@ const Payments = () => {
                       </div>
                     ))}
                   </div>
-                  
+
                   <Button
                     onClick={() => handleCreateSubscription(plan.type, null, 'platform')}
                     className="w-full"
@@ -894,7 +914,7 @@ const Payments = () => {
                 <XCircle className="h-6 w-6" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -925,7 +945,7 @@ const Payments = () => {
                   />
                 </div>
               )}
-              
+
               <Input
                 label="Amount"
                 type="number"
@@ -947,7 +967,7 @@ const Payments = () => {
               />
 
               <div>
-                <label 
+                <label
                   htmlFor="payment-currency"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                 >
@@ -967,7 +987,7 @@ const Payments = () => {
                   <option value="ZAR">ZAR - South African Rand</option>
                 </select>
               </div>
-              
+
               <Input
                 label="Email"
                 type="email"
@@ -983,7 +1003,7 @@ const Payments = () => {
                 aria-label="Email address for payment receipt"
                 required
               />
-              
+
               <Input
                 label="Description (Optional)"
                 type="text"
@@ -1000,7 +1020,7 @@ const Payments = () => {
                 aria-label="Payment description"
               />
             </div>
-            
+
             <div className="flex space-x-3 mt-6">
               <Button
                 onClick={handleInitializePayment}
@@ -1012,7 +1032,7 @@ const Payments = () => {
                   !/[^@\s]+@[^@\s]+\.[^@\s]+/.test(paymentData.email)
                 }
               >
-                {loading ? <LoadingSpinner size="sm" /> : 
+                {loading ? <LoadingSpinner size="sm" /> :
                   paymentData.paymentMethod === 'charge_authorization' ? 'Charge Now' : 'Pay Now'}
               </Button>
               <Button

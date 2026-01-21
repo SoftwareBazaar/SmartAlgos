@@ -76,7 +76,7 @@ router.post('/initialize', [
       amount: paymentAmount,
       currency: paymentCurrency,
       reference,
-      callback_url: callback_url || `${process.env.CLIENT_URL || 'http://localhost:3000'}/payments?reference=${reference}`,
+      callback_url: callback_url || `${process.env.CLIENT_URL || 'http://localhost:3000'}/payments?status=success&reference=${reference}`,
       metadata: {
         ...metadata,
         userId: req.user._id.toString(),
@@ -256,7 +256,7 @@ router.post('/initialize-paused', [
       amount,
       currency,
       reference,
-      callback_url: callback_url || `${process.env.CLIENT_URL || 'http://localhost:3000'}/payments?reference=${reference}`,
+      callback_url: callback_url || `${process.env.CLIENT_URL || 'http://localhost:3000'}/payments?status=success&reference=${reference}`,
       metadata: {
         ...metadata,
         userId: req.user._id.toString(),

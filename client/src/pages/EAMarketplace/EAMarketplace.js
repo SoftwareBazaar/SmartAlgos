@@ -209,9 +209,11 @@ const EAMarketplace = () => {
         const downloadData = await getSubscriptionDownloadLinks(newSub.id);
         setDownloadLinks(downloadData.files);
         setCurrentSubscriptionId(newSub.id);
-        setResultDialog({ open: true, status: 'success', message: 'Your subscription is active. Auto-downloading files now...' });
 
-        // Auto-download all files
+        // Show Download Modal IMMEDIATELY so user checks files
+        setShowDownloadModal(true);
+
+        // Also attempt auto-download in background
         if (downloadData.files) {
           Object.keys(downloadData.files).forEach(fileType => {
             // Using a slight delay between downloads to avoid browser blocking multiple downloads

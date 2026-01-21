@@ -25,9 +25,9 @@ class SupabaseStorageService {
       // Normalize MIME type to standard formats
       const normalizeMimeType = (mime) => {
         if (!mime) return 'application/octet-stream';
-        
+
         const lowerMime = mime.toLowerCase();
-        
+
         // Normalize to standard MIME types (don't convert jpeg to jpg - jpg is invalid!)
         const mimeMap = {
           'image/jpg': 'image/jpeg',  // Convert invalid jpg to valid jpeg
@@ -35,7 +35,7 @@ class SupabaseStorageService {
           'image/pjpeg': 'image/jpeg',
           'image/x-png': 'image/png',
         };
-        
+
         return mimeMap[lowerMime] || mime;
       };
 
@@ -53,8 +53,8 @@ class SupabaseStorageService {
       const uploadPromise = this.supabase.storage
         .from(bucket)
         .upload(filePath, fileBuffer, {
-          upsert: false
-          // Removed contentType to avoid MIME type restrictions
+          upsert: false,
+          contentType: normalizeMimeType(mimetype)
         });
 
       const timeoutPromise = new Promise((_, reject) =>
@@ -74,7 +74,7 @@ class SupabaseStorageService {
       const { data: { publicUrl } } = this.supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
-      
+
       // Validate URL format
       if (!publicUrl || !publicUrl.startsWith('https://')) {
         console.error('[Storage] ❌ Invalid public URL returned:', publicUrl);
@@ -104,7 +104,7 @@ class SupabaseStorageService {
   async uploadEAFile(fileBuffer, originalFilename, mimetype) {
     try {
       console.log(`[SupabaseStorage] Uploading EA file: ${originalFilename}`);
-      
+
       // Generate unique filename
       const timestamp = Date.now();
       const randomSuffix = Math.round(Math.random() * 1E9);
@@ -192,7 +192,7 @@ class SupabaseStorageService {
       // Extract bucket and file path from URL
       // URL format: https://[PROJECT].supabase.co/storage/v1/object/public/[BUCKET]/[PATH]
       const urlParts = fileUrl.split('/storage/v1/object/public/');
-      
+
       if (urlParts.length !== 2) {
         throw new Error('Invalid Supabase Storage URL format');
       }

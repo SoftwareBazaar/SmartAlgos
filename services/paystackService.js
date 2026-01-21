@@ -11,8 +11,8 @@ class PaystackService {
     this.secretKey = process.env.PAYSTACK_SECRET_KEY;
     this.publicKey = process.env.PAYSTACK_PUBLIC_KEY;
     this.baseURL = 'https://api.paystack.co';
-    this.isMockMode = !this.secretKey || this.secretKey.includes('test_') || this.secretKey.includes('your_');
-    
+    this.isMockMode = !this.secretKey || this.secretKey.includes('your_');
+
     if (this.isMockMode) {
       console.log('⚠️  Paystack running in MOCK MODE (no real API calls)');
     }

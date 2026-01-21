@@ -9,7 +9,7 @@ class CryptoPaymentService {
     this.binanceApiKey = process.env.BINANCE_API_KEY;
     this.binanceSecretKey = process.env.BINANCE_SECRET_KEY;
     this.isMockMode = !this.coinbaseApiKey || this.coinbaseApiKey.includes('your_');
-    
+
     // Note: Coinbase Commerce is optional - we use blockchainMonitorService for verification
     // This warning is harmless if you're using Etherscan/BlockCypher for automatic verification
     if (this.isMockMode) {
@@ -28,42 +28,42 @@ class CryptoPaymentService {
 
       // Get current crypto rates
       const rates = await this.getCryptoRates();
-      
-        const paymentData = {
-          paymentId: this.generatePaymentId(),
-          amount: amount,
-          currency: currency,
-          eaId: eaId,
-          subscriptionType: subscriptionType,
-          cryptoOptions: {
-            bitcoin: {
-              address: this.generateBitcoinAddress(),
-              amount: (amount / rates.BTC).toFixed(8),
-              qrCode: this.generateQRCode('bitcoin:' + this.generateBitcoinAddress())
-            },
-            ethereum: {
-              address: this.generateEthereumAddress(),
-              amount: (amount / rates.ETH).toFixed(6),
-              qrCode: this.generateQRCode('ethereum:' + this.generateEthereumAddress())
-            },
-            binance: {
-              address: this.generateBinanceAddress(),
-              amount: (amount / rates.BNB).toFixed(4),
-              qrCode: this.generateQRCode('binance:' + this.generateBinanceAddress())
-            },
-            usdt: {
-              address: this.generateUSDTAddress(),
-              amount: (amount / rates.USDT).toFixed(2),
-              qrCode: this.generateQRCode('ethereum:' + this.generateUSDTAddress())
-            }
+
+      const paymentData = {
+        paymentId: this.generatePaymentId(),
+        amount: amount,
+        currency: currency,
+        eaId: eaId,
+        subscriptionType: subscriptionType,
+        cryptoOptions: {
+          bitcoin: {
+            address: this.generateBitcoinAddress(),
+            amount: (amount / rates.BTC).toFixed(8),
+            qrCode: this.generateQRCode('bitcoin:' + this.generateBitcoinAddress())
           },
-          expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
-        };
+          ethereum: {
+            address: this.generateEthereumAddress(),
+            amount: (amount / rates.ETH).toFixed(6),
+            qrCode: this.generateQRCode('ethereum:' + this.generateEthereumAddress())
+          },
+          binance: {
+            address: this.generateBinanceAddress(),
+            amount: (amount / rates.BNB).toFixed(4),
+            qrCode: this.generateQRCode('binance:' + this.generateBinanceAddress())
+          },
+          usdt: {
+            address: this.generateUSDTAddress(),
+            amount: (amount / rates.USDT).toFixed(2),
+            qrCode: this.generateQRCode(this.generateUSDTAddress())
+          }
+        },
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
+      };
 
-        // Start blockchain monitoring
-        await blockchainMonitor.startPaymentMonitoring(paymentData);
+      // Start blockchain monitoring
+      await blockchainMonitor.startPaymentMonitoring(paymentData);
 
-        return paymentData;
+      return paymentData;
     } catch (error) {
       console.error('Error creating crypto payment request:', error);
       throw error;
@@ -140,12 +140,12 @@ class CryptoPaymentService {
     // Check transaction on blockchain
     // Verify amount and address
     // Wait for confirmations
-    
+
     console.log(`Verifying ${cryptoType} transaction: ${txHash}`);
-    
+
     // Simulate verification delay
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     // For demo purposes, accept all transactions
     return true;
   }
@@ -276,7 +276,7 @@ class CryptoPaymentService {
    */
   getStatus() {
     const monitorStatus = blockchainMonitor.getStatus();
-    
+
     return {
       service: 'crypto-payments',
       configured: !this.isMockMode,

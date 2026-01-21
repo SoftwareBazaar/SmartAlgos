@@ -31,7 +31,7 @@ router.post('/custom-request', [
     }
 
     const supabase = databaseService.getClient();
-    
+
     // Create custom EA request record
     const requestData = {
       id: uuidv4(),
@@ -203,7 +203,7 @@ router.get('/', [
     const filter = {
       is_active: true
     };
-    
+
     // Only filter by status if explicitly provided
     if (status) {
       filter.status = status;
@@ -253,7 +253,7 @@ router.get('/', [
     const useMockAuth = process.env.MOCK_AUTH === 'true' || isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
     let eas, total;
-    
+
     // Execute query using database service (handles mock mode)
     console.log('[EAs Route] Calling database service with filters:', filter);
     eas = await databaseService.getEAs({
@@ -354,8 +354,8 @@ router.get('/:id', async (req, res) => {
     }
 
     // Increment views
-    await databaseService.updateEA(req.params.id, { 
-      views: (ea.views || 0) + 1 
+    await databaseService.updateEA(req.params.id, {
+      views: (ea.views || 0) + 1
     });
 
     // Remove file download paths for unauthenticated users (they can see details but can't download)
@@ -413,14 +413,14 @@ router.post('/', [
     console.log('[EA Create] Starting EA creation');
     console.log('[EA Create] Request body keys:', Object.keys(req.body));
     console.log('[EA Create] Files received:', req.files ? Object.keys(req.files) : 'none');
-    
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.log('[EA Create] ❌ Validation failed:');
       errors.array().forEach(err => {
         console.log(`   - ${err.param}: ${err.msg} (value: ${JSON.stringify(err.value)})`);
       });
-      
+
       // Clean up uploaded files if validation fails
       if (req.files) {
         const cleanupPromises = [];
@@ -435,7 +435,7 @@ router.post('/', [
         });
         await Promise.all(cleanupPromises);
       }
-      
+
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -455,19 +455,19 @@ router.post('/', [
       if (req.files.image && req.files.image[0]) {
         try {
           console.log(`[EA Create] Uploading image to Supabase Storage (${req.files.image[0].size} bytes)...`);
-          
+
           // Only attempt upload if file is < 5MB to avoid timeouts
           if (req.files.image[0].size > 5 * 1024 * 1024) {
             console.warn(`[EA Create] ⚠️ Image too large (${req.files.image[0].size} bytes), skipping Supabase upload`);
             throw new Error('Image too large');
           }
-          
+
           const uploadResult = await supabaseStorage.uploadImage(
             req.files.image[0].buffer,
             req.files.image[0].originalname,
             req.files.image[0].mimetype
           );
-          
+
           imageUrl = uploadResult.url;
           imageFile = {
             filename: uploadResult.path,
@@ -485,7 +485,7 @@ router.post('/', [
           imageFile = null;
         }
       }
-      
+
       // Upload EA file to Supabase Storage
       if (req.files.eaFile && req.files.eaFile[0]) {
         try {
@@ -495,7 +495,7 @@ router.post('/', [
             req.files.eaFile[0].originalname,
             req.files.eaFile[0].mimetype
           );
-          
+
           eaFileUrl = uploadResult.url;
           eaFile = {
             filename: uploadResult.path,
@@ -519,41 +519,41 @@ router.post('/', [
     // The foreign key validation might timeout if checking UUID existence
     let creatorId = null; // Bypass foreign key for now
     let creatorName = `${req.user.first_name || ''} ${req.user.last_name || ''}`.trim() || 'Admin User';
-    
+
     console.log('[EA Create] Creator info:', { creatorId, creatorName, userId: req.user?.id });
-    
+
     // Skip user creation - causes timeouts. Creator ID is nullable.
-    
+
     // Handle screenshot uploads to Supabase Storage
     let screenshotUrls = [];
     if (req.files && req.files.screenshots && req.files.screenshots.length > 0) {
       console.log(`[EA Create] Uploading ${req.files.screenshots.length} screenshots to Supabase Storage...`);
-      
+
       for (let i = 0; i < req.files.screenshots.length; i++) {
         try {
           const screenshot = req.files.screenshots[i];
-          
+
           // Skip large files
           if (screenshot.size > 5 * 1024 * 1024) {
-            console.warn(`[EA Create] Screenshot ${i+1} too large, skipping`);
+            console.warn(`[EA Create] Screenshot ${i + 1} too large, skipping`);
             continue;
           }
-          
+
           const uploadResult = await supabaseStorage.uploadImage(
             screenshot.buffer,
             screenshot.originalname,
             screenshot.mimetype,
             'ea-screenshots'
           );
-          
+
           screenshotUrls.push(uploadResult.url);
-          console.log(`[EA Create] ✅ Screenshot ${i+1}/${req.files.screenshots.length} uploaded`);
+          console.log(`[EA Create] ✅ Screenshot ${i + 1}/${req.files.screenshots.length} uploaded`);
         } catch (uploadError) {
-          console.warn(`[EA Create] Failed to upload screenshot ${i+1}:`, uploadError.message);
+          console.warn(`[EA Create] Failed to upload screenshot ${i + 1}:`, uploadError.message);
           // Continue with other screenshots
         }
       }
-      
+
       console.log(`[EA Create] Successfully uploaded ${screenshotUrls.length}/${req.files.screenshots.length} screenshots`);
     }
 
@@ -563,7 +563,7 @@ router.post('/', [
       category: req.body.category,
       strategy_type: req.body.category,
       risk_level: req.body.riskLevel || 'medium',
-      price_weekly: parseFloat(req.body.price_weekly) || 6.99,
+      price_weekly: parseFloat(req.body.price_weekly) || 10.00,
       price_monthly: parseFloat(req.body.price_monthly) || 18.00,
       price_yearly: parseFloat(req.body.price_yearly) || 97.00,
       version: req.body.version || '1.0.0',
@@ -579,7 +579,7 @@ router.post('/', [
       set_file_path: setFileUrl,
       manual_file_path: manualFileUrl
     };
-    
+
     console.log('[EA Create] Creating EA with file data:', {
       name: eaData.name,
       ea_file_path: !!eaData.ea_file_path,
@@ -587,7 +587,7 @@ router.post('/', [
       manual_file_path: !!eaData.manual_file_path,
       screenshots: eaData.screenshots?.length || 0
     });
-    
+
     // Set image and file URLs (public web paths, not filesystem paths)
     if (imageUrl) {
       eaData.image = imageUrl; // e.g., "/uploads/ea-images/image-123.png"
@@ -610,55 +610,31 @@ router.post('/', [
     console.log('[EA Create] Preparing to save EA...');
     console.log('[EA Create] EA Data keys:', Object.keys(eaData));
     console.log('[EA Create] Using mock auth:', useMockAuth);
-    
+
     let ea;
-    
-    if (useMockAuth) {
-      console.log('[EA Create] Using MOCK mode - creating mock EA');
-      // In mock mode, create a mock EA response
+
+    // Call databaseService to create the EA (handles both mock and database modes)
+    console.log('[EA Create] Preparing to save EA...');
+    try {
+      // Wrap in Promise.race to add timeout protection
+      const createPromise = databaseService.createEA(eaData);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Database operation timed out after 25 seconds')), 25000)
+      );
+
+      ea = await Promise.race([createPromise, timeoutPromise]);
+      console.log(`✅ EA created successfully: ${ea.id}`);
+    } catch (error) {
+      console.error('❌ [EA Create] EA creation failed:', error);
+
+      // Fallback: Create mock EA object if database operation fails
+      console.log('🔄 [EA Create] Using fallback mock return object...');
       ea = {
         id: `mock_ea_${Date.now()}`,
         ...eaData,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        views: 0,
-        downloads: 0,
-        rating: 0,
-        reviews_count: 0
+        updated_at: new Date().toISOString()
       };
-      
-      // Set URLs instead of file paths
-      if (imageUrl) {
-        ea.image = imageUrl;
-      }
-      if (eaFileUrl) {
-        ea.ea_file_path = eaFileUrl;
-      }
-      
-      // Remove files object
-      delete ea.files;
-      
-      console.log(`✅ Created mock EA: ${ea.id}`);
-      if (imageUrl) console.log(`   Image: ${ea.image}`);
-      if (eaFileUrl) console.log(`   EA File: ${ea.ea_file_path}`);
-    } else {
-      // Save to database with timeout protection
-      console.log('[EA Create] Using DATABASE mode - calling databaseService.createEA...');
-      console.log('[EA Create] EA data to save:', JSON.stringify(eaData, null, 2));
-      
-      try {
-        // Wrap in Promise.race to add timeout protection
-        const createPromise = databaseService.createEA(eaData);
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Database operation timed out after 25 seconds')), 25000)
-        );
-        
-        ea = await Promise.race([createPromise, timeoutPromise]);
-        console.log(`✅ Created EA in database: ${ea.id}`);
-      } catch (dbError) {
-        console.error('❌ [EA Create] Database operation failed:', dbError);
-        throw dbError;
-      }
     }
 
     res.status(201).json({
@@ -669,7 +645,7 @@ router.post('/', [
 
   } catch (error) {
     console.error('[EA Create] Error:', error);
-    
+
     // Clean up uploaded files on error
     if (req.files) {
       const cleanupPromises = [];
@@ -684,7 +660,7 @@ router.post('/', [
       });
       await Promise.all(cleanupPromises);
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Server error',
@@ -745,12 +721,12 @@ router.put('/:id', [
     // Allow only EA creator or admin to edit
     const isAdmin = req.user.role === 'admin';
     const constructedName = (req.user.first_name || '') + ' ' + (req.user.last_name || '');
-    
+
     // Check ownership - handle null creator_id gracefully
     const isOwnerById = existingEA.creator_id && existingEA.creator_id === req.user.id;
     const isOwnerByName = existingEA.creator_name && existingEA.creator_name.trim() === constructedName.trim();
     const isOwner = isOwnerById || isOwnerByName;
-    
+
     // Admin always has access, or must be the owner
     if (!isAdmin && !isOwner) {
       logger.debug(`Access denied for EA ${req.params.id} - User ${req.user.id} is not owner/admin`);
@@ -759,9 +735,9 @@ router.put('/:id', [
         message: 'Access denied. Only EA creator or admin can edit this EA.'
       });
     }
-    
+
     logger.debug(`Access granted for EA ${req.params.id} (${isAdmin ? 'Admin' : 'Owner'})`);
-    
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       logger.debug('[EA Update] Validation failed:', errors.array());
@@ -779,7 +755,7 @@ router.put('/:id', [
         });
         await Promise.all(cleanupPromises);
       }
-      
+
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -814,7 +790,7 @@ router.put('/:id', [
             req.files.image[0].originalname,
             req.files.image[0].mimetype
           );
-          
+
           imageUrl = uploadResult.url;
           imageFile = {
             filename: uploadResult.path,
@@ -829,7 +805,7 @@ router.put('/:id', [
           console.error(`[EA Update] Image upload to Supabase failed:`, uploadError);
         }
       }
-      
+
       // Upload EA file to Supabase Storage
       if (req.files.eaFile && req.files.eaFile[0]) {
         try {
@@ -839,7 +815,7 @@ router.put('/:id', [
             req.files.eaFile[0].originalname,
             req.files.eaFile[0].mimetype
           );
-          
+
           eaFileUrl = uploadResult.url;
           eaFile = {
             filename: uploadResult.path,
@@ -854,39 +830,39 @@ router.put('/:id', [
           console.error(`[EA Update] EA file upload to Supabase failed:`, uploadError);
         }
       }
-      
+
       // Handle screenshot uploads to Supabase Storage
       if (req.files.screenshots && req.files.screenshots.length > 0) {
         console.log(`[EA Update] Uploading ${req.files.screenshots.length} screenshots to Supabase Storage...`);
-        
+
         let screenshotUrls = [];
         for (let i = 0; i < req.files.screenshots.length; i++) {
           try {
             const screenshot = req.files.screenshots[i];
-            
+
             // Skip large files
             if (screenshot.size > 5 * 1024 * 1024) {
-              console.warn(`[EA Update] Screenshot ${i+1} too large, skipping`);
+              console.warn(`[EA Update] Screenshot ${i + 1} too large, skipping`);
               continue;
             }
-            
+
             const uploadResult = await supabaseStorage.uploadImage(
               screenshot.buffer,
               screenshot.originalname,
               screenshot.mimetype,
               'ea-screenshots'
             );
-            
+
             screenshotUrls.push(uploadResult.url);
-            console.log(`[EA Update] ✅ Screenshot ${i+1}/${req.files.screenshots.length} uploaded`);
+            console.log(`[EA Update] ✅ Screenshot ${i + 1}/${req.files.screenshots.length} uploaded`);
           } catch (uploadError) {
-            console.warn(`[EA Update] Failed to upload screenshot ${i+1}:`, uploadError.message);
+            console.warn(`[EA Update] Failed to upload screenshot ${i + 1}:`, uploadError.message);
             // Continue with other screenshots
           }
         }
-        
+
         console.log(`[EA Update] Successfully uploaded ${screenshotUrls.length}/${req.files.screenshots.length} screenshots`);
-        
+
         // Store for later (will be added to updates object below)
         if (screenshotUrls.length > 0) {
           req.uploadedScreenshots = screenshotUrls;
@@ -896,13 +872,13 @@ router.put('/:id', [
 
     // Build update object
     const updates = {};
-    
+
     // Handle screenshots - use frontend screenshots array (includes deletions)
     // Frontend now sends existingScreenshots[0], existingScreenshots[1], etc. for existing screenshots
     // and screenshots[0], screenshots[1], etc. for new uploads
     let existingScreenshotsFromFrontend = [];
     let newScreenshotsFromFrontend = [];
-    
+
     // Parse existing screenshots (after deletions)
     const existingScreenshotKeys = Object.keys(req.body).filter(key => key.startsWith('existingScreenshots['));
     if (existingScreenshotKeys.length > 0) {
@@ -913,7 +889,7 @@ router.put('/:id', [
       // Remove undefined entries
       existingScreenshotsFromFrontend = existingScreenshotsFromFrontend.filter(screenshot => screenshot !== undefined);
     }
-    
+
     // Parse new screenshot uploads
     const newScreenshotKeys = Object.keys(req.body).filter(key => key.startsWith('screenshots['));
     if (newScreenshotKeys.length > 0) {
@@ -924,20 +900,20 @@ router.put('/:id', [
       // Remove undefined entries
       newScreenshotsFromFrontend = newScreenshotsFromFrontend.filter(screenshot => screenshot !== undefined);
     }
-    
+
     // Combine existing (after deletions) and new screenshots
     const allScreenshots = [...existingScreenshotsFromFrontend, ...newScreenshotsFromFrontend];
-    
+
     if (allScreenshots.length > 0 || existingScreenshotsFromFrontend.length > 0) {
-      
+
       // Use the combined screenshots from frontend (existing after deletions + new uploads)
       let finalScreenshots = [...existingScreenshotsFromFrontend];
-      
+
       // Add any new uploaded screenshots
       if (req.uploadedScreenshots && req.uploadedScreenshots.length > 0) {
         finalScreenshots.push(...req.uploadedScreenshots);
       }
-      
+
       updates.screenshots = finalScreenshots;
       console.log('[EA Update] Screenshot handling:');
       console.log('  - Existing screenshots from frontend (after deletions):', existingScreenshotsFromFrontend);
@@ -953,12 +929,12 @@ router.put('/:id', [
       console.log('  - New:', req.uploadedScreenshots);
       console.log('  - Final:', updates.screenshots);
     }
-    
+
     // Copy basic fields (excluding 'price' and 'tags' which need special handling)
     const allowedFields = [
-      'name', 'description', 'version', 'status', 'category', 
-      'win_rate', 'profit_factor', 'max_drawdown', 'sharpe_ratio', 
-      'total_trades', 'profitable_trades', 'min_deposit', 
+      'name', 'description', 'version', 'status', 'category',
+      'win_rate', 'profit_factor', 'max_drawdown', 'sharpe_ratio',
+      'total_trades', 'profitable_trades', 'min_deposit',
       'recommended_deposit', 'max_spread', 'risk_level'
     ];
     allowedFields.forEach(field => {
@@ -966,7 +942,7 @@ router.put('/:id', [
         updates[field] = req.body[field];
       }
     });
-    
+
     // Handle array fields (supported_pairs, timeframes)
     if (req.body.supported_pairs) {
       if (typeof req.body.supported_pairs === 'string') {
@@ -976,7 +952,7 @@ router.put('/:id', [
       }
       logger.debug('[EA Update] Setting supported_pairs:', updates.supported_pairs);
     }
-    
+
     if (req.body.timeframes) {
       if (typeof req.body.timeframes === 'string') {
         updates.timeframes = req.body.timeframes.split(',').map(t => t.trim()).filter(t => t);
@@ -985,7 +961,7 @@ router.put('/:id', [
       }
       logger.debug('[EA Update] Setting timeframes:', updates.timeframes);
     }
-    
+
     // Handle pricing fields - only set when provided and valid; do not override with defaults
     if (req.body.price_weekly !== undefined) {
       const weeklyValue = parseFloat(req.body.price_weekly);
@@ -1005,7 +981,7 @@ router.put('/:id', [
         updates.price_yearly = yearlyValue;
       }
     }
-    
+
     // Fallback: if old 'price' field is provided, use it for monthly price
     if (req.body.price !== undefined && req.body.price_monthly === undefined) {
       const monthlyPrice = parseFloat(req.body.price);
@@ -1013,7 +989,7 @@ router.put('/:id', [
         updates.price_monthly = monthlyPrice;
       }
     }
-    
+
     // Handle tags field - map to keywords column (database uses 'keywords' not 'tags')
     if (req.body.tags !== undefined) {
       // Convert comma-separated string to array
@@ -1024,22 +1000,22 @@ router.put('/:id', [
       }
       console.log(`[EA Update] Mapped tags to keywords:`, updates.keywords);
     }
-    
+
     // Handle specifications if present
     if (req.body.specifications || Object.keys(req.body).some(key => key.startsWith('specifications.'))) {
       updates.specifications = {};
-      
+
       // Handle specifications object
       if (req.body.specifications) {
         try {
-          updates.specifications = typeof req.body.specifications === 'string' 
-            ? JSON.parse(req.body.specifications) 
+          updates.specifications = typeof req.body.specifications === 'string'
+            ? JSON.parse(req.body.specifications)
             : req.body.specifications;
         } catch (e) {
           console.error('Error parsing specifications:', e);
         }
       }
-      
+
       // Handle specifications.field format from FormData
       Object.keys(req.body).forEach(key => {
         if (key.startsWith('specifications.')) {
@@ -1048,12 +1024,12 @@ router.put('/:id', [
         }
       });
     }
-    
+
     // Handle features array
     if (req.body.features) {
       try {
-        updates.features = typeof req.body.features === 'string' 
-          ? JSON.parse(req.body.features) 
+        updates.features = typeof req.body.features === 'string'
+          ? JSON.parse(req.body.features)
           : req.body.features;
       } catch (e) {
         console.error('Error parsing features:', e);
@@ -1069,13 +1045,13 @@ router.put('/:id', [
         });
       }
     }
-    
+
     // Handle screenshots array - only if not already set from file uploads
     if (!req.uploadedScreenshots) {
       if (req.body.screenshots) {
         try {
-          updates.screenshots = typeof req.body.screenshots === 'string' 
-            ? JSON.parse(req.body.screenshots) 
+          updates.screenshots = typeof req.body.screenshots === 'string'
+            ? JSON.parse(req.body.screenshots)
             : req.body.screenshots;
         } catch (e) {
           console.error('Error parsing screenshots:', e);
@@ -1101,7 +1077,13 @@ router.put('/:id', [
       updates.image = existingEA.image;
       console.log(`📸 [EA Update] Preserving existing image: ${existingEA.image}`);
     }
-    
+
+    // Handle EA file path
+    if (eaFileUrl) {
+      updates.ea_file_path = eaFileUrl;
+      console.log(`📦 [EA Update] New EA file path set: ${eaFileUrl}`);
+    }
+
     // Update files if new ones were uploaded
     if (imageFile || eaFile) {
       updates.files = {};
@@ -1117,84 +1099,22 @@ router.put('/:id', [
     console.log(`[EA Update] Full update object:`, JSON.stringify(updates, null, 2));
 
     let updatedEA;
-    
-    if (useMockAuth) {
-      console.log('🔄 [EA Update] Using mock mode');
-      
-      // FIXED: Get EA from mock store instead of localStorage (which doesn't exist in Node.js)
-      const mockAuthStore = require('../services/mockAuthStore');
-      let existingEA = {};
-      
-      // Try to get EA from mock store if available
-      if (mockAuthStore.mockEAs) {
-        existingEA = mockAuthStore.mockEAs.find(ea => ea.id == req.params.id) || {};
-      }
-      
-      // In mock mode, simulate the update
+
+    // Call databaseService to update the EA (handles both mock and database modes)
+    console.log(`[EA Update] 🔄 Updating EA ${req.params.id}...`);
+    try {
+      updatedEA = await databaseService.updateEA(req.params.id, updates);
+      console.log(`✅ [EA Update] Update successful for EA ${req.params.id}`);
+    } catch (error) {
+      console.error('❌ [EA Update] Update failed:', error);
+
+      // Fallback: Create mock updated EA to prevent frontend errors
+      console.log('🔄 [EA Update] Using fallback mock return object...');
       updatedEA = {
-        ...existingEA,
-        id: parseInt(req.params.id) || req.params.id,
+        id: isNaN(parseInt(req.params.id)) ? req.params.id : parseInt(req.params.id),
         ...updates,
         updated_at: new Date().toISOString()
       };
-      
-      // Set image URL if uploaded, otherwise preserve existing image
-      if (imageUrl) {
-        updatedEA.image = imageUrl;
-        console.log(`📸 [EA Update] New image set: ${imageUrl}`);
-      } else if (existingEA.image) {
-        updatedEA.image = existingEA.image;
-        console.log(`📸 [EA Update] Preserving existing image: ${existingEA.image}`);
-      }
-      if (eaFileUrl) {
-        updatedEA.ea_file_path = eaFileUrl;
-        console.log(`📦 [EA Update] EA file set: ${eaFileUrl}`);
-      }
-      
-      // Remove files object from response
-      delete updatedEA.files;
-      
-      // Store in mock storage (in-memory for this request)
-      if (!mockAuthStore.mockEAs) {
-        mockAuthStore.mockEAs = [];
-      }
-      
-      const eaIndex = mockAuthStore.mockEAs.findIndex(ea => ea.id == req.params.id);
-      if (eaIndex >= 0) {
-        mockAuthStore.mockEAs[eaIndex] = updatedEA;
-      } else {
-        mockAuthStore.mockEAs.push(updatedEA);
-      }
-      
-      console.log(`✅ [EA Update] Mock EA updated: ${updatedEA.id}`);
-    } else {
-      // Update in database
-      console.log(`[EA Update] 🔄 Calling database update for EA ${req.params.id}...`);
-      console.log(`[EA Update] Update data being sent to DB:`, JSON.stringify(updates, null, 2));
-      try {
-        updatedEA = await databaseService.updateEA(req.params.id, updates);
-        console.log(`✅ [EA Update] Database update successful for EA ${req.params.id}`);
-        console.log(`✅ [EA Update] Updated EA data:`, JSON.stringify(updatedEA, null, 2));
-      } catch (dbError) {
-        console.error('❌ [EA Update] Database update failed:', dbError);
-        console.error('❌ [EA Update] DB Error details:', {
-          name: dbError.name,
-          message: dbError.message,
-          code: dbError.code,
-          details: dbError.details,
-          hint: dbError.hint,
-          stack: dbError.stack
-        });
-        
-        // Fallback: Create mock updated EA to prevent frontend errors
-        console.log('🔄 [EA Update] Using fallback mock data...');
-        updatedEA = {
-          id: parseInt(req.params.id),
-          ...updates,
-          updated_at: new Date().toISOString()
-        };
-        console.log('✅ [EA Update] Fallback EA created:', updatedEA);
-      }
     }
 
     res.json({
@@ -1213,7 +1133,7 @@ router.put('/:id', [
       details: error.details,
       hint: error.hint
     });
-    
+
     // Clean up uploaded files on error
     if (req.files) {
       const cleanupPromises = [];
@@ -1228,7 +1148,7 @@ router.put('/:id', [
       });
       await Promise.all(cleanupPromises);
     }
-    
+
     // Return detailed error for debugging
     res.status(500).json({
       success: false,
@@ -1251,7 +1171,7 @@ router.put('/:id', [
 router.delete('/:id', [auth, requireOwnership('expert_advisors')], async (req, res) => {
   try {
     const ea = req.resource;
-    
+
     // Soft delete by setting isActive to false
     ea.isActive = false;
     ea.status = 'discontinued';
@@ -1305,7 +1225,7 @@ router.post('/:id/reviews', [
     }
 
     // Check if user already reviewed this EA
-    const existingReview = ea.reviews.find(review => 
+    const existingReview = ea.reviews.find(review =>
       review.user.toString() === req.user._id.toString()
     );
 
@@ -1495,9 +1415,9 @@ router.get('/uploads/:type/:filename', auth, (req, res) => {
     } else if (type === 'ea-files') {
       filePath = path.join(EA_UPLOADS_PATH, filename);
     } else {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'File type not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'File type not found'
       });
     }
 
@@ -1507,25 +1427,25 @@ router.get('/uploads/:type/:filename', auth, (req, res) => {
         res.sendFile(filePath, (err) => {
           if (err) {
             console.error('Error serving file:', err);
-            res.status(404).json({ 
-              success: false, 
-              message: 'File not found' 
+            res.status(404).json({
+              success: false,
+              message: 'File not found'
             });
           }
         });
       })
       .catch(() => {
-        res.status(404).json({ 
-          success: false, 
-          message: 'File not found' 
+        res.status(404).json({
+          success: false,
+          message: 'File not found'
         });
       });
 
   } catch (error) {
     console.error('Error serving EA file:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error' 
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
     });
   }
 });

@@ -233,7 +233,7 @@ class MockAuthStore {
         name: 'Gold Scalper Pro v2.0',
         description: 'Advanced scalping EA for gold trading with high win rate',
         category: 'scalping',
-        price_weekly: 6.99,
+        price_weekly: 10.00,
         price_monthly: 18.00,
         price_quarterly: 45.00,
         price_yearly: 97.00,
@@ -256,7 +256,7 @@ class MockAuthStore {
         name: 'Multi Indicator Scalping Arrows EA v6.0 - Enhanced Profit Maximization',
         description: 'Advanced scalping EA with visual arrow indicator integration',
         category: 'scalping',
-        price_weekly: 8.99,
+        price_weekly: 10.00,
         price_monthly: 25.00,
         price_quarterly: 60.00,
         price_yearly: 120.00,
@@ -285,7 +285,7 @@ class MockAuthStore {
         name: 'London Breakout Bot v1.0',
         description: 'High-performance session breakout strategy for Gold, US30, and Nasdaq. Automatically captures volatility at 10:00 AM London open.',
         category: 'trend',
-        price_weekly: 9.99,
+        price_weekly: 10.00,
         price_monthly: 29.00,
         price_quarterly: 75.00,
         price_yearly: 199.00,
@@ -378,20 +378,23 @@ class MockAuthStore {
 const mockDataPath = path.join(__dirname, '..', 'uploads', 'mock-data.json');
 let mockEAs = [];
 let mockSubscriptions = [];
+let mockUtilities = [];
 
 // Load mock data from file
 function loadMockData() {
   try {
     if (fs.existsSync(mockDataPath)) {
       const raw = fs.readFileSync(mockDataPath, 'utf8');
-      const data = raw ? JSON.parse(raw) : { eas: [], subscriptions: [] };
+      const data = raw ? JSON.parse(raw) : { eas: [], subscriptions: [], utilities: [] };
       mockEAs = data.eas || [];
       mockSubscriptions = data.subscriptions || [];
+      mockUtilities = data.utilities || [];
     }
   } catch (error) {
     console.warn('[mock-auth] Failed to load mock data, starting fresh:', error.message);
     mockEAs = [];
     mockSubscriptions = [];
+    mockUtilities = [];
   }
 }
 
@@ -400,7 +403,8 @@ function saveMockData() {
   try {
     const data = {
       eas: mockEAs,
-      subscriptions: mockSubscriptions
+      subscriptions: mockSubscriptions,
+      utilities: mockUtilities
     };
     fs.writeFileSync(mockDataPath, JSON.stringify(data, null, 2));
   } catch (error) {
@@ -416,6 +420,7 @@ class MockDataStore {
   constructor() {
     this.eas = mockEAs;
     this.subscriptions = mockSubscriptions;
+    this.utilities = mockUtilities;
     this.storagePath = path.join(__dirname, '..', 'uploads', 'mock-data.json');
     this._ensureUploadsDir();
   }
@@ -431,12 +436,75 @@ class MockDataStore {
     try {
       const data = {
         eas: this.eas,
-        subscriptions: this.subscriptions
+        subscriptions: this.subscriptions,
+        utilities: this.utilities
       };
       fs.writeFileSync(this.storagePath, JSON.stringify(data, null, 2));
+
+      // Update the global variables too to keep them in sync
+      mockEAs = this.eas;
+      mockSubscriptions = this.subscriptions;
+      mockUtilities = this.utilities;
     } catch (error) {
       console.error('[MockDataStore] Failed to persist data:', error.message);
     }
+  }
+
+  // Utility methods
+  async getUtilities(filters = {}) {
+    let filtered = [...this.utilities];
+    if (filters.category) {
+      filtered = filtered.filter(u => u.category === filters.category);
+    }
+    if (filters.is_active !== undefined) {
+      filtered = filtered.filter(u => u.is_active === (filters.is_active === true || filters.is_active === 'true'));
+    }
+    return filtered;
+  }
+
+  async getUtilityById(id) {
+    const utilityId = typeof id === 'string' && !id.startsWith('temp-') ? parseInt(id, 10) : id;
+    return this.utilities.find(u => u.id == utilityId) || null;
+  }
+
+  async createUtility(utilityData) {
+    const newUtility = {
+      id: `util_${Date.now()}`,
+      downloads: 0,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ...utilityData
+    };
+    this.utilities.push(newUtility);
+    this._persist();
+    return newUtility;
+  }
+
+  async updateUtility(id, updates) {
+    const utilityId = typeof id === 'string' && !id.startsWith('temp-') ? parseInt(id, 10) : id;
+    const index = this.utilities.findIndex(u => u.id == utilityId);
+    if (index !== -1) {
+      this.utilities[index] = {
+        ...this.utilities[index],
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+      this._persist();
+      return this.utilities[index];
+    }
+    return null;
+  }
+
+  async deleteUtility(id) {
+    const utilityId = typeof id === 'string' && !id.startsWith('temp-') ? parseInt(id, 10) : id;
+    const initialLength = this.utilities.length;
+    this.utilities = this.utilities.filter(u => u.id != utilityId);
+    if (this.utilities.length !== initialLength) {
+      this._persist();
+      return true;
+    }
+    return false;
   }
 
   // EA methods

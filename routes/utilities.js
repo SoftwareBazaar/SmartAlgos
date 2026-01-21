@@ -28,11 +28,11 @@ const upload = multer({
       mimetype: file.mimetype,
       encoding: file.encoding
     });
-    
+
     // TEMPORARY: Accept ALL files to get it working, then we can add restrictions
     console.log('✅ File accepted (permissive mode - all files allowed)');
     cb(null, true);
-    
+
     /* Original logic - temporarily disabled
     // Allow different file types based on field name
     if (file.fieldname === 'image' || file.fieldname === 'previews') {
@@ -68,45 +68,25 @@ const upload = multer({
 router.get('/', async (req, res) => {
   try {
     const { category, is_active } = req.query;
-    
-    let query = databaseService.supabase
-      .from('utilities')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    // Filter by category if provided
-    if (category) {
-      query = query.eq('category', category);
-    }
-    
-    // Filter by active status (default: only active)
-    if (is_active !== undefined) {
-      query = query.eq('is_active', is_active === 'true');
-    } else {
-      query = query.eq('is_active', true);
-    }
-    
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error('Error fetching utilities:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to fetch utilities'
-      });
-    }
-    
+
+    console.log('GET /api/utilities - Filters:', { category, is_active });
+
+    const utilities = await databaseService.getUtilities({
+      category,
+      is_active
+    });
+
     // CRITICAL: Log image URLs to debug
-    if (data && data.length > 0) {
-      console.log('📊 Utilities fetched:', data.length);
-      data.forEach((util, index) => {
+    if (utilities && utilities.length > 0) {
+      console.log('📊 Utilities fetched:', utilities.length);
+      utilities.forEach((util, index) => {
         console.log(`   Utility ${index + 1} (${util.name}): image = ${util.image || 'NULL'}`);
       });
     }
-    
+
     res.json({
       success: true,
-      data: data || []
+      data: utilities || []
     });
   } catch (error) {
     console.error('Get utilities error:', error);
@@ -122,28 +102,21 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const { data, error } = await databaseService.supabase
-      .from('utilities')
-      .select('*')
-      .eq('id', req.params.id)
-      .single();
-    
-    if (error || !data) {
+    const utility = await databaseService.getUtilityById(req.params.id);
+
+    if (!utility) {
       return res.status(404).json({
         success: false,
         message: 'Utility not found'
       });
     }
-    
-    // Increment view/download count
-    await databaseService.supabase
-      .from('utilities')
-      .update({ downloads: data.downloads + 1 })
-      .eq('id', req.params.id);
-    
+
+    // Increment view/download count (fire and forget for now, or could be handled in service)
+    databaseService.updateUtility(req.params.id, { downloads: (utility.downloads || 0) + 1 }).catch(console.error);
+
     res.json({
       success: true,
-      data
+      data: utility
     });
   } catch (error) {
     console.error('Get utility error:', error);
@@ -169,7 +142,7 @@ router.post('/upload-image', [
       userRole: req.user?.role,
       authHeader: req.header('Authorization')?.substring(0, 20) + '...'
     });
-    
+
     // Check if user is authenticated
     if (!req.user || !req.user.userId) {
       return res.status(401).json({
@@ -177,7 +150,7 @@ router.post('/upload-image', [
         message: 'Authentication required'
       });
     }
-    
+
     // Check if user is admin (role is already in req.user from auth middleware)
     if (req.user.role !== 'admin') {
       console.log('❌ Admin check failed:', { userId: req.user.userId, role: req.user.role });
@@ -186,7 +159,7 @@ router.post('/upload-image', [
         message: 'Admin access required'
       });
     }
-    
+
     console.log('✅ Admin check passed:', { userId: req.user.userId, role: req.user.role });
 
     if (!req.file) {
@@ -205,14 +178,14 @@ router.post('/upload-image', [
         size: req.file.size,
         mimetype: req.file.mimetype
       });
-      
+
       const uploadResult = await supabaseStorage.uploadImage(
         req.file.buffer,
         req.file.originalname,
         req.file.mimetype,
         'utilities'
       );
-      
+
       imageUrl = uploadResult.url;
       console.log('✅ Utility image uploaded to Supabase:', imageUrl);
     } catch (uploadError) {
@@ -224,21 +197,21 @@ router.post('/upload-image', [
         message: 'Failed to upload image to storage: ' + uploadError.message
       });
     }
-    
+
     if (!imageUrl) {
       return res.status(500).json({
         success: false,
         message: 'Image upload succeeded but no URL returned'
       });
     }
-    
+
     console.log('✅ File uploaded successfully:', {
       originalname: req.file.originalname,
       size: req.file.size,
       mimetype: req.file.mimetype,
       imageUrl
     });
-    
+
     res.json({
       success: true,
       message: 'Image uploaded successfully',
@@ -283,7 +256,7 @@ router.post('/', [
         message: 'Admin access required'
       });
     }
-    
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -292,7 +265,7 @@ router.post('/', [
         errors: errors.array()
       });
     }
-    
+
     const {
       name,
       description,
@@ -306,13 +279,13 @@ router.post('/', [
       previews,
       guide
     } = req.body;
-    
+
     // Handle uploaded files
     let finalDownloadUrl = download_url;
     let finalImage = image;
     let finalImageTimestamp = image_timestamp;
     let finalPreviews = previews;
-    
+
     if (req.files) {
       // Handle image upload to Supabase Storage
       if (req.files.image && req.files.image[0]) {
@@ -322,14 +295,14 @@ router.post('/', [
             size: req.files.image[0].size,
             mimetype: req.files.image[0].mimetype
           });
-          
+
           const uploadResult = await supabaseStorage.uploadImage(
             req.files.image[0].buffer,
             req.files.image[0].originalname,
             req.files.image[0].mimetype,
             'utilities' // Bucket name
           );
-          
+
           finalImage = uploadResult.url;
           finalImageTimestamp = Date.now();
           console.log('✅ Utility image uploaded to Supabase:', finalImage);
@@ -341,7 +314,7 @@ router.post('/', [
           });
         }
       }
-      
+
       // Handle utility file upload to Supabase Storage
       if (req.files.uploadedFile && req.files.uploadedFile[0]) {
         try {
@@ -351,14 +324,14 @@ router.post('/', [
             size: uploadedFile.size,
             mimetype: uploadedFile.mimetype
           });
-          
+
           const uploadResult = await supabaseStorage.uploadImage(
             uploadedFile.buffer,
             uploadedFile.originalname,
             uploadedFile.mimetype,
             'utilities' // Bucket name
           );
-          
+
           finalDownloadUrl = uploadResult.url;
           console.log('✅ Utility file uploaded to Supabase:', finalDownloadUrl);
         } catch (uploadError) {
@@ -369,7 +342,7 @@ router.post('/', [
           });
         }
       }
-      
+
       // Handle preview images to Supabase Storage
       if (req.files.previews && req.files.previews.length > 0) {
         try {
@@ -391,7 +364,7 @@ router.post('/', [
         }
       }
     }
-    
+
     // Process features array if it's a string
     let processedFeatures = features;
     if (typeof features === 'string') {
@@ -401,7 +374,7 @@ router.post('/', [
         processedFeatures = features.split('\n').filter(f => f.trim());
       }
     }
-    
+
     // Process guide object if it's a string
     let processedGuide = guide;
     if (typeof guide === 'string') {
@@ -411,45 +384,26 @@ router.post('/', [
         processedGuide = { title: 'Guide', steps: guide.split('\n').filter(s => s.trim()) };
       }
     }
-    
-    // Use admin client for admin operations to bypass RLS
-    const supabaseAdmin = databaseService.supabaseAdmin || databaseService.supabase;
-    
-    const { data, error } = await supabaseAdmin
-      .from('utilities')
-      .insert([{
-        name,
-        description,
-        category,
-        features: processedFeatures || [],
-        download_url: finalDownloadUrl,
-        version,
-        size,
-        image: finalImage,
-        image_timestamp: finalImageTimestamp || Date.now(),
-        previews: finalPreviews || [],
-        guide: processedGuide || {},
-        downloads: 0,
-        is_active: true
-      }])
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('❌ Error creating utility:', error);
-      console.error('❌ Error details:', {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint
-      });
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to create utility: ' + error.message,
-        error: process.env.NODE_ENV === 'development' ? error : undefined
-      });
-    }
-    
+
+    const utilityData = {
+      name,
+      description,
+      category,
+      features: processedFeatures || [],
+      download_url: finalDownloadUrl,
+      version,
+      size,
+      image: finalImage,
+      image_timestamp: finalImageTimestamp || Date.now(),
+      previews: finalPreviews || [],
+      guide: processedGuide || {},
+      downloads: 0,
+      is_active: true
+    };
+
+    console.log('🔄 Calling databaseService.createUtility...');
+    const data = await databaseService.createUtility(utilityData);
+
     res.status(201).json({
       success: true,
       message: 'Utility created successfully',
@@ -484,13 +438,13 @@ router.put('/:id', [
   console.log('📍 Utility ID:', req.params.id);
   console.log('🔐 Auth Header:', req.header('Authorization') ? 'Present' : 'Missing');
   console.log('👤 User:', req.user ? { userId: req.user.userId, role: req.user.role } : 'Not authenticated');
-  console.log('📦 Files:', req.files ? Object.keys(req.files).map(key => ({ 
-    field: key, 
+  console.log('📦 Files:', req.files ? Object.keys(req.files).map(key => ({
+    field: key,
     count: req.files[key].length,
     files: req.files[key].map(f => ({ name: f.originalname, size: f.size, mimetype: f.mimetype }))
   })) : 'No files');
   console.log('📝 Body keys:', Object.keys(req.body));
-  
+
   try {
     // Check if user is authenticated first
     if (!req.user) {
@@ -500,7 +454,7 @@ router.put('/:id', [
         message: 'Authentication required'
       });
     }
-    
+
     // Check if user is admin (role is already in req.user from auth middleware)
     if (req.user.role !== 'admin') {
       console.log('❌ Authorization failed: User role:', req.user.role);
@@ -509,9 +463,9 @@ router.put('/:id', [
         message: 'Admin access required'
       });
     }
-    
+
     console.log('✅ Authentication and authorization passed');
-    
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.log('❌ Validation errors:', errors.array());
@@ -521,25 +475,25 @@ router.put('/:id', [
         errors: errors.array()
       });
     }
-    
+
     console.log('✅ Validation passed');
-    
+
     const updates = { ...req.body };
     delete updates.id;
     delete updates.created_at;
     delete updates.downloads; // Don't allow manual download count updates
-    
+
     // Store original image value to preserve if no new upload
     const existingImageUrl = updates.image;
-    
+
     console.log('📝 Initial updates object:', Object.keys(updates));
     console.log('🖼️ Existing image URL from body:', existingImageUrl);
-    
+
     // Handle uploaded files
     console.log('🔄 Processing file uploads...');
     if (req.files) {
       console.log('📁 Files found, processing each type...');
-      
+
       // Handle image upload to Supabase Storage
       if (req.files.image && req.files.image[0]) {
         try {
@@ -561,7 +515,7 @@ router.put('/:id', [
           });
         }
       }
-      
+
       // Handle utility file upload to Supabase Storage
       if (req.files.uploadedFile && req.files.uploadedFile[0]) {
         try {
@@ -571,14 +525,14 @@ router.put('/:id', [
             size: uploadedFile.size,
             mimetype: uploadedFile.mimetype
           });
-          
+
           const uploadResult = await supabaseStorage.uploadImage(
             uploadedFile.buffer,
             uploadedFile.originalname,
             uploadedFile.mimetype,
             'utilities'
           );
-          
+
           updates.download_url = uploadResult.url;
           console.log('✅ Utility file uploaded to Supabase:', updates.download_url);
         } catch (uploadError) {
@@ -589,7 +543,7 @@ router.put('/:id', [
           });
         }
       }
-      
+
       // Handle preview images to Supabase Storage
       if (req.files.previews && req.files.previews.length > 0) {
         try {
@@ -611,18 +565,18 @@ router.put('/:id', [
         }
       }
     }
-    
+
     // Preserve existing image if no new file was uploaded and image URL is valid
     // Check if image is a valid URL (not base64 data URL)
     if (!updates.image) {
       // No new image uploaded - check if we should preserve existing
       if (existingImageUrl) {
         const isBase64DataUrl = typeof existingImageUrl === 'string' && existingImageUrl.startsWith('data:');
-        const isValidUrl = typeof existingImageUrl === 'string' && 
-          (existingImageUrl.startsWith('http://') || 
-           existingImageUrl.startsWith('https://') || 
-           existingImageUrl.startsWith('/uploads/'));
-        
+        const isValidUrl = typeof existingImageUrl === 'string' &&
+          (existingImageUrl.startsWith('http://') ||
+            existingImageUrl.startsWith('https://') ||
+            existingImageUrl.startsWith('/uploads/'));
+
         if (!isBase64DataUrl && isValidUrl) {
           // Preserve existing image URL
           updates.image = existingImageUrl;
@@ -640,14 +594,14 @@ router.put('/:id', [
     } else {
       console.log('✅ Using new/updated image URL:', updates.image);
     }
-    
+
     // Ensure image field is explicitly included if we have a valid URL
     if (updates.image && updates.image !== null && updates.image !== undefined) {
       console.log('✅ Image will be saved to database:', updates.image.substring(0, 80) + '...');
     } else {
       console.warn('⚠️  WARNING: Image field is missing or invalid - image may be cleared!');
     }
-    
+
     // Process features array if it's a string
     if (updates.features && typeof updates.features === 'string') {
       try {
@@ -656,7 +610,7 @@ router.put('/:id', [
         updates.features = updates.features.split('\n').filter(f => f.trim());
       }
     }
-    
+
     // Process guide object if it's a string
     if (updates.guide && typeof updates.guide === 'string') {
       try {
@@ -665,60 +619,19 @@ router.put('/:id', [
         updates.guide = { title: 'Guide', steps: updates.guide.split('\n').filter(s => s.trim()) };
       }
     }
-    
+
     console.log('🔄 Starting database update...');
     console.log('📝 Final updates object:', JSON.stringify(updates, null, 2));
     console.log('🖼️ Image field in updates:', updates.image);
     console.log('🖼️ Image type:', typeof updates.image);
-    
-    // Use admin client for admin operations to bypass RLS
-    const supabaseClient = databaseService.getClient();
-    if (!supabaseClient) {
-      console.log('❌ Supabase client not available');
-      return res.status(500).json({
-        success: false,
-        message: 'Database connection not available'
-      });
-    }
-    
-    console.log('✅ Supabase client available, performing update...');
-    
-    // CRITICAL: Explicitly select image field to ensure it's returned
-    const { data, error } = await supabaseClient
-      .from('utilities')
-      .update(updates)
-      .eq('id', req.params.id)
-      .select('*, image')  // Explicitly include image
-      .single();
-    
-    if (error) {
-      console.error('❌ Database update error:', error);
-      console.error('❌ Error details:', {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint
-      });
-      return res.status(500).json({
-        success: false,
-        message: 'Database update failed: ' + error.message,
-        error: process.env.NODE_ENV === 'development' ? error : undefined
-      });
-    }
-    
-    if (!data) {
-      console.log('❌ No data returned - utility not found');
-      return res.status(404).json({
-        success: false,
-        message: 'Utility not found'
-      });
-    }
-    
+
+    console.log('🔄 Calling databaseService.updateUtility...');
+    const data = await databaseService.updateUtility(req.params.id, updates);
+
     console.log('✅ Utility updated successfully');
     console.log('📊 Updated data ID:', data.id);
     console.log('🖼️ Image URL in response:', data.image || 'NULL');
-    console.log('🖼️ Image URL type:', typeof data.image);
-    
+
     res.json({
       success: true,
       message: 'Utility updated successfully',
@@ -735,13 +648,13 @@ router.put('/:id', [
       hasFiles: !!req.files,
       bodyKeys: Object.keys(req.body || {})
     });
-    
+
     // Check if headers already sent
     if (res.headersSent) {
       console.error('❌ Headers already sent, cannot send error response');
       return;
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Server error: ' + error.message,
@@ -761,7 +674,7 @@ router.use((error, req, res, next) => {
     message: error.message,
     code: error.code
   });
-  
+
   if (error instanceof multer.MulterError) {
     console.error('🚨 Multer error caught:', error);
     return res.status(400).json({
@@ -774,7 +687,7 @@ router.use((error, req, res, next) => {
       }
     });
   }
-  
+
   if (error.message && error.message.includes('File type not allowed')) {
     console.error('🚨 File type error caught:', error);
     return res.status(400).json({
@@ -785,7 +698,7 @@ router.use((error, req, res, next) => {
       }
     });
   }
-  
+
   // Pass to next error handler if not handled here
   next(error);
 });
@@ -796,14 +709,14 @@ router.use((error, req, res, next) => {
 router.get('/:id/download', async (req, res) => {
   try {
     console.log('[Utility Download] Request for utility ID:', req.params.id);
-    
+
     // Get utility details
     const { data: utility, error: utilError } = await databaseService.supabase
       .from('utilities')
       .select('*')
       .eq('id', req.params.id)
       .single();
-    
+
     if (utilError || !utility) {
       console.error('[Utility Download] Utility not found:', utilError);
       return res.status(404).json({
@@ -811,48 +724,48 @@ router.get('/:id/download', async (req, res) => {
         message: 'Utility not found'
       });
     }
-    
+
     if (!utility.is_active) {
       return res.status(403).json({
         success: false,
         message: 'Utility is not available'
       });
     }
-    
+
     console.log('[Utility Download] Utility found:', {
       name: utility.name,
       download_url: utility.download_url
     });
-    
+
     // Check if it's a Supabase Storage URL or external URL
     if (utility.download_url && (utility.download_url.includes('supabase.co/storage') || utility.download_url.startsWith('http'))) {
       // Handle Supabase Storage URLs - provide better download experience
       console.log('[Utility Download] Processing Supabase Storage URL:', utility.download_url);
-      
+
       try {
         // Update download count first
         const supabaseClient = databaseService.getClient();
         if (supabaseClient) {
           await supabaseClient
             .from('utilities')
-            .update({ 
+            .update({
               downloads: (utility.downloads || 0) + 1,
               updated_at: new Date().toISOString()
             })
             .eq('id', req.params.id);
           console.log('[Utility Download] ✅ Download count updated');
         }
-        
+
         // Set appropriate headers for file download
         const fileExtension = path.extname(utility.download_url).toLowerCase();
         const fileName = `${utility.name}${fileExtension}`;
-        
+
         res.set({
           'Content-Disposition': `attachment; filename="${fileName}"`,
           'Content-Type': 'application/octet-stream',
           'Cache-Control': 'no-cache'
         });
-        
+
         console.log('[Utility Download] ✅ Headers set, redirecting to:', utility.download_url);
         return res.redirect(utility.download_url);
       } catch (error) {
@@ -864,7 +777,7 @@ router.get('/:id/download', async (req, res) => {
       // Serve local file
       const filePath = path.join(__dirname, '..', utility.download_url);
       console.log('[Utility Download] Serving local file:', filePath);
-      
+
       try {
         const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
         if (!fileExists) {
@@ -874,16 +787,16 @@ router.get('/:id/download', async (req, res) => {
             message: 'File not found on server'
           });
         }
-        
+
         // Update download count
         await databaseService.supabase
           .from('utilities')
-          .update({ 
+          .update({
             downloads: (utility.downloads || 0) + 1,
             updated_at: new Date().toISOString()
           })
           .eq('id', req.params.id);
-        
+
         return res.download(filePath, utility.name + '.exe');
       } catch (error) {
         console.error('[Utility Download] File serving error:', error);
@@ -919,10 +832,10 @@ router.delete('/:id', [auth, updateActivity], async (req, res) => {
         message: 'Admin access required'
       });
     }
-    
+
     // Use admin client for admin operations to bypass RLS
     const supabaseAdmin = databaseService.supabaseAdmin || databaseService.supabase;
-    
+
     // Soft delete by setting is_active to false
     const { data, error } = await supabaseAdmin
       .from('utilities')
@@ -930,14 +843,14 @@ router.delete('/:id', [auth, updateActivity], async (req, res) => {
       .eq('id', req.params.id)
       .select()
       .single();
-    
+
     if (error || !data) {
       return res.status(404).json({
         success: false,
         message: 'Utility not found'
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Utility deleted successfully'
@@ -958,7 +871,7 @@ router.post('/:id/download', async (req, res) => {
   try {
     const { data, error } = await databaseService.supabase
       .rpc('increment_utility_downloads', { utility_id: req.params.id });
-    
+
     if (error) {
       // If RPC doesn't exist, fall back to manual increment
       const { data: utility } = await databaseService.supabase
@@ -966,7 +879,7 @@ router.post('/:id/download', async (req, res) => {
         .select('downloads')
         .eq('id', req.params.id)
         .single();
-      
+
       if (utility) {
         await databaseService.supabase
           .from('utilities')
@@ -974,7 +887,7 @@ router.post('/:id/download', async (req, res) => {
           .eq('id', req.params.id);
       }
     }
-    
+
     res.json({
       success: true,
       message: 'Download counted successfully'
@@ -997,7 +910,7 @@ router.get('/debug/auth', [auth], async (req, res) => {
     console.log('- Headers:', req.headers);
     console.log('- User:', req.user);
     console.log('- UserRaw:', req.userRaw);
-    
+
     res.json({
       success: true,
       auth: {
@@ -1034,7 +947,7 @@ router.get('/debug/storage', [auth], async (req, res) => {
         message: 'Admin access required'
       });
     }
-    
+
     const supabaseClient = databaseService.getClient();
     if (!supabaseClient) {
       return res.json({
@@ -1047,16 +960,16 @@ router.get('/debug/storage', [auth], async (req, res) => {
         }
       });
     }
-    
+
     // Test storage bucket access
     try {
       const { data: buckets, error: bucketsError } = await supabaseClient.storage.listBuckets();
-      
+
       let utilitiesBucketExists = false;
       if (!bucketsError && buckets) {
         utilitiesBucketExists = buckets.some(bucket => bucket.name === 'utilities');
       }
-      
+
       // Try to list files in utilities bucket
       let filesCount = 0;
       let storageError = null;
@@ -1065,7 +978,7 @@ router.get('/debug/storage', [auth], async (req, res) => {
           const { data: files, error: filesError } = await supabaseClient.storage
             .from('utilities')
             .list('', { limit: 5 });
-          
+
           if (!filesError && files) {
             filesCount = files.length;
           } else {
@@ -1075,7 +988,7 @@ router.get('/debug/storage', [auth], async (req, res) => {
           storageError = err;
         }
       }
-      
+
       res.json({
         success: true,
         debug: {
@@ -1127,7 +1040,7 @@ router.post('/seed', async (req, res) => {
       .from('utilities')
       .select('id')
       .limit(1);
-    
+
     if (existingUtilities && existingUtilities.length > 0) {
       return res.json({
         success: true,
@@ -1135,7 +1048,7 @@ router.post('/seed', async (req, res) => {
         count: 0
       });
     }
-    
+
     // CSP-compliant SVG placeholders (base64-encoded)
     const createPlaceholderSVG = (color, text) => {
       const svg = `<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
@@ -1232,12 +1145,12 @@ router.post('/seed', async (req, res) => {
         guide: { title: 'Market Hours Guide', steps: ['Install the tracker', 'Set your timezone', 'Monitor session overlaps', 'Plan trading times', 'Track session strength'] }
       }
     ];
-    
+
     const { data, error } = await databaseService.supabase
       .from('utilities')
       .insert(defaultUtilities)
       .select();
-    
+
     if (error) {
       console.error('Error seeding utilities:', error);
       return res.status(500).json({
@@ -1246,7 +1159,7 @@ router.post('/seed', async (req, res) => {
         error: error.message
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Utilities seeded successfully',

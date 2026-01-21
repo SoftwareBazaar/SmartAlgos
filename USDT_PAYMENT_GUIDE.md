@@ -40,6 +40,10 @@ USDT_WALLET_ADDRESS=TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE
 ## 🔧 USDT Configuration Details
 
 ### **Network:** TRC20 (Tron)
+> [!IMPORTANT]
+> **Minimum Payment:** $10.00 USD. 
+> Most cryptocurrency exchanges (like Binance or OKX) have a **minimum withdrawal limit of 10 USDT**. Payments below this amount will not be processable by many users.
+
 - **Fast transactions** (3-5 minutes)
 - **Low fees** (~$1-2)
 - **Widely supported** by wallets

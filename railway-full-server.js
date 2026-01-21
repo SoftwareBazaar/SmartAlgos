@@ -512,7 +512,7 @@ const ensureLondonBreakoutBot = async () => {
         name: "London Breakout Bot v1.0",
         description: "High-performance session breakout strategy for Gold, US30, and Nasdaq. Automatically captures volatility at 10:00 AM London open.",
         category: "trend",
-        price_weekly: 9.99,
+        price_weekly: 10.00,
         price_monthly: 29.00,
         price_quarterly: 75.00,
         price_yearly: 199.00,

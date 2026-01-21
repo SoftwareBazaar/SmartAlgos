@@ -21,14 +21,14 @@ try {
   const hasBlockCypher = blockchainMonitor.hasBlockCypherKey();
   const hasEtherscan = !!process.env.ETHERSCAN_API_KEY;
   const hasTron = !!process.env.TRON_API_KEY;
-  
+
   if (hasBlockCypher || hasEtherscan || hasTron) {
     console.log('✅ Blockchain monitoring service enabled - automatic payment verification active');
     console.log('   Supported:');
     if (hasBlockCypher) console.log('   - Bitcoin & Ethereum (via BlockCypher)');
     if (hasEtherscan) console.log('   - Ethereum, USDT/USDC ERC20 (via Etherscan)');
     if (hasTron) console.log('   - USDT TRC20 (via TronGrid)');
-    
+
     if (!hasBlockCypher && !hasEtherscan) {
       console.warn('   ⚠️  No Bitcoin support - add BLOCKCYPHER_API_KEY for BTC payments');
     }
@@ -62,8 +62,8 @@ router.get('/test', (req, res) => {
 router.get('/settings', async (req, res) => {
   try {
     const settings = await getSystemSettings();
-    const minPaymentUSD = settings.minCryptoPaymentUSD || 2.00;
-    
+    const minPaymentUSD = settings.minCryptoPaymentUSD || 10.00;
+
     // Calculate minimums in all supported currencies
     const minimums = {
       USD: minPaymentUSD,
@@ -71,7 +71,7 @@ router.get('/settings', async (req, res) => {
       GBP: (minPaymentUSD / CURRENCY_TO_USD.GBP).toFixed(2),
       KES: (minPaymentUSD / CURRENCY_TO_USD.KES).toFixed(2)
     };
-    
+
     res.json({
       success: true,
       data: {
@@ -150,15 +150,15 @@ router.post('/generate', [
     }
 
     const { amount, currency, cryptoCurrency, productType, productId, metadata } = req.body;
-    
+
     // Get system settings for minimum payment validation
     const settings = await getSystemSettings();
-    const minPaymentUSD = settings.minCryptoPaymentUSD || 2.00;
-    
+    const minPaymentUSD = settings.minCryptoPaymentUSD || 10.00;
+
     // Convert amount to USD to check minimum
     const conversionRate = CURRENCY_TO_USD[currency] || 1;
     const amountInUSD = amount * conversionRate;
-    
+
     // Validate minimum payment amount
     if (amountInUSD < minPaymentUSD) {
       const minInCurrency = (minPaymentUSD / conversionRate).toFixed(2);
@@ -172,11 +172,11 @@ router.post('/generate', [
         }
       });
     }
-    
+
     // Calculate crypto amount
     const rate = EXCHANGE_RATES[cryptoCurrency];
     const cryptoAmount = (amountInUSD / rate).toFixed(8);
-    
+
     // Get wallet address
     const walletInfo = WALLET_ADDRESSES[cryptoCurrency];
     if (!walletInfo) {
@@ -188,17 +188,17 @@ router.post('/generate', [
 
     // Generate transaction ID
     const transactionId = uuidv4();
-    
+
     // Generate QR code
     const qrData = `${cryptoCurrency}:${walletInfo.address}?amount=${cryptoAmount}`;
     const qrCode = await QRCode.toDataURL(qrData);
 
     // Create payment record in database
     const supabase = databaseService.getClient();
-    
+
     // Generate a test UUID if no user is authenticated
     const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
-    
+
     const paymentData = {
       id: transactionId,
       user_id: userId,
@@ -224,7 +224,7 @@ router.post('/generate', [
         .insert(paymentData)
         .select()
         .single();
-      
+
       if (result.error) {
         console.warn('⚠️  Database insert failed (continuing anyway for testing):', result.error.message);
         console.warn('Error details:', JSON.stringify(result.error, null, 2));
@@ -314,8 +314,8 @@ router.get('/status/:transactionId', async (req, res) => {
       // Update payment status
       await supabase
         .from('crypto_payments')
-        .update({ 
-          status: 'confirmed', 
+        .update({
+          status: 'confirmed',
           confirmed_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -426,7 +426,7 @@ router.post('/webhook', async (req, res) => {
 
     if (status === 'confirmed') {
       await processConfirmedPayment(data);
-      
+
       // Grant download access
       await grantDownloadAccess(data);
     }
@@ -452,7 +452,7 @@ async function checkBlockchainTransaction(payment) {
   // 2. Check for transactions to the wallet address
   // 3. Verify amount and confirmations
   // 4. Return true if transaction is confirmed
-  
+
   // For demo purposes, simulate random confirmation
   return Math.random() > 0.7; // 30% chance of confirmation
 }
@@ -465,16 +465,16 @@ async function processConfirmedPayment(payment) {
     // Create subscription or grant access based on product type
     if (payment.product_type === 'ea_subscription') {
       // Parse metadata to get subscription type
-      const metadata = typeof payment.metadata === 'string' 
-        ? JSON.parse(payment.metadata) 
+      const metadata = typeof payment.metadata === 'string'
+        ? JSON.parse(payment.metadata)
         : payment.metadata || {};
-      
+
       const subscriptionType = metadata.subscriptionType || 'monthly';
-      
+
       // Calculate end date based on subscription type
       const startDate = new Date();
       const endDate = new Date(startDate);
-      
+
       switch (subscriptionType.toLowerCase()) {
         case 'weekly':
           endDate.setDate(endDate.getDate() + 7);
@@ -491,7 +491,7 @@ async function processConfirmedPayment(payment) {
         default:
           endDate.setMonth(endDate.getMonth() + 1); // Default to monthly
       }
-      
+
       // Create subscription record
       const subscriptionData = {
         id: uuidv4(),
@@ -543,7 +543,7 @@ async function processConfirmedPayment(payment) {
 async function grantDownloadAccess(payment) {
   try {
     const supabase = databaseService.getClient();
-    
+
     // Find the subscription created for this payment
     const { data: subscription, error: subError } = await supabase
       .from('subscriptions')
@@ -591,7 +591,7 @@ async function grantDownloadAccess(payment) {
 function generateDownloadLinks(ea, subscription) {
   const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const downloadToken = generateSecureToken();
-  
+
   const links = {
     eaFile: `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file`,
     setFile: ea.set_file ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,

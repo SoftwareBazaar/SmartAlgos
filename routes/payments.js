@@ -316,7 +316,7 @@ router.post('/verify', [
 
     const result = await paystackService.verifyTransaction(reference);
 
-    if (result.success && result.data.status === 'success') {
+    if (result.status && result.data.status === 'success') {
       // Log successful payment verification
       securityService.logSecurityEvent('payment_verified', {
         userId: req.user._id,

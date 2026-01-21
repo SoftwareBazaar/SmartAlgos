@@ -43,6 +43,7 @@ async function createTestEAWithFiles() {
     formData.append('price_weekly', '6.99');
     formData.append('price_monthly', '18.00');
     formData.append('price_yearly', '97.00');
+    formData.append('version', '1.0.0');
     formData.append('win_rate', '75');
     formData.append('max_drawdown', '5.2');
     formData.append('supported_pairs', JSON.stringify(['EURUSD', 'GBPUSD', 'USDJPY']));

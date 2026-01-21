@@ -15,6 +15,7 @@ const testEA = {
   max_drawdown: 5.2,
   supported_pairs: ["EURUSD", "GBPUSD", "USDJPY"],
   timeframes: ["M1", "M5", "M15"],
+  version: "1.0.0",
   is_active: true,
   status: "approved"
 };
@@ -32,8 +33,8 @@ async function createTestEA() {
     formData.append('category', testEA.category);
     formData.append('price_weekly', testEA.price_weekly);
     formData.append('price_monthly', testEA.price_monthly);
-    formData.append('price_quarterly', testEA.price_quarterly);
     formData.append('price_yearly', testEA.price_yearly);
+    formData.append('version', testEA.version);
     formData.append('win_rate', testEA.win_rate);
     formData.append('max_drawdown', testEA.max_drawdown);
     formData.append('supported_pairs', JSON.stringify(testEA.supported_pairs));

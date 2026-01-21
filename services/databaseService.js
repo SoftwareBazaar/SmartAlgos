@@ -179,6 +179,11 @@ class DatabaseService {
       delete eaData.files;
     }
 
+    // Ensure version is present (database NOT NULL constraint)
+    if (!eaData.version) {
+      eaData.version = '1.0.0';
+    }
+
     console.log('[DatabaseService] Creating EA with data:', JSON.stringify(eaData, null, 2));
 
     const { data, error } = await this.supabase

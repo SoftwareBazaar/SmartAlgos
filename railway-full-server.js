@@ -519,6 +519,7 @@ const ensureLondonBreakoutBot = async () => {
         max_drawdown: 8.5,
         supported_pairs: ['XAUUSD', 'US30', 'NAS100'],
         timeframes: ['M15', 'M30'],
+        version: "1.0.0",
         is_active: true,
         status: "approved",
         image: "https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-images/placeholder-breakout.png",

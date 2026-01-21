@@ -506,6 +506,8 @@ const ensureLondonBreakoutBot = async () => {
     const databaseService = require('./services/databaseService');
     const eas = await databaseService.getEAs({ search: 'London Breakout' });
 
+    console.log(`[Startup] Found ${eas.length} London Breakout Bot(s)`);
+
     if (eas.length === 0) {
       console.log('🚀 [Startup] London Breakout Bot not found, injecting...');
       const botData = {
@@ -526,7 +528,7 @@ const ensureLondonBreakoutBot = async () => {
         manual_file_path: "/uploads/LondonBreakout_Manual.pdf",
         is_active: true,
         status: "approved",
-        image: "https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-images/placeholder-breakout.png",
+        image: "https://placehold.co/600x400/10b981/ffffff?text=London+Breakout+Bot",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -534,22 +536,34 @@ const ensureLondonBreakoutBot = async () => {
       await databaseService.createEA(botData);
       console.log('✅ [Startup] London Breakout Bot injected successfully');
     } else {
-      console.log('✅ [Startup] London Breakout Bot already exists');
-
-      // Check if file paths are missing (self-healing)
       const existingBot = eas[0];
+      console.log(`✅ [Startup] London Breakout Bot exists (ID: ${existingBot.id})`);
+      console.log(`   - Image: ${existingBot.image || 'None'}`);
+      console.log(`   - Files: EA=${!!existingBot.ea_file_path}, Set=${!!existingBot.set_file_path}`);
+
+      const updates = {};
+
+      // Self-heal: Fix broken placeholder image
+      if (existingBot.image && existingBot.image.includes('placeholder-breakout.png')) {
+        console.log('⚠️ [Startup] Detected broken placeholder image. Fixing...');
+        updates.image = "https://placehold.co/600x400/10b981/ffffff?text=London+Breakout+Bot";
+      }
+
+      // Self-heal: Missing file paths
       if (!existingBot.ea_file_path || !existingBot.set_file_path || !existingBot.manual_file_path) {
-        console.log('⚠️ [Startup] Missing file paths detected for London Breakout Bot. Updating...');
+        console.log('⚠️ [Startup] Missing file paths detected. Fixing...');
+        updates.ea_file_path = "/uploads/LondonBreakoutv1.ex4";
+        updates.set_file_path = "/uploads/LondonBreakout.set";
+        updates.manual_file_path = "/uploads/LondonBreakout_Manual.pdf";
+        updates.version = existingBot.version || "1.0.0";
+        updates.strategy_type = existingBot.strategy_type || "trend";
+      }
 
-        await databaseService.updateEA(existingBot.id, {
-          ea_file_path: "/uploads/LondonBreakoutv1.ex4",
-          set_file_path: "/uploads/LondonBreakout.set",
-          manual_file_path: "/uploads/LondonBreakout_Manual.pdf",
-          version: existingBot.version || "1.0.0",
-          strategy_type: existingBot.strategy_type || "trend"
-        });
-
-        console.log('✅ [Startup] London Breakout Bot updated with missing file paths');
+      if (Object.keys(updates).length > 0) {
+        await databaseService.updateEA(existingBot.id, updates);
+        console.log('✅ [Startup] London Breakout Bot healed with updates:', Object.keys(updates));
+      } else {
+        console.log('✅ [Startup] London Breakout Bot is healthy');
       }
     }
   } catch (error) {

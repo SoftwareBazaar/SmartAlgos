@@ -75,6 +75,7 @@ import PrivacyPolicy from './pages/Documentation/PrivacyPolicy';
 import RefundPolicy from './pages/Documentation/RefundPolicy';
 import TermsOfService from './pages/Documentation/TermsOfService';
 import Pricing from './pages/Pricing/Pricing';
+import PaymentCallback from './pages/PaymentCallback/PaymentCallback';
 
 function App() {
   return (
@@ -83,132 +84,133 @@ function App() {
         <AuthProvider>
           <WebSocketProvider>
             <EAProvider>
-            <UtilitiesProvider>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-              <SessionTimeoutWarning />
-              <Routes>
-                {/* Auth Routes */}
-                <Route path="/auth" element={<AuthLayout />}>
-                  <Route path="login" element={<Login />} />
-                  <Route path="register" element={<Register />} />
-                  <Route path="forgot-password" element={<ForgotPassword />} />
-                  <Route path="reset-password" element={<ResetPassword />} />
-                  <Route path="admin/login" element={<AdminLogin />} />
-                  <Route path="admin/register" element={<AdminRegister />} />
-                </Route>
+              <UtilitiesProvider>
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+                  <SessionTimeoutWarning />
+                  <Routes>
+                    {/* Auth Routes */}
+                    <Route path="/auth" element={<AuthLayout />}>
+                      <Route path="login" element={<Login />} />
+                      <Route path="register" element={<Register />} />
+                      <Route path="forgot-password" element={<ForgotPassword />} />
+                      <Route path="reset-password" element={<ResetPassword />} />
+                      <Route path="admin/login" element={<AdminLogin />} />
+                      <Route path="admin/register" element={<AdminRegister />} />
+                    </Route>
 
-                {/* Direct Admin Access - Outside Layout */}
-                <Route path="/admin" element={<SimpleAdminLogin />} />
-                <Route path="/admin-login" element={<SimpleAdminLogin />} />
-                <Route path="/admin-access" element={<AdminAccess />} />
-                
-                {/* Direct Admin Dashboard - Protected */}
-                <Route path="/admin-dashboard" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
-                
-                {/* Admin CMS - Protected */}
-                <Route path="/admin-cms" element={<ProtectedRoute requireAdmin={true}><AdminCMS /></ProtectedRoute>} />
+                    {/* Direct Admin Access - Outside Layout */}
+                    <Route path="/admin" element={<SimpleAdminLogin />} />
+                    <Route path="/admin-login" element={<SimpleAdminLogin />} />
+                    <Route path="/admin-access" element={<AdminAccess />} />
 
-                {/* Landing Page - Public */}
-                <Route index element={<LandingPage />} />
+                    {/* Direct Admin Dashboard - Protected */}
+                    <Route path="/admin-dashboard" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
 
-                {/* Documentation Pages - Public */}
-                <Route path="about" element={<AboutMe />} />
-                <Route path="privacy" element={<PrivacyPolicy />} />
-                <Route path="terms" element={<TermsOfService />} />
-                <Route path="refund" element={<RefundPolicy />} />
-                <Route path="pricing" element={<Pricing />} />
+                    {/* Admin CMS - Protected */}
+                    <Route path="/admin-cms" element={<ProtectedRoute requireAdmin={true}><AdminCMS /></ProtectedRoute>} />
 
-                {/* Main Application Routes - Protected */}
-                <Route path="/" element={<Layout />}>
-                  {/* TEMPORARY: Removed ProtectedRoute to test React Error #31 */}
-                  <Route path="dashboard" element={<Dashboard />} />
-                  
-                  {/* Markets */}
-                  <Route path="markets" element={<ProtectedRoute><Markets /></ProtectedRoute>} />
-                  <Route path="markets/:id" element={<ProtectedRoute><MarketDetail /></ProtectedRoute>} />
-                  
-                  {/* News & Analysis */}
-                  <Route path="news" element={<ProtectedRoute><News /></ProtectedRoute>} />
-                  <Route path="analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
-                  <Route path="analysis/:id" element={<ProtectedRoute><AnalysisDetail /></ProtectedRoute>} />
-                  
-                  {/* Trading Signals */}
-                  <Route path="signals" element={<ProtectedRoute><Signals /></ProtectedRoute>} />
-                  <Route path="signals/:id" element={<ProtectedRoute><SignalDetail /></ProtectedRoute>} />
-                  
-                  {/* EA Marketplace */}
-                  <Route path="ea-marketplace" element={<ProtectedRoute><EAMarketplace /></ProtectedRoute>} />
-                  <Route path="ea-marketplace/:id" element={<ProtectedRoute><EADetail /></ProtectedRoute>} />
-                  <Route path="create-ea" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><CreateEA /></ErrorBoundary></ProtectedRoute>} />
-                  <Route path="edit-ea/:id" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><EditEA /></ErrorBoundary></ProtectedRoute>} />
-                  
-                  {/* Custom EA Service */}
-                  <Route path="custom-ea" element={<ProtectedRoute><CustomEA /></ProtectedRoute>} />
-                  
-                  {/* Free Utilities */}
-                  <Route path="utilities" element={<ProtectedRoute><UtilitiesPage /></ProtectedRoute>} />
-                  
-                  {/* HFT Bots */}
-                  <Route path="hft-bots" element={<ProtectedRoute><HFTBots /></ProtectedRoute>} />
-                  <Route path="hft-bots/:id" element={<ProtectedRoute><HFTBotDetail /></ProtectedRoute>} />
-                  
-                  {/* Portfolio */}
-                  <Route path="portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
-                  <Route path="portfolio/:id" element={<ProtectedRoute><PortfolioDetail /></ProtectedRoute>} />
-                  
-                  {/* User Management */}
-                  <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                  <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                  <Route path="audit-trail" element={<ProtectedRoute><AuditTrail /></ProtectedRoute>} />
-                  <Route path="subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
-                  <Route path="payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
-                  <Route path="desktop-features" element={<ProtectedRoute><ErrorBoundary><DesktopFeatures /></ErrorBoundary></ProtectedRoute>} />
-                  
-                  {/* Escrow */}
-                  <Route path="escrow" element={<ProtectedRoute><EscrowDashboard /></ProtectedRoute>} />
-                  
-                  {/* Admin Routes */}
-                  <Route path="admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
-                  <Route path="admin/panel" element={<ProtectedRoute requireAdmin={true}><AdminPanel /></ProtectedRoute>} />
-                  <Route path="admin/custom-ea" element={<ProtectedRoute requireAdmin={true}><CustomEAManagement /></ProtectedRoute>} />
-                  
-                  {/* Test Routes - For Development */}
-                  <Route path="test" element={<TestPage />} />
-                  <Route path="test/login" element={<LoginTest />} />
-                  <Route path="test/simple" element={<SimpleTest />} />
-                  
-                  {/* Demo Routes */}
-                  <Route path="demo/visme" element={<VismeDemo />} />
-                </Route>
-              </Routes>
-              
-              {/* Toast notifications */}
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 4000,
-                  style: {
-                    background: '#363636',
-                    color: '#fff',
-                  },
-                  success: {
-                    duration: 3000,
-                    iconTheme: {
-                      primary: '#4ade80',
-                      secondary: '#fff',
-                    },
-                  },
-                  error: {
-                    duration: 5000,
-                    iconTheme: {
-                      primary: '#ef4444',
-                      secondary: '#fff',
-                    },
-                  },
-                }}
-              />
-            </div>
-            </UtilitiesProvider>
+                    {/* Landing Page - Public */}
+                    <Route index element={<LandingPage />} />
+
+                    {/* Documentation Pages - Public */}
+                    <Route path="about" element={<AboutMe />} />
+                    <Route path="privacy" element={<PrivacyPolicy />} />
+                    <Route path="terms" element={<TermsOfService />} />
+                    <Route path="refund" element={<RefundPolicy />} />
+                    <Route path="pricing" element={<Pricing />} />
+
+                    {/* Main Application Routes - Protected */}
+                    <Route path="/" element={<Layout />}>
+                      {/* TEMPORARY: Removed ProtectedRoute to test React Error #31 */}
+                      <Route path="dashboard" element={<Dashboard />} />
+
+                      {/* Markets */}
+                      <Route path="markets" element={<ProtectedRoute><Markets /></ProtectedRoute>} />
+                      <Route path="markets/:id" element={<ProtectedRoute><MarketDetail /></ProtectedRoute>} />
+
+                      {/* News & Analysis */}
+                      <Route path="news" element={<ProtectedRoute><News /></ProtectedRoute>} />
+                      <Route path="analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
+                      <Route path="analysis/:id" element={<ProtectedRoute><AnalysisDetail /></ProtectedRoute>} />
+
+                      {/* Trading Signals */}
+                      <Route path="signals" element={<ProtectedRoute><Signals /></ProtectedRoute>} />
+                      <Route path="signals/:id" element={<ProtectedRoute><SignalDetail /></ProtectedRoute>} />
+
+                      {/* EA Marketplace */}
+                      <Route path="ea-marketplace" element={<ProtectedRoute><EAMarketplace /></ProtectedRoute>} />
+                      <Route path="ea-marketplace/:id" element={<ProtectedRoute><EADetail /></ProtectedRoute>} />
+                      <Route path="create-ea" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><CreateEA /></ErrorBoundary></ProtectedRoute>} />
+                      <Route path="edit-ea/:id" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><EditEA /></ErrorBoundary></ProtectedRoute>} />
+
+                      {/* Custom EA Service */}
+                      <Route path="custom-ea" element={<ProtectedRoute><CustomEA /></ProtectedRoute>} />
+
+                      {/* Free Utilities */}
+                      <Route path="utilities" element={<ProtectedRoute><UtilitiesPage /></ProtectedRoute>} />
+
+                      {/* HFT Bots */}
+                      <Route path="hft-bots" element={<ProtectedRoute><HFTBots /></ProtectedRoute>} />
+                      <Route path="hft-bots/:id" element={<ProtectedRoute><HFTBotDetail /></ProtectedRoute>} />
+
+                      {/* Portfolio */}
+                      <Route path="portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
+                      <Route path="portfolio/:id" element={<ProtectedRoute><PortfolioDetail /></ProtectedRoute>} />
+
+                      {/* User Management */}
+                      <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                      <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                      <Route path="audit-trail" element={<ProtectedRoute><AuditTrail /></ProtectedRoute>} />
+                      <Route path="subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+                      <Route path="payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
+                      <Route path="payment-callback" element={<ProtectedRoute><PaymentCallback /></ProtectedRoute>} />
+                      <Route path="desktop-features" element={<ProtectedRoute><ErrorBoundary><DesktopFeatures /></ErrorBoundary></ProtectedRoute>} />
+
+                      {/* Escrow */}
+                      <Route path="escrow" element={<ProtectedRoute><EscrowDashboard /></ProtectedRoute>} />
+
+                      {/* Admin Routes */}
+                      <Route path="admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
+                      <Route path="admin/panel" element={<ProtectedRoute requireAdmin={true}><AdminPanel /></ProtectedRoute>} />
+                      <Route path="admin/custom-ea" element={<ProtectedRoute requireAdmin={true}><CustomEAManagement /></ProtectedRoute>} />
+
+                      {/* Test Routes - For Development */}
+                      <Route path="test" element={<TestPage />} />
+                      <Route path="test/login" element={<LoginTest />} />
+                      <Route path="test/simple" element={<SimpleTest />} />
+
+                      {/* Demo Routes */}
+                      <Route path="demo/visme" element={<VismeDemo />} />
+                    </Route>
+                  </Routes>
+
+                  {/* Toast notifications */}
+                  <Toaster
+                    position="top-right"
+                    toastOptions={{
+                      duration: 4000,
+                      style: {
+                        background: '#363636',
+                        color: '#fff',
+                      },
+                      success: {
+                        duration: 3000,
+                        iconTheme: {
+                          primary: '#4ade80',
+                          secondary: '#fff',
+                        },
+                      },
+                      error: {
+                        duration: 5000,
+                        iconTheme: {
+                          primary: '#ef4444',
+                          secondary: '#fff',
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              </UtilitiesProvider>
             </EAProvider>
           </WebSocketProvider>
         </AuthProvider>

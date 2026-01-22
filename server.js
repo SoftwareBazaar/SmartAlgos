@@ -23,6 +23,7 @@ const escrowRoutes = require('./routes/escrow');
 const escrowWebhookRoutes = require('./routes/escrowWebhooks');
 const paymentRoutes = require('./routes/payments');
 const cryptoPaymentRoutes = require('./routes/cryptoPayments');
+const paystackPaymentRoutes = require('./routes/paystackPayments');
 const mpesaRoutes = require('./routes/mpesa');
 const analysisRoutes = require('./routes/analysis');
 const securityRoutes = require('./routes/security');
@@ -41,12 +42,12 @@ const { validateCSRF } = require('./routes/csrf');
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
 const { auth } = require('./middleware/auth');
-const { 
-  sanitizeInput, 
-  detectThreats, 
+const {
+  sanitizeInput,
+  detectThreats,
   getSecurityHeaders,
   createRateLimit,
-  createAuthRateLimit 
+  createAuthRateLimit
 } = require('./middleware/security');
 const securityService = require('./services/securityService');
 const databaseService = require('./services/databaseService');
@@ -257,15 +258,15 @@ app.use((req, res, next) => {
     "object-src 'none'; " +
     "base-uri 'self'; " +
     "frame-src 'self';";
-  
+
   res.setHeader('Content-Security-Policy', csp);
-  
+
   // Log CSP on first request only
   if (!global.cspLogged) {
     console.log('🔒 Production CSP SET with Google Fonts support:', csp);
     global.cspLogged = true;
   }
-  
+
   next();
 });
 
@@ -328,12 +329,12 @@ app.use((error, req, res, next) => {
     console.error('Request URL:', req.url);
     console.error('Request method:', req.method);
     console.error('Request headers:', req.headers);
-    
+
     // Don't send response if headers already sent
     if (res.headersSent) {
       return next(error);
     }
-    
+
     return res.status(400).json({
       success: false,
       message: 'Invalid JSON in request body',
@@ -403,6 +404,7 @@ app.use('/api/subscriptions', auth, validateCSRF, subscriptionRoutes);
 app.use('/api/escrow', auth, validateCSRF, escrowRoutes);
 app.use('/api/escrow', escrowWebhookRoutes); // Webhooks don't require auth or CSRF
 app.use('/api/payments/crypto', cryptoPaymentRoutes); // MUST come before /api/payments
+app.use('/api/payments/paystack', paystackPaymentRoutes); // Dedicated Paystack subscription routes
 app.use('/api/payments', auth, validateCSRF, paymentRoutes);
 app.use('/api/mpesa', mpesaRoutes); // M-Pesa routes (callback doesn't require auth)
 app.use('/api/analysis', auth, analysisRoutes); // Read-only, no CSRF needed
@@ -439,22 +441,22 @@ const indexPath = path.join(buildPath, 'index.html');
 
 if (fs.existsSync(indexPath)) {
   console.log('📱 Serving React frontend from:', buildPath);
-  
+
   // Serve static files from React build
   app.use(express.static(buildPath));
-  
+
   // Handle React routing - return all non-API requests to React app
   app.get('*', (req, res, next) => {
     // Skip if it's an API route
     if (req.path.startsWith('/api/')) {
       return next();
     }
-    
+
     // Skip if it's the health endpoint
     if (req.path === '/health') {
       return next();
     }
-    
+
     res.sendFile(indexPath);
   });
 } else {
@@ -495,7 +497,7 @@ if (!process.env.VERCEL) {
       console.log(`[startup] Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`[startup] Health check available at /health`);
       console.log(`[startup] Railway deployment ready - health check should respond immediately`);
-      
+
       // Now initialize database and other services AFTER server is listening
       initializeServices();
     });

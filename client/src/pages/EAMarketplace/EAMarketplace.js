@@ -37,6 +37,7 @@ import { SimpleEAImage } from '../../components/SimpleImage';
 import { getErrorMessage, getUserSubscriptions, getSubscriptionDownloadLinks } from '../../utils/subscriptionUtils';
 import PaymentMethodDialog from '../../components/Payments/PaymentMethodDialog';
 import PaymentResultDialog from '../../components/Payments/PaymentResultDialog';
+import { PaystackPayment } from '../../components/Payments';
 
 const EAMarketplace = () => {
   const navigate = useNavigate();
@@ -59,6 +60,7 @@ const EAMarketplace = () => {
   const [downloadLinks, setDownloadLinks] = useState(null);
   const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showPaystackPayment, setShowPaystackPayment] = useState(false);
   const [resultDialog, setResultDialog] = useState({ open: false, status: 'success', message: '' });
 
   // EAs are now managed by the EA context
@@ -191,20 +193,23 @@ const EAMarketplace = () => {
     try {
       console.log('💰 Payment successful:', paymentResult);
 
-      // Check if download links were provided directly (from crypto payment)
-      if (paymentResult.downloadLinks && paymentResult.subscriptionId) {
+      // Check if download links were provided directly (from crypto or Paystack)
+      const subId = paymentResult.subscriptionId || paymentResult.subscription?.id;
+
+      if (paymentResult.downloadLinks && subId) {
         console.log('✅ Download links provided in payment result');
 
         // Show PaymentResultDialog with download links - this will auto-trigger downloads
         setResultDialog({
           open: true,
           status: 'success',
-          message: 'Your files are downloading automatically!',
+          message: paymentResult.message || 'Your files are downloading automatically!',
           downloadLinks: paymentResult.downloadLinks,
-          subscriptionId: paymentResult.subscriptionId
+          subscriptionId: subId
         });
 
         setShowPaymentDialog(false);
+        setShowPaystackPayment(false);
         setSelectedEA(null);
         await fetchUserSubscriptions(); // Refresh subscriptions
         return;
@@ -1148,9 +1153,20 @@ const EAMarketplace = () => {
                     onClick={handleSubscriptionSubmit}
                     disabled={subscribing}
                   >
-                    {subscribing ? 'Processing...' : 'Subscribe Now'}
+                    {subscribing ? 'Processing...' : 'Pay with Mobile Money'}
                   </Button>
                 )}
+                <Button
+                  className="w-full bg-[#09a5db] hover:bg-[#0894c4] text-white border-0 mt-2 sm:mt-0"
+                  onClick={() => {
+                    setShowSubscriptionModal(false);
+                    setShowPaystackPayment(true);
+                  }}
+                  disabled={subscribing}
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Pay with Card/Bank
+                </Button>
               </div>
             </div>
           </motion.div>
@@ -1326,6 +1342,20 @@ const EAMarketplace = () => {
           }}
           onViewSubscription={() => navigate('/payments')}
           onClose={() => setResultDialog({ open: false, status: 'success' })}
+        />
+      )}
+
+      {/* Paystack Payment Dialog */}
+      {selectedEA && (
+        <PaystackPayment
+          isOpen={showPaystackPayment}
+          onClose={() => {
+            setShowPaystackPayment(false);
+            setSelectedEA(null);
+          }}
+          ea={selectedEA}
+          subscriptionType={subscriptionType}
+          onPaymentSuccess={handlePaymentSuccess}
         />
       )}
 

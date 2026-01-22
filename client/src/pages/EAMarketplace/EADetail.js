@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  Star, 
-  Download, 
-  ShoppingCart, 
-  Play, 
-  Pause, 
-  TrendingUp, 
+import {
+  ArrowLeft,
+  Star,
+  Download,
+  ShoppingCart,
+  Play,
+  Pause,
+  TrendingUp,
   TrendingDown,
   DollarSign,
+  CreditCard,
   Clock,
   Shield,
   Users,
@@ -35,7 +36,7 @@ import apiClient from '../../lib/apiClient';
 import { useEA } from '../../contexts/EAContext';
 import CryptoPaymentDialog from '../../components/Payments/CryptoPaymentDialog';
 import SelfServiceCryptoDialog from '../../components/Payments/SelfServiceCryptoDialog';
-import { PaymentMethodDialog } from '../../components/Payments';
+import { PaymentMethodDialog, PaystackPayment } from '../../components/Payments';
 import EADownloadSection from '../../components/Downloads/EADownloadSection';
 
 const EADetail = () => {
@@ -52,6 +53,7 @@ const EADetail = () => {
   const [showCryptoPayment, setShowCryptoPayment] = useState(false);
   const [showSelfServiceCrypto, setShowSelfServiceCrypto] = useState(false);
   const [showPaymentMethodDialog, setShowPaymentMethodDialog] = useState(false);
+  const [showPaystackPayment, setShowPaystackPayment] = useState(false);
   const [userSubscription, setUserSubscription] = useState(null);
 
   // Fetch user subscription for this EA
@@ -60,7 +62,7 @@ const EADetail = () => {
       const response = await apiClient.get('/api/subscriptions');
       if (response.data.success && response.data.data) {
         // Find subscription for this EA
-        const subscription = response.data.data.find(sub => 
+        const subscription = response.data.data.find(sub =>
           sub.ea_id === id && sub.status === 'active'
         );
         setUserSubscription(subscription);
@@ -76,14 +78,14 @@ const EADetail = () => {
       try {
         setLoading(true);
         console.log('[EADetail] Loading EA:', id);
-        
+
         const response = await apiClient.get(`/api/eas/${id}`);
-        
+
         if (response.data.success) {
           const eaData = response.data.data;
           console.log('[EADetail] ✅ Loaded EA:', eaData);
           console.log('[EADetail] Screenshots:', eaData.screenshots);
-          
+
           // Set EA with proper defaults for missing fields
           setEa({
             ...eaData,
@@ -131,22 +133,22 @@ const EADetail = () => {
 
     fetchEA();
     fetchUserSubscription();
-    
+
     // Listen for EA update events
     const handleEAUpdate = () => {
       console.log('[EADetail] EA updated, refetching...');
       fetchEA();
     };
-    
+
     // Listen for page focus to refresh subscription data
     const handlePageFocus = () => {
       console.log('[EADetail] Page focused, refreshing subscription data...');
       fetchUserSubscription();
     };
-    
+
     window.addEventListener('ea-updated', handleEAUpdate);
     window.addEventListener('focus', handlePageFocus);
-    
+
     return () => {
       window.removeEventListener('ea-updated', handleEAUpdate);
       window.removeEventListener('focus', handlePageFocus);
@@ -249,7 +251,7 @@ const EADetail = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Marketplace
           </Button>
-          
+
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -262,15 +264,15 @@ const EADetail = () => {
                   </span>
                 )}
               </div>
-              
+
               <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 {ea.name}
               </h1>
-              
+
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 {ea.description}
               </p>
-              
+
               <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-1">
                   <Eye className="h-4 w-4" />
@@ -286,7 +288,7 @@ const EADetail = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <Button
                 variant="outline"
@@ -315,8 +317,8 @@ const EADetail = () => {
                   <div className="relative">
                     <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-200 dark:scrollbar-track-gray-800">
                       {ea.screenshots.map((screenshot, index) => (
-                        <div 
-                          key={index} 
+                        <div
+                          key={index}
                           className="flex-shrink-0 w-64 relative group cursor-pointer"
                           onClick={() => {
                             setCurrentImageIndex(index);
@@ -365,11 +367,10 @@ const EADetail = () => {
                     <button
                       key={tab.id}
                       onClick={() => setSelectedTab(tab.id)}
-                      className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                        selectedTab === tab.id
-                          ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                      }`}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm ${selectedTab === tab.id
+                        ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                        }`}
                     >
                       {tab.label}
                     </button>
@@ -581,11 +582,10 @@ const EADetail = () => {
                             {[1, 2, 3, 4, 5].map((star) => (
                               <Star
                                 key={star}
-                                className={`h-4 w-4 ${
-                                  star <= Math.floor(ea.average_rating)
-                                    ? 'text-yellow-400 fill-current'
-                                    : 'text-gray-300'
-                                }`}
+                                className={`h-4 w-4 ${star <= Math.floor(ea.average_rating)
+                                  ? 'text-yellow-400 fill-current'
+                                  : 'text-gray-300'
+                                  }`}
                               />
                             ))}
                           </div>
@@ -617,11 +617,10 @@ const EADetail = () => {
                                 {[1, 2, 3, 4, 5].map((star) => (
                                   <Star
                                     key={star}
-                                    className={`h-4 w-4 ${
-                                      star <= review.rating
-                                        ? 'text-yellow-400 fill-current'
-                                        : 'text-gray-300'
-                                    }`}
+                                    className={`h-4 w-4 ${star <= review.rating
+                                      ? 'text-yellow-400 fill-current'
+                                      : 'text-gray-300'
+                                      }`}
                                   />
                                 ))}
                               </div>
@@ -651,7 +650,7 @@ const EADetail = () => {
                                 Active Subscription
                               </h4>
                               <p className="text-sm text-green-700 dark:text-green-300">
-                                Plan: {userSubscription.subscription_type || 'N/A'} | 
+                                Plan: {userSubscription.subscription_type || 'N/A'} |
                                 Expires: {userSubscription.end_date ? new Date(userSubscription.end_date).toLocaleDateString() : 'N/A'}
                               </p>
                             </div>
@@ -681,9 +680,9 @@ const EADetail = () => {
                         </div>
                       </Card>
                     )}
-                    
-                    <EADownloadSection 
-                      ea={ea} 
+
+                    <EADownloadSection
+                      ea={ea}
                       subscription={userSubscription}
                       onDownloadSuccess={(fileType) => {
                         console.log(`Download successful: ${fileType}`);
@@ -705,16 +704,15 @@ const EADetail = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   Choose Your Plan
                 </h3>
-                
+
                 <div className="space-y-3">
                   {pricingPlans.map((plan) => (
                     <div
                       key={plan.id}
-                      className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                        selectedPlan === plan.id
-                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                      } ${plan.popular ? 'ring-2 ring-primary-500' : ''}`}
+                      className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedPlan === plan.id
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        } ${plan.popular ? 'ring-2 ring-primary-500' : ''}`}
                       onClick={() => setSelectedPlan(plan.id)}
                     >
                       {plan.popular && (
@@ -761,8 +759,8 @@ const EADetail = () => {
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Subscribe Now
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
                       onClick={() => setSelectedTab('downloads')}
                     >
@@ -780,7 +778,7 @@ const EADetail = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   Quick Stats
                 </h3>
-                
+
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 dark:text-gray-400">Win Rate</span>
@@ -812,7 +810,7 @@ const EADetail = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   Created by
                 </h3>
-                
+
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
                     <span className="text-primary-600 dark:text-primary-400 font-medium">
@@ -849,7 +847,7 @@ const EADetail = () => {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Complete Purchase
             </h3>
-            
+
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-gray-600 dark:text-gray-400">Selected Plan:</span>
@@ -866,7 +864,7 @@ const EADetail = () => {
             </div>
 
             <div className="space-y-3">
-              <Button 
+              <Button
                 className="w-full"
                 onClick={() => {
                   setShowPaymentMethodDialog(true);
@@ -876,9 +874,9 @@ const EADetail = () => {
                 <DollarSign className="h-4 w-4 mr-2" />
                 Choose Payment Method
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 className="w-full"
                 onClick={() => {
                   setShowCryptoPayment(true);
@@ -888,8 +886,8 @@ const EADetail = () => {
                 <Shield className="h-4 w-4 mr-2" />
                 Pay with Crypto
               </Button>
-              
-              <Button 
+
+              <Button
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
                 onClick={() => {
                   setShowSelfServiceCrypto(true);
@@ -899,7 +897,7 @@ const EADetail = () => {
                 <span className="mr-2">🚀</span>
                 Self-Service Crypto (Auto-Detection)
               </Button>
-              
+
               {/* Escrow Payment for Lifetime Access */}
               <div className="border-2 border-primary-500/30 rounded-lg p-3 bg-primary-500/5">
                 <div className="flex items-center justify-between mb-2">
@@ -917,6 +915,17 @@ const EADetail = () => {
                   Pay via Escrow (Lifetime Access)
                 </Button>
               </div>
+
+              <Button
+                className="w-full bg-[#09a5db] hover:bg-[#0894c4] text-white border-0"
+                onClick={() => {
+                  setShowPaystackPayment(true);
+                  setShowPurchaseModal(false);
+                }}
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                Pay with Paystack (Card/Bank)
+              </Button>
             </div>
 
             <div className="flex gap-3 mt-4">
@@ -934,7 +943,7 @@ const EADetail = () => {
 
       {/* Screenshot Lightbox Modal */}
       {lightboxOpen && ea && ea.screenshots && ea.screenshots.length > 0 && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4"
           onClick={() => setLightboxOpen(false)}
         >
@@ -961,7 +970,7 @@ const EADetail = () => {
             )}
 
             {/* Image */}
-            <div 
+            <div
               className="max-w-full max-h-full flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
@@ -1011,40 +1020,24 @@ const EADetail = () => {
           subscriptionType: selectedPlan
         }}
         onPaymentSuccess={async (result) => {
-          try {
-            console.log('💚 M-Pesa Payment successful:', result);
-            
-            // Create subscription after successful payment
-            const subscriptionResponse = await apiClient.post('/api/subscriptions', {
-              ea_id: ea?.id,
-              subscription_type: selectedPlan,
-              payment_method: 'mpesa',
-              payment_reference: result.mpesaReceiptNumber || result.checkoutRequestID,
-              amount: pricingPlans.find(p => p.id === selectedPlan)?.price || 0
-            });
-            
-            console.log('✅ Subscription created:', subscriptionResponse.data);
-            
-            setShowPaymentMethodDialog(false);
-            // Notify user - rely on parent flow to show downloads or route
-            console.log('🎉 Payment successful! Subscription activated.');
-            
-            // Refresh subscription status to show download button
-            await fetchUserSubscription();
-            
-            // Automatically switch to downloads tab
-            setSelectedTab('downloads');
-            
-          } catch (error) {
-            console.error('Error creating subscription:', error);
-            alert('Payment received but there was an error activating your subscription. Please contact support.');
-          }
+          console.log('💚 M-Pesa Payment successful:', result);
+
+          // Refresh subscription status to show download button
+          await fetchUserSubscription();
+
+          // Automatically switch to downloads tab
+          setSelectedTab('downloads');
+
+          // Close the dialog
+          setShowPaymentMethodDialog(false);
+
+          alert('Payment successful! Your subscription is now active.');
         }}
         onPaymentError={(error) => {
           console.error('Payment error:', error);
         }}
       />
-      
+
       {/* Crypto Payment Dialog */}
       <CryptoPaymentDialog
         isOpen={showCryptoPayment}
@@ -1056,7 +1049,7 @@ const EADetail = () => {
           alert('Payment successful! EA will be available in your dashboard.');
         }}
       />
-      
+
       <SelfServiceCryptoDialog
         isOpen={showSelfServiceCrypto}
         onClose={() => setShowSelfServiceCrypto(false)}
@@ -1068,6 +1061,29 @@ const EADetail = () => {
         onPaymentSuccess={() => {
           setShowSelfServiceCrypto(false);
           alert('Payment confirmed! Your EA is ready for download.');
+        }}
+      />
+
+      {/* Paystack Payment Dialog */}
+      <PaystackPayment
+        isOpen={showPaystackPayment}
+        onClose={() => setShowPaystackPayment(false)}
+        ea={ea}
+        subscriptionType={selectedPlan}
+        onPaymentSuccess={async (result) => {
+          console.log('💚 Paystack Payment successful:', result);
+
+          // Refresh subscription status to show download button
+          await fetchUserSubscription();
+
+          // Automatically switch to downloads tab
+          setSelectedTab('downloads');
+
+          // Close the payment dialog
+          setShowPaystackPayment(false);
+
+          // Show success message
+          alert(result.message || 'Payment successful! Your subscription is now active.');
         }}
       />
     </div>

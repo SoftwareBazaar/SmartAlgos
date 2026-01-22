@@ -270,14 +270,18 @@ router.post('/generate', [
 });
 
 // @route   POST /api/payments/crypto/:transactionId/confirm
-// @desc    Immediately confirm payment and create subscription (for testing)
+// @desc    Confirm payment and create subscription (with idempotency)
 // @access  Private
 router.post('/:transactionId/confirm', auth, async (req, res) => {
+  const { transactionId } = req.params;
+  const userId = req.user?.id; // From auth middleware
+
   try {
-    const { transactionId } = req.params;
+    console.log(`🔍 Confirming payment: ${transactionId}`);
+
     const supabase = databaseService.getClient();
 
-    // Get payment
+    // 1. Get payment record
     const { data: payment, error: paymentError } = await supabase
       .from('crypto_payments')
       .select('*')
@@ -287,37 +291,79 @@ router.post('/:transactionId/confirm', auth, async (req, res) => {
     if (paymentError || !payment) {
       return res.status(404).json({
         success: false,
-        message: 'Payment not found'
+        error: 'Payment not found'
       });
     }
 
-    // Update payment status to confirmed
-    await supabase
+    // 2. Check if already confirmed
+    if (payment.status === 'confirmed') {
+      console.log('✅ Payment already confirmed, fetching existing subscription...');
+
+      const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('payment_reference', transactionId)
+        .single();
+
+      if (existingSub) {
+        const downloadLinks = await generateDownloadLinksForSubscription(
+          existingSub,
+          payment.user_id,
+          payment.product_id
+        );
+
+        return res.json({
+          success: true,
+          message: 'Payment already confirmed',
+          subscription: existingSub,
+          downloadLinks
+        });
+      }
+    }
+
+    // 3. Update payment status to confirmed
+    const { error: updateError } = await supabase
       .from('crypto_payments')
-      .update({ status: 'confirmed', updated_at: new Date().toISOString() })
+      .update({
+        status: 'confirmed',
+        confirmed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
       .eq('id', transactionId);
 
-    payment.status = 'confirmed';
+    if (updateError) {
+      console.error('❌ Error updating payment:', updateError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to update payment status'
+      });
+    }
 
-    // Process payment and create subscription
+    // 4. Process confirmed payment (create subscription)
     const result = await processConfirmedPayment(payment);
 
-    // Grant download access
-    await grantDownloadAccess(payment);
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        error: result.error || 'Failed to process payment'
+      });
+    }
 
+    console.log('✅ Payment confirmed and subscription created');
+
+    // 5. Return subscription and download links
     res.json({
       success: true,
-      message: 'Payment confirmed and subscription created',
-      data: {
-        subscription: result.subscription,
-        downloadLinks: result.downloadLinks
-      }
+      message: 'Payment confirmed successfully',
+      subscription: result.subscription,
+      downloadLinks: result.downloadLinks
     });
+
   } catch (error) {
-    console.error('Confirm payment error:', error);
+    console.error('❌ Confirm payment error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to confirm payment'
+      error: error.message
     });
   }
 });
@@ -598,86 +644,84 @@ async function checkBlockchainTransaction(payment) {
 // Helper function to process confirmed payment
 async function processConfirmedPayment(payment) {
   try {
+    console.log('🔄 Processing confirmed payment...');
+
     const supabase = databaseService.getClient();
 
-    // Create subscription or grant access based on product type
-    if (payment.product_type === 'ea_subscription') {
-      // Parse metadata to get subscription type
-      const metadata = typeof payment.metadata === 'string'
-        ? JSON.parse(payment.metadata)
-        : payment.metadata || {};
+    // Get EA details
+    const { data: ea, error: eaError } = await supabase
+      .from('expert_advisors')
+      .select('*')
+      .eq('id', payment.product_id)
+      .single();
 
-      const subscriptionType = metadata.subscriptionType || 'monthly';
+    if (eaError || !ea) {
+      return { success: false, error: 'EA not found' };
+    }
 
-      // Calculate end date based on subscription type
-      const startDate = new Date();
-      const endDate = new Date(startDate);
+    // Calculate subscription dates
+    const startDate = new Date();
+    const endDate = new Date(startDate);
 
-      switch (subscriptionType.toLowerCase()) {
-        case 'weekly':
-          endDate.setDate(endDate.getDate() + 7);
-          break;
-        case 'monthly':
-          endDate.setMonth(endDate.getMonth() + 1);
-          break;
-        case 'quarterly':
-          endDate.setMonth(endDate.getMonth() + 3);
-          break;
-        case 'yearly':
-          endDate.setFullYear(endDate.getFullYear() + 1);
-          break;
-        default:
-          endDate.setMonth(endDate.getMonth() + 1); // Default to monthly
-      }
+    const subscriptionType = payment.metadata?.subscription_type || 'monthly';
+    switch (subscriptionType) {
+      case 'weekly':
+        endDate.setDate(endDate.getDate() + 7);
+        break;
+      case 'monthly':
+        endDate.setMonth(endDate.getMonth() + 1);
+        break;
+      case 'quarterly':
+        endDate.setMonth(endDate.getMonth() + 3);
+        break;
+      case 'yearly':
+        endDate.setFullYear(endDate.getFullYear() + 1);
+        break;
+      default:
+        endDate.setMonth(endDate.getMonth() + 1);
+    }
 
-      // Create subscription record
-      const subscriptionData = {
-        id: uuidv4(),
+    // Create subscription record
+    const { data: subscription, error: subError } = await supabase
+      .from('subscriptions')
+      .insert({
         user_id: payment.user_id,
         ea_id: payment.product_id,
-        subscription_type: subscriptionType.toLowerCase(),
+        subscription_type: subscriptionType,
         payment_method: 'crypto',
         payment_reference: payment.id,
         amount: payment.amount_usd,
-        currency: payment.crypto_currency,
+        currency: 'USD',
         status: 'active',
         start_date: startDate.toISOString(),
-        end_date: endDate.toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+        end_date: endDate.toISOString()
+      })
+      .select()
+      .single();
 
-      const { data: subscription, error } = await supabase
-        .from('subscriptions')
-        .insert(subscriptionData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Subscription creation error:', error);
-        throw error;
-      }
-
-      // Generate download links immediately
-      const downloadLinks = await generateDownloadLinksForSubscription(subscription, payment.user_id, payment.product_id);
-
-      // Send confirmation email
-      // await emailService.sendPaymentConfirmation(payment.user_id, payment);
-
-      logger.info('Subscription created from crypto payment with download links', {
-        userId: payment.user_id,
-        eaId: payment.product_id,
-        amount: payment.amount_usd,
-        subscriptionId: subscription.id,
-        downloadLinksGenerated: !!downloadLinks
-      });
-
-      return { subscription, downloadLinks };
+    if (subError) {
+      console.error('❌ Error creating subscription:', subError);
+      return { success: false, error: 'Failed to create subscription' };
     }
 
+    console.log('✅ Subscription created:', subscription.id);
+
+    // Generate download links
+    const downloadLinks = await generateDownloadLinksForSubscription(
+      subscription,
+      payment.user_id,
+      payment.product_id
+    );
+
+    return {
+      success: true,
+      subscription,
+      downloadLinks
+    };
+
   } catch (error) {
-    console.error('Process confirmed payment error:', error);
-    throw error;
+    console.error('❌ Process payment error:', error);
+    return { success: false, error: error.message };
   }
 }
 

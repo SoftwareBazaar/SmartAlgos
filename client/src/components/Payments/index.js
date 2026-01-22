@@ -5,4 +5,5 @@
 
 export { default as PaymentMethodDialog } from './PaymentMethodDialog';
 export { default as CryptoPaymentDialog } from './CryptoPaymentDialog';
+export { default as PaystackPayment } from './PaystackPayment';
 

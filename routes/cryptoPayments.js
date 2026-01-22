@@ -353,6 +353,83 @@ router.get('/status/:transactionId', async (req, res) => {
   }
 });
 
+// @route   GET /api/payments/crypto/:transactionId/download-links
+// @desc    Get download links for confirmed payment
+// @access  Public (payment must be confirmed and belong to user)
+router.get('/:transactionId/download-links', async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const supabase = databaseService.getClient();
+
+    // Get payment record
+    const { data: payment, error: paymentError } = await supabase
+      .from('crypto_payments')
+      .select('*')
+      .eq('id', transactionId)
+      .single();
+
+    if (paymentError || !payment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment not found'
+      });
+    }
+
+    // Check if payment is confirmed
+    if (payment.status !== 'confirmed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment not confirmed yet',
+        status: payment.status
+      });
+    }
+
+    // Get subscription created for this payment
+    const { data: subscription, error: subError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('payment_reference', payment.id)
+      .single();
+
+    if (subError || !subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subscription not found for this payment'
+      });
+    }
+
+    // Generate download links
+    const downloadLinks = await generateDownloadLinksForSubscription(
+      subscription,
+      payment.user_id,
+      payment.product_id
+    );
+
+    if (!downloadLinks) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to generate download links'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        subscriptionId: subscription.id,
+        downloadLinks,
+        tokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      }
+    });
+
+  } catch (error) {
+    console.error('Get download links error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
 // @route   POST /api/payments/crypto/webhook
 // @desc    Handle crypto payment webhooks (from blockchain monitoring service)
 // @access  Public (but should verify webhook signature)
@@ -425,10 +502,17 @@ router.post('/webhook', async (req, res) => {
     }
 
     if (status === 'confirmed') {
-      await processConfirmedPayment(data);
+      const result = await processConfirmedPayment(data);
 
       // Grant download access
       await grantDownloadAccess(data);
+
+      // Return download links in webhook response
+      return res.json({
+        success: true,
+        message: 'Webhook processed successfully',
+        downloadLinks: result?.downloadLinks || null
+      });
     }
 
     res.json({
@@ -520,17 +604,21 @@ async function processConfirmedPayment(payment) {
         throw error;
       }
 
+      // Generate download links immediately
+      const downloadLinks = await generateDownloadLinksForSubscription(subscription, payment.user_id, payment.product_id);
+
       // Send confirmation email
       // await emailService.sendPaymentConfirmation(payment.user_id, payment);
 
-      logger.info('Subscription created from crypto payment', {
+      logger.info('Subscription created from crypto payment with download links', {
         userId: payment.user_id,
         eaId: payment.product_id,
         amount: payment.amount_usd,
-        subscriptionId: subscription.id
+        subscriptionId: subscription.id,
+        downloadLinksGenerated: !!downloadLinks
       });
 
-      return subscription;
+      return { subscription, downloadLinks };
     }
 
   } catch (error) {
@@ -641,6 +729,59 @@ async function sendDownloadConfirmationEmail(subscription, downloadLinks) {
     });
   } catch (error) {
     console.error('Send email error:', error);
+  }
+}
+
+// Helper function to generate download links for a subscription
+async function generateDownloadLinksForSubscription(subscription, userId, eaId) {
+  try {
+    const supabase = databaseService.getClient();
+
+    // Get EA details
+    const { data: ea, error: eaError } = await supabase
+      .from('expert_advisors')
+      .select('id, name, ea_file_path, set_file_path, manual_file_path, screenshots')
+      .eq('id', eaId)
+      .single();
+
+    if (eaError || !ea) {
+      console.error('Failed to fetch EA for download links:', eaError);
+      return null;
+    }
+
+    // Generate download token (valid for 24 hours)
+    const jwt = require('jsonwebtoken');
+    const downloadToken = jwt.sign(
+      {
+        subscriptionId: subscription.id,
+        userId: userId,
+        eaId: ea.id,
+        timestamp: Date.now()
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    const baseUrl = process.env.BACKEND_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+    // Generate download links
+    const downloadLinks = {
+      ea_file: ea.ea_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
+      set_file: ea.set_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
+      manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
+      screenshots: ea.screenshots && ea.screenshots.length > 0 ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=screenshots` : null
+    };
+
+    logger.info('Download links generated for subscription', {
+      subscriptionId: subscription.id,
+      eaId: ea.id,
+      linksAvailable: Object.keys(downloadLinks).filter(key => downloadLinks[key])
+    });
+
+    return downloadLinks;
+  } catch (error) {
+    console.error('Generate download links error:', error);
+    return null;
   }
 }
 

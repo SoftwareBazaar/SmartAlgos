@@ -11,7 +11,13 @@ const PaystackPayment = ({
 }) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState(null);
-    const [paymentConfig, setPaymentConfig] = useState(null);
+    const [paymentConfig, setPaymentConfig] = useState({
+        reference: '',
+        email: '',
+        amount: 0,
+        publicKey: process.env.REACT_APP_PAYSTACK_PUBLIC_KEY || '',
+        metadata: {}
+    });
 
     // Initialize payment when dialog opens
     useEffect(() => {
@@ -167,8 +173,16 @@ const PaystackPayment = ({
 
                 {/* Error Message */}
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 text-sm">
                         {error}
+                    </div>
+                )}
+
+                {/* Missing Public Key Warning */}
+                {!paymentConfig.publicKey && (
+                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-4 text-xs">
+                        ⚠️ <strong>Configuration Error:</strong> Paystack Public Key is missing.
+                        Please set <code>REACT_APP_PAYSTACK_PUBLIC_KEY</code> in your environment.
                     </div>
                 )}
 
@@ -194,10 +208,10 @@ const PaystackPayment = ({
                                 );
                             }
                         }}
-                        disabled={isProcessing || !paymentConfig}
+                        disabled={isProcessing || !paymentConfig.reference || !paymentConfig.publicKey}
                         className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {isProcessing ? 'Processing...' : 'Pay with Paystack'}
+                        {!paymentConfig.reference ? 'Initializing...' : (isProcessing ? 'Processing...' : 'Pay with Paystack')}
                     </button>
 
                     <button

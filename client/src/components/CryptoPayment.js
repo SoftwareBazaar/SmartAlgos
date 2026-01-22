@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Bitcoin, 
-  Ethereum, 
-  Copy, 
-  CheckCircle, 
-  Clock, 
+import {
+  Bitcoin,
+  Ethereum,
+  Copy,
+  CheckCircle,
+  Clock,
   AlertCircle,
   QrCode,
   ExternalLink,
@@ -12,10 +12,10 @@ import {
 } from 'lucide-react';
 
 // Version: v2.1 - Fixed colors and contrast issues
-const CryptoPayment = ({ 
-  amount, 
+const CryptoPayment = ({
+  amount,
   currency = 'USD',
-  onPaymentSuccess, 
+  onPaymentSuccess,
   onPaymentError,
   productType = 'ea_subscription',
   productId,
@@ -29,34 +29,34 @@ const CryptoPayment = ({
   const [paymentStatus, setPaymentStatus] = useState('pending');
 
   const cryptoOptions = [
-    { 
-      value: 'usdt', 
-      label: 'USDT', 
-      name: 'Tether (USDT)', 
+    {
+      value: 'usdt',
+      label: 'USDT',
+      name: 'Tether (USDT)',
       icon: '₮',
       network: 'TRC20',
       color: 'text-green-500'
     },
-    { 
-      value: 'btc', 
-      label: 'BTC', 
-      name: 'Bitcoin', 
+    {
+      value: 'btc',
+      label: 'BTC',
+      name: 'Bitcoin',
       icon: '₿',
       network: 'Bitcoin',
       color: 'text-orange-500'
     },
-    { 
-      value: 'eth', 
-      label: 'ETH', 
-      name: 'Ethereum', 
+    {
+      value: 'eth',
+      label: 'ETH',
+      name: 'Ethereum',
       icon: 'Ξ',
       network: 'Ethereum',
       color: 'text-blue-500'
     },
-    { 
-      value: 'usdc', 
-      label: 'USDC', 
-      name: 'USD Coin', 
+    {
+      value: 'usdc',
+      label: 'USDC',
+      name: 'USD Coin',
       icon: '◊',
       network: 'ERC20',
       color: 'text-blue-600'
@@ -154,7 +154,8 @@ const CryptoPayment = ({
     if (!paymentData?.transactionId) return;
 
     try {
-      const response = await fetch(`/api/payments/crypto/status/${paymentData.transactionId}`, {
+      const baseUrl = process.env.REACT_APP_API_URL || window.location.origin;
+      const response = await fetch(`${baseUrl}/api/payments/crypto/status/${paymentData.transactionId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token') || 'test_token'}`
         }
@@ -164,7 +165,40 @@ const CryptoPayment = ({
         const data = await response.json();
         if (data.data.status === 'confirmed') {
           setPaymentStatus('confirmed');
-          onPaymentSuccess?.(data.data);
+
+          // Fetch download links
+          console.log('🎉 Payment confirmed! Fetching download links...');
+          try {
+            const downloadResponse = await fetch(`${baseUrl}/api/payments/crypto/${paymentData.transactionId}/download-links`, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token') || 'test_token'}`
+              }
+            });
+
+            if (downloadResponse.ok) {
+              const downloadData = await downloadResponse.json();
+              if (downloadData.success) {
+                console.log('✅ Download links fetched successfully');
+                // Pass download links to success callback
+                onPaymentSuccess?.({
+                  ...data.data,
+                  downloadLinks: downloadData.data.downloadLinks,
+                  subscriptionId: downloadData.data.subscriptionId
+                });
+              } else {
+                // Payment confirmed but couldn't get download links
+                console.warn('Payment confirmed but download links fetch failed');
+                onPaymentSuccess?.(data.data);
+              }
+            } else {
+              console.warn('Failed to fetch download links');
+              onPaymentSuccess?.(data.data);
+            }
+          } catch (downloadError) {
+            console.error('Download links fetch error:', downloadError);
+            // Still call success callback even if download links fail
+            onPaymentSuccess?.(data.data);
+          }
         }
       }
     } catch (error) {
@@ -182,7 +216,7 @@ const CryptoPayment = ({
     // Convert amount to USD first if needed
     const conversionRate = currencyToUSD[currency] || 1;
     const amountInUSD = amount * conversionRate;
-    
+
     // Convert USD to crypto
     const rate = exchangeRates[crypto];
     const cryptoAmount = (amountInUSD / rate).toFixed(8);
@@ -214,7 +248,7 @@ const CryptoPayment = ({
           <Bitcoin className="w-6 h-6 mr-2 text-orange-500" />
           Crypto Payment
         </h3>
-        
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -225,11 +259,10 @@ const CryptoPayment = ({
                 <button
                   key={crypto.value}
                   onClick={() => setSelectedCrypto(crypto.value)}
-                  className={`p-3 rounded-lg border-2 transition-all ${
-                    selectedCrypto === crypto.value
+                  className={`p-3 rounded-lg border-2 transition-all ${selectedCrypto === crypto.value
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                       : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                  }`}
+                    }`}
                 >
                   <div className="text-center">
                     <div className={`text-2xl font-bold ${crypto.color}`}>
@@ -359,8 +392,8 @@ const CryptoPayment = ({
         {paymentData.qrCode && (
           <div className="text-center">
             <div className="inline-block p-4 bg-white rounded-lg">
-              <img 
-                src={paymentData.qrCode} 
+              <img
+                src={paymentData.qrCode}
                 alt="Payment QR Code"
                 className="w-32 h-32"
               />

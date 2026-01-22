@@ -191,7 +191,26 @@ const EAMarketplace = () => {
     try {
       console.log('💰 Payment successful:', paymentResult);
 
-      // Polling mechanism: Wait for subscription to be created (max 5 attempts)
+      // Check if download links were provided directly (from crypto payment)
+      if (paymentResult.downloadLinks && paymentResult.subscriptionId) {
+        console.log('✅ Download links provided in payment result');
+
+        // Show PaymentResultDialog with download links - this will auto-trigger downloads
+        setResultDialog({
+          open: true,
+          status: 'success',
+          message: 'Your files are downloading automatically!',
+          downloadLinks: paymentResult.downloadLinks,
+          subscriptionId: paymentResult.subscriptionId
+        });
+
+        setShowPaymentDialog(false);
+        setSelectedEA(null);
+        await fetchUserSubscriptions(); // Refresh subscriptions
+        return;
+      }
+
+      // Fallback: Polling mechanism for cases without immediate download links
       let newSub = null;
       for (let i = 0; i < 5; i++) {
         console.log(`[Payment] Checking for subscription attempt ${i + 1}/5...`);
@@ -200,7 +219,6 @@ const EAMarketplace = () => {
         await fetchUserSubscriptions(); // Refresh list
         const currentSubscriptions = await getUserSubscriptions();
 
-        // Debugging logs
         console.log('[Payment] Selected EA ID:', selectedEA?.id);
         console.log('[Payment] Current Subscriptions:', currentSubscriptions.map(s => ({ id: s.id, ea_id: s.ea_id, status: s.status })));
 
@@ -220,29 +238,21 @@ const EAMarketplace = () => {
         const downloadData = await getSubscriptionDownloadLinks(newSub.id);
         console.log('[Payment] Download links fetched:', downloadData);
 
-        setDownloadLinks(downloadData.files);
-        setCurrentSubscriptionId(newSub.id);
-
-        // Show Download Modal IMMEDIATELY
-        setShowDownloadModal(true);
-
-        // Also attempt auto-download in background
-        if (downloadData.files) {
-          Object.keys(downloadData.files).forEach(fileType => {
-            setTimeout(() => {
-              const link = document.createElement('a');
-              link.href = downloadData.files[fileType];
-              link.download = `${selectedEA?.name || 'EA'}_${fileType}`;
-              link.target = '_blank';
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }, 500);
-          });
-        }
+        // Show PaymentResultDialog with download links
+        setResultDialog({
+          open: true,
+          status: 'success',
+          message: 'Your files are downloading automatically!',
+          downloadLinks: downloadData.files,
+          subscriptionId: newSub.id
+        });
       } else {
         console.warn('[Payment] Timeout: Could not find active subscription after payment.');
-        setResultDialog({ open: true, status: 'success', message: 'Payment successful! Your subscription is being created. Please check "My Hub" or refreshing the page in a moment to download your files.' });
+        setResultDialog({
+          open: true,
+          status: 'success',
+          message: 'Payment successful! Your subscription is being created. Please check "My Hub" or refresh the page in a moment to download your files.'
+        });
       }
 
       setShowPaymentDialog(false);

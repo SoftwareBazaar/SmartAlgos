@@ -217,6 +217,7 @@ router.post('/generate', [
     };
 
     // Try to insert into database, but continue even if it fails (for testing)
+    // Save to database
     let data = null;
     try {
       const result = await supabase
@@ -264,6 +265,59 @@ router.post('/generate', [
     res.status(500).json({
       success: false,
       message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/payments/crypto/:transactionId/confirm
+// @desc    Immediately confirm payment and create subscription (for testing)
+// @access  Private
+router.post('/:transactionId/confirm', auth, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const supabase = databaseService.getClient();
+
+    // Get payment
+    const { data: payment, error: paymentError } = await supabase
+      .from('crypto_payments')
+      .select('*')
+      .eq('id', transactionId)
+      .single();
+
+    if (paymentError || !payment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment not found'
+      });
+    }
+
+    // Update payment status to confirmed
+    await supabase
+      .from('crypto_payments')
+      .update({ status: 'confirmed', updated_at: new Date().toISOString() })
+      .eq('id', transactionId);
+
+    payment.status = 'confirmed';
+
+    // Process payment and create subscription
+    const result = await processConfirmedPayment(payment);
+
+    // Grant download access
+    await grantDownloadAccess(payment);
+
+    res.json({
+      success: true,
+      message: 'Payment confirmed and subscription created',
+      data: {
+        subscription: result.subscription,
+        downloadLinks: result.downloadLinks
+      }
+    });
+  } catch (error) {
+    console.error('Confirm payment error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to confirm payment'
     });
   }
 });

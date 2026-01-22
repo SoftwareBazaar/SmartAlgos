@@ -155,54 +155,40 @@ const CryptoPayment = ({
 
     try {
       const baseUrl = process.env.REACT_APP_API_URL || window.location.origin;
-      const response = await fetch(`${baseUrl}/api/payments/crypto/status/${paymentData.transactionId}`, {
+
+      // For immediate testing, call the confirm endpoint directly
+      console.log('💳 Confirming payment immediately...');
+      const confirmResponse = await fetch(`${baseUrl}/api/payments/crypto/${paymentData.transactionId}/confirm`, {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token') || 'test_token'}`
+          'Authorization': `Bearer ${localStorage.getItem('token') || 'test_token'}`,
+          'Content-Type': 'application/json'
         }
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.data.status === 'confirmed') {
+      if (confirmResponse.ok) {
+        const confirmData = await confirmResponse.json();
+
+        if (confirmData.success) {
+          console.log('✅ Payment confirmed with subscription created!');
           setPaymentStatus('confirmed');
 
-          // Fetch download links
-          console.log('🎉 Payment confirmed! Fetching download links...');
-          try {
-            const downloadResponse = await fetch(`${baseUrl}/api/payments/crypto/${paymentData.transactionId}/download-links`, {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token') || 'test_token'}`
-              }
-            });
-
-            if (downloadResponse.ok) {
-              const downloadData = await downloadResponse.json();
-              if (downloadData.success) {
-                console.log('✅ Download links fetched successfully');
-                // Pass download links to success callback
-                onPaymentSuccess?.({
-                  ...data.data,
-                  downloadLinks: downloadData.data.downloadLinks,
-                  subscriptionId: downloadData.data.subscriptionId
-                });
-              } else {
-                // Payment confirmed but couldn't get download links
-                console.warn('Payment confirmed but download links fetch failed');
-                onPaymentSuccess?.(data.data);
-              }
-            } else {
-              console.warn('Failed to fetch download links');
-              onPaymentSuccess?.(data.data);
-            }
-          } catch (downloadError) {
-            console.error('Download links fetch error:', downloadError);
-            // Still call success callback even if download links fail
-            onPaymentSuccess?.(data.data);
-          }
+          // Pass download links to success callback
+          onPaymentSuccess?.({
+            status: 'confirmed',
+            transactionId: paymentData.transactionId,
+            downloadLinks: confirmData.data.downloadLinks,
+            subscriptionId: confirmData.data.subscription?.id
+          });
+        } else {
+          throw new Error(confirmData.message || 'Payment confirmation failed');
         }
+      } else {
+        throw new Error('Failed to confirm payment');
       }
     } catch (error) {
-      console.error('Payment status check error:', error);
+      console.error('Payment confirmation error:', error);
+      alert(`Payment confirmation failed: ${error.message}. Please check the Subscription page or contact support.`);
     }
   };
 
@@ -260,8 +246,8 @@ const CryptoPayment = ({
                   key={crypto.value}
                   onClick={() => setSelectedCrypto(crypto.value)}
                   className={`p-3 rounded-lg border-2 transition-all ${selectedCrypto === crypto.value
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                     }`}
                 >
                   <div className="text-center">

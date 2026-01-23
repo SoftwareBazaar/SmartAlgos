@@ -262,6 +262,8 @@ app.use(
           "'unsafe-inline'",
           "'unsafe-eval'",
           "https://js.paystack.co",           // Paystack Scripts
+          "https://*.paystack.co",
+          "https://*.paystack.com",
           "https://*.supabase.co",            // Supabase Scripts
           "https://fonts.googleapis.com"      // Google Fonts Scripts
         ],
@@ -269,11 +271,15 @@ app.use(
           "'self'",
           "'unsafe-inline'",
           "https://js.paystack.co",
+          "https://*.paystack.co",
+          "https://*.paystack.com",
           "https://*.supabase.co"
         ],
         connectSrc: [
           "'self'",
           "https://api.paystack.co",          // Paystack API
+          "https://*.paystack.co",
+          "https://*.paystack.com",
           "https://*.supabase.co",            // Supabase API
           "wss://*.supabase.co",              // Supabase Realtime
           "https://web-production-fdb58.up.railway.app" // Self
@@ -281,29 +287,41 @@ app.use(
         frameSrc: [
           "'self'",
           "https://js.paystack.co",           // Paystack Payment Popup
-          "https://*.paystack.co"             // Paystack Iframe
+          "https://*.paystack.co",            // Paystack Iframe
+          "https://*.paystack.com",
+          "https://checkout.paystack.com"
         ],
         styleSrc: [
           "'self'",
           "'unsafe-inline'",
-          "https://fonts.googleapis.com"      // Google Fonts Styles
+          "https://fonts.googleapis.com",      // Google Fonts Styles
+          "https://*.paystack.co",
+          "https://*.paystack.com",
+          "https://paystack.com"
         ],
         styleSrcElem: [
           "'self'",
           "'unsafe-inline'",
-          "https://fonts.googleapis.com"
+          "https://fonts.googleapis.com",
+          "https://*.paystack.co",
+          "https://*.paystack.com",
+          "https://paystack.com"
         ],
         fontSrc: [
           "'self'",
           "data:",
-          "https://fonts.gstatic.com"         // Google Fonts
+          "https://fonts.gstatic.com",         // Google Fonts
+          "https://*.paystack.co",
+          "https://*.paystack.com"
         ],
         imgSrc: [
           "'self'",
           "data:",
           "blob:",
           "https:",                           // Allow Secure External Images
-          "https://*.supabase.co"             // Supabase Storage
+          "https://*.supabase.co",            // Supabase Storage
+          "https://*.paystack.co",
+          "https://*.paystack.com"
         ],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],

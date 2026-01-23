@@ -9,8 +9,16 @@ const databaseService = require('../services/databaseService');
 const { auth } = require('../middleware/auth');
 const logger = require('../utils/logger');
 
+// Get Paystack configuration (Public Key)
+router.get('/config', auth, (req, res) => {
+    res.json({
+        success: true,
+        publicKey: process.env.PAYSTACK_PUBLIC_KEY || ''
+    });
+});
+
 // Initialize Paystack payment for EA subscription
-router.post('/paystack/initialize', auth, async (req, res) => {
+router.post('/initialize', auth, async (req, res) => {
     const { eaId, subscriptionType, email } = req.body;
     const userId = req.user?.id;
 
@@ -133,7 +141,7 @@ router.post('/paystack/initialize', auth, async (req, res) => {
 });
 
 // Verify Paystack payment
-router.get('/paystack/verify/:reference', async (req, res) => {
+router.get('/verify/:reference', async (req, res) => {
     const { reference } = req.params;
 
     try {
@@ -250,7 +258,7 @@ router.get('/paystack/verify/:reference', async (req, res) => {
 });
 
 // Paystack webhook endpoint (for automatic payment confirmation)
-router.post('/paystack/webhook', async (req, res) => {
+router.post('/webhook', async (req, res) => {
     try {
         // Verify webhook signature
         const hash = crypto

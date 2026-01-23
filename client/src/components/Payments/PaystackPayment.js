@@ -11,24 +11,19 @@ const PaystackPayment = ({
 }) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState(null);
-    const [paymentConfig, setPaymentConfig] = useState({
-        reference: '',
-        email: '',
-        amount: 0,
-        publicKey: process.env.REACT_APP_PAYSTACK_PUBLIC_KEY || '',
-        metadata: {}
-    });
+    const [paymentData, setPaymentData] = useState(null);
+    const [publicKey, setPublicKey] = useState(process.env.REACT_APP_PAYSTACK_PUBLIC_KEY || '');
 
     // Fetch public key if missing when component mounts
     useEffect(() => {
         const fetchConfig = async () => {
-            if (!paymentConfig.publicKey) {
+            if (!publicKey) {
                 try {
                     const response = await axios.get('/api/payments/paystack/config', {
                         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                     });
                     if (response.data.success && response.data.publicKey) {
-                        setPaymentConfig(prev => ({ ...prev, publicKey: response.data.publicKey }));
+                        setPublicKey(response.data.publicKey);
                     }
                 } catch (err) {
                     console.error('Failed to fetch Paystack config:', err);
@@ -38,7 +33,7 @@ const PaystackPayment = ({
         if (isOpen) {
             fetchConfig();
         }
-    }, [isOpen]);
+    }, [isOpen, publicKey]);
 
     // Initialize payment when dialog opens
     useEffect(() => {
@@ -47,19 +42,19 @@ const PaystackPayment = ({
         }
     }, [isOpen, ea, subscriptionType]);
 
-    // Initialize Paystack payment
+    // Initialize Paystack payment on the backend
     const initializePayment = async () => {
         setIsProcessing(true);
         setError(null);
+        setPaymentData(null);
 
         try {
             console.log('💳 Initializing Paystack payment...');
 
-            // Get user email from localStorage or state
             const userEmail = localStorage.getItem('userEmail') || 'user@example.com';
 
             const response = await axios.post(
-                '/api/payments/paystack/initialize', // Updated route
+                '/api/payments/paystack/initialize',
                 {
                     eaId: ea.id,
                     subscriptionType: subscriptionType,
@@ -74,26 +69,10 @@ const PaystackPayment = ({
 
             if (response.data.success) {
                 console.log('✅ Payment initialized:', response.data.payment);
+                setPaymentData(response.data.payment);
 
-                // Store payment info for verification later
-                const paymentInfo = {
-                    reference: response.data.payment.reference,
-                    paymentId: response.data.payment.id
-                };
-
-                setPaymentConfig(prev => ({
-                    ...prev,
-                    reference: response.data.payment.reference,
-                    email: userEmail,
-                    amount: calculateAmount(subscriptionType) * 100, // Convert to kobo
-                    metadata: {
-                        ea_name: ea.name,
-                        subscription_type: subscriptionType
-                    }
-                }));
-
-                // Store for later verification
-                localStorage.setItem('pendingPayment', JSON.stringify(paymentInfo));
+                // Track for verification
+                localStorage.setItem('pendingPaymentRef', response.data.payment.reference);
             } else {
                 setError(response.data.error || 'Failed to initialize payment');
             }
@@ -106,71 +85,74 @@ const PaystackPayment = ({
         }
     };
 
-    // Calculate amount based on subscription type
-    const calculateAmount = (type) => {
+    // Calculate amount for UI display only
+    const calculateDisplayAmount = () => {
         const prices = {
-            weekly: ea.price_weekly,
-            monthly: ea.price_monthly,
-            quarterly: ea.price_quarterly,
-            yearly: ea.price_yearly
+            weekly: ea.price_weekly || ea.weekly_price,
+            monthly: ea.price_monthly || ea.monthly_price,
+            quarterly: ea.price_quarterly || ea.quarterly_price,
+            yearly: ea.price_yearly || ea.yearly_price
         };
-        return prices[type] || ea.price_monthly;
+        return prices[subscriptionType] || ea.price_monthly || 0;
     };
 
-    // Handle successful payment
-    const handlePaystackSuccess = async (reference) => {
+    // Success Handler
+    const onSuccess = (reference) => {
         console.log('✅ Paystack payment successful:', reference);
+        verifyPayment(reference.reference);
+    };
 
+    // Close Handler
+    const onClosing = () => {
+        console.log('⚠️ Paystack payment closed');
+        // Don't set error here, just let the user try again or close
+    };
+
+    // Verification Logic
+    const verifyPayment = async (reference) => {
         setIsProcessing(true);
-
         try {
-            // Verify payment with backend
             const response = await axios.get(
-                `/api/payments/paystack/verify/${reference.reference}`, // Updated route
+                `/api/payments/paystack/verify/${reference}`,
                 {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }
             );
 
-            console.log('📥 Verification response:', response.data);
-
             if (response.data.success) {
-                // Clear pending payment
-                localStorage.removeItem('pendingPayment');
-
-                // Close payment dialog
+                localStorage.removeItem('pendingPaymentRef');
                 onClose();
-
-                // Trigger success callback with download links
                 onPaymentSuccess({
                     subscription: response.data.subscription,
                     downloadLinks: response.data.downloadLinks,
-                    message: 'Payment successful! Your files are downloading...'
+                    message: 'Payment successful! Your files are ready.'
                 });
             } else {
-                setError(response.data.message || 'Payment verification failed');
+                setError('Payment verification failed. Please contact support.');
             }
-
-        } catch (error) {
-            console.error('❌ Verification error:', error);
-            setError('Failed to verify payment. Please contact support.');
+        } catch (err) {
+            console.error('Verification error:', err);
+            setError('Error verifying payment.');
         } finally {
             setIsProcessing(false);
         }
     };
 
-    // Handle payment closure
-    const handlePaystackClose = () => {
-        console.log('⚠️ Paystack payment closed');
-        setError('Payment was cancelled');
+    // Config for the Paystack Hook
+    const config = {
+        reference: paymentData?.reference,
+        email: localStorage.getItem('userEmail') || 'user@example.com',
+        amount: Math.round(calculateDisplayAmount() * 150 * 100), // Convert to KES kobo (Matching backend 150 rate)
+        publicKey: publicKey,
+        currency: 'KES',
+        metadata: {
+            ea_name: ea?.name,
+            subscription_type: subscriptionType
+        }
     };
 
-    // Initialize Paystack hook
-    const initializePaystackPayment = usePaystackPayment(paymentConfig);
+    const initializePaystackPayment = usePaystackPayment(config);
 
-    // Render
     if (!isOpen) return null;
 
     return (
@@ -178,7 +160,6 @@ const PaystackPayment = ({
             <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 border border-gray-200" onClick={(e) => e.stopPropagation()}>
                 <h3 className="text-2xl font-bold mb-6 text-center" style={{ color: '#0f172a' }}>Checkout</h3>
 
-                {/* EA Details */}
                 {ea && (
                     <div className="bg-slate-50 p-5 rounded-lg mb-6 border border-slate-100">
                         <p className="text-xs uppercase tracking-wider font-semibold mb-1" style={{ color: '#64748b' }}>Subscribing to:</p>
@@ -192,66 +173,44 @@ const PaystackPayment = ({
                         <div className="flex justify-between mt-3">
                             <span className="text-sm" style={{ color: '#475569' }}>Total Amount:</span>
                             <span className="text-2xl font-black" style={{ color: '#059669' }}>
-                                ${calculateAmount(subscriptionType)}
+                                ${calculateDisplayAmount()}
                             </span>
                         </div>
                     </div>
                 )}
 
-                {/* Error Message */}
                 {error && (
-                    <div className="bg-rose-50 border border-rose-200 px-4 py-3 rounded-lg mb-6 text-sm flex items-start gap-2" style={{ color: '#be123c' }}>
-                        <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                        <span>{error}</span>
+                    <div className="bg-rose-50 border border-rose-200 px-4 py-3 rounded-lg mb-6 text-sm text-rose-700">
+                        {error}
                     </div>
                 )}
 
-                {/* Missing Public Key Warning (Debug only) */}
-                {!paymentConfig.publicKey && !isProcessing && (
-                    <div className="bg-amber-50 border border-amber-200 px-4 py-3 rounded-lg mb-6 text-xs italic" style={{ color: '#92400e' }}>
-                        Initializing secure payment environment...
-                    </div>
-                )}
-
-                {/* Loading State */}
-                {isProcessing && !paymentConfig.reference && (
-                    <div className="flex flex-col items-center justify-center py-6">
-                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-2"></div>
-                        <span className="font-medium text-sm" style={{ color: '#475569' }}>Initializing payment...</span>
-                    </div>
-                )}
-
-                {/* Action Buttons */}
                 <div className="flex flex-col gap-3">
                     <button
                         onClick={() => {
-                            if (paymentConfig.reference && paymentConfig.publicKey) {
-                                initializePaystackPayment(
-                                    handlePaystackSuccess,
-                                    handlePaystackClose
-                                );
+                            if (paymentData && publicKey) {
+                                initializePaystackPayment(onSuccess, onClosing);
                             }
                         }}
-                        disabled={isProcessing || !paymentConfig.reference || !paymentConfig.publicKey}
+                        disabled={isProcessing || !paymentData || !publicKey}
                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-lg font-bold text-lg transition-colors shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                     >
                         {isProcessing ? (
-                            <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div> Processing...</>
+                            <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div> Initializing...</>
                         ) : 'Pay with Paystack'}
                     </button>
 
                     <button
                         onClick={onClose}
                         disabled={isProcessing}
-                        className="w-full py-3 font-semibold hover:text-slate-800 transition-colors"
-                        style={{ color: '#64748b' }}
+                        className="w-full py-3 font-semibold text-slate-500 hover:text-slate-800 transition-colors"
                     >
                         Cancel
                     </button>
                 </div>
 
                 <div className="flex items-center justify-center mt-6 pt-4 border-t border-slate-100">
-                    <img src="https://paystack.com/assets/img/login/paystack-logo.png" alt="Paystack" className="h-4 opacity-50 contrast-0" />
+                    <img src="https://paystack.com/assets/img/login/paystack-logo.png" alt="Paystack" className="h-4 opacity-50" />
                 </div>
             </div>
         </div>

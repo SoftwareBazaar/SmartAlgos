@@ -31,20 +31,12 @@ router.post('/initialize', auth, async (req, res) => {
             return res.status(400).json({ success: false, error: 'EA selection is required' });
         }
 
-        const supabase = databaseService.getClient();
-
-        // Get EA details
+        // Get EA details using databaseService (handles mock mode and type casting)
         let ea = null;
-        if (supabase) {
-            const { data, error: eaError } = await supabase
-                .from('expert_advisors')
-                .select('*')
-                .eq('id', eaId)
-                .single();
-
-            if (!eaError && data) {
-                ea = data;
-            }
+        try {
+            ea = await databaseService.getEAById(eaId);
+        } catch (eaError) {
+            console.warn(`⚠️ [Paystack] EA fetch warning (ID: ${eaId}):`, eaError.message);
         }
 
         if (!ea) {
@@ -80,6 +72,7 @@ router.post('/initialize', auth, async (req, res) => {
         // ATTEMPT to save to database but DON'T fail if it crashes
         let dbPaymentId = null;
         try {
+            const supabase = databaseService.getClient();
             if (supabase) {
                 const { data: payment, error: pError } = await supabase
                     .from('paystack_payments')
@@ -98,25 +91,36 @@ router.post('/initialize', auth, async (req, res) => {
                     .single();
 
                 if (payment) dbPaymentId = payment.id;
-                if (pError) console.warn('⚠️ [Paystack] DB record creation skipped:', pError.message);
+                if (pError) {
+                    console.warn('⚠️ [Paystack] DB record creation skipped:', pError.message);
+                    // Check specifically for UUID error and log it
+                    if (pError.code === '22P02') {
+                        console.error('   Error 22P02: UUID format mismatch for product_id or user_id');
+                    }
+                }
             }
         } catch (dbErr) {
             console.warn('⚠️ [Paystack] DB connection issues, continuing with payment only.');
         }
 
+        // CONSTRUCT ABSOLUTE CALLBACK URL (Paystack requires absolute URLs)
+        const baseUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
+        const callbackUrl = `${baseUrl.replace(/\/$/, '')}/payment-callback`;
+
         console.log('   Calling Paystack API with payload:', JSON.stringify({
             email: userEmail,
             amount: amountKes,
             currency: 'KES',
-            reference: reference
+            reference: reference,
+            callback_url: callbackUrl
         }));
 
         const paystackResult = await paystackService.initializeTransaction({
             email: userEmail,
-            amount: amountKes, // PaystackService library probably expects the integer/float which it converts to kobo
-            currency: 'KES',   // CRITICAL: Switched to KES to match working payments.js
+            amount: amountKes,
+            currency: 'KES',
             reference: reference,
-            callback_url: `${process.env.CLIENT_URL || process.env.FRONTEND_URL}/payment-callback`,
+            callback_url: callbackUrl,
             metadata: {
                 payment_id: dbPaymentId,
                 user_id: userId,
@@ -125,13 +129,13 @@ router.post('/initialize', auth, async (req, res) => {
             }
         });
 
-        console.log('   Paystack API result received:', JSON.stringify(paystackResult));
+        console.log('   Paystack API result received status:', paystackResult?.status);
 
-        if (!paystackResult.status) {
-            console.error('❌ [Paystack] API Error Result:', paystackResult.message);
+        if (!paystackResult || !paystackResult.status || !paystackResult.data) {
+            console.error('❌ [Paystack] API Error Result:', paystackResult?.message || 'Invalid response');
             return res.status(500).json({
                 success: false,
-                error: paystackResult.message || 'Payment gateway returned an error'
+                error: paystackResult?.message || 'Payment gateway returned an invalid response'
             });
         }
 
@@ -174,17 +178,100 @@ router.get('/verify/:reference', auth, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Payment not successful' });
         }
 
-        // Verification successful, proceed to create subscription...
-        // (Subscription logic remains the same)
+        const txData = result.data;
+        const metadata = txData.metadata || {};
+
+        // Extract data from metadata or falling back to transaction details
+        const eaId = metadata.ea_id || metadata.product_id;
+        const userId = metadata.user_id || req.user.id;
+        const subscriptionType = metadata.subscription_type || 'monthly';
+        const amountUsd = metadata.amount_usd || (txData.amount / 100 / 150); // Fallback estimate
+
+        console.log(`✅ [Paystack] Verified success for User: ${userId}, EA: ${eaId}`);
+
+        // 1. Check if subscription already created for this reference (idempotency)
+        const supabase = databaseService.getClient();
+        if (supabase) {
+            const { data: existingSub } = await supabase
+                .from('subscriptions')
+                .select('*')
+                .eq('payment_reference', reference)
+                .single();
+
+            if (existingSub) {
+                console.log('ℹ️ [Paystack] Subscription already exists for this reference');
+                return res.json({
+                    success: true,
+                    message: 'Payment already processed',
+                    subscription: existingSub
+                });
+            }
+        }
+
+        // 2. Create the subscription
+        const startDate = new Date();
+        const endDate = new Date();
+        switch (subscriptionType) {
+            case 'weekly': endDate.setDate(startDate.getDate() + 7); break;
+            case 'monthly': endDate.setMonth(startDate.getMonth() + 1); break;
+            case 'quarterly': endDate.setMonth(startDate.getMonth() + 3); break;
+            case 'yearly': endDate.setFullYear(startDate.getFullYear() + 1); break;
+            default: endDate.setMonth(startDate.getMonth() + 1);
+        }
+
+        const subscriptionData = {
+            user_id: userId,
+            ea_id: eaId,
+            subscription_type: subscriptionType,
+            price: amountUsd,
+            currency: 'USD',
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString(),
+            payment_method: 'paystack',
+            payment_reference: reference,
+            payment_status: 'completed',
+            status: 'active',
+            created_at: new Date().toISOString()
+        };
+
+        const subscription = await databaseService.createSubscription(subscriptionData);
+        console.log(`✅ [Paystack] Subscription created: ${subscription.id}`);
+
+        // 3. Update the payment record status if it exists
+        if (supabase) {
+            await supabase
+                .from('paystack_payments')
+                .update({ status: 'completed', updated_at: new Date().toISOString() })
+                .eq('paystack_reference', reference);
+        }
+
+        // 4. Generate download links (Copied from subscriptions.js)
+        const ea = await databaseService.getEAById(eaId);
+        const jwt = require('jsonwebtoken');
+        const downloadToken = jwt.sign(
+            { subscriptionId: subscription.id, userId, eaId, timestamp: Date.now() },
+            process.env.JWT_SECRET || 'your-secret-key',
+            { expiresIn: '24h' }
+        );
+
+        const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+        const downloadLinks = {
+            ea_file: ea.ea_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
+            set_file: ea.set_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
+            manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null
+        };
 
         res.json({
             success: true,
-            message: 'Payment verified successfully'
+            message: 'Payment verified and subscription activated successfully!',
+            subscription,
+            downloadLinks
         });
 
     } catch (error) {
         console.error('❌ [Paystack] Verify Exception:', error.message);
-        res.status(500).json({ success: false, error: 'Verification error' });
+        console.error(error.stack);
+        res.status(500).json({ success: false, error: 'Verification error: ' + error.message });
     }
 });
 

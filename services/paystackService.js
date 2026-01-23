@@ -41,12 +41,13 @@ class PaystackService {
       const response = await axios(config);
       return response.data;
     } catch (error) {
-      console.error('❌ [Paystack API ERROR]:', error.message);
+      const errorMsg = error.response?.data?.message || error.message || 'Paystack API request failed';
+      console.error('❌ [Paystack API ERROR]:', errorMsg);
       if (error.response) {
         console.error('   Response status:', error.response.status);
         console.error('   Response data:', JSON.stringify(error.response.data));
       }
-      throw new Error(error.response?.data?.message || error.message || 'Paystack API request failed');
+      throw new Error(errorMsg);
     }
   }
 

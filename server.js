@@ -250,14 +250,14 @@ app.use((req, res, next) => {
   // Production CSP - Allows Google Fonts and required resources
   const csp = "default-src 'self'; " +
     "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob: https:; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app ws: wss:; " +
+    "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app ws: wss: https://js.paystack.co; " +
     "font-src 'self' data: https://fonts.gstatic.com; " +
     "object-src 'none'; " +
     "base-uri 'self'; " +
-    "frame-src 'self';";
+    "frame-src 'self' https://js.paystack.co;";
 
   res.setHeader('Content-Security-Policy', csp);
 

@@ -235,41 +235,53 @@ app.set("trust proxy", 1);
 // NOTE: CSP is now set in client/public/index.html meta tag to avoid conflicts
 const supabaseUrl = process.env.SUPABASE_URL || 'https://ncikobfahncdgwvkfivz.supabase.co';
 
-// EMERGENCY FIX: Remove helmet completely - it's interfering with CSP
-// COMMENT OUT HELMET ENTIRELY
-/*
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false
-}));
-*/
-
-// Production CSP with Google Fonts support
-app.use((req, res, next) => {
-  // Production CSP - Allows Google Fonts and required resources
-  const csp = "default-src 'self'; " +
-    "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob: https:; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co; " +
-    "script-src-elem 'self' 'unsafe-inline' https://js.paystack.co; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app ws: wss: https://js.paystack.co; " +
-    "font-src 'self' data: https://fonts.gstatic.com; " +
-    "object-src 'none'; " +
-    "base-uri 'self'; " +
-    "frame-src 'self' https://js.paystack.co;";
-
-  res.setHeader('Content-Security-Policy', csp);
-
-  // Log CSP on first request only
-  if (!global.cspLogged) {
-    console.log('🔒 Production CSP SET with Google Fonts support:', csp);
-    global.cspLogged = true;
-  }
-
-  next();
-});
+// CSP Configuration using Helmet
+// Allows Paystack and Supabase scripts/connections
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        "https://js.paystack.co",  // Allow Paystack scripts
+        "https://*.supabase.co"     // Allow Supabase scripts
+      ],
+      scriptSrcElem: [
+        "'self'",
+        "https://js.paystack.co",
+        "https://*.supabase.co",
+        "'unsafe-inline'" // Added to support inline scripts often used in React/development
+      ],
+      connectSrc: [
+        "'self'",
+        "https://api.paystack.co",
+        "https://*.supabase.co",
+        "wss://*.supabase.co"
+      ],
+      frameSrc: [
+        "'self'",
+        "https://js.paystack.co"
+      ],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "https://*.supabase.co"
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://fonts.googleapis.com" // Preserving Google Fonts from previous config
+      ],
+      fontSrc: [
+        "'self'",
+        "data:",
+        "https://fonts.gstatic.com" // Preserving Google Fonts from previous config
+      ]
+    }
+  })
+);
 
 // Global rate limiting - Production-ready limits
 const globalLimiter = securityService.createRateLimit({

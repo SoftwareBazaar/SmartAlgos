@@ -295,6 +295,11 @@ try {
     app.use('/api/payments/crypto', cryptoPaymentRoutes);
     console.log('   ✅ Crypto payment routes loaded and registered');
 
+    console.log('   Loading Paystack payment routes...');
+    const paystackPaymentRoutes = require('./routes/paystackPayments');
+    app.use('/api/payments/paystack', paystackPaymentRoutes);
+    console.log('   ✅ Paystack payment routes loaded and registered');
+
     console.log('   Loading payment routes...');
     const paymentRoutes = require('./routes/payments');
     app.use('/api/payments', paymentRoutes);

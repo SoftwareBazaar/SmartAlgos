@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
 const databaseService = require('../services/databaseService');
 const paystackService = require('../services/paystackService');
 const { auth } = require('../middleware/auth');
@@ -103,8 +104,13 @@ router.post('/initialize', auth, async (req, res) => {
             console.warn('⚠️ [Paystack] DB connection issues, continuing with payment only.');
         }
 
-        // Initialize Paystack transaction
-        console.log('   Calling Paystack API...');
+        console.log('   Calling Paystack API with payload:', JSON.stringify({
+            email: userEmail,
+            amount: amountKes,
+            currency: 'KES',
+            reference: reference
+        }));
+
         const paystackResult = await paystackService.initializeTransaction({
             email: userEmail,
             amount: amountKes, // PaystackService library probably expects the integer/float which it converts to kobo
@@ -119,8 +125,10 @@ router.post('/initialize', auth, async (req, res) => {
             }
         });
 
+        console.log('   Paystack API result received:', JSON.stringify(paystackResult));
+
         if (!paystackResult.status) {
-            console.error('❌ [Paystack] API Error:', paystackResult.message);
+            console.error('❌ [Paystack] API Error Result:', paystackResult.message);
             return res.status(500).json({
                 success: false,
                 error: paystackResult.message || 'Payment gateway returned an error'
@@ -141,9 +149,11 @@ router.post('/initialize', auth, async (req, res) => {
 
     } catch (error) {
         console.error('❌ [Paystack] Initialize Exception:', error.message);
+        console.error('   Error stack:', error.stack);
         res.status(500).json({
             success: false,
-            error: error.message || 'Server error during payment initialization'
+            error: error.message || 'Server error during payment initialization',
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });

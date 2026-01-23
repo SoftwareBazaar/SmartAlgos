@@ -77,15 +77,16 @@ try {
   app.use((req, res, next) => {
     try {
       const csp = "default-src 'self'; " +
-        "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+        "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob: https://*.supabase.co; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://*.supabase.co; " +
+        "script-src-elem 'self' 'unsafe-inline' https://js.paystack.co https://*.supabase.co; " +
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
         "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-        "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app; " +
+        "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app https://api.paystack.co wss://*.supabase.co https://*.supabase.co; " +
         "font-src 'self' data: https://fonts.gstatic.com; " +
         "object-src 'none'; " +
         "base-uri 'self'; " +
-        "frame-src 'self';";
+        "frame-src 'self' https://js.paystack.co;";
 
       res.setHeader('Content-Security-Policy', csp);
       console.log('🔒 CSP Header Set for:', req.url);

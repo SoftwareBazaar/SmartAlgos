@@ -22,30 +22,17 @@ let io;
 // CRITICAL: Ultra-lightweight health check FIRST
 // ========================================
 app.get('/health', (req, res) => {
-  // FORCE SET CSP HEADER HERE
-  const csp = "default-src 'self'; " +
-    "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob:; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app; " +
-    "font-src 'self' data: https://fonts.gstatic.com; " +
-    "object-src 'none'; " +
-    "base-uri 'self'; " +
-    "frame-src 'self';";
-
-  res.setHeader('Content-Security-Policy', csp);
-
-  const cspHeader = res.getHeader('Content-Security-Policy');
+  // CSP is now handled by Helmet middleware globally
   res.status(200).json({
     status: 'OK',
-    version: 'v2.0-CSP-FIX-EMERGENCY',
+    version: 'v2.1-CSP-HELMET-REFINED',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     csp: {
-      header: cspHeader || 'NO CSP SET',
-      supabaseIncluded: cspHeader ? cspHeader.includes('ncikobfahncdgwvkfivz.supabase.co') : false,
-      helmetDisabled: true
+      location: 'Global Helmet Configuration',
+      supabaseIncluded: true,
+      paystackIncluded: true,
+      helmetEnabled: true
     }
   });
 });
@@ -73,30 +60,22 @@ try {
   // Configure Express for Railway (trust proxy)
   app.set('trust proxy', 1);
 
-  // EMERGENCY CSP FIX - Apply CSP FIRST, before other middleware
+  // LOGGING MIDDLEWARE - To debug CSP issues
   app.use((req, res, next) => {
-    try {
-      const csp = "default-src 'self'; " +
-        "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob: https://*.supabase.co; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://*.supabase.co; " +
-        "script-src-elem 'self' 'unsafe-inline' https://js.paystack.co https://*.supabase.co; " +
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-        "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-        "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app https://api.paystack.co wss://*.supabase.co https://*.supabase.co; " +
-        "font-src 'self' data: https://fonts.gstatic.com; " +
-        "object-src 'none'; " +
-        "base-uri 'self'; " +
-        "frame-src 'self' https://js.paystack.co;";
+    console.log(`[REQUEST] ${new Date().toISOString()} - ${req.method} ${req.url}`);
 
-      res.setHeader('Content-Security-Policy', csp);
-      console.log('🔒 CSP Header Set for:', req.url);
-      console.log('🔒 CSP Value:', csp);
-      console.log('🔒 Headers after set:', res.getHeaders());
-      next();
-    } catch (error) {
-      console.error('❌ CSP Error:', error);
-      next();
-    }
+    // Intercept header setting to log CSP
+    const originalSetHeader = res.setHeader;
+    res.setHeader = function (name, value) {
+      if (name.toLowerCase() === 'content-security-policy') {
+        console.log(`🔒 [CSP] Setting CSP for ${req.url}`);
+        // Log a summary of the CSP to avoid flooding logs
+        const summary = value.split(';').map(s => s.trim().split(' ')[0]).join(', ');
+        console.log(`🔒 [CSP] Directives: ${summary}`);
+      }
+      return originalSetHeader.apply(this, arguments);
+    };
+    next();
   });
 
   // Basic middleware
@@ -143,8 +122,67 @@ try {
     })
   );
 
-  // EMERGENCY CSP FIX - Replace helmet with custom CSP
-  // app.use(helmet()); // DISABLED - was blocking Supabase images
+  // STRUCTURED CSP CONFIGURATION - Using Helmet
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          "https://js.paystack.co",           // Paystack Scripts
+          "https://*.supabase.co",            // Supabase Scripts
+          "https://fonts.googleapis.com"      // Google Fonts Scripts
+        ],
+        scriptSrcElem: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://js.paystack.co",
+          "https://*.supabase.co"
+        ],
+        connectSrc: [
+          "'self'",
+          "https://api.paystack.co",          // Paystack API
+          "https://*.supabase.co",            // Supabase API
+          "wss://*.supabase.co",              // Supabase Realtime
+          "https://web-production-fdb58.up.railway.app" // Self
+        ],
+        frameSrc: [
+          "'self'",
+          "https://js.paystack.co",           // Paystack Payment Popup
+          "https://*.paystack.co"             // Paystack Iframe
+        ],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com"      // Google Fonts Styles
+        ],
+        styleSrcElem: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com"
+        ],
+        fontSrc: [
+          "'self'",
+          "data:",
+          "https://fonts.gstatic.com"         // Google Fonts
+        ],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "blob:",
+          "https:",                           // Allow Secure External Images
+          "https://*.supabase.co"             // Supabase Storage
+        ],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        upgradeInsecureRequests: [],
+      }
+    },
+    crossOriginEmbedderPolicy: false,          // Allow external resources
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+  }));
 
   app.use(compression());
   app.use(morgan('combined'));

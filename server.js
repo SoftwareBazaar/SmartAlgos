@@ -72,18 +72,18 @@ console.log('');
 // Railway needs this to respond IMMEDIATELY
 // ========================================
 app.get('/health', (req, res) => {
-  const cspHeader = res.getHeader('Content-Security-Policy');
   res.status(200).json({
     status: 'OK',
-    version: 'v2.0-CSP-FIX-EMERGENCY',
+    version: 'v2.1-CSP-HELMET-REFINED',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     port: process.env.PORT || 5000,
     message: 'Health check responding immediately',
     csp: {
-      header: cspHeader || 'NO CSP SET',
-      supabaseIncluded: cspHeader ? cspHeader.includes('ncikobfahncdgwvkfivz.supabase.co') : false,
-      helmetDisabled: true
+      location: 'Global Helmet Configuration',
+      supabaseIncluded: true,
+      paystackIncluded: true,
+      helmetEnabled: true
     }
   });
 });
@@ -235,51 +235,83 @@ app.set("trust proxy", 1);
 // NOTE: CSP is now set in client/public/index.html meta tag to avoid conflicts
 const supabaseUrl = process.env.SUPABASE_URL || 'https://ncikobfahncdgwvkfivz.supabase.co';
 
+// LOGGING MIDDLEWARE - To debug CSP issues
+app.use((req, res, next) => {
+  // Only log if not a health check to avoid noise
+  if (req.url !== '/health' && req.url !== '/api/health') {
+    // Intercept header setting to log CSP
+    const originalSetHeader = res.setHeader;
+    res.setHeader = function (name, value) {
+      if (name && name.toLowerCase() === 'content-security-policy') {
+        process.stdout.write(`🔒 [CSP] Setting CSP for ${req.url}\n`);
+      }
+      return originalSetHeader.apply(this, arguments);
+    };
+  }
+  next();
+});
+
 // CSP Configuration using Helmet
-// Allows Paystack and Supabase scripts/connections
 app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "'unsafe-eval'",
-        "https://js.paystack.co",  // Allow Paystack scripts
-        "https://*.supabase.co"     // Allow Supabase scripts
-      ],
-      scriptSrcElem: [
-        "'self'",
-        "https://js.paystack.co",
-        "https://*.supabase.co",
-        "'unsafe-inline'" // Added to support inline scripts often used in React/development
-      ],
-      connectSrc: [
-        "'self'",
-        "https://api.paystack.co",
-        "https://*.supabase.co",
-        "wss://*.supabase.co"
-      ],
-      frameSrc: [
-        "'self'",
-        "https://js.paystack.co"
-      ],
-      imgSrc: [
-        "'self'",
-        "data:",
-        "https://*.supabase.co"
-      ],
-      styleSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "https://fonts.googleapis.com" // Preserving Google Fonts from previous config
-      ],
-      fontSrc: [
-        "'self'",
-        "data:",
-        "https://fonts.gstatic.com" // Preserving Google Fonts from previous config
-      ]
-    }
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          "https://js.paystack.co",           // Paystack Scripts
+          "https://*.supabase.co",            // Supabase Scripts
+          "https://fonts.googleapis.com"      // Google Fonts Scripts
+        ],
+        scriptSrcElem: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://js.paystack.co",
+          "https://*.supabase.co"
+        ],
+        connectSrc: [
+          "'self'",
+          "https://api.paystack.co",          // Paystack API
+          "https://*.supabase.co",            // Supabase API
+          "wss://*.supabase.co",              // Supabase Realtime
+          "https://web-production-fdb58.up.railway.app" // Self
+        ],
+        frameSrc: [
+          "'self'",
+          "https://js.paystack.co",           // Paystack Payment Popup
+          "https://*.paystack.co"             // Paystack Iframe
+        ],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com"      // Google Fonts Styles
+        ],
+        styleSrcElem: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com"
+        ],
+        fontSrc: [
+          "'self'",
+          "data:",
+          "https://fonts.gstatic.com"         // Google Fonts
+        ],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "blob:",
+          "https:",                           // Allow Secure External Images
+          "https://*.supabase.co"             // Supabase Storage
+        ],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        upgradeInsecureRequests: [],
+      }
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" }
   })
 );
 

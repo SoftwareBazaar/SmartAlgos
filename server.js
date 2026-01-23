@@ -251,6 +251,7 @@ app.use((req, res, next) => {
   const csp = "default-src 'self'; " +
     "img-src 'self' https://ncikobfahncdgwvkfivz.supabase.co data: blob: https:; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co; " +
+    "script-src-elem 'self' 'unsafe-inline' https://js.paystack.co; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "connect-src 'self' https://ncikobfahncdgwvkfivz.supabase.co wss://ncikobfahncdgwvkfivz.supabase.co https://web-production-fdb58.up.railway.app ws: wss: https://js.paystack.co; " +

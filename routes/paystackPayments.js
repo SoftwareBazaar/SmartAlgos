@@ -69,18 +69,24 @@ router.post('/initialize', auth, async (req, res) => {
         // Create a unique reference
         const reference = `ALGO-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-        // ATTEMPT to save to database but DON'T fail if it crashes
-        let dbPaymentId = null;
         try {
             const supabase = databaseService.getClient();
             if (supabase) {
+                // DB DEBUGGING
+                console.log('📝 [Paystack] Attempting DB Insert:', {
+                    user_id: userId,
+                    email: userEmail,
+                    amount_usd: amountUsd,
+                    reference: reference
+                });
+
                 const { data: payment, error: pError } = await supabase
                     .from('paystack_payments')
                     .insert({
                         user_id: userId,
                         email: userEmail,
                         amount_usd: amountUsd,
-                        amount_ngn: amountKes, // We use this column to store the converted amount
+                        amount_ngn: amountKes,
                         product_type: 'ea_subscription',
                         product_id: eaId,
                         status: 'pending',
@@ -90,17 +96,29 @@ router.post('/initialize', auth, async (req, res) => {
                     .select()
                     .single();
 
-                if (payment) dbPaymentId = payment.id;
+                if (payment) {
+                    console.log('✅ [Paystack] DB Record Created:', payment.id);
+                    dbPaymentId = payment.id;
+                }
+
                 if (pError) {
-                    console.warn('⚠️ [Paystack] DB record creation skipped:', pError.message);
-                    // Check specifically for UUID error and log it
-                    if (pError.code === '22P02') {
-                        console.error('   Error 22P02: UUID format mismatch for product_id or user_id');
+                    // ENHANCED ERROR LOGGING
+                    console.error('❌ [Paystack] DB Insert Error Details:', {
+                        message: pError.message,
+                        code: pError.code,
+                        details: pError.details,
+                        hint: pError.hint
+                    });
+
+                    if (pError.message.includes('schema cache')) {
+                        console.warn('💡 [Hint] The table might exist but PostgREST schema cache is stale. Try restarting the database/server.');
                     }
                 }
+            } else {
+                console.warn('⚠️ [Paystack] Supabase client is null');
             }
         } catch (dbErr) {
-            console.warn('⚠️ [Paystack] DB connection issues, continuing with payment only.');
+            console.error('❌ [Paystack] Unexpected DB Exception:', dbErr.message);
         }
 
         // CONSTRUCT ABSOLUTE CALLBACK URL (Paystack requires absolute URLs)

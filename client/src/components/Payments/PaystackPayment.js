@@ -143,14 +143,33 @@ const PaystackPayment = ({
     const config = {
         reference: paymentData?.reference,
         email: localStorage.getItem('userEmail') || 'user@example.com',
-        amount: Math.round(calculateDisplayAmount() * 150 * 100), // Convert to KES kobo (Matching backend 150 rate)
+        amount: Math.round(calculateDisplayAmount() * 150 * 100),
         publicKey: publicKey,
         currency: 'KES',
         metadata: {
             ea_name: ea?.name,
-            subscription_type: subscriptionType
+            subscription_type: subscriptionType,
+            // Ensure no null values in metadata just in case
+            custom_field: [{ display_name: "Platform", variable_name: "platform", value: "web" }]
         }
     };
+
+    // DEBUGGING: Log the exact config passed to Paystack
+    useEffect(() => {
+        if (isOpen && paymentData) {
+            console.log('🕵️ [Paystack] Client Config:', {
+                ...config,
+                publicKey: config.publicKey ? '***HIDDEN***' : 'MISSING', // Don't log full key
+                amount: config.amount,
+                email: config.email,
+                reference: config.reference
+            });
+
+            if (!config.publicKey) console.error('❌ [Paystack] Public Key is MISSING in config!');
+            if (!config.reference) console.error('❌ [Paystack] Reference is MISSING in config!');
+            if (isNaN(config.amount)) console.error('❌ [Paystack] Amount is NaN!');
+        }
+    }, [isOpen, paymentData, publicKey, config.amount]); // Add dependencies
 
     const initializePaystackPayment = usePaystackPayment(config);
 

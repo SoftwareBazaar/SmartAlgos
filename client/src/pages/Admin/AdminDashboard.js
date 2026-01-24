@@ -24,6 +24,8 @@ import {
   Monitor,
   Smartphone,
   Tablet,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 
 import Card from "../../components/UI/Card";
@@ -894,6 +896,66 @@ const AdminDashboard = () => {
                       .ex4, .mq4, .mq5, .ex5 files up to 50MB
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* ZIP Package Upload (RECOMMENDED) */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-200 dark:border-green-800 rounded-lg p-4">
+                <div className="flex items-start space-x-3 mb-3">
+                  <div className="flex-shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center">
+                      <Upload className="h-5 w-5 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-bold text-green-900 dark:text-green-100 mb-1">
+                      📦 Complete EA Package (ZIP) - RECOMMENDED
+                    </label>
+                    <p className="text-xs text-green-700 dark:text-green-300 mb-3">
+                      Upload a single ZIP file containing: EA file, SET file, Manual (PDF), and Screenshots. 
+                      This will auto-download to users after payment!
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  {eaFormData.zipFile ? (
+                    <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 rounded-lg p-3 flex-1">
+                      <CheckCircle className="h-6 w-6 text-green-500" />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 block">
+                          {eaFormData.zipFile.name}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {(eaFormData.zipFile.size / 1024 / 1024).toFixed(2)} MB
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setEAFormData(prev => ({ ...prev, zipFile: null }))}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <XCircle className="h-5 w-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept=".zip"
+                        onChange={handleZipFileUpload}
+                        className="block w-full text-sm text-gray-700 dark:text-gray-300
+                          file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-green-500 file:text-white
+                          hover:file:bg-green-600
+                          cursor-pointer"
+                      />
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                        ✨ ZIP files up to 100MB • Users get instant download after payment
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -2062,6 +2124,32 @@ const AdminDashboard = () => {
       setEaFormData((prev) => ({
         ...prev,
         eaFile: file,
+      }));
+    }
+  };
+
+  const handleZipFileUpload = (event) => {
+    const file = event.target.files[0];
+
+    if (file) {
+      // Validate file type
+      if (!file.name.endsWith('.zip')) {
+        alert('Please upload a ZIP file');
+        return;
+      }
+
+      // Validate file size (max 100MB)
+      const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+      if (file.size > maxSize) {
+        alert('ZIP file is too large. Maximum size is 100MB');
+        return;
+      }
+
+      console.log('📦 ZIP file selected:', file.name, `(${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+
+      setEaFormData((prev) => ({
+        ...prev,
+        zipFile: file,
       }));
     }
   };

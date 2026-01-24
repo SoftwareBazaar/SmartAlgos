@@ -199,6 +199,8 @@ export const EAProvider = ({ children }) => {
           formData.append('image', eaData[key]);
         } else if (key === 'eaFile' && eaData[key] && eaData[key] instanceof File) {
           formData.append('eaFile', eaData[key]);
+        } else if (key === 'zipFile' && eaData[key] && eaData[key] instanceof File) {
+          formData.append('zipFile', eaData[key]);
         } else if (eaData[key] !== null && eaData[key] !== undefined) {
           formData.append(key, eaData[key]);
         }
@@ -261,6 +263,9 @@ export const EAProvider = ({ children }) => {
           } else if (key === 'eaFile' && eaData[key] && eaData[key] instanceof File) {
             console.log('[EAContext] 📦 Appending EA file:', eaData[key].name);
             formData.append('eaFile', eaData[key]);
+          } else if (key === 'zipFile' && eaData[key] && eaData[key] instanceof File) {
+            console.log('[EAContext] 📦 Appending ZIP package:', eaData[key].name);
+            formData.append('zipFile', eaData[key]);
           } else if (key === 'specifications' && eaData[key]) {
             // Handle specifications object
             Object.keys(eaData[key]).forEach(specKey => {
@@ -276,7 +281,7 @@ export const EAProvider = ({ children }) => {
             eaData[key].forEach((screenshot, index) => {
               formData.append(`screenshots[${index}]`, screenshot);
             });
-          } else if (eaData[key] !== null && eaData[key] !== undefined && key !== 'image' && key !== 'eaFile') {
+          } else if (eaData[key] !== null && eaData[key] !== undefined && key !== 'image' && key !== 'eaFile' && key !== 'zipFile') {
             formData.append(key, eaData[key]);
           }
         });

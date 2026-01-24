@@ -385,6 +385,7 @@ router.post('/', [
   upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'eaFile', maxCount: 1 },
+    { name: 'zipFile', maxCount: 1 },
     { name: 'screenshots', maxCount: 10 }
   ]),
   handleMulterError,
@@ -513,6 +514,27 @@ router.post('/', [
           eaFile = null;
         }
       }
+
+      // Upload ZIP package to Supabase Storage
+      let zipFileUrl = null;
+      if (req.files.zipFile && req.files.zipFile[0]) {
+        try {
+          console.log(`[EA Create] 📦 Uploading ZIP package to Supabase Storage (${(req.files.zipFile[0].size / 1024 / 1024).toFixed(2)} MB)...`);
+          
+          const uploadResult = await supabaseStorage.uploadEAFile(
+            req.files.zipFile[0].buffer,
+            req.files.zipFile[0].originalname,
+            'application/zip'
+          );
+
+          zipFileUrl = uploadResult.url;
+          console.log(`[EA Create] ✅ ZIP package uploaded to Supabase: ${zipFileUrl}`);
+        } catch (uploadError) {
+          console.error(`[EA Create] ❌ ZIP package upload to Supabase failed:`, uploadError.message);
+          // Continue without ZIP file
+          zipFileUrl = null;
+        }
+      }
     }
 
     // Handle creator_id - set to null to avoid foreign key timeout issues
@@ -576,8 +598,9 @@ router.post('/', [
       screenshots: screenshotUrls.length > 0 ? screenshotUrls : null,
       // Ensure file fields are properly set using database column names
       ea_file_path: eaFileUrl,
-      set_file_path: setFileUrl,
-      manual_file_path: manualFileUrl
+      zip_file_path: zipFileUrl, // ZIP package for auto-download
+      set_file_path: null, // Can be added later if needed
+      manual_file_path: null // Can be added later if needed
     };
 
     console.log('[EA Create] Creating EA with file data:', {
@@ -677,6 +700,7 @@ router.put('/:id', [
   upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'eaFile', maxCount: 1 },
+    { name: 'zipFile', maxCount: 1 },
     { name: 'screenshots', maxCount: 10 }
   ]),
   handleMulterError,
@@ -779,6 +803,7 @@ router.put('/:id', [
     let eaFile = null;
     let imageUrl = null;
     let eaFileUrl = null;
+    let zipFileUrl = null;
 
     if (req.files) {
       // Upload image to Supabase Storage
@@ -828,6 +853,27 @@ router.put('/:id', [
           console.log(`[EA Update] ✅ EA file uploaded to Supabase: ${eaFileUrl}`);
         } catch (uploadError) {
           console.error(`[EA Update] EA file upload to Supabase failed:`, uploadError);
+        }
+      }
+
+      // Upload ZIP package to Supabase Storage
+      let zipFileUrl = null;
+      if (req.files.zipFile && req.files.zipFile[0]) {
+        try {
+          console.log(`[EA Update] 📦 Uploading ZIP package to Supabase Storage (${(req.files.zipFile[0].size / 1024 / 1024).toFixed(2)} MB)...`);
+          
+          const uploadResult = await supabaseStorage.uploadEAFile(
+            req.files.zipFile[0].buffer,
+            req.files.zipFile[0].originalname,
+            'application/zip'
+          );
+
+          zipFileUrl = uploadResult.url;
+          console.log(`[EA Update] ✅ ZIP package uploaded to Supabase: ${zipFileUrl}`);
+        } catch (uploadError) {
+          console.error(`[EA Update] ❌ ZIP package upload to Supabase failed:`, uploadError.message);
+          // Continue without ZIP file
+          zipFileUrl = null;
         }
       }
 
@@ -1082,6 +1128,12 @@ router.put('/:id', [
     if (eaFileUrl) {
       updates.ea_file_path = eaFileUrl;
       console.log(`📦 [EA Update] New EA file path set: ${eaFileUrl}`);
+    }
+
+    // Handle ZIP file path
+    if (zipFileUrl) {
+      updates.zip_file_path = zipFileUrl;
+      console.log(`📦 [EA Update] New ZIP package path set: ${zipFileUrl}`);
     }
 
     // Update files if new ones were uploaded

@@ -69,6 +69,8 @@ router.post('/initialize', auth, async (req, res) => {
         // Create a unique reference
         const reference = `ALGO-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
+        // ATTEMPT to save to database but DON'T fail if it crashes
+        let dbPaymentId = null;
         try {
             const supabase = databaseService.getClient();
             if (supabase) {

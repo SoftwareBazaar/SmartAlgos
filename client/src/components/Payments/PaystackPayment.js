@@ -102,11 +102,10 @@ const PaystackPayment = ({
         verifyPayment(reference.reference);
     };
 
-    // Close Handler
+    // Close Handler - Don't reinitialize, just close
     const onClosing = () => {
-        console.log('⚠️ Paystack payment closed');
-        // Reset payment data and re-initialize to ensure a fresh reference for the next attempt
-        initializePayment();
+        console.log('⚠️ Paystack payment closed by user');
+        // Don't reinitialize here - let user manually retry if needed
     };
 
     // Verification Logic
@@ -200,8 +199,17 @@ const PaystackPayment = ({
                 )}
 
                 {error && (
-                    <div className="bg-rose-50 border border-rose-200 px-4 py-3 rounded-lg mb-6 text-sm text-rose-700">
-                        {error}
+                    <div className="bg-rose-50 border border-rose-200 px-4 py-3 rounded-lg mb-6">
+                        <p className="text-sm text-rose-700 mb-2">{error}</p>
+                        <button
+                            onClick={() => {
+                                setError(null);
+                                initializePayment();
+                            }}
+                            className="text-sm text-rose-600 hover:text-rose-800 font-medium underline"
+                        >
+                            Try Again
+                        </button>
                     </div>
                 )}
 

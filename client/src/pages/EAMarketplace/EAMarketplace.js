@@ -980,33 +980,6 @@ const EAMarketplace = () => {
                 </div>
               </div>
 
-              {/* Payment Method */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Payment Method
-                </label>
-                <div className="space-y-2">
-                  {[
-                    { id: 'card', name: 'Credit Card', icon: CreditCard },
-                    { id: 'bank_transfer', name: 'Bank Transfer', icon: CreditCard },
-                    { id: 'mobile_money', name: 'Mobile Money', icon: CreditCard },
-                    { id: 'crypto', name: 'Cryptocurrency', icon: Shield }
-                  ].map((method) => (
-                    <button
-                      key={method.id}
-                      onClick={() => setPaymentMethod(method.id)}
-                      className={`w-full p-3 rounded-lg border flex items-center space-x-3 transition-colors ${paymentMethod === method.id
-                        ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-                        : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                        }`}
-                    >
-                      <method.icon className="h-5 w-5" />
-                      <span>{method.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Escrow Protection Toggle */}
               <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -1121,7 +1094,7 @@ const EAMarketplace = () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons - SIMPLIFIED */}
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                 <Button
                   variant="outline"
@@ -1129,43 +1102,24 @@ const EAMarketplace = () => {
                   onClick={() => {
                     setShowSubscriptionModal(false);
                     setEscrowTransaction(null);
-                    setUseEscrow(true);
+                    setUseEscrow(false);
                   }}
                 >
                   Cancel
                 </Button>
-                {/* If escrow is enabled, use the EscrowIntegration internal primary CTA.
-                    Only show a secondary CTA when a transaction exists. */}
-                {useEscrow ? (
-                  escrowTransaction ? (
-                    <Button
-                      variant="primary"
-                      fullWidth
-                      onClick={() => window.open(`/api/escrow/transactions/${escrowTransaction.id}`, '_blank')}
-                    >
-                      View Escrow Transaction
-                    </Button>
-                  ) : null
-                ) : (
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    onClick={handleSubscriptionSubmit}
-                    disabled={subscribing}
-                  >
-                    {subscribing ? 'Processing...' : 'Pay with Mobile Money'}
-                  </Button>
-                )}
+                
+                {/* Single "Continue to Payment" button that opens PaymentMethodDialog */}
                 <Button
-                  className="w-full bg-[#09a5db] hover:bg-[#0894c4] text-white border-0 mt-2 sm:mt-0"
+                  variant="primary"
+                  fullWidth
                   onClick={() => {
                     setShowSubscriptionModal(false);
-                    setShowPaystackPayment(true);
+                    setShowPaymentDialog(true);
                   }}
                   disabled={subscribing}
+                  className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800"
                 >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Pay with Card/Bank
+                  {subscribing ? 'Processing...' : 'Continue to Payment →'}
                 </Button>
               </div>
             </div>

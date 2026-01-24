@@ -68,8 +68,10 @@ router.post('/initialize', auth, async (req, res) => {
 
         console.log(`   Converting $${amountUsd} USD to ${amountKes} kobo (Rate: ${KES_RATE})`);
 
-        // Create a unique reference
-        const reference = `ALGO-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        // Create a unique reference with more entropy to prevent duplicates
+        const timestamp = Date.now();
+        const randomPart = Math.random().toString(36).substring(2, 15);
+        const reference = `ALGO-${timestamp}-${randomPart}`;
 
         // ATTEMPT to save to database but DON'T fail if it crashes
         let dbPaymentId = null;

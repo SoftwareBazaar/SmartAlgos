@@ -288,6 +288,42 @@ router.get('/verify/:reference', auth, async (req, res) => {
             manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null
         };
 
+        // 🎯 NEW: Send email with download links
+        try {
+            const emailService = require('../services/emailService');
+            
+            // Get user email
+            const { data: user } = await supabase
+                .from('users')
+                .select('email, first_name, last_name')
+                .eq('id', userId)
+                .single();
+
+            if (user && user.email) {
+                const userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Valued Customer';
+                
+                console.log('📧 Sending download email to:', user.email);
+                
+                const emailResult = await emailService.sendDownloadEmail({
+                    userEmail: user.email,
+                    userName: userName,
+                    eaName: ea.name,
+                    downloadLinks: downloadLinks,
+                    subscriptionType: subscriptionType,
+                    subscriptionId: subscription.id
+                });
+
+                if (emailResult.success) {
+                    console.log('✅ Download email sent successfully');
+                } else {
+                    console.warn('⚠️ Failed to send download email:', emailResult.error);
+                }
+            }
+        } catch (emailError) {
+            console.error('Email send error (non-critical):', emailError.message);
+            // Don't fail the whole process if email fails
+        }
+
         res.json({
             success: true,
             message: 'Payment verified and subscription activated successfully!',

@@ -1,492 +1,274 @@
+/**
+ * Email Service for sending download links after payment
+ * Uses Nodemailer with Gmail or any SMTP service
+ */
+
 const nodemailer = require('nodemailer');
-const axios = require('axios');
+const logger = require('../utils/logger');
 
-// Send email via SendGrid API (HTTP-based, works on Railway free tier)
-const sendEmailViaSendGrid = async ({ to, subject, html, text }) => {
-  const sendGridApiKey = process.env.SENDGRID_API_KEY;
-  // SENDGRID_FROM_EMAIL MUST be set to the verified sender email in SendGrid
-  // This is different from ADMIN_EMAIL (which is where emails are sent TO)
-  const fromEmail = process.env.SENDGRID_FROM_EMAIL;
-
-  if (!sendGridApiKey) {
-    return null; // SendGrid not configured
-  }
-
-  if (!fromEmail) {
-    console.error('❌ SENDGRID_FROM_EMAIL not set - this must be your verified sender email in SendGrid');
-    throw new Error('SENDGRID_FROM_EMAIL environment variable is required');
-  }
-
-  // Log what email we're using as sender (for debugging)
-  console.log(`📧 SendGrid: FROM=${fromEmail}, TO=${to}`);
-
-  try {
-    const response = await axios.post(
-      'https://api.sendgrid.com/v3/mail/send',
-      {
-        personalizations: [{
-          to: [{ email: to }],
-          subject: subject
-        }],
-        from: {
-          email: fromEmail,
-          name: 'Smart Algos'
-        },
-        content: [
-          {
-            type: 'text/plain',
-            value: text
-          },
-          {
-            type: 'text/html',
-            value: html
-          }
-        ]
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${sendGridApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000 // 10 second timeout
-      }
-    );
-
-    console.log('✅ Email sent via SendGrid:', response.status);
-    return { success: true, messageId: response.headers['x-message-id'] || 'sendgrid-sent' };
-  } catch (error) {
-    console.error('❌ SendGrid API error:', error.response?.data || error.message);
-    throw error;
-  }
-};
-
-// Get email configuration from environment variables
-const getEmailConfig = () => {
-  // Check for SMTP configuration
-  if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    return {
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === 'true',
-      requireTLS: !process.env.SMTP_SECURE || process.env.SMTP_SECURE !== 'true', // Use TLS for port 587
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      },
-      // Add timeout configurations to prevent hanging
-      // Note: Nodemailer handles timeouts internally, but we'll also wrap with Promise.race
-      pool: true, // Use connection pooling for better performance
-      maxConnections: 1, // Limit concurrent connections
-      maxMessages: 3 // Max messages per connection
-    };
-  }
-
-  // Fallback: Gmail configuration
-  if (process.env.GMAIL_USER && process.env.GMAIL_PASS) {
-    return {
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS
-      },
-      // Gmail-specific settings
-      pool: true,
-      maxConnections: 1,
-      maxMessages: 3
-    };
-  }
-
-  // No email configuration found
-  return null;
-};
-
-// Create transporter
+// Create email transporter
 const createTransporter = () => {
-  // Skip SMTP if SendGrid is configured (SendGrid uses HTTP API, not SMTP)
-  if (process.env.SENDGRID_API_KEY) {
-    console.log('✅ SendGrid API configured - skipping SMTP transporter');
+  // Check if email is configured
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    console.warn('⚠️ Email not configured. Set EMAIL_USER and EMAIL_PASSWORD in .env');
     return null;
   }
 
-  const config = getEmailConfig();
-  if (!config) {
-    console.warn('⚠️  No email configuration found. Emails will be logged only.');
-    return null;
-  }
-
-  try {
-    const transporter = nodemailer.createTransport(config);
-    
-    // Verify transporter connection with timeout
-    transporter.verify((error, success) => {
-      if (error) {
-        console.warn('⚠️  Email transporter verification failed (will attempt to send anyway):', error.message);
-      } else {
-        console.log('✅ Email transporter created and verified successfully');
-      }
-    });
-    
-    return transporter;
-  } catch (error) {
-    console.error('❌ Failed to create email transporter:', error);
-    return null;
-  }
-};
-
-const transporter = createTransporter();
-
-// Send email function with timeout protection
-const sendEmail = async ({ to, subject, html, text }, timeout = 15000) => {
-  // Get admin email from environment or use default
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || process.env.GMAIL_USER;
-  
-  if (!adminEmail) {
-    console.warn('⚠️  No admin email configured. Cannot send emails.');
-    return { success: false, message: 'No email configuration' };
-  }
-
-  // Priority 1: Try SendGrid API first (works on Railway free tier)
-  if (process.env.SENDGRID_API_KEY) {
-    try {
-      console.log('📧 Attempting to send email via SendGrid API...');
-      const result = await sendEmailViaSendGrid({ to, subject, html, text });
-      if (result && result.success) {
-        return result;
-      }
-    } catch (error) {
-      console.warn('⚠️  SendGrid failed, falling back to SMTP:', error.message);
-      // Fall through to SMTP
+  return nodemailer.createTransporter({
+    service: 'gmail', // or 'smtp' for custom SMTP
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: process.env.EMAIL_PORT || 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD // Use App Password for Gmail
     }
-  }
-
-  // Priority 2: Try SMTP (may be blocked on Railway free tier)
-  if (!transporter) {
-    // Log email to console instead
-    console.log('📧 EMAIL WOULD BE SENT (no transporter):');
-    console.log('   To:', to);
-    console.log('   From:', adminEmail);
-    console.log('   Subject:', subject);
-    console.log('   Text:', text);
-    console.log('   HTML:', html);
-    return { success: true, message: 'Email logged (no transporter)' };
-  }
-
-  try {
-    // Create a promise that will timeout if email sending takes too long
-    const sendPromise = transporter.sendMail({
-      from: `"Smart Algos" <${adminEmail}>`,
-      to: to,
-      subject: subject,
-      text: text,
-      html: html
-    });
-
-    // Add timeout wrapper
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error(`Email sending timed out after ${timeout}ms`));
-      }, timeout);
-    });
-
-    // Race between sending and timeout
-    const info = await Promise.race([sendPromise, timeoutPromise]);
-
-    console.log('✅ Email sent successfully via SMTP:', info.messageId);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error('❌ Failed to send email:', error.message || error);
-    // Log email to console as fallback
-    console.log('📧 EMAIL FALLBACK LOG:');
-    console.log('   To:', to);
-    console.log('   Subject:', subject);
-    console.log('   Text:', text);
-    return { success: false, message: error.message || 'Email sending failed' };
-  }
-};
-
-// Send custom EA request notification to admin
-const sendCustomEARequestNotification = async (requestData) => {
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || process.env.GMAIL_USER;
-  
-  if (!adminEmail) {
-    console.warn('⚠️  No admin email configured for notifications');
-    return { success: false, message: 'No admin email configured' };
-  }
-
-  const serviceTypeMap = {
-    'new_ea': 'New EA Development',
-    'modify_ea': 'EA Modification',
-    'custom_indicator': 'Custom Indicator'
-  };
-
-  const tradingStyleMap = {
-    'scalping': 'Scalping',
-    'swing': 'Swing Trading',
-    'hedging': 'Hedging',
-    'arbitrage': 'Arbitrage',
-    'grid': 'Grid Trading',
-    'martingale': 'Martingale'
-  };
-
-  const platformMap = {
-    'mt4': 'MetaTrader 4',
-    'mt5': 'MetaTrader 5',
-    'tradingview': 'TradingView'
-  };
-
-  const statusColorMap = {
-    'pending': '#ff9800',
-    'reviewing': '#2196f3',
-    'in_progress': '#9c27b0',
-    'completed': '#4caf50',
-    'cancelled': '#9e9e9e',
-    'rejected': '#f44336'
-  };
-
-  const statusColor = statusColorMap[requestData.status] || '#ff9800';
-  const serviceType = serviceTypeMap[requestData.serviceType] || requestData.serviceType;
-  const tradingStyle = tradingStyleMap[requestData.tradingStyle] || requestData.tradingStyle;
-  const platform = platformMap[requestData.platform] || requestData.platform;
-
-  const subject = `🎯 New Custom EA Request - ${requestData.eaName || 'Unnamed'}`;
-  
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          line-height: 1.6;
-          color: #333;
-          max-width: 600px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-        .header {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 30px;
-          text-align: center;
-          border-radius: 8px 8px 0 0;
-        }
-        .content {
-          background: #f9f9f9;
-          padding: 30px;
-          border: 1px solid #e0e0e0;
-          border-top: none;
-        }
-        .info-box {
-          background: white;
-          padding: 20px;
-          margin-bottom: 15px;
-          border-radius: 5px;
-          border-left: 4px solid #667eea;
-        }
-        .info-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 8px 0;
-          border-bottom: 1px solid #f0f0f0;
-        }
-        .info-row:last-child {
-          border-bottom: none;
-        }
-        .label {
-          font-weight: bold;
-          color: #666;
-        }
-        .value {
-          color: #333;
-        }
-        .status-badge {
-          display: inline-block;
-          padding: 5px 15px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: bold;
-          background: ${statusColor};
-          color: white;
-          text-transform: uppercase;
-        }
-        .highlight {
-          background: #fff3cd;
-          padding: 15px;
-          border-radius: 5px;
-          border-left: 4px solid #ffc107;
-          margin: 20px 0;
-        }
-        .footer {
-          text-align: center;
-          padding: 20px;
-          color: #999;
-          font-size: 12px;
-        }
-        .button {
-          display: inline-block;
-          padding: 12px 30px;
-          background: #667eea;
-          color: white;
-          text-decoration: none;
-          border-radius: 5px;
-          margin-top: 20px;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>🎯 New Custom EA Request</h1>
-      </div>
-      <div class="content">
-        <div class="info-box">
-          <div class="info-row">
-            <span class="label">Request ID:</span>
-            <span class="value">${requestData.id}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Status:</span>
-            <span class="status-badge">${requestData.status}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">User Email:</span>
-            <span class="value">${requestData.userEmail}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Service Type:</span>
-            <span class="value">${serviceType}</span>
-          </div>
-        </div>
-
-        <div class="info-box">
-          <h3 style="margin-top: 0;">EA Details</h3>
-          <div class="info-row">
-            <span class="label">EA Name:</span>
-            <span class="value">${requestData.eaName || 'Not specified'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Description:</span>
-            <span class="value">${requestData.eaDescription || 'Not provided'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Trading Style:</span>
-            <span class="value">${tradingStyle || 'Not specified'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Platform:</span>
-            <span class="value">${platform || 'Not specified'}</span>
-          </div>
-          ${requestData.timeframe ? `
-          <div class="info-row">
-            <span class="label">Timeframe:</span>
-            <span class="value">${requestData.timeframe}</span>
-          </div>
-          ` : ''}
-        </div>
-
-        ${requestData.indicators && requestData.indicators.length > 0 ? `
-        <div class="info-box">
-          <h3 style="margin-top: 0;">Indicators</h3>
-          <span class="value">${requestData.indicators.join(', ')}</span>
-        </div>
-        ` : ''}
-
-        ${requestData.riskManagement && requestData.riskManagement.length > 0 ? `
-        <div class="info-box">
-          <h3 style="margin-top: 0;">Risk Management</h3>
-          <span class="value">${requestData.riskManagement.join(', ')}</span>
-        </div>
-        ` : ''}
-
-        ${requestData.customFeatures && requestData.customFeatures.length > 0 ? `
-        <div class="info-box">
-          <h3 style="margin-top: 0;">Custom Features</h3>
-          <span class="value">${requestData.customFeatures.join(', ')}</span>
-        </div>
-        ` : ''}
-
-        <div class="info-box">
-          <h3 style="margin-top: 0;">Timeline & Budget</h3>
-          <div class="info-row">
-            <span class="label">Timeline:</span>
-            <span class="value">${requestData.timeline || 'Not specified'}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Budget:</span>
-            <span class="value">${requestData.budget || 'Not specified'}</span>
-          </div>
-          ${requestData.customBudget ? `
-          <div class="info-row">
-            <span class="label">Custom Budget:</span>
-            <span class="value">$${requestData.customBudget}</span>
-          </div>
-          ` : ''}
-          <div class="info-row">
-            <span class="label">Estimated Price:</span>
-            <span class="value" style="font-size: 18px; font-weight: bold; color: #4caf50;">$${requestData.estimatedPrice || 'TBD'}</span>
-          </div>
-        </div>
-
-        ${requestData.requirements ? `
-        <div class="highlight">
-          <strong>Additional Requirements:</strong><br>
-          ${requestData.requirements}
-        </div>
-        ` : ''}
-
-        <div style="text-align: center;">
-          <a href="${process.env.FRONTEND_URL || 'https://web-production-fdb58.up.railway.app'}/admin/custom-ea-requests" class="button">
-            View in Admin Panel
-          </a>
-        </div>
-      </div>
-      <div class="footer">
-        <p>This is an automated notification from Smart Algos Trading Platform</p>
-        <p>Request created on ${new Date(requestData.createdAt).toLocaleString()}</p>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const text = `
-New Custom EA Request
-
-Request ID: ${requestData.id}
-Status: ${requestData.status}
-User Email: ${requestData.userEmail}
-
-Service Type: ${serviceType}
-EA Name: ${requestData.eaName || 'Not specified'}
-Description: ${requestData.eaDescription || 'Not provided'}
-Trading Style: ${tradingStyle || 'Not specified'}
-Platform: ${platform || 'Not specified'}
-${requestData.timeframe ? `Timeframe: ${requestData.timeframe}` : ''}
-
-${requestData.indicators && requestData.indicators.length > 0 ? `Indicators: ${requestData.indicators.join(', ')}\n` : ''}
-${requestData.riskManagement && requestData.riskManagement.length > 0 ? `Risk Management: ${requestData.riskManagement.join(', ')}\n` : ''}
-${requestData.customFeatures && requestData.customFeatures.length > 0 ? `Custom Features: ${requestData.customFeatures.join(', ')}\n` : ''}
-
-Timeline: ${requestData.timeline || 'Not specified'}
-Budget: ${requestData.budget || 'Not specified'}
-${requestData.customBudget ? `Custom Budget: $${requestData.customBudget}\n` : ''}
-Estimated Price: $${requestData.estimatedPrice || 'TBD'}
-
-${requestData.requirements ? `Additional Requirements:\n${requestData.requirements}\n` : ''}
-
-View in Admin Panel: ${process.env.FRONTEND_URL || 'https://web-production-fdb58.up.railway.app'}/admin/custom-ea-requests
-
-Request created on ${new Date(requestData.createdAt).toLocaleString()}
-  `;
-
-  return await sendEmail({
-    to: adminEmail,
-    subject: subject,
-    html: html,
-    text: text
   });
 };
 
-module.exports = {
-  sendEmail,
-  sendCustomEARequestNotification
+/**
+ * Send download links email after successful payment
+ */
+const sendDownloadEmail = async ({ 
+  userEmail, 
+  userName, 
+  eaName, 
+  downloadLinks, 
+  subscriptionType,
+  subscriptionId 
+}) => {
+  try {
+    const transporter = createTransporter();
+    
+    if (!transporter) {
+      console.log('📧 Email not configured, skipping email send');
+      return { success: false, error: 'Email not configured' };
+    }
+
+    // Build download links HTML
+    let downloadLinksHtml = '';
+    
+    if (downloadLinks.zip_package) {
+      downloadLinksHtml += `
+        <div style="margin: 20px 0; padding: 15px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 4px;">
+          <h3 style="margin: 0 0 10px 0; color: #059669;">📦 Complete Package (Recommended)</h3>
+          <p style="margin: 0 0 10px 0; color: #065f46;">Download everything in one ZIP file:</p>
+          <a href="${downloadLinks.zip_package}" 
+             style="display: inline-block; padding: 12px 24px; background: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            Download ZIP Package
+          </a>
+        </div>
+      `;
+    }
+
+    // Individual files as backup
+    if (downloadLinks.ea_file || downloadLinks.set_file || downloadLinks.manual) {
+      downloadLinksHtml += `
+        <div style="margin: 20px 0;">
+          <h3 style="color: #1f2937;">Individual Files:</h3>
+      `;
+
+      if (downloadLinks.ea_file) {
+        downloadLinksHtml += `
+          <p style="margin: 10px 0;">
+            <a href="${downloadLinks.ea_file}" 
+               style="color: #3b82f6; text-decoration: none; font-weight: 500;">
+              📄 Download EA File (.ex4/.ex5)
+            </a>
+          </p>
+        `;
+      }
+
+      if (downloadLinks.set_file) {
+        downloadLinksHtml += `
+          <p style="margin: 10px 0;">
+            <a href="${downloadLinks.set_file}" 
+               style="color: #3b82f6; text-decoration: none; font-weight: 500;">
+              ⚙️ Download Settings File (.set)
+            </a>
+          </p>
+        `;
+      }
+
+      if (downloadLinks.manual) {
+        downloadLinksHtml += `
+          <p style="margin: 10px 0;">
+            <a href="${downloadLinks.manual}" 
+               style="color: #3b82f6; text-decoration: none; font-weight: 500;">
+              📖 Download Manual (PDF)
+            </a>
+          </p>
+        `;
+      }
+
+      downloadLinksHtml += `</div>`;
+    }
+
+    // Email HTML template
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 40px 20px;">
+          
+          <!-- Header -->
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1f2937; margin: 0;">Smart Algos</h1>
+            <p style="color: #6b7280; margin: 5px 0 0 0;">Algorithmic Trading Platform</p>
+          </div>
+
+          <!-- Success Message -->
+          <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; margin-bottom: 30px; border-radius: 4px;">
+            <h2 style="margin: 0 0 10px 0; color: #1e40af;">✅ Payment Successful!</h2>
+            <p style="margin: 0; color: #1e3a8a;">Thank you for your subscription. Your EA files are ready to download.</p>
+          </div>
+
+          <!-- Subscription Details -->
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1f2937; margin: 0 0 15px 0;">Subscription Details:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; color: #6b7280;">EA Name:</td>
+                <td style="padding: 8px 0; color: #1f2937; font-weight: bold;">${eaName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #6b7280;">Subscription Type:</td>
+                <td style="padding: 8px 0; color: #1f2937; font-weight: bold; text-transform: capitalize;">${subscriptionType}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #6b7280;">Subscription ID:</td>
+                <td style="padding: 8px 0; color: #1f2937; font-family: monospace; font-size: 12px;">${subscriptionId}</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Download Links -->
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1f2937; margin: 0 0 15px 0;">Download Your Files:</h3>
+            ${downloadLinksHtml}
+          </div>
+
+          <!-- Important Notes -->
+          <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 30px; border-radius: 4px;">
+            <h4 style="margin: 0 0 10px 0; color: #92400e;">📌 Important Notes:</h4>
+            <ul style="margin: 0; padding-left: 20px; color: #78350f;">
+              <li style="margin: 5px 0;">Download links are valid for 24 hours</li>
+              <li style="margin: 5px 0;">You can re-download from your account dashboard anytime</li>
+              <li style="margin: 5px 0;">For support, reply to this email or contact us</li>
+            </ul>
+          </div>
+
+          <!-- Installation Guide -->
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1f2937; margin: 0 0 15px 0;">Quick Installation Guide:</h3>
+            <ol style="color: #4b5563; line-height: 1.8; padding-left: 20px;">
+              <li>Download the ZIP package or individual files</li>
+              <li>Extract the ZIP file (if downloaded)</li>
+              <li>Copy the .ex4/.ex5 file to your MT4/MT5 Experts folder</li>
+              <li>Copy the .set file to your MT4/MT5 Presets folder (optional)</li>
+              <li>Restart MT4/MT5</li>
+              <li>Attach the EA to your chart</li>
+            </ol>
+          </div>
+
+          <!-- Support -->
+          <div style="text-align: center; padding: 20px; background: #f9fafb; border-radius: 4px;">
+            <p style="margin: 0 0 10px 0; color: #6b7280;">Need help? We're here for you!</p>
+            <p style="margin: 0;">
+              <a href="mailto:${process.env.EMAIL_USER}" style="color: #3b82f6; text-decoration: none; font-weight: 500;">
+                Contact Support
+              </a>
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+              © ${new Date().getFullYear()} Smart Algos. All rights reserved.
+            </p>
+          </div>
+
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Plain text version
+    const textContent = `
+Payment Successful!
+
+Thank you for subscribing to ${eaName}.
+
+Subscription Details:
+- EA Name: ${eaName}
+- Subscription Type: ${subscriptionType}
+- Subscription ID: ${subscriptionId}
+
+Download Your Files:
+${downloadLinks.zip_package ? `\nComplete Package (ZIP): ${downloadLinks.zip_package}\n` : ''}
+${downloadLinks.ea_file ? `EA File: ${downloadLinks.ea_file}\n` : ''}
+${downloadLinks.set_file ? `Settings File: ${downloadLinks.set_file}\n` : ''}
+${downloadLinks.manual ? `Manual: ${downloadLinks.manual}\n` : ''}
+
+Important Notes:
+- Download links are valid for 24 hours
+- You can re-download from your account dashboard anytime
+- For support, reply to this email
+
+Quick Installation:
+1. Download the files
+2. Extract ZIP (if downloaded)
+3. Copy .ex4/.ex5 to MT4/MT5 Experts folder
+4. Copy .set to MT4/MT5 Presets folder
+5. Restart MT4/MT5
+6. Attach EA to chart
+
+Need help? Contact us at ${process.env.EMAIL_USER}
+
+© ${new Date().getFullYear()} Smart Algos
+    `;
+
+    // Send email
+    const mailOptions = {
+      from: `"Smart Algos" <${process.env.EMAIL_USER}>`,
+      to: userEmail,
+      subject: `✅ Your ${eaName} Files Are Ready - Smart Algos`,
+      text: textContent,
+      html: htmlContent
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+
+    logger.info('Download email sent successfully', {
+      messageId: info.messageId,
+      userEmail,
+      eaName,
+      subscriptionId
+    });
+
+    return { 
+      success: true, 
+      messageId: info.messageId 
+    };
+
+  } catch (error) {
+    logger.error('Failed to send download email', {
+      error: error.message,
+      userEmail,
+      eaName
+    });
+
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
 };
 
+module.exports = {
+  sendDownloadEmail
+};

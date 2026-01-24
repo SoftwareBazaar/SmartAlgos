@@ -157,7 +157,7 @@ const PaystackPayment = ({
     // DEBUGGING: Log the exact config passed to Paystack
     useEffect(() => {
         if (isOpen && paymentData) {
-            console.log('🕵️ [Paystack] Client Config:', {
+            console.log('🕵️ [Paystack] Client Config (v2-FIXED):', {
                 ...config,
                 publicKey: config.publicKey ? '***HIDDEN***' : 'MISSING', // Don't log full key
                 amount: config.amount,

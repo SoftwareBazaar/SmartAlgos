@@ -192,12 +192,15 @@ const EAMarketplace = () => {
   const handlePaymentSuccess = async (paymentResult) => {
     try {
       console.log('💰 Payment successful:', paymentResult);
+      console.log('📦 Download links in payment result:', paymentResult.downloadLinks);
 
       // Check if download links were provided directly (from crypto or Paystack)
       const subId = paymentResult.subscriptionId || paymentResult.subscription?.id;
 
       if (paymentResult.downloadLinks && subId) {
         console.log('✅ Download links provided in payment result');
+        console.log('📦 Download links object:', JSON.stringify(paymentResult.downloadLinks, null, 2));
+        console.log('🔍 Has zip_package?', !!paymentResult.downloadLinks.zip_package);
 
         // Show PaymentResultDialog with download links - this will auto-trigger downloads
         setResultDialog({
@@ -1290,6 +1293,8 @@ const EAMarketplace = () => {
           isOpen={resultDialog.open}
           status={resultDialog.status}
           message={resultDialog.message}
+          downloadLinks={resultDialog.downloadLinks}
+          subscriptionId={resultDialog.subscriptionId}
           onDownload={() => {
             setShowDownloadModal(true);
             setResultDialog({ open: false, status: 'success' });

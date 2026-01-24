@@ -44,8 +44,20 @@ const PaymentMethodDialog = ({
     return /[^@\s]+@[^@\s]+\.[^@\s]+/.test(paystackData.email);
   }, [paystackData.email]);
 
-  // Payment method configurations
+  // Payment method configurations - CRYPTO FIRST (Priority)
   const paymentMethods = [
+    {
+      id: 'crypto',
+      name: 'Cryptocurrency',
+      description: 'Pay with BTC, ETH, USDT, USDC - Instant Access',
+      icon: Bitcoin,
+      color: '#f59e0b', // Bitcoin Orange
+      iconColor: 'text-orange-500',
+      bgColor: 'bg-orange-500/10',
+      currencies: ['USD', 'EUR', 'GBP', 'KES'],
+      available: true,
+      recommended: true // Mark as recommended
+    },
     {
       id: 'card',
       name: 'Card Payment',
@@ -67,17 +79,6 @@ const PaymentMethodDialog = ({
       bgColor: 'bg-emerald-500/10',
       currencies: ['KES'],
       available: currency === 'KES' || amount // Always show, we'll convert
-    },
-    {
-      id: 'crypto',
-      name: 'Cryptocurrency',
-      description: 'Pay with BTC, ETH, USDT, USDC',
-      icon: Bitcoin,
-      color: '#f59e0b', // Bitcoin Orange
-      iconColor: 'text-orange-500',
-      bgColor: 'bg-orange-500/10',
-      currencies: ['USD', 'EUR', 'GBP'],
-      available: true
     }
   ];
 
@@ -197,9 +198,16 @@ const PaymentMethodDialog = ({
                       <method.icon className={`h-6 w-6 ${method.iconColor}`} />
                     </div>
                     <div className="text-left">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        {method.name}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                          {method.name}
+                        </h3>
+                        {method.recommended && (
+                          <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 rounded-full">
+                            Recommended
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-700 dark:text-gray-300">
                         {method.description}
                       </p>

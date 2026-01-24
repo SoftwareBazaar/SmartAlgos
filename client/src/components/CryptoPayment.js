@@ -93,9 +93,22 @@ const CryptoPayment = ({
         });
       }, 1000);
 
-      return () => clearInterval(timer);
+      // Start automatic payment status polling (every 30 seconds)
+      let pollInterval;
+      if (paymentStatus === 'pending') {
+        console.log('🔄 Starting automatic payment status polling...');
+        pollInterval = setInterval(async () => {
+          console.log('🔍 Auto-checking payment status...');
+          await checkPaymentStatus();
+        }, 30000); // Poll every 30 seconds
+      }
+
+      return () => {
+        clearInterval(timer);
+        if (pollInterval) clearInterval(pollInterval);
+      };
     }
-  }, [paymentData, onPaymentError]);
+  }, [paymentData, paymentStatus, onPaymentError]);
 
   const generatePaymentAddress = async () => {
     setIsLoading(true);
@@ -156,39 +169,71 @@ const CryptoPayment = ({
     try {
       const baseUrl = process.env.REACT_APP_API_URL || window.location.origin;
 
-      // For immediate testing, call the confirm endpoint directly
-      console.log('💳 Confirming payment immediately...');
-      const confirmResponse = await fetch(`${baseUrl}/api/payments/crypto/${paymentData.transactionId}/confirm`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token') || 'test_token'}`,
-          'Content-Type': 'application/json'
+      // Step 1: Check payment status first (don't confirm immediately)
+      console.log('🔍 Checking payment status...');
+      const statusResponse = await fetch(
+        `${baseUrl}/api/payments/crypto/status/${paymentData.transactionId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || 'test_token'}`
+          }
         }
-      });
+      );
 
-      if (confirmResponse.ok) {
-        const confirmData = await confirmResponse.json();
+      if (!statusResponse.ok) {
+        throw new Error('Failed to check payment status');
+      }
 
-        if (confirmData.success) {
-          console.log('✅ Payment confirmed with subscription created!');
-          setPaymentStatus('confirmed');
+      const statusData = await statusResponse.json();
 
-          // Pass download links to success callback
-          onPaymentSuccess?.({
-            status: 'confirmed',
-            transactionId: paymentData.transactionId,
-            downloadLinks: confirmData.data.downloadLinks,
-            subscriptionId: confirmData.data.subscription?.id
-          });
+      if (statusData.success && statusData.data.status === 'confirmed') {
+        // Payment is confirmed on blockchain
+        console.log('✅ Payment confirmed on blockchain!');
+        setPaymentStatus('confirmed');
+
+        // Step 2: Now confirm and get download links
+        const confirmResponse = await fetch(
+          `${baseUrl}/api/payments/crypto/${paymentData.transactionId}/confirm`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token') || 'test_token'}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (confirmResponse.ok) {
+          const confirmData = await confirmResponse.json();
+
+          if (confirmData.success) {
+            console.log('✅ Subscription created and download links generated!');
+
+            // Pass download links to success callback
+            onPaymentSuccess?.({
+              status: 'confirmed',
+              transactionId: paymentData.transactionId,
+              downloadLinks: confirmData.downloadLinks || confirmData.data?.downloadLinks,
+              subscriptionId: confirmData.subscription?.id || confirmData.data?.subscription?.id,
+              message: 'Payment confirmed! Your files are downloading automatically.'
+            });
+          } else {
+            throw new Error(confirmData.message || 'Failed to create subscription');
+          }
         } else {
-          throw new Error(confirmData.message || 'Payment confirmation failed');
+          throw new Error('Failed to confirm payment');
         }
+      } else if (statusData.data.status === 'pending') {
+        alert('Payment not yet confirmed on blockchain. Please wait a few minutes and try again.');
+      } else if (statusData.data.status === 'expired') {
+        alert('Payment has expired. Please generate a new payment address.');
+        setPaymentStatus('expired');
       } else {
-        throw new Error('Failed to confirm payment');
+        alert(`Payment status: ${statusData.data.status}. Please wait for blockchain confirmation.`);
       }
     } catch (error) {
-      console.error('Payment confirmation error:', error);
-      alert(`Payment confirmation failed: ${error.message}. Please check the Subscription page or contact support.`);
+      console.error('Payment status check error:', error);
+      alert(`Failed to check payment status: ${error.message}. Please try again or contact support.`);
     }
   };
 
@@ -390,16 +435,29 @@ const CryptoPayment = ({
           </div>
         )}
 
-        {/* Timer */}
-        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-          <div className="flex items-center justify-between">
-            <span className="text-yellow-200 text-sm">
-              Time remaining:
-            </span>
-            <span className="text-yellow-400 font-mono text-lg">
-              {formatTime(timeLeft)}
-            </span>
+        {/* Timer and Auto-Check Status */}
+        <div className="space-y-2">
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-yellow-200 text-sm">
+                Time remaining:
+              </span>
+              <span className="text-yellow-400 font-mono text-lg">
+                {formatTime(timeLeft)}
+              </span>
+            </div>
           </div>
+
+          {paymentStatus === 'pending' && (
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+              <div className="flex items-center">
+                <div className="animate-pulse h-2 w-2 bg-blue-400 rounded-full mr-2"></div>
+                <span className="text-blue-200 text-sm">
+                  Auto-checking payment status every 30 seconds...
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Instructions */}
@@ -408,7 +466,8 @@ const CryptoPayment = ({
           <ol className="text-blue-300 text-sm space-y-1 list-decimal list-inside">
             <li>Send exactly {formatAmount(amount, selectedCrypto)} to the address above</li>
             <li>Use the {cryptoOptions.find(c => c.value === selectedCrypto)?.network} network</li>
-            <li>Payment will be confirmed automatically (may take 10-30 minutes)</li>
+            <li>Payment will be checked automatically every 30 seconds</li>
+            <li>Your files will download automatically when payment is confirmed</li>
             <li>Do not send from an exchange wallet</li>
           </ol>
         </div>

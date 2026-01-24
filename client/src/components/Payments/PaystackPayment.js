@@ -105,7 +105,8 @@ const PaystackPayment = ({
     // Close Handler
     const onClosing = () => {
         console.log('⚠️ Paystack payment closed');
-        // Don't set error here, just let the user try again or close
+        // Reset payment data and re-initialize to ensure a fresh reference for the next attempt
+        initializePayment();
     };
 
     // Verification Logic

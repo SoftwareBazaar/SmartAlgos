@@ -261,45 +261,35 @@ app.use(
           "'self'",
           "'unsafe-inline'",
           "'unsafe-eval'",
-          "https://js.paystack.co",           // Paystack Scripts
-          "https://*.paystack.co",
-          "https://*.paystack.com",
-          "https://*.supabase.co",            // Supabase Scripts
-          "https://fonts.googleapis.com"      // Google Fonts Scripts
-        ],
-        scriptSrcElem: [
-          "'self'",
-          "'unsafe-inline'",
           "https://js.paystack.co",
           "https://*.paystack.co",
           "https://*.paystack.com",
-          "https://*.supabase.co"
+          "https://*.supabase.co",
+          "https://fonts.googleapis.com",
+          "https://connect.facebook.net",
+          "https://*.google.com",
+          "https://*.gstatic.com"
         ],
+        // Removed scriptSrcElem
         connectSrc: [
           "'self'",
-          "https://api.paystack.co",          // Paystack API
+          "https://api.paystack.co",
           "https://*.paystack.co",
           "https://*.paystack.com",
-          "https://*.supabase.co",            // Supabase API
-          "wss://*.supabase.co",              // Supabase Realtime
-          "https://web-production-fdb58.up.railway.app" // Self
+          "https://*.supabase.co",
+          "wss://*.supabase.co",
+          "https://web-production-fdb58.up.railway.app",
+          "https://*.google-analytics.com"
         ],
         frameSrc: [
           "'self'",
-          "https://js.paystack.co",           // Paystack Payment Popup
-          "https://*.paystack.co",            // Paystack Iframe
-          "https://*.paystack.com",
-          "https://checkout.paystack.com"
-        ],
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://fonts.googleapis.com",      // Google Fonts Styles
+          "https://js.paystack.co",
           "https://*.paystack.co",
           "https://*.paystack.com",
-          "https://paystack.com"
+          "https://checkout.paystack.com",
+          "https://*.supabase.co"
         ],
-        styleSrcElem: [
+        styleSrc: [
           "'self'",
           "'unsafe-inline'",
           "https://fonts.googleapis.com",
@@ -307,6 +297,7 @@ app.use(
           "https://*.paystack.com",
           "https://paystack.com"
         ],
+        // Removed styleSrcElem
         fontSrc: [
           "'self'",
           "data:",

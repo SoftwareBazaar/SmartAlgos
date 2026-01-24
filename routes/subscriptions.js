@@ -564,7 +564,9 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
     const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
     
     // Generate download links using correct database column names
+    // Priority: ZIP package first, then individual files as fallback
     const downloadLinks = {
+      zip_package: ea.zip_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}/zip?token=${downloadToken}` : null,
       ea_file: ea.ea_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
       set_file: ea.set_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
       manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
@@ -572,6 +574,7 @@ router.get('/:id/files', [auth, updateActivity], async (req, res) => {
     };
     
     console.log('[Subscription Files] EA files available:', {
+      has_zip: !!ea.zip_file_path,
       ea_file: !!ea.ea_file_path,
       set_file: !!ea.set_file_path,
       manual: !!ea.manual_file_path,

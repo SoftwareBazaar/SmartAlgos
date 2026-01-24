@@ -53,6 +53,177 @@ const verifyDownloadToken = async (req, res, next) => {
   }
 };
 
+// @route   GET /api/downloads/ea/:eaId/zip
+// @desc    Download EA ZIP package (all files in one)
+// @access  Private (with download token)
+router.get('/ea/:eaId/zip', [verifyDownloadToken], async (req, res) => {
+  try {
+    const { eaId } = req.params;
+    const { subscriptionId, userId } = req.downloadToken;
+
+    console.log('[Download ZIP] Request:', { eaId, subscriptionId, userId });
+
+    // Verify the subscription is active and belongs to the user
+    let subscription;
+    
+    // Check if we're in mock mode
+    const isPlaceholderKey = (value = '') => {
+      if (!value) return true;
+      const normalized = value.toLowerCase();
+      return ['your-', 'example', 'changeme', 'replace', 'dummy'].some((token) => normalized.includes(token));
+    };
+    const explicitMockFlag = (process.env.MOCK_AUTH || '').toLowerCase();
+    const useMockAuth = explicitMockFlag === 'true' || (explicitMockFlag !== 'false' && isPlaceholderKey(process.env.SUPABASE_SERVICE_ROLE_KEY));
+    
+    if (useMockAuth) {
+      const mockDataStore = require('../services/mockAuthStore').mockDataStore;
+      subscription = await mockDataStore.getSubscriptionById(subscriptionId);
+    } else {
+      const { data, error: subError } = await supabase
+        .from('subscriptions')
+        .select('id, user_id, status, end_date')
+        .eq('id', subscriptionId)
+        .eq('user_id', userId)
+        .single();
+
+      if (subError) {
+        console.error('[Download ZIP] Subscription not found:', subError);
+        return res.status(404).json({
+          success: false,
+          message: 'Subscription not found'
+        });
+      }
+      subscription = data;
+    }
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subscription not found'
+      });
+    }
+
+    // Check if subscription is active
+    if (subscription.status !== 'active') {
+      return res.status(403).json({
+        success: false,
+        message: 'Subscription is not active'
+      });
+    }
+
+    // Check if subscription has expired
+    if (new Date(subscription.end_date) < new Date()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Subscription has expired'
+      });
+    }
+
+    // Get EA details with ZIP file path
+    let ea;
+    
+    if (useMockAuth) {
+      const mockDataStore = require('../services/mockAuthStore').mockDataStore;
+      ea = await mockDataStore.getEAById(eaId);
+    } else {
+      const { data, error: eaError } = await supabase
+        .from('expert_advisors')
+        .select('id, name, zip_file_path')
+        .eq('id', eaId)
+        .single();
+
+      if (eaError) {
+        console.error('[Download ZIP] EA not found:', eaError);
+        return res.status(404).json({
+          success: false,
+          message: 'EA not found'
+        });
+      }
+      ea = data;
+    }
+
+    if (!ea) {
+      return res.status(404).json({
+        success: false,
+        message: 'EA not found'
+      });
+    }
+
+    if (!ea.zip_file_path) {
+      return res.status(404).json({
+        success: false,
+        message: 'ZIP package not available for this EA. Please contact support.'
+      });
+    }
+
+    // Record the download
+    try {
+      await supabase
+        .from('download_logs')
+        .insert({
+          subscription_id: subscriptionId,
+          user_id: userId,
+          ea_id: eaId,
+          file_type: 'zip_package',
+          downloaded_at: new Date().toISOString()
+        });
+    } catch (logError) {
+      console.warn('[Download ZIP] Failed to log download:', logError.message);
+    }
+
+    console.log('[Download ZIP] Serving file from:', ea.zip_file_path);
+
+    // Generate safe filename
+    const fileName = `${ea.name.replace(/[^a-z0-9]/gi, '_')}_Package.zip`;
+
+    // Set headers for ZIP download
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Cache-Control', 'no-cache');
+
+    // Check if file is from Supabase Storage or external URL
+    if (ea.zip_file_path.includes('supabase.co/storage') || ea.zip_file_path.startsWith('http://') || ea.zip_file_path.startsWith('https://')) {
+      // Redirect to Supabase Storage or external URL
+      console.log('[Download ZIP] Redirecting to:', ea.zip_file_path);
+      return res.redirect(ea.zip_file_path);
+    } else if (ea.zip_file_path.startsWith('/uploads/')) {
+      // Serve from local filesystem
+      try {
+        const filePath = path.join(__dirname, '..', ea.zip_file_path);
+        console.log('[Download ZIP] Serving local file:', filePath);
+        
+        const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
+        
+        if (!fileExists) {
+          console.error('[Download ZIP] File not found:', filePath);
+          return res.status(404).json({
+            success: false,
+            message: 'ZIP file not found on server. Please contact support.'
+          });
+        }
+        
+        return res.sendFile(filePath);
+      } catch (readError) {
+        console.error('[Download ZIP] Error reading file:', readError);
+        return res.status(500).json({
+          success: false,
+          message: 'Error reading ZIP file from server'
+        });
+      }
+    } else {
+      // Redirect to external URL
+      return res.redirect(ea.zip_file_path);
+    }
+
+  } catch (error) {
+    console.error('[Download ZIP] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during ZIP download'
+    });
+  }
+});
+
 // @route   GET /api/downloads/ea/:eaId
 // @desc    Download EA files (ea_file, set_file, manual, screenshots)
 // @access  Private (with download token)

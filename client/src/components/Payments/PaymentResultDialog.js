@@ -32,9 +32,16 @@ const PaymentResultDialog = ({
     }
 
     try {
-      const result = await downloadFromLinks(downloadLinks);
+      // Pass EA name if available from metadata
+      const eaName = downloadLinks.eaName || 'EA_Package';
+      const result = await downloadFromLinks(downloadLinks, eaName);
+      
       if (result.success) {
-        console.log(`✅ Successfully downloaded ${result.downloaded} files`);
+        if (result.method === 'zip') {
+          console.log(`✅ Successfully downloaded ZIP: ${result.filename}`);
+        } else {
+          console.log(`✅ Successfully downloaded ${result.downloaded} individual files`);
+        }
       } else {
         console.warn(`⚠️ Downloaded ${result.downloaded} files, ${result.failed} failed`);
       }

@@ -279,7 +279,10 @@ router.get('/verify/:reference', auth, async (req, res) => {
         );
 
         const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+        
+        // Priority: ZIP package first, then individual files as fallback
         const downloadLinks = {
+            zip_package: ea.zip_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}/zip?token=${downloadToken}` : null,
             ea_file: ea.ea_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
             set_file: ea.set_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
             manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null

@@ -105,16 +105,77 @@ const useAutoDownload = () => {
     }, [downloadFile]);
 
     /**
+     * Download ZIP package (priority method)
+     * @param {string} zipUrl - ZIP file download URL
+     * @param {string} eaName - EA name for filename
+     * @returns {Promise<Object>} Download result
+     */
+    const downloadZipPackage = useCallback(async (zipUrl, eaName) => {
+        if (!zipUrl) {
+            console.warn('No ZIP URL provided');
+            return { success: false, error: 'No ZIP URL provided' };
+        }
+
+        setDownloading(true);
+        setProgress({ current: 0, total: 1 });
+        setErrors([]);
+
+        try {
+            const filename = `${eaName.replace(/[^a-z0-9]/gi, '_')}_Package.zip`;
+            
+            console.log('🚀 Starting ZIP download:', filename);
+            
+            const success = await downloadFile(zipUrl, filename);
+            
+            if (success) {
+                setProgress({ current: 1, total: 1 });
+                console.log('✅ ZIP download completed');
+                return { success: true, filename };
+            } else {
+                throw new Error('Download failed');
+            }
+        } catch (error) {
+            console.error('❌ ZIP download failed:', error);
+            const errorMsg = `Failed to download ZIP: ${error.message}`;
+            setErrors([errorMsg]);
+            return { success: false, error: errorMsg };
+        } finally {
+            setDownloading(false);
+        }
+    }, [downloadFile]);
+
+    /**
      * Download files from download links object
+     * Priority: ZIP package first, then individual files as fallback
      * @param {Object} downloadLinks - Object with file types as keys and URLs as values
+     * @param {string} eaName - EA name for ZIP filename
      * @returns {Promise<Object>} Download results
      */
-    const downloadFromLinks = useCallback(async (downloadLinks) => {
+    const downloadFromLinks = useCallback(async (downloadLinks, eaName = 'EA') => {
         if (!downloadLinks || typeof downloadLinks !== 'object') {
             console.warn('Invalid download links provided');
             return { success: false, downloaded: 0, failed: 0 };
         }
 
+        // Priority 1: Try ZIP package first
+        if (downloadLinks.zip_package) {
+            console.log('📦 ZIP package available, downloading...');
+            const result = await downloadZipPackage(downloadLinks.zip_package, eaName);
+            
+            if (result.success) {
+                return {
+                    success: true,
+                    downloaded: 1,
+                    failed: 0,
+                    method: 'zip',
+                    filename: result.filename
+                };
+            } else {
+                console.warn('⚠️ ZIP download failed, falling back to individual files');
+            }
+        }
+
+        // Priority 2: Fallback to individual files
         const files = [];
         const fileTypeNames = {
             ea_file: 'EA File.ex4',
@@ -123,9 +184,9 @@ const useAutoDownload = () => {
             screenshots: 'Screenshots.zip'
         };
 
-        // Convert download links object to array of file objects
+        // Convert download links object to array of file objects (skip zip_package)
         Object.entries(downloadLinks).forEach(([type, url]) => {
-            if (url) {
+            if (url && type !== 'zip_package') {
                 files.push({
                     url,
                     filename: fileTypeNames[type] || `${type}.file`,
@@ -139,8 +200,9 @@ const useAutoDownload = () => {
             return { success: false, downloaded: 0, failed: 0 };
         }
 
-        return await downloadMultiple(files);
-    }, [downloadMultiple]);
+        const result = await downloadMultiple(files);
+        return { ...result, method: 'individual' };
+    }, [downloadMultiple, downloadZipPackage]);
 
     /**
      * Reset hook state
@@ -157,6 +219,7 @@ const useAutoDownload = () => {
         errors,
         downloadFile,
         downloadMultiple,
+        downloadZipPackage,
         downloadFromLinks,
         reset
     };

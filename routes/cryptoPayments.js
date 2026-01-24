@@ -835,10 +835,10 @@ async function generateDownloadLinksForSubscription(subscription, userId, eaId) 
   try {
     const supabase = databaseService.getClient();
 
-    // Get EA details
+    // Get EA details including ZIP file path
     const { data: ea, error: eaError } = await supabase
       .from('expert_advisors')
-      .select('id, name, ea_file_path, set_file_path, manual_file_path, screenshots')
+      .select('id, name, zip_file_path, ea_file_path, set_file_path, manual_file_path, screenshots')
       .eq('id', eaId)
       .single();
 
@@ -862,8 +862,9 @@ async function generateDownloadLinksForSubscription(subscription, userId, eaId) 
 
     const baseUrl = process.env.BACKEND_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-    // Generate download links
+    // Generate download links - ZIP package first (priority), then individual files as fallback
     const downloadLinks = {
+      zip_package: ea.zip_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}/zip?token=${downloadToken}` : null,
       ea_file: ea.ea_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
       set_file: ea.set_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
       manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null,
@@ -873,6 +874,7 @@ async function generateDownloadLinksForSubscription(subscription, userId, eaId) 
     logger.info('Download links generated for subscription', {
       subscriptionId: subscription.id,
       eaId: ea.id,
+      hasZipPackage: !!ea.zip_file_path,
       linksAvailable: Object.keys(downloadLinks).filter(key => downloadLinks[key])
     });
 

@@ -205,18 +205,26 @@ const CryptoPayment = ({
 
         if (confirmResponse.ok) {
           const confirmData = await confirmResponse.json();
+          
+          console.log('📦 Confirm response data:', confirmData);
+          console.log('📦 Download links:', confirmData.downloadLinks);
+          console.log('📦 Subscription:', confirmData.subscription);
 
           if (confirmData.success) {
             console.log('✅ Subscription created and download links generated!');
 
-            // Pass download links to success callback
-            onPaymentSuccess?.({
+            const paymentResult = {
               status: 'confirmed',
               transactionId: paymentData.transactionId,
               downloadLinks: confirmData.downloadLinks || confirmData.data?.downloadLinks,
               subscriptionId: confirmData.subscription?.id || confirmData.data?.subscription?.id,
               message: 'Payment confirmed! Your files are downloading automatically.'
-            });
+            };
+
+            console.log('🎯 Calling onPaymentSuccess with:', paymentResult);
+
+            // Pass download links to success callback
+            onPaymentSuccess?.(paymentResult);
           } else {
             throw new Error(confirmData.message || 'Failed to create subscription');
           }

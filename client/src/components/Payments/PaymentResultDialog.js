@@ -17,8 +17,25 @@ const PaymentResultDialog = ({
 }) => {
   const { downloading, progress, downloadFromLinks } = useAutoDownload();
 
+  // Debug logging
+  console.log('🎬 PaymentResultDialog rendered with props:', {
+    isOpen,
+    status,
+    hasDownloadLinks: !!downloadLinks,
+    downloadLinks,
+    subscriptionId,
+    autoDownload
+  });
+
   // Auto-trigger downloads when dialog opens with success status
   useEffect(() => {
+    console.log('🔄 PaymentResultDialog useEffect triggered:', {
+      isOpen,
+      status,
+      hasDownloadLinks: !!downloadLinks,
+      autoDownload
+    });
+
     if (isOpen && status === 'success' && downloadLinks && autoDownload) {
       console.log('🚀 Auto-triggering downloads from PaymentResultDialog...');
       handleAutoDownload();

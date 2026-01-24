@@ -112,6 +112,8 @@ const PaystackPayment = ({
     const verifyPayment = async (reference) => {
         setIsProcessing(true);
         try {
+            console.log('🔍 Verifying Paystack payment:', reference);
+            
             const response = await axios.get(
                 `/api/payments/paystack/verify/${reference}`,
                 {
@@ -119,19 +121,29 @@ const PaystackPayment = ({
                 }
             );
 
+            console.log('📦 Paystack verify response:', response.data);
+            console.log('📦 Download links:', response.data.downloadLinks);
+            console.log('📦 Subscription:', response.data.subscription);
+
             if (response.data.success) {
                 localStorage.removeItem('pendingPaymentRef');
-                onClose();
-                onPaymentSuccess({
-                    subscription: response.data.subscription,
+                
+                const paymentResult = {
+                    status: 'success',
+                    subscriptionId: response.data.subscription?.id,
                     downloadLinks: response.data.downloadLinks,
-                    message: 'Payment successful! Your files are ready.'
-                });
+                    message: 'Payment successful! Your files are downloading automatically.'
+                };
+
+                console.log('🎯 Calling onPaymentSuccess with:', paymentResult);
+                
+                onClose();
+                onPaymentSuccess(paymentResult);
             } else {
                 setError('Payment verification failed. Please contact support.');
             }
         } catch (err) {
-            console.error('Verification error:', err);
+            console.error('❌ Verification error:', err);
             setError('Error verifying payment.');
         } finally {
             setIsProcessing(false);

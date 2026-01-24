@@ -61,10 +61,12 @@ router.post('/initialize', auth, async (req, res) => {
          * IMPORTANT: WORKING CONVERSION LOGIC
          * Follows payments.js - Always convert to KES for Paystack initialization
          */
-        const KES_RATE = 150; // 1 USD = 150 KES (as per payments.js)
-        const amountKes = Math.round(amountUsd * KES_RATE);
+        const KES_RATE = 150; // 1 USD = 150 KES
+        // Paystack expects amount in kobo (lowest currency unit). 
+        // So we multiply by 100.
+        const amountKes = Math.round(amountUsd * KES_RATE * 100);
 
-        console.log(`   Converting $${amountUsd} USD to ${amountKes} KES (Rate: ${KES_RATE})`);
+        console.log(`   Converting $${amountUsd} USD to ${amountKes} kobo (Rate: ${KES_RATE})`);
 
         // Create a unique reference
         const reference = `ALGO-${Date.now()}-${Math.floor(Math.random() * 1000)}`;

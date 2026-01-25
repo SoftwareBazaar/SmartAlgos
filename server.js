@@ -132,6 +132,7 @@ const io = new Server(server, {
     origin: [
       process.env.CLIENT_URL || "http://localhost:3000",
       "https://web-production-fdb58.up.railway.app",
+      "https://smartalgos-production.up.railway.app",
       "http://localhost:3000",
       "http://127.0.0.1:3000"
     ],
@@ -279,6 +280,7 @@ app.use(
           "https://*.supabase.co",
           "wss://*.supabase.co",
           "https://web-production-fdb58.up.railway.app",
+          "https://smartalgos-production.up.railway.app",
           "https://*.google-analytics.com"
         ],
         frameSrc: [

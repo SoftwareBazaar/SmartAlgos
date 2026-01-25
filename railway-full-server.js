@@ -86,7 +86,8 @@ try {
     'http://localhost:5000',
     'https://localhost:3000',
     'https://localhost:5000',
-    'https://web-production-fdb58.up.railway.app'
+    'https://web-production-fdb58.up.railway.app',
+    'https://smartalgos-production.up.railway.app'
   ].filter(Boolean);
 
   app.use(
@@ -149,6 +150,7 @@ try {
           "https://*.supabase.co",
           "wss://*.supabase.co",
           "https://web-production-fdb58.up.railway.app",
+          "https://smartalgos-production.up.railway.app",
           "https://*.google-analytics.com"
         ],
         frameSrc: [
@@ -201,7 +203,8 @@ try {
     cors: {
       origin: [
         process.env.CLIENT_URL || 'http://localhost:3000',
-        'https://web-production-fdb58.up.railway.app'
+        'https://web-production-fdb58.up.railway.app',
+        'https://smartalgos-production.up.railway.app'
       ],
       methods: ['GET', 'POST'],
       credentials: true

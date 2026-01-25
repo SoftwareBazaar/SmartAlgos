@@ -1,0 +1,138 @@
+╔══════════════════════════════════════════════════════════════════╗
+║           SIMPLE DEBUG CHECKLIST - NO NODE.JS NEEDED            ║
+║                  (Follow these steps exactly)                    ║
+╚══════════════════════════════════════════════════════════════════╝
+
+STEP 1: OPEN RAILWAY LOGS
+┌──────────────────────────────────────────────────────────────────┐
+│ 1. Go to: https://railway.app/dashboard                         │
+│ 2. Click your Smart Algos project                               │
+│ 3. Click your backend service                                   │
+│ 4. Click "Deployments" tab                                      │
+│ 5. Click latest deployment (top of list)                        │
+│ 6. Click "View Logs" button                                     │
+└──────────────────────────────────────────────────────────────────┘
+
+STEP 2: SEARCH FOR PAYMENT VERIFICATION
+┌──────────────────────────────────────────────────────────────────┐
+│ Press Ctrl+F and search for: PAYMENT VERIFICATION START         │
+│                                                                  │
+│ [ ] FOUND IT - Go to Step 3                                     │
+│ [ ] NOT FOUND - Problem: Verification endpoint not called       │
+│                                                                  │
+│ If NOT FOUND:                                                    │
+│ → Frontend didn't call verification after payment               │
+│ → This is why no email was sent                                 │
+│ → Need to fix frontend payment callback                         │
+└──────────────────────────────────────────────────────────────────┘
+
+STEP 3: SEARCH FOR EMAIL SENDING
+┌──────────────────────────────────────────────────────────────────┐
+│ Press Ctrl+F and search for: ATTEMPTING TO SEND EMAIL           │
+│                                                                  │
+│ [ ] FOUND IT - Go to Step 4                                     │
+│ [ ] NOT FOUND - Problem: Email sending not triggered            │
+│                                                                  │
+│ If NOT FOUND:                                                    │
+│ → Subscription creation probably failed                         │
+│ → Search for: "Creating subscription"                           │
+│ → Look for error message                                        │
+└──────────────────────────────────────────────────────────────────┘
+
+STEP 4: CHECK EMAIL RESULT
+┌──────────────────────────────────────────────────────────────────┐
+│ Look at the lines after "ATTEMPTING TO SEND EMAIL"              │
+│                                                                  │
+│ [ ] See "Email sent successfully" - Email was sent!             │
+│     → Check spam folder                                          │
+│     → Verify email address is correct                           │
+│                                                                  │
+│ [ ] See "Email failed: [error]" - Email failed!                 │
+│     → Note the error message                                     │
+│     → Check error type below                                     │
+└──────────────────────────────────────────────────────────────────┘
+
+COMMON ERROR MESSAGES
+┌──────────────────────────────────────────────────────────────────┐
+│ Error: "Invalid login: 535-5.7.8"                               │
+│ → Using wrong password                                           │
+│ → Fix: Use App Password (16 chars), not regular password        │
+│                                                                  │
+│ Error: "Connection timeout"                                     │
+│ → SMTP port blocked                                              │
+│ → Fix: Check EMAIL_HOST and EMAIL_PORT in Railway               │
+│                                                                  │
+│ Error: "No email address found"                                 │
+│ → User record missing email                                      │
+│ → Fix: Check users_accounts table in Supabase                   │
+│                                                                  │
+│ Error: "EMAIL NOT CONFIGURED"                                   │
+│ → Environment variables not set                                  │
+│ → Fix: Add EMAIL_USER and EMAIL_PASSWORD to Railway             │
+└──────────────────────────────────────────────────────────────────┘
+
+WHAT TO TELL ME
+┌──────────────────────────────────────────────────────────────────┐
+│ After checking logs, tell me:                                   │
+│                                                                  │
+│ 1. Did you find "PAYMENT VERIFICATION START"?                   │
+│    [ ] Yes  [ ] No                                               │
+│                                                                  │
+│ 2. Did you find "ATTEMPTING TO SEND EMAIL"?                     │
+│    [ ] Yes  [ ] No                                               │
+│                                                                  │
+│ 3. What was the email result?                                   │
+│    [ ] "Email sent successfully"                                 │
+│    [ ] "Email failed: _______________"                           │
+│    [ ] Not attempted                                             │
+│                                                                  │
+│ 4. What's the payment reference?                                │
+│    ALGO-_____________________                                    │
+└──────────────────────────────────────────────────────────────────┘
+
+ALTERNATIVE: CHECK SUPABASE DATABASE
+┌──────────────────────────────────────────────────────────────────┐
+│ If Railway logs are too long:                                   │
+│                                                                  │
+│ 1. Go to: https://supabase.com/dashboard                        │
+│ 2. Select your project                                          │
+│ 3. Click "Table Editor"                                         │
+│ 4. Check "paystack_payments" table                              │
+│    → Look at "status" column (pending or completed?)            │
+│    → Note the "paystack_reference"                              │
+│                                                                  │
+│ 5. Check "subscriptions" table                                  │
+│    → Look for matching "payment_reference"                      │
+│    → If no match, subscription wasn't created                   │
+└──────────────────────────────────────────────────────────────────┘
+
+QUICK DIAGNOSIS
+┌──────────────────────────────────────────────────────────────────┐
+│ Scenario 1: No "PAYMENT VERIFICATION START"                     │
+│ → Problem: Frontend not calling verification endpoint           │
+│ → Fix: Check frontend payment callback code                     │
+│                                                                  │
+│ Scenario 2: Verification found, no email attempt                │
+│ → Problem: Subscription creation failed                         │
+│ → Fix: Check subscription creation error in logs                │
+│                                                                  │
+│ Scenario 3: Email attempted, "Email sent successfully"          │
+│ → Problem: Email in spam or wrong address                       │
+│ → Fix: Check spam folder, verify email address                  │
+│                                                                  │
+│ Scenario 4: Email attempted, "Email failed"                     │
+│ → Problem: Email service configuration issue                    │
+│ → Fix: Based on specific error message                          │
+└──────────────────────────────────────────────────────────────────┘
+
+NEXT STEP
+┌──────────────────────────────────────────────────────────────────┐
+│ 1. Follow Step 1 to open Railway logs                           │
+│ 2. Follow Step 2-4 to search for patterns                       │
+│ 3. Tell me what you found                                       │
+│ 4. I'll tell you exactly how to fix it!                         │
+└──────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════
+
+For detailed guide, read: CHECK_RAILWAY_LOGS_NOW.md

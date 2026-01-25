@@ -390,8 +390,16 @@ router.get('/verify/:reference', auth, async (req, res) => {
 
     } catch (error) {
         console.error('❌ [Paystack] Verify Exception:', error.message);
-        console.error(error.stack);
-        res.status(500).json({ success: false, error: 'Verification error: ' + error.message });
+        console.error('❌ [Paystack] Error stack:', error.stack);
+        console.error('❌ [Paystack] Full error object:', error);
+        
+        // Return detailed error for debugging
+        res.status(500).json({ 
+            success: false, 
+            error: 'Verification error: ' + error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+            reference: req.params.reference
+        });
     }
 });
 

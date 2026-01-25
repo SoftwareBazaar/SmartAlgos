@@ -631,6 +631,22 @@ server.listen(PORT, HOST, async () => {
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🚀 Railway deployment ready - health check should respond immediately`);
 
+  // Check email service configuration
+  console.log('\n📧 Checking Email Service Configuration...');
+  console.log('EMAIL_USER:', process.env.EMAIL_USER ? `✅ ${process.env.EMAIL_USER}` : '❌ NOT SET');
+  console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '✅ SET (hidden)' : '❌ NOT SET');
+  console.log('EMAIL_HOST:', process.env.EMAIL_HOST || 'smtp.gmail.com (default)');
+  console.log('EMAIL_PORT:', process.env.EMAIL_PORT || '587 (default)');
+  
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    console.log('✅ Email service is configured and ready');
+    console.log('📬 Emails will be sent from:', process.env.EMAIL_USER);
+  } else {
+    console.warn('⚠️ Email service NOT configured - emails will not be sent');
+    console.warn('💡 Add EMAIL_USER and EMAIL_PASSWORD to Railway variables');
+  }
+  console.log('');
+
   // Run bot injection after server is up
   await ensureLondonBreakoutBot();
 });

@@ -307,6 +307,11 @@ try {
     app.use('/api/payments/paystack', paystackPaymentRoutes);
     console.log('   ✅ Paystack payment routes loaded and registered');
 
+    console.log('   Loading test email route...');
+    const testEmailRoute = require('./routes/testEmail');
+    app.use('/api/test-email', testEmailRoute);
+    console.log('   ✅ Test email route loaded and registered');
+
     console.log('   Loading payment routes...');
     const paymentRoutes = require('./routes/payments');
     app.use('/api/payments', paymentRoutes);

@@ -878,39 +878,73 @@ async function generateDownloadLinksForSubscription(subscription, userId, eaId) 
       linksAvailable: Object.keys(downloadLinks).filter(key => downloadLinks[key])
     });
 
-    // 🎯 NEW: Send email with download links
+    // 🎯 CRITICAL: Send email with download links
+    console.log(`\n📧 [Crypto] ========== ATTEMPTING TO SEND EMAIL ==========`);
     try {
       const emailService = require('../services/emailService');
       
-      // Get user email
-      const { data: user } = await supabase
-        .from('users')
-        .select('email, first_name, last_name')
-        .eq('id', userId)
-        .single();
+      // Get user email from database
+      let user = null;
+      let finalUserEmail = null;
+      let userName = 'Valued Customer';
+      
+      try {
+        const { data: userData, error: userError } = await supabase
+          .from('users_accounts')
+          .select('email, first_name, last_name')
+          .eq('id', userId)
+          .single();
 
-      if (user && user.email) {
-        const userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Valued Customer';
-        
-        console.log('📧 Sending download email to:', user.email);
-        
-        const emailResult = await emailService.sendDownloadEmail({
-          userEmail: user.email,
-          userName: userName,
-          eaName: ea.name,
-          downloadLinks: downloadLinks,
-          subscriptionType: subscription.subscription_type || 'monthly',
-          subscriptionId: subscription.id
-        });
+        if (userData && !userError) {
+          user = userData;
+          finalUserEmail = user.email;
+          userName = user.first_name && user.last_name 
+            ? `${user.first_name} ${user.last_name}`.trim() 
+            : user.first_name || user.last_name || 'Valued Customer';
+        }
+      } catch (userFetchError) {
+        console.warn(`⚠️ [Crypto] Could not fetch user details`);
+      }
 
-        if (emailResult.success) {
-          console.log('✅ Download email sent successfully');
+      if (!finalUserEmail) {
+        console.error(`❌ [Crypto] No email address found for user ${userId}`);
+        console.error(`   Email will NOT be sent, but subscription is still active`);
+      } else {
+        console.log(`📧 [Crypto] Email Configuration Check:`);
+        console.log(`   - To: ${finalUserEmail}`);
+        console.log(`   - User Name: ${userName}`);
+        console.log(`   - EA Name: ${ea.name}`);
+        console.log(`   - Subscription Type: ${subscription.subscription_type || 'monthly'}`);
+        console.log(`   - Subscription ID: ${subscription.id}`);
+        console.log(`   - EMAIL_USER set: ${!!process.env.EMAIL_USER}`);
+        console.log(`   - EMAIL_PASSWORD set: ${!!process.env.EMAIL_PASSWORD}`);
+        
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+          console.error(`❌ [Crypto] EMAIL NOT CONFIGURED!`);
+          console.error(`   Please set EMAIL_USER and EMAIL_PASSWORD environment variables`);
         } else {
-          console.warn('⚠️ Failed to send download email:', emailResult.error);
+          const emailResult = await emailService.sendDownloadEmail({
+            userEmail: finalUserEmail,
+            userName: userName,
+            eaName: ea.name,
+            downloadLinks: downloadLinks,
+            subscriptionType: subscription.subscription_type || 'monthly',
+            subscriptionId: subscription.id
+          });
+
+          if (emailResult.success) {
+            console.log('✅ [Crypto] Download email sent successfully');
+            console.log(`📬 [Crypto] Message ID: ${emailResult.messageId}`);
+          } else {
+            console.error('❌ [Crypto] Failed to send download email:', emailResult.error);
+            console.error(`   Error code: ${emailResult.code}`);
+          }
         }
       }
+      console.log(`📧 [Crypto] ========== EMAIL PROCESS COMPLETE ==========\n`);
     } catch (emailError) {
-      console.error('Email send error (non-critical):', emailError.message);
+      console.error('❌ [Crypto] Email send error (non-critical):', emailError.message);
+      console.error(`   Stack trace:`, emailError.stack);
       // Don't fail the whole process if email fails
     }
 

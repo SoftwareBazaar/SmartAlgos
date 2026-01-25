@@ -313,45 +313,69 @@ router.get('/verify/:reference', auth, async (req, res) => {
         console.log(`✅ [Paystack] Download links generated`);
         console.log(`🔗 [Paystack] ZIP package: ${downloadLinks.zip_package ? 'YES' : 'NO'}`);
 
-        // 🎯 NEW: Send email with download links
+        // 🎯 CRITICAL: Send email with download links
+        console.log(`\n📧 [Paystack] ========== ATTEMPTING TO SEND EMAIL ==========`);
         try {
             const emailService = require('../services/emailService');
             
-            // Get user details
-            const { data: user } = await supabase
-                .from('users')
-                .select('email, first_name, last_name')
-                .eq('id', userId)
-                .single();
-
-            const finalUserEmail = user?.email || userEmail; // Use DB email or Paystack email
-            const userName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'Valued Customer';
+            // Get user details from database
+            let user = null;
+            let finalUserEmail = userEmail; // Default to Paystack email
+            let userName = 'Valued Customer';
             
-            console.log(`\n📧 [Paystack] ========== SENDING EMAIL ==========`);
-            console.log(`📧 [Paystack] To: ${finalUserEmail}`);
-            console.log(`📧 [Paystack] User Name: ${userName}`);
-            console.log(`📧 [Paystack] EA Name: ${ea.name}`);
-            console.log(`📧 [Paystack] Subscription Type: ${subscriptionType}`);
-            
-            const emailResult = await emailService.sendDownloadEmail({
-                userEmail: finalUserEmail,
-                userName: userName,
-                eaName: ea.name,
-                downloadLinks: downloadLinks,
-                subscriptionType: subscriptionType,
-                subscriptionId: subscription.id
-            });
+            try {
+                const { data: userData, error: userError } = await supabase
+                    .from('users_accounts')
+                    .select('email, first_name, last_name')
+                    .eq('id', userId)
+                    .single();
 
-            if (emailResult.success) {
-                console.log(`✅ [Paystack] Email sent successfully!`);
-                console.log(`📬 [Paystack] Message ID: ${emailResult.messageId}`);
+                if (userData && !userError) {
+                    user = userData;
+                    finalUserEmail = user.email || userEmail;
+                    userName = user.first_name && user.last_name 
+                        ? `${user.first_name} ${user.last_name}`.trim() 
+                        : user.first_name || user.last_name || 'Valued Customer';
+                }
+            } catch (userFetchError) {
+                console.warn(`⚠️ [Paystack] Could not fetch user details, using Paystack email`);
+            }
+            
+            console.log(`📧 [Paystack] Email Configuration Check:`);
+            console.log(`   - To: ${finalUserEmail}`);
+            console.log(`   - User Name: ${userName}`);
+            console.log(`   - EA Name: ${ea.name}`);
+            console.log(`   - Subscription Type: ${subscriptionType}`);
+            console.log(`   - Subscription ID: ${subscription.id}`);
+            console.log(`   - EMAIL_USER set: ${!!process.env.EMAIL_USER}`);
+            console.log(`   - EMAIL_PASSWORD set: ${!!process.env.EMAIL_PASSWORD}`);
+            
+            if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+                console.error(`❌ [Paystack] EMAIL NOT CONFIGURED!`);
+                console.error(`   Please set EMAIL_USER and EMAIL_PASSWORD environment variables`);
+                console.error(`   Email will NOT be sent, but subscription is still active`);
             } else {
-                console.error(`❌ [Paystack] Email failed: ${emailResult.error}`);
+                const emailResult = await emailService.sendDownloadEmail({
+                    userEmail: finalUserEmail,
+                    userName: userName,
+                    eaName: ea.name,
+                    downloadLinks: downloadLinks,
+                    subscriptionType: subscriptionType,
+                    subscriptionId: subscription.id
+                });
+
+                if (emailResult.success) {
+                    console.log(`✅ [Paystack] Email sent successfully!`);
+                    console.log(`📬 [Paystack] Message ID: ${emailResult.messageId}`);
+                } else {
+                    console.error(`❌ [Paystack] Email failed: ${emailResult.error}`);
+                    console.error(`   Error code: ${emailResult.code}`);
+                }
             }
             console.log(`📧 [Paystack] ========== EMAIL PROCESS COMPLETE ==========\n`);
         } catch (emailError) {
             console.error(`❌ [Paystack] Email error:`, emailError.message);
-            console.error(emailError);
+            console.error(`   Stack trace:`, emailError.stack);
             // Don't fail the whole process if email fails
         }
 

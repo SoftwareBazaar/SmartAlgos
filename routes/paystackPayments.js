@@ -267,7 +267,7 @@ router.get('/verify/:reference', auth, async (req, res) => {
             currency: 'USD',
             start_date: startDate.toISOString(),
             end_date: endDate.toISOString(),
-            payment_method: 'paystack',
+            payment_method: 'card', // Paystack is card payment
             payment_reference: reference,
             payment_status: 'completed',
             status: 'active',

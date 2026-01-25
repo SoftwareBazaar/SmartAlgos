@@ -203,7 +203,7 @@ async function processSuccessfulPayment(transaction, paymentResult) {
         user_id: transaction.user_id,
         ea_id: eaId,
         subscription_type: subscriptionType.toLowerCase(),
-        payment_method: 'mpesa',
+        payment_method: 'mobile_money', // M-Pesa is mobile money
         payment_reference: paymentResult.mpesaReceiptNumber,
         amount: transaction.amount,
         currency: 'KES',

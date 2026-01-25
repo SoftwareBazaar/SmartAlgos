@@ -180,48 +180,41 @@ const Payments = () => {
   const handlePaymentCallback = async (reference, status) => {
     if (status === 'success') {
       try {
-        // Verify the payment
-        const verifyResponse = await apiClient.post('/api/payments/verify', {
-          reference: reference
-        });
+        // Verify the payment using Paystack-specific endpoint
+        console.log('🔍 Verifying Paystack payment:', reference);
+        const verifyResponse = await apiClient.get(`/api/payments/paystack/verify/${reference}`);
+
+        console.log('📦 Verification response:', verifyResponse.data);
 
         if (verifyResponse.data.success) {
-          // Check if there's a pending subscription
-          const pendingSubscription = localStorage.getItem('pendingSubscription');
-          if (pendingSubscription) {
-            const subscriptionData = JSON.parse(pendingSubscription);
-
-            // Create the subscription
-            const subscriptionResponse = await apiClient.post('/api/payments/subscriptions/create', subscriptionData);
-
-            if (subscriptionResponse.data.success) {
-              showNotification('Payment successful! Your subscription has been activated.', 'success');
-
-              // New: Auto-download purchased items
-              const newSub = subscriptionResponse.data.data;
-              if (newSub && newSub._id) {
-                try {
-                  const downloadData = await getSubscriptionDownloadLinks(newSub._id);
-                  if (downloadData && downloadData.files) {
-                    showNotification('Auto-downloading your files...', 'info');
-                    // Download each available file
-                    Object.keys(downloadData.files).forEach(fileType => {
-                      downloadWithPersistence(newSub._id, newSub.productId || 'EA', fileType);
-                    });
-                  }
-                } catch (downloadError) {
-                  console.error('Auto-download failed:', downloadError);
-                  showNotification('Subscription active but auto-download failed. You can download manually below.', 'warning');
-                }
+          // Paystack verification endpoint already creates subscription and sends email
+          showNotification('Payment successful! Check your email for download links.', 'success');
+          
+          // Auto-download if subscription and download links are available
+          const subscription = verifyResponse.data.subscription;
+          const downloadLinks = verifyResponse.data.downloadLinks;
+          
+          if (subscription && downloadLinks) {
+            try {
+              showNotification('Auto-downloading your files...', 'info');
+              // Download each available file
+              if (downloadLinks.zip_package) {
+                window.open(downloadLinks.zip_package, '_blank');
+              } else {
+                // Download individual files if no ZIP
+                if (downloadLinks.ea_file) window.open(downloadLinks.ea_file, '_blank');
+                if (downloadLinks.set_file) window.open(downloadLinks.set_file, '_blank');
+                if (downloadLinks.manual) window.open(downloadLinks.manual, '_blank');
               }
-
-              localStorage.removeItem('pendingSubscription');
-              await fetchData();
+            } catch (downloadError) {
+              console.error('Auto-download failed:', downloadError);
+              showNotification('Subscription active! You can download files from your subscriptions page.', 'warning');
             }
-          } else {
-            showNotification('Payment successful!', 'success');
-            await fetchData();
           }
+
+          // Clean up any pending subscription data
+          localStorage.removeItem('pendingSubscription');
+          await fetchData();
         } else {
           showNotification('Payment verification failed. Please contact support.', 'error');
         }

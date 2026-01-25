@@ -10,20 +10,40 @@ const logger = require('../utils/logger');
 const createTransporter = () => {
   // Check if email is configured
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-    console.warn('⚠️ Email not configured. Set EMAIL_USER and EMAIL_PASSWORD in .env');
+    console.warn('⚠️ Email not configured. Set EMAIL_USER and EMAIL_PASSWORD in environment variables');
+    console.log('EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET');
+    console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? 'SET (hidden)' : 'NOT SET');
     return null;
   }
 
-  return nodemailer.createTransporter({
-    service: 'gmail', // or 'smtp' for custom SMTP
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: process.env.EMAIL_PORT || 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD // Use App Password for Gmail
-    }
-  });
+  console.log('📧 Creating email transporter...');
+  console.log('Email User:', process.env.EMAIL_USER);
+  console.log('Email Host:', process.env.EMAIL_HOST || 'smtp.gmail.com');
+  console.log('Email Port:', process.env.EMAIL_PORT || 587);
+
+  try {
+    const transporter = nodemailer.createTransporter({
+      service: 'gmail',
+      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.EMAIL_PORT || '587'),
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+      },
+      tls: {
+        rejectUnauthorized: false // Allow self-signed certificates
+      },
+      debug: true, // Enable debug output
+      logger: true // Log to console
+    });
+
+    console.log('✅ Email transporter created successfully');
+    return transporter;
+  } catch (error) {
+    console.error('❌ Failed to create email transporter:', error.message);
+    return null;
+  }
 };
 
 /**
@@ -43,6 +63,20 @@ const sendDownloadEmail = async ({
     if (!transporter) {
       console.log('📧 Email not configured, skipping email send');
       return { success: false, error: 'Email not configured' };
+    }
+
+    // Verify transporter connection
+    try {
+      console.log('🔍 Verifying email connection...');
+      await transporter.verify();
+      console.log('✅ Email server connection verified');
+    } catch (verifyError) {
+      console.error('❌ Email server connection failed:', verifyError.message);
+      console.error('Full error:', verifyError);
+      return { 
+        success: false, 
+        error: `Email server connection failed: ${verifyError.message}` 
+      };
     }
 
     // Build download links HTML
@@ -250,21 +284,34 @@ Need help? Contact us at ${process.env.EMAIL_USER}
       subscriptionId
     });
 
+    console.log('✅ Email sent successfully!');
+    console.log('Message ID:', info.messageId);
+    console.log('Response:', info.response);
+
     return { 
       success: true, 
       messageId: info.messageId 
     };
 
   } catch (error) {
+    console.error('❌ Failed to send download email');
+    console.error('Error message:', error.message);
+    console.error('Error code:', error.code);
+    console.error('Error command:', error.command);
+    console.error('Full error:', error);
+
     logger.error('Failed to send download email', {
       error: error.message,
+      code: error.code,
+      command: error.command,
       userEmail,
       eaName
     });
 
     return { 
       success: false, 
-      error: error.message 
+      error: error.message,
+      code: error.code
     };
   }
 };

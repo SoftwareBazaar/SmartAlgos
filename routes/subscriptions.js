@@ -1480,3 +1480,156 @@ async function sendDownloadConfirmationEmail(subscription, downloadLinks) {
 }
 
 module.exports = router;
+
+
+// @route   POST /api/subscriptions/:id/resend-email
+// @desc    Manually resend download email for a subscription
+// @access  Private (user must own the subscription)
+router.post('/:id/resend-email', auth, async (req, res) => {
+  try {
+    const subscriptionId = req.params.id;
+    const userId = req.user.id;
+
+    console.log(`\n📧 [Resend Email] Request for subscription ${subscriptionId} by user ${userId}`);
+
+    const supabase = databaseService.getClient();
+    
+    // 1. Get subscription
+    const { data: subscription, error: subError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('id', subscriptionId)
+      .single();
+
+    if (subError || !subscription) {
+      console.error('❌ [Resend Email] Subscription not found:', subError?.message);
+      return res.status(404).json({
+        success: false,
+        message: 'Subscription not found'
+      });
+    }
+
+    // 2. Verify user owns this subscription
+    if (subscription.user_id !== userId) {
+      console.error('❌ [Resend Email] User does not own this subscription');
+      return res.status(403).json({
+        success: false,
+        message: 'You can only resend emails for your own subscriptions'
+      });
+    }
+
+    console.log('✅ [Resend Email] Subscription found and verified');
+    console.log(`   User ID: ${subscription.user_id}`);
+    console.log(`   EA ID: ${subscription.ea_id}`);
+    console.log(`   Status: ${subscription.status}`);
+
+    // 3. Get user details
+    const { data: user, error: userError } = await supabase
+      .from('users_accounts')
+      .select('email, first_name, last_name')
+      .eq('id', subscription.user_id)
+      .single();
+
+    if (userError || !user || !user.email) {
+      console.error('❌ [Resend Email] User not found or no email:', userError?.message);
+      return res.status(404).json({
+        success: false,
+        message: 'User email not found'
+      });
+    }
+
+    console.log('✅ [Resend Email] User found');
+    console.log(`   Email: ${user.email}`);
+
+    // 4. Get EA details
+    const { data: ea, error: eaError } = await supabase
+      .from('expert_advisors')
+      .select('*')
+      .eq('id', subscription.ea_id)
+      .single();
+
+    if (eaError || !ea) {
+      console.error('❌ [Resend Email] EA not found:', eaError?.message);
+      return res.status(404).json({
+        success: false,
+        message: 'EA not found'
+      });
+    }
+
+    console.log('✅ [Resend Email] EA found');
+    console.log(`   Name: ${ea.name}`);
+
+    // 5. Generate download links
+    const jwt = require('jsonwebtoken');
+    const downloadToken = jwt.sign(
+      {
+        subscriptionId: subscription.id,
+        userId: subscription.user_id,
+        eaId: ea.id,
+        timestamp: Date.now()
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    
+    const downloadLinks = {
+      zip_package: ea.zip_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}/zip?token=${downloadToken}` : null,
+      ea_file: ea.ea_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=ea_file` : null,
+      set_file: ea.set_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=set_file` : null,
+      manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null
+    };
+
+    console.log('✅ [Resend Email] Download links generated');
+
+    // 6. Send email
+    const emailService = require('../services/emailService');
+    const userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Valued Customer';
+    
+    console.log('📧 [Resend Email] Sending email...');
+    
+    const emailResult = await emailService.sendDownloadEmail({
+      userEmail: user.email,
+      userName: userName,
+      eaName: ea.name,
+      downloadLinks: downloadLinks,
+      subscriptionType: subscription.subscription_type || 'monthly',
+      subscriptionId: subscription.id
+    });
+
+    if (emailResult.success) {
+      console.log('✅ [Resend Email] Email sent successfully!');
+      console.log(`   Message ID: ${emailResult.messageId}`);
+      
+      return res.json({
+        success: true,
+        message: 'Email sent successfully! Check your inbox.',
+        data: {
+          email: user.email,
+          messageId: emailResult.messageId
+        }
+      });
+    } else {
+      console.error('❌ [Resend Email] Email failed:', emailResult.error);
+      
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send email: ' + emailResult.error,
+        error: emailResult.error
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ [Resend Email] Error:', error.message);
+    console.error(error.stack);
+    
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while resending email',
+      error: error.message
+    });
+  }
+});
+
+module.exports = router;

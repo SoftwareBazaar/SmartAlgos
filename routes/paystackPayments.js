@@ -218,7 +218,13 @@ router.get('/verify/:reference', auth, async (req, res) => {
         // Extract data from metadata or falling back to transaction details
         const eaId = metadata.ea_id || metadata.product_id;
         const userId = metadata.user_id || req.user.id;
-        const subscriptionType = metadata.subscription_type || 'monthly';
+        let subscriptionType = metadata.subscription_type || 'monthly';
+        
+        // Map lifetime to yearly (database constraint doesn't allow lifetime)
+        if (subscriptionType === 'lifetime') {
+            subscriptionType = 'yearly';
+        }
+        
         const amountUsd = metadata.amount_usd || (txData.amount / 100 / 150); // Fallback estimate
         const userEmail = txData.customer.email; // Get email from Paystack transaction
 
@@ -251,12 +257,30 @@ router.get('/verify/:reference', auth, async (req, res) => {
         // 2. Create the subscription
         const startDate = new Date();
         const endDate = new Date();
+        
+        // Handle subscription duration
         switch (subscriptionType) {
-            case 'weekly': endDate.setDate(startDate.getDate() + 7); break;
-            case 'monthly': endDate.setMonth(startDate.getMonth() + 1); break;
-            case 'quarterly': endDate.setMonth(startDate.getMonth() + 3); break;
-            case 'yearly': endDate.setFullYear(startDate.getFullYear() + 1); break;
-            default: endDate.setMonth(startDate.getMonth() + 1);
+            case 'weekly': 
+                endDate.setDate(startDate.getDate() + 7); 
+                break;
+            case 'monthly': 
+                endDate.setMonth(startDate.getMonth() + 1); 
+                break;
+            case 'quarterly': 
+                endDate.setMonth(startDate.getMonth() + 3); 
+                break;
+            case 'yearly': 
+                // For yearly subscriptions (including lifetime mapped to yearly)
+                // Check if original was lifetime by looking at metadata
+                if (metadata.subscription_type === 'lifetime') {
+                    // Give 100 years for lifetime
+                    endDate.setFullYear(startDate.getFullYear() + 100);
+                } else {
+                    endDate.setFullYear(startDate.getFullYear() + 1);
+                }
+                break;
+            default: 
+                endDate.setMonth(startDate.getMonth() + 1);
         }
 
         const subscriptionData = {

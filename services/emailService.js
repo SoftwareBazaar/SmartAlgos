@@ -22,7 +22,7 @@ const createTransporter = () => {
   console.log('Email Port:', process.env.EMAIL_PORT || 587);
 
   try {
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: 'gmail',
       host: process.env.EMAIL_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.EMAIL_PORT || '587'),

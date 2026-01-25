@@ -194,24 +194,38 @@ router.get('/verify/:reference', auth, async (req, res) => {
     const { reference } = req.params;
 
     try {
-        console.log(`🔍 [Paystack] Verifying: ${reference}`);
+        console.log(`\n🔍 [Paystack] ========== PAYMENT VERIFICATION START ==========`);
+        console.log(`🔍 [Paystack] Reference: ${reference}`);
+        console.log(`🔍 [Paystack] User ID: ${req.user?.id}`);
+        console.log(`🔍 [Paystack] User Email: ${req.user?.email}`);
 
         const result = await paystackService.verifyTransaction(reference);
 
+        console.log(`📊 [Paystack] Verification result:`, result.status);
+
         if (!result.status || result.data.status !== 'success') {
+            console.log(`❌ [Paystack] Payment not successful:`, result.data.status);
             return res.status(400).json({ success: false, message: 'Payment not successful' });
         }
 
         const txData = result.data;
         const metadata = txData.metadata || {};
 
+        console.log(`✅ [Paystack] Payment successful!`);
+        console.log(`💰 [Paystack] Amount: ${txData.amount / 100} ${txData.currency}`);
+        console.log(`📧 [Paystack] Customer Email: ${txData.customer.email}`);
+
         // Extract data from metadata or falling back to transaction details
         const eaId = metadata.ea_id || metadata.product_id;
         const userId = metadata.user_id || req.user.id;
         const subscriptionType = metadata.subscription_type || 'monthly';
         const amountUsd = metadata.amount_usd || (txData.amount / 100 / 150); // Fallback estimate
+        const userEmail = txData.customer.email; // Get email from Paystack transaction
 
-        console.log(`✅ [Paystack] Verified success for User: ${userId}, EA: ${eaId}`);
+        console.log(`📦 [Paystack] EA ID: ${eaId}`);
+        console.log(`👤 [Paystack] User ID: ${userId}`);
+        console.log(`📅 [Paystack] Subscription Type: ${subscriptionType}`);
+        console.log(`💵 [Paystack] Amount USD: $${amountUsd}`);
 
         // 1. Check if subscription already created for this reference (idempotency)
         const supabase = databaseService.getClient();
@@ -231,6 +245,8 @@ router.get('/verify/:reference', auth, async (req, res) => {
                 });
             }
         }
+
+        console.log(`🔄 [Paystack] Creating subscription...`);
 
         // 2. Create the subscription
         const startDate = new Date();
@@ -269,8 +285,14 @@ router.get('/verify/:reference', auth, async (req, res) => {
                 .eq('paystack_reference', reference);
         }
 
+        console.log(`🔄 [Paystack] Generating download links...`);
+
         // 4. Generate download links (Copied from subscriptions.js)
         const ea = await databaseService.getEAById(eaId);
+        
+        console.log(`📦 [Paystack] EA Name: ${ea.name}`);
+        console.log(`📦 [Paystack] EA has ZIP: ${!!ea.zip_file_path}`);
+        
         const jwt = require('jsonwebtoken');
         const downloadToken = jwt.sign(
             { subscriptionId: subscription.id, userId, eaId, timestamp: Date.now() },
@@ -288,41 +310,52 @@ router.get('/verify/:reference', auth, async (req, res) => {
             manual: ea.manual_file_path ? `${baseUrl}/api/downloads/ea/${ea.id}?token=${downloadToken}&type=manual` : null
         };
 
+        console.log(`✅ [Paystack] Download links generated`);
+        console.log(`🔗 [Paystack] ZIP package: ${downloadLinks.zip_package ? 'YES' : 'NO'}`);
+
         // 🎯 NEW: Send email with download links
         try {
             const emailService = require('../services/emailService');
             
-            // Get user email
+            // Get user details
             const { data: user } = await supabase
                 .from('users')
                 .select('email, first_name, last_name')
                 .eq('id', userId)
                 .single();
 
-            if (user && user.email) {
-                const userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Valued Customer';
-                
-                console.log('📧 Sending download email to:', user.email);
-                
-                const emailResult = await emailService.sendDownloadEmail({
-                    userEmail: user.email,
-                    userName: userName,
-                    eaName: ea.name,
-                    downloadLinks: downloadLinks,
-                    subscriptionType: subscriptionType,
-                    subscriptionId: subscription.id
-                });
+            const finalUserEmail = user?.email || userEmail; // Use DB email or Paystack email
+            const userName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'Valued Customer';
+            
+            console.log(`\n📧 [Paystack] ========== SENDING EMAIL ==========`);
+            console.log(`📧 [Paystack] To: ${finalUserEmail}`);
+            console.log(`📧 [Paystack] User Name: ${userName}`);
+            console.log(`📧 [Paystack] EA Name: ${ea.name}`);
+            console.log(`📧 [Paystack] Subscription Type: ${subscriptionType}`);
+            
+            const emailResult = await emailService.sendDownloadEmail({
+                userEmail: finalUserEmail,
+                userName: userName,
+                eaName: ea.name,
+                downloadLinks: downloadLinks,
+                subscriptionType: subscriptionType,
+                subscriptionId: subscription.id
+            });
 
-                if (emailResult.success) {
-                    console.log('✅ Download email sent successfully');
-                } else {
-                    console.warn('⚠️ Failed to send download email:', emailResult.error);
-                }
+            if (emailResult.success) {
+                console.log(`✅ [Paystack] Email sent successfully!`);
+                console.log(`📬 [Paystack] Message ID: ${emailResult.messageId}`);
+            } else {
+                console.error(`❌ [Paystack] Email failed: ${emailResult.error}`);
             }
+            console.log(`📧 [Paystack] ========== EMAIL PROCESS COMPLETE ==========\n`);
         } catch (emailError) {
-            console.error('Email send error (non-critical):', emailError.message);
+            console.error(`❌ [Paystack] Email error:`, emailError.message);
+            console.error(emailError);
             // Don't fail the whole process if email fails
         }
+
+        console.log(`🔍 [Paystack] ========== PAYMENT VERIFICATION COMPLETE ==========\n`);
 
         res.json({
             success: true,

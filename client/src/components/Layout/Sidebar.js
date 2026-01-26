@@ -58,9 +58,16 @@ const Sidebar = ({ isOpen, onClose }) => {
   const sidebarContent = (
     <>
       <div className="flex items-center justify-between h-16 px-4 bg-white dark:bg-gradient-to-r dark:from-black dark:via-brand-900 dark:to-black border-b border-gray-200 dark:border-brand-800/70 shadow-lg">
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-primary-200 tracking-wide">
-          Smart Algos
-        </h1>
+        {/* Logo */}
+        <div className="flex items-center space-x-2">
+          <img 
+            src="/logo.png" 
+            alt="Smart Algos Trading Platform" 
+            className="h-10 w-auto object-contain transition-transform hover:scale-105"
+          />
+        </div>
+        
+        {/* Close button for mobile */}
         <button
           onClick={onClose}
           className="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-brand-800/60 focus:outline-none focus:ring-2 focus:ring-primary-500/60 lg:hidden"

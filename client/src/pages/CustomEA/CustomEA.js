@@ -306,9 +306,9 @@ const CustomEA = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 overflow-y-auto scrollbar-thin scrollbar-thumb-brand-700 scrollbar-track-transparent hover:scrollbar-thumb-brand-600 scroll-smooth max-h-screen">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Progress Bar */}
-        <div className="mb-6 sm:mb-8 sticky top-0 bg-white dark:bg-gradient-to-br dark:from-black dark:via-brand-900 dark:to-black pb-4 z-10">
+        <div className="mb-6 sm:mb-8 sticky top-0 bg-gray-50 dark:bg-gradient-to-br dark:from-black dark:via-brand-900 dark:to-black pb-4 z-10 -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-8 px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-3 sm:mb-4 overflow-x-auto pb-2">
             {[1, 2, 3, 4, 5].map((step) => (
               <div key={step} className="flex items-center flex-shrink-0">
@@ -344,7 +344,7 @@ const CustomEA = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-brand-900 dark:to-black rounded-lg sm:rounded-xl shadow-soft border border-gray-200 dark:border-brand-800/70 p-4 sm:p-6 md:p-8"
+              className="bg-gradient-to-br from-white via-gray-50 to-white dark:from-brand-900 dark:via-brand-900/95 dark:to-black rounded-lg sm:rounded-xl shadow-lg border border-gray-200 dark:border-brand-800/70 p-4 sm:p-6 md:p-8"
             >
               {/* Step 1: Service Type */}
               {currentStep === 1 && (
@@ -889,8 +889,8 @@ const CustomEA = () => {
 
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-brand-900 dark:to-black rounded-lg sm:rounded-xl shadow-soft border border-gray-200 dark:border-brand-800/70 p-4 sm:p-6 sticky top-4 sm:top-8">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-200 mb-3 sm:mb-4">Why Choose Us?</h3>
+            <div className="bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-brand-900 dark:via-brand-900/95 dark:to-black rounded-lg sm:rounded-xl shadow-lg border border-gray-200 dark:border-brand-800/70 p-4 sm:p-6 lg:sticky lg:top-24">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 border-b-2 border-primary-500 pb-2">Why Choose Us?</h3>
               
               <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-start space-x-2 sm:space-x-3">

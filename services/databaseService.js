@@ -694,6 +694,103 @@ class DatabaseService {
     if (error) throw error;
     return data;
   }
+
+  async getSubscriptionById(id) {
+    if (this.mockMode) {
+      const mockDataStore = require('./mockAuthStore').mockDataStore;
+      return await mockDataStore.getSubscriptionById(id);
+    }
+    const { data, error } = await this.supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  }
+
+  async getSubscriptions(filters = {}) {
+    if (this.mockMode) {
+      const mockDataStore = require('./mockAuthStore').mockDataStore;
+      return await mockDataStore.getSubscriptions(filters);
+    }
+
+    let query = this.supabase
+      .from('subscriptions')
+      .select('*');
+
+    if (filters.user_id) {
+      query = query.eq('user_id', filters.user_id);
+    }
+    if (filters.ea_id) {
+      query = query.eq('ea_id', filters.ea_id);
+    }
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    }
+    if (filters.payment_reference) {
+      query = query.eq('payment_reference', filters.payment_reference);
+    }
+    if (filters.product_id) {
+      query = query.eq('product_id', filters.product_id);
+    }
+    if (filters.product_type) {
+      query = query.eq('product_type', filters.product_type);
+    }
+
+    if (filters.limit) {
+      query = query.limit(filters.limit);
+    }
+    if (filters.offset) {
+      query = query.range(filters.offset, filters.offset + (filters.limit || 20) - 1);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  }
+
+  async getSubscriptionsCount(filters = {}) {
+    if (this.mockMode) return 0;
+
+    let query = this.supabase
+      .from('subscriptions')
+      .select('*', { count: 'exact', head: true });
+
+    if (filters.user_id) {
+      query = query.eq('user_id', filters.user_id);
+    }
+    if (filters.ea_id) {
+      query = query.eq('ea_id', filters.ea_id);
+    }
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    }
+
+    const { count, error } = await query;
+    if (error) throw error;
+    return count || 0;
+  }
+
+  async updateSubscription(id, updates) {
+    if (this.mockMode) {
+      const mockDataStore = require('./mockAuthStore').mockDataStore;
+      return await mockDataStore.updateSubscription(id, updates);
+    }
+
+    const { data, error } = await this.supabase
+      .from('subscriptions')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
   // Utility operations
   async getUtilities(filters = {}) {
     if (this.mockMode) {

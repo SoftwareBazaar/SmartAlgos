@@ -38,6 +38,12 @@ const Dashboard = () => {
   const [statsData, setStatsData] = useState(null);
   const [loadingStats, setLoadingStats] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // New state for signals and market data
+  const [recentSignals, setRecentSignals] = useState([]);
+  const [loadingSignals, setLoadingSignals] = useState(true);
+  const [marketOverview, setMarketOverview] = useState([]);
+  const [loadingMarket, setLoadingMarket] = useState(true);
 
   // Fetch real dashboard stats from API
   useEffect(() => {
@@ -51,22 +57,22 @@ const Dashboard = () => {
           // API returned but with no data - use fallback
           console.warn('Dashboard stats API returned no data, using fallback');
           setStatsData({
-            portfolioValue: 125000,
-            todayPnL: 1250,
-            todayPnLPercent: 1.01,
+            portfolioValue: 0,
+            todayPnL: 0,
+            todayPnLPercent: 0,
             activeSignals: 0,
-            winRate: 68.5
+            winRate: 0
           });
         }
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
-        // Use fallback data when API fails
+        // Use empty data when API fails
         setStatsData({
-          portfolioValue: 125000,
-          todayPnL: 1250,
-          todayPnLPercent: 1.01,
+          portfolioValue: 0,
+          todayPnL: 0,
+          todayPnLPercent: 0,
           activeSignals: 0,
-          winRate: 68.5
+          winRate: 0
         });
       } finally {
         setLoadingStats(false);
@@ -75,6 +81,134 @@ const Dashboard = () => {
 
     fetchDashboardStats();
   }, []);
+
+  // Fetch recent trading signals from API
+  useEffect(() => {
+    const fetchRecentSignals = async () => {
+      try {
+        setLoadingSignals(true);
+        const response = await apiClient.get('/api/signals/active', {
+          params: { 
+            limit: 4,
+            sort: '-createdAt'
+          }
+        });
+        
+        if (response.data && response.data.success && response.data.data) {
+          const signals = response.data.data.map(signal => ({
+            id: signal._id || signal.id,
+            symbol: signal.asset?.symbol || signal.symbol || 'N/A',
+            name: signal.asset?.name || signal.name || signal.asset?.symbol || 'Unknown',
+            signal: signal.action?.toUpperCase() || 'HOLD',
+            confidence: signal.confidence || signal.accuracy || 0,
+            price: signal.asset?.price || signal.price || 0,
+            change: signal.asset?.change || 0,
+            changePercent: signal.asset?.changePercent || signal.changePercent || '0%',
+            time: signal.createdAt ? getTimeAgo(new Date(signal.createdAt)) : 'Recently'
+          }));
+          setRecentSignals(signals);
+          console.log('[Dashboard] ✅ Loaded', signals.length, 'recent signals');
+        } else {
+          setRecentSignals([]);
+        }
+      } catch (error) {
+        console.error('[Dashboard] Failed to fetch signals:', error);
+        setRecentSignals([]);
+      } finally {
+        setLoadingSignals(false);
+      }
+    };
+
+    fetchRecentSignals();
+  }, []);
+
+  // Fetch market overview from API
+  useEffect(() => {
+    const fetchMarketOverview = async () => {
+      try {
+        setLoadingMarket(true);
+        const response = await apiClient.get('/api/markets/overview');
+        
+        if (response.data && response.data.success && response.data.data) {
+          const data = response.data.data;
+          const overview = [];
+          
+          // Add US indices (S&P 500, NASDAQ, DOW)
+          if (data.us && data.us.indices) {
+            data.us.indices.slice(0, 3).forEach(index => {
+              overview.push({
+                symbol: index.symbol || index.name,
+                value: formatMarketValue(index.price || index.value),
+                change: formatChange(index.change),
+                changePercent: formatChangePercent(index.changePercent || index.change_percent),
+                trend: (index.change || 0) >= 0 ? 'up' : 'down'
+              });
+            });
+          }
+          
+          // Add top crypto (BTC)
+          if (data.crypto && data.crypto.top) {
+            const btc = data.crypto.top.find(c => c.symbol === 'BTC' || c.symbol === 'BTCUSD');
+            if (btc) {
+              overview.push({
+                symbol: 'BTC/USD',
+                value: formatMarketValue(btc.price),
+                change: formatChange(btc.change),
+                changePercent: formatChangePercent(btc.changePercent || btc.change_percent),
+                trend: (btc.change || 0) >= 0 ? 'up' : 'down'
+              });
+            }
+          }
+          
+          setMarketOverview(overview);
+          console.log('[Dashboard] ✅ Loaded', overview.length, 'market indices');
+        } else {
+          setMarketOverview([]);
+        }
+      } catch (error) {
+        console.error('[Dashboard] Failed to fetch market data:', error);
+        setMarketOverview([]);
+      } finally {
+        setLoadingMarket(false);
+      }
+    };
+
+    fetchMarketOverview();
+  }, []);
+
+  // Helper function to format time ago
+  const getTimeAgo = (date) => {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return `${seconds} sec ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  };
+
+  // Helper functions for market data formatting
+  const formatMarketValue = (value) => {
+    if (!value) return '0';
+    const num = parseFloat(value);
+    if (num >= 1000) {
+      return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const formatChange = (change) => {
+    if (!change) return '+0.00';
+    const num = parseFloat(change);
+    return `${num >= 0 ? '+' : ''}${num.toFixed(2)}`;
+  };
+
+  const formatChangePercent = (percent) => {
+    if (!percent) return '+0.00%';
+    const num = parseFloat(percent);
+    return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
+  };
 
   // TEMPORARILY DISABLED: Show onboarding wizard on first visit
   // useEffect(() => {
@@ -154,85 +288,7 @@ const Dashboard = () => {
     },
   ] : [];
 
-  const recentSignals = [
-    {
-      id: 1,
-      symbol: 'AAPL',
-      name: 'Apple Inc.',
-      signal: 'BUY',
-      confidence: 85,
-      price: 175.50,
-      change: '+2.30',
-      changePercent: '+1.33%',
-      time: '2 min ago',
-    },
-    {
-      id: 2,
-      symbol: 'TSLA',
-      name: 'Tesla Inc.',
-      signal: 'SELL',
-      confidence: 72,
-      price: 245.80,
-      change: '-5.20',
-      changePercent: '-2.07%',
-      time: '15 min ago',
-    },
-    {
-      id: 3,
-      symbol: 'MSFT',
-      name: 'Microsoft Corporation',
-      signal: 'BUY',
-      confidence: 91,
-      price: 378.25,
-      change: '+4.15',
-      changePercent: '+1.11%',
-      time: '32 min ago',
-    },
-    {
-      id: 4,
-      symbol: 'GOOGL',
-      name: 'Alphabet Inc.',
-      signal: 'HOLD',
-      confidence: 58,
-      price: 142.80,
-      change: '+0.45',
-      changePercent: '+0.32%',
-      time: '1 hour ago',
-    },
-  ];
-
   const activeEAs = getActiveEAs();
-
-  const marketOverview = [
-    {
-      symbol: 'S&P 500',
-      value: '4,567.89',
-      change: '+23.45',
-      changePercent: '+0.52%',
-      trend: 'up',
-    },
-    {
-      symbol: 'NASDAQ',
-      value: '14,234.56',
-      change: '+45.67',
-      changePercent: '+0.32%',
-      trend: 'up',
-    },
-    {
-      symbol: 'DOW',
-      value: '35,678.90',
-      change: '-123.45',
-      changePercent: '-0.34%',
-      trend: 'down',
-    },
-    {
-      symbol: 'BTC/USD',
-      value: '$52,450.00',
-      change: '+1,250.00',
-      changePercent: '+2.44%',
-      trend: 'up',
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 overflow-x-hidden">
@@ -390,68 +446,96 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="p-4 sm:p-6 space-y-3">
-                {recentSignals.map((signal, idx) => (
-                  <motion.div
-                    key={signal.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: 0.3 + idx * 0.1 }}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors border border-gray-200 dark:border-gray-800 overflow-hidden"
-                  >
-                    <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xs sm:text-sm font-bold text-white">
-                            {signal.symbol}
-                          </span>
+                {loadingSignals ? (
+                  // Loading state
+                  [1, 2, 3, 4].map((i) => (
+                    <div key={i} className="animate-pulse p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                        </div>
+                        <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      </div>
+                    </div>
+                  ))
+                ) : recentSignals.length > 0 ? (
+                  // Signals list
+                  recentSignals.map((signal, idx) => (
+                    <motion.div
+                      key={signal.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: 0.3 + idx * 0.1 }}
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors border border-gray-200 dark:border-gray-800 overflow-hidden"
+                    >
+                      <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <span className="text-xs sm:text-sm font-bold text-white">
+                              {signal.symbol}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                            {signal.name}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Clock className="h-3 w-3 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              {signal.time}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                          {signal.name}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Clock className="h-3 w-3 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {signal.time}
+                      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 sm:flex-shrink-0">
+                        <div className="text-left sm:text-right">
+                          <p className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                            ${typeof signal.price === 'number' ? signal.price.toFixed(2) : '0.00'}
+                          </p>
+                          <p
+                            className={`text-xs font-semibold whitespace-nowrap ${
+                              String(signal.change).startsWith('+') || parseFloat(signal.change) >= 0
+                                ? 'text-success-600 dark:text-success-400'
+                                : 'text-danger-600 dark:text-danger-400'
+                            }`}
+                          >
+                            {signal.change} ({signal.changePercent})
+                          </p>
+                        </div>
+                        <div className="text-left sm:text-right flex-shrink-0">
+                          <span
+                            className={`inline-flex items-center px-2 sm:px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap ${
+                              signal.signal === 'BUY'
+                                ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400 border border-success-200 dark:border-success-800'
+                                : signal.signal === 'SELL'
+                                ? 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400 border border-danger-200 dark:border-danger-800'
+                                : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400 border border-warning-200 dark:border-warning-800'
+                            }`}
+                          >
+                            {signal.signal}
+                          </span>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">
+                            {signal.confidence}% confidence
                           </p>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 sm:flex-shrink-0">
-                      <div className="text-left sm:text-right">
-                        <p className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
-                          ${signal.price.toFixed(2)}
-                        </p>
-                        <p
-                          className={`text-xs font-semibold whitespace-nowrap ${
-                            signal.change.startsWith('+')
-                              ? 'text-success-600 dark:text-success-400'
-                              : 'text-danger-600 dark:text-danger-400'
-                          }`}
-                        >
-                          {signal.change} ({signal.changePercent})
-                        </p>
-                      </div>
-                      <div className="text-left sm:text-right flex-shrink-0">
-                        <span
-                          className={`inline-flex items-center px-2 sm:px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap ${
-                            signal.signal === 'BUY'
-                              ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400 border border-success-200 dark:border-success-800'
-                              : signal.signal === 'SELL'
-                              ? 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400 border border-danger-200 dark:border-danger-800'
-                              : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400 border border-warning-200 dark:border-warning-800'
-                          }`}
-                        >
-                          {signal.signal}
-                        </span>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">
-                          {signal.confidence}% confidence
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))
+                ) : (
+                  // Empty state
+                  <div className="text-center py-8">
+                    <Activity className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                      No Active Signals
+                    </h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 max-w-xs mx-auto">
+                      Trading signals will appear here when market conditions meet your criteria.
+                    </p>
+                  </div>
+                )}
               </div>
             </Card>
           </motion.div>
@@ -560,46 +644,69 @@ const Dashboard = () => {
             </div>
             <div className="p-4 sm:p-6">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {marketOverview.map((market) => (
-                  <div
-                    key={market.symbol}
-                    className="p-5 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        {market.symbol}
-                      </p>
-                      {market.trend === 'up' ? (
-                        <TrendingUp className="h-4 w-4 text-success-600 dark:text-success-400" />
-                      ) : (
-                        <TrendingDown className="h-4 w-4 text-danger-600 dark:text-danger-400" />
-                      )}
+                {loadingMarket ? (
+                  // Loading state
+                  [1, 2, 3, 4].map((i) => (
+                    <div key={i} className="animate-pulse p-5 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-3"></div>
+                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
                     </div>
-                    <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                      {market.value}
+                  ))
+                ) : marketOverview.length > 0 ? (
+                  // Market data
+                  marketOverview.map((market) => (
+                    <div
+                      key={market.symbol}
+                      className="p-5 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700/50 transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                          {market.symbol}
+                        </p>
+                        {market.trend === 'up' ? (
+                          <TrendingUp className="h-4 w-4 text-success-600 dark:text-success-400" />
+                        ) : (
+                          <TrendingDown className="h-4 w-4 text-danger-600 dark:text-danger-400" />
+                        )}
+                      </div>
+                      <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                        {market.value}
+                      </p>
+                      <div className="flex items-center space-x-2">
+                        <p
+                          className={`text-sm font-semibold ${
+                            market.trend === 'up'
+                              ? 'text-success-600 dark:text-success-400'
+                              : 'text-danger-600 dark:text-danger-400'
+                          }`}
+                        >
+                          {market.change}
+                        </p>
+                        <p
+                          className={`text-xs ${
+                            market.trend === 'up'
+                              ? 'text-success-600 dark:text-success-400'
+                              : 'text-danger-600 dark:text-danger-400'
+                          }`}
+                        >
+                          {market.changePercent}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  // Empty state
+                  <div className="col-span-full text-center py-8">
+                    <Globe className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                      Market Data Unavailable
+                    </h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 max-w-xs mx-auto">
+                      Unable to load market data at this time. Please check your API configuration.
                     </p>
-                    <div className="flex items-center space-x-2">
-                      <p
-                        className={`text-sm font-semibold ${
-                          market.trend === 'up'
-                            ? 'text-success-600 dark:text-success-400'
-                            : 'text-danger-600 dark:text-danger-400'
-                        }`}
-                      >
-                        {market.change}
-                      </p>
-                      <p
-                        className={`text-xs ${
-                          market.trend === 'up'
-                            ? 'text-success-600 dark:text-success-400'
-                            : 'text-danger-600 dark:text-danger-400'
-                        }`}
-                      >
-                        {market.changePercent}
-                      </p>
-                    </div>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </Card>

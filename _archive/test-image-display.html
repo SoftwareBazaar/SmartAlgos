@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Display Test - Smart Algos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .status.loading {
+            background: #fbbf24;
+            color: #78350f;
+        }
+        
+        .status.success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .status.error {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .test-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        
+        .test-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .test-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #f3f4f6;
+        }
+        
+        .test-card-info {
+            padding: 15px;
+            background: #f9fafb;
+        }
+        
+        .test-card-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .test-card-info p {
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+        }
+        
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+        
+        .test-result.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .test-result.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .instructions {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .instructions h3 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 8px 0;
+            color: #1e3a8a;
+        }
+        
+        .api-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+        }
+        
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .log {
+            background: #1f2937;
+            color: #10b981;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .log-entry {
+            margin: 5px 0;
+        }
+        
+        .log-entry.error {
+            color: #ef4444;
+        }
+        
+        .log-entry.success {
+            color: #10b981;
+        }
+        
+        .log-entry.info {
+            color: #60a5fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ Image Display Test</h1>
+            <p style="color: #666; margin-top: 10px;">Test Supabase Storage image display functionality</p>
+            <div style="margin-top: 15px;">
+                <span id="statusBadge" class="status loading">Testing...</span>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 How to Use This Test:</h3>
+            <ol>
+                <li>Enter your API URL below (e.g., http://localhost:5000 or your Railway URL)</li>
+                <li>Click "Fetch EAs and Test Images"</li>
+                <li>The tool will fetch EAs from your API and attempt to display their images</li>
+                <li>Check the results to see which images load and which don't</li>
+                <li>Review the console log at the bottom for detailed information</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>API Configuration</h2>
+            <input 
+                type="text" 
+                id="apiUrl" 
+                class="api-input" 
+                placeholder="Enter API URL (e.g., http://localhost:5000 or https://your-app.railway.app)"
+                value="http://localhost:5000"
+            />
+            <button class="btn" onclick="runTest()">🚀 Fetch EAs and Test Images</button>
+        </div>
+
+        <div class="test-section" id="resultsSection" style="display: none;">
+            <h2>Test Results</h2>
+            <div id="summary" style="margin-bottom: 20px;"></div>
+            <div id="testGrid" class="test-grid"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Console Log</h2>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const logEl = document.getElementById('log');
+        const statusBadge = document.getElementById('statusBadge');
+        
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        
+        function updateStatus(text, type) {
+            statusBadge.textContent = text;
+            statusBadge.className = `status ${type}`;
+        }
+        
+        async function testImageUrl(url) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                const timeout = setTimeout(() => {
+                    resolve({ success: false, error: 'Timeout' });
+                }, 10000);
+                
+                img.onload = () => {
+                    clearTimeout(timeout);
+                    resolve({ success: true, width: img.width, height: img.height });
+                };
+                
+                img.onerror = (e) => {
+                    clearTimeout(timeout);
+                    resolve({ success: false, error: 'Failed to load' });
+                };
+                
+                img.src = url;
+            });
+        }
+        
+        async function runTest() {
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            
+            if (!apiUrl) {
+                alert('Please enter an API URL');
+                return;
+            }
+            
+            log('Starting image display test...', 'info');
+            log(`API URL: ${apiUrl}`, 'info');
+            updateStatus('Testing...', 'loading');
+            
+            const resultsSection = document.getElementById('resultsSection');
+            const testGrid = document.getElementById('testGrid');
+            const summary = document.getElementById('summary');
+            
+            testGrid.innerHTML = '';
+            summary.innerHTML = '';
+            
+            try {
+                // Fetch EAs from API
+                log('Fetching EAs from API...', 'info');
+                const response = await fetch(`${apiUrl}/api/eas`);
+                
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                const eas = data.data || data;
+                
+                log(`✅ Fetched ${eas.length} EAs`, 'success');
+                
+                if (eas.length === 0) {
+                    log('⚠️ No EAs found in database', 'error');
+                    updateStatus('No EAs found', 'error');
+                    return;
+                }
+                
+                // Test each image
+                let successCount = 0;
+                let errorCount = 0;
+                let noImageCount = 0;
+                
+                for (const ea of eas) {
+                    const imageUrl = ea.image || ea.image_url;
+                    
+                    if (!imageUrl) {
+                        log(`EA #${ea.id} "${ea.name}": No image URL`, 'error');
+                        noImageCount++;
+                        
+                        const card = createTestCard(ea, null, 'No image URL');
+                        testGrid.appendChild(card);
+                        continue;
+                    }
+                    
+                    log(`Testing EA #${ea.id} "${ea.name}"...`, 'info');
+                    log(`  URL: ${imageUrl}`, 'info');
+                    
+                    // Test image accessibility
+                    const result = await testImageUrl(imageUrl);
+                    
+                    if (result.success) {
+                        log(`  ✅ Image loaded (${result.width}x${result.height})`, 'success');
+                        successCount++;
+                    } else {
+                        log(`  ❌ Failed: ${result.error}`, 'error');
+                        errorCount++;
+                    }
+                    
+                    const card = createTestCard(ea, result, imageUrl);
+                    testGrid.appendChild(card);
+                }
+                
+                // Show summary
+                summary.innerHTML = `
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 150px; padding: 15px; background: #d1fae5; border-radius: 8px;">
+                            <div style="font-size: 32px; font-weight: bold; color: #065f46;">${successCount}</div>
+                            <div style="color: #065f46;">Images Loaded</div>
+                        </div>
+                        <div style="flex: 1; min-width: 150px; padding: 15px; background: #fee2e2; border-radius: 8px;">
+                            <div style="font-size: 32px; font-weight: bold; color: #991b1b;">${errorCount}</div>
+                            <div style="color: #991b1b;">Failed to Load</div>
+                        </div>
+                        <div style="flex: 1; min-width: 150px; padding: 15px; background: #fef3c7; border-radius: 8px;">
+                            <div style="font-size: 32px; font-weight: bold; color: #78350f;">${noImageCount}</div>
+                            <div style="color: #78350f;">No Image URL</div>
+                        </div>
+                    </div>
+                `;
+                
+                resultsSection.style.display = 'block';
+                
+                if (errorCount === 0 && noImageCount === 0) {
+                    log('✅ All images loaded successfully!', 'success');
+                    updateStatus('All images working!', 'success');
+                } else {
+                    log(`⚠️ ${errorCount} images failed to load, ${noImageCount} have no URL`, 'error');
+                    updateStatus('Some images failed', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                updateStatus('Test failed', 'error');
+            }
+        }
+        
+        function createTestCard(ea, result, imageUrl) {
+            const card = document.createElement('div');
+            card.className = 'test-card';
+            
+            const img = document.createElement('img');
+            img.alt = ea.name;
+            
+            if (result && result.success) {
+                img.src = imageUrl;
+            } else {
+                img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext fill="rgba(0,0,0,0.5)" font-family="sans-serif" font-size="18" dy="150" dx="150" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+            }
+            
+            const info = document.createElement('div');
+            info.className = 'test-card-info';
+            
+            const title = document.createElement('h3');
+            title.textContent = `#${ea.id}: ${ea.name}`;
+            
+            const url = document.createElement('p');
+            url.textContent = imageUrl || 'No URL';
+            url.style.fontSize = '11px';
+            url.style.marginTop = '5px';
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${result && result.success ? 'success' : 'error'}`;
+            
+            if (!imageUrl) {
+                resultDiv.textContent = '❌ No image URL in database';
+            } else if (result && result.success) {
+                resultDiv.textContent = `✅ Loaded (${result.width}x${result.height})`;
+            } else if (result) {
+                resultDiv.textContent = `❌ ${result.error}`;
+            }
+            
+            info.appendChild(title);
+            info.appendChild(url);
+            info.appendChild(resultDiv);
+            
+            card.appendChild(img);
+            card.appendChild(info);
+            
+            return card;
+        }
+        
+        // Auto-run test on page load (after 1 second)
+        setTimeout(() => {
+            log('Page loaded. Click "Fetch EAs and Test Images" to start testing.', 'info');
+        }, 500);
+    </script>
+</body>
+</html>
+

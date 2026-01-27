@@ -1,0 +1,25 @@
+// Test EA File for Subscription/Download Flow Testing
+// This is a dummy EA file to test the complete subscription to download flow
+
+// Test EA Configuration
+input double TestLotSize = 0.01;
+input int TestMagicNumber = 12345;
+input string TestComment = "Test EA for Subscription Flow";
+
+// Test function
+void OnTick() {
+    // This is a test EA file
+    // In real implementation, this would contain actual EA logic
+    Print("Test EA is running - Subscription flow test successful!");
+}
+
+// Test initialization
+int OnInit() {
+    Print("Test EA initialized successfully!");
+    return INIT_SUCCEEDED;
+}
+
+// Test deinitialization
+void OnDeinit(const int reason) {
+    Print("Test EA deinitialized. Reason: ", reason);
+}

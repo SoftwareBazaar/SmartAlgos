@@ -1,0 +1,179 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                  RAILWAY EMAIL SETUP CHECKLIST                   ║
+║                      (Complete in 5 Minutes)                     ║
+╚══════════════════════════════════════════════════════════════════╝
+
+✅ COMPLETED:
+  [✓] Code changes made
+  [✓] Code committed to git
+  [✓] Code pushed to GitHub
+  [✓] Railway auto-deploying
+
+⏳ TODO NOW:
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 1: GET GMAIL APP PASSWORD (2 minutes)                      │
+└──────────────────────────────────────────────────────────────────┘
+
+  [ ] 1. Open: https://myaccount.google.com/security
+  
+  [ ] 2. Enable 2-Step Verification (if not enabled)
+      - Click "2-Step Verification"
+      - Follow setup wizard
+  
+  [ ] 3. Generate App Password
+      - Go back to Security page
+      - Click "App passwords"
+      - Select: Mail → Other (Custom name)
+      - Enter: "Smart Algos"
+      - Click: Generate
+  
+  [ ] 4. COPY the 16-character password
+      Format: xxxx xxxx xxxx xxxx
+      ⚠️  IMPORTANT: You won't see it again!
+      
+      Write it here: _________________________________
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 2: ADD TO RAILWAY (3 minutes)                              │
+└──────────────────────────────────────────────────────────────────┘
+
+  [ ] 1. Open Railway Dashboard
+      URL: https://railway.app/dashboard
+  
+  [ ] 2. Select your Smart Algos project
+  
+  [ ] 3. Click on your backend service
+  
+  [ ] 4. Click "Variables" tab
+  
+  [ ] 5. Add Variable 1:
+      Name:  EMAIL_USER
+      Value: your-email@gmail.com
+  
+  [ ] 6. Add Variable 2:
+      Name:  EMAIL_PASSWORD
+      Value: xxxx xxxx xxxx xxxx (from Step 1)
+  
+  [ ] 7. Add Variable 3:
+      Name:  EMAIL_HOST
+      Value: smtp.gmail.com
+  
+  [ ] 8. Add Variable 4:
+      Name:  EMAIL_PORT
+      Value: 587
+  
+  [ ] 9. Click "Deploy" (or wait for auto-deploy)
+  
+  [ ] 10. Wait 2-3 minutes for deployment
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 3: VERIFY (2 minutes)                                      │
+└──────────────────────────────────────────────────────────────────┘
+
+  [ ] 1. Click "Deployments" tab in Railway
+  
+  [ ] 2. Click latest deployment
+  
+  [ ] 3. Click "View Logs"
+  
+  [ ] 4. Look for this message:
+      ✅ Email transporter created successfully
+  
+  [ ] 5. If you see it: SUCCESS! ✅
+      If not: Check variables are correct
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 4: TEST (2 minutes)                                        │
+└──────────────────────────────────────────────────────────────────┘
+
+  [ ] 1. Make a test payment (small amount)
+  
+  [ ] 2. Watch Railway logs in real-time
+  
+  [ ] 3. Look for these messages:
+      📧 [Paystack] Email Configuration Check
+      ✅ [Paystack] Email sent successfully!
+      📬 [Paystack] Message ID: <xxx@gmail.com>
+  
+  [ ] 4. Check your email inbox
+  
+  [ ] 5. Check spam folder if not in inbox
+  
+  [ ] 6. Verify email contains download links
+  
+  [ ] 7. Click download links to test
+
+╔══════════════════════════════════════════════════════════════════╗
+║                         SUCCESS CRITERIA                         ║
+╚══════════════════════════════════════════════════════════════════╝
+
+  [ ] Railway logs show: "Email transporter created successfully"
+  [ ] Test payment made
+  [ ] Railway logs show: "Email sent successfully"
+  [ ] Email received in inbox (within 1-2 minutes)
+  [ ] Email contains working download links
+  [ ] Download links work when clicked
+
+╔══════════════════════════════════════════════════════════════════╗
+║                      TROUBLESHOOTING                             ║
+╚══════════════════════════════════════════════════════════════════╝
+
+❌ "EMAIL NOT CONFIGURED" in logs
+   → Add all 4 variables to Railway
+
+❌ "Invalid login: 535-5.7.8"
+   → Use App Password (16 chars), NOT regular password
+
+❌ Email not received
+   → Check spam folder
+   → Verify EMAIL_USER is correct
+
+❌ Variables not loading
+   → Click "Deploy" manually
+   → Clear Railway cache
+
+╔══════════════════════════════════════════════════════════════════╗
+║                      IMPORTANT NOTES                             ║
+╚══════════════════════════════════════════════════════════════════╝
+
+⚠️  Use App Password, NOT regular Gmail password
+⚠️  App Password is 16 characters (xxxx xxxx xxxx xxxx)
+⚠️  Variable names are case-sensitive (EMAIL_USER not email_user)
+⚠️  All 4 variables are required
+⚠️  Railway must redeploy after adding variables
+
+╔══════════════════════════════════════════════════════════════════╗
+║                      TIME ESTIMATE                               ║
+╚══════════════════════════════════════════════════════════════════╝
+
+  Gmail App Password:     2 minutes
+  Railway Configuration:  3 minutes
+  Verification:           2 minutes
+  ─────────────────────────────────
+  TOTAL:                  7 minutes ⚡
+
+╔══════════════════════════════════════════════════════════════════╗
+║                      HELP & SUPPORT                              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📚 Documentation:
+  - QUICK_START_EMAIL_FIX.md          (Quick guide)
+  - RAILWAY_EMAIL_SETUP.md            (Railway specific)
+  - EMAIL_DOWNLOAD_LINK_FIX.md        (Technical details)
+  - DEPLOY_SUCCESS_NEXT_STEPS.md      (What to do now)
+
+🔍 Check Railway Logs:
+  Railway Dashboard → Deployments → View Logs
+
+📧 Test Email:
+  node test-payment-email-flow.js
+
+╔══════════════════════════════════════════════════════════════════╗
+║                      READY TO START!                             ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Start with Step 1 above and work through each checkbox.
+You'll have email download links working in 7 minutes!
+
+Good luck! 🚀

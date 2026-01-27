@@ -1,0 +1,20 @@
+This is a placeholder for the Lot Size Calculator utility.
+
+In a real application, this would be the actual executable file.
+
+Features:
+- Calculate optimal lot sizes based on risk percentage
+- Support for multiple currency pairs
+- Risk management tools
+- Easy-to-use interface
+
+Version: 1.0
+Created: 2025-10-25T14:27:06.665Z
+
+To use this utility:
+1. Download the actual file from the admin panel
+2. Run the executable
+3. Enter your account balance and risk percentage
+4. Get your optimal lot size recommendation
+
+This is a demonstration of the download functionality.

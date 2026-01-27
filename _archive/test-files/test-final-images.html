@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Final Image Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        .ea-card {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+        }
+        .ea-image {
+            width: 200px;
+            height: 150px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .ea-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .ea-info {
+            flex: 1;
+        }
+        .ea-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .ea-url {
+            font-family: monospace;
+            font-size: 12px;
+            color: #6c757d;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .console {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        .log-entry {
+            margin: 3px 0;
+            padding: 2px 0;
+        }
+        .log-success { color: #4ade80; }
+        .log-error { color: #f87171; }
+        .log-warning { color: #fbbf24; }
+        .log-info { color: #60a5fa; }
+        .summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 5px;
+        }
+        .btn:hover { background: #5568d3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Final Image Display Test</h1>
+        <p style="text-align: center; color: #6c757d;">Testing if your EA images are now displaying correctly</p>
+
+        <div class="test-section">
+            <h3>📊 Test Results</h3>
+            <button class="btn" onclick="runTest()">🔄 Run Test</button>
+            <div id="test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🖼️ EA Images</h3>
+            <div id="ea-images"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Console Log</h3>
+            <div class="console" id="console-output">
+                <div class="log-entry log-info">🔍 Ready to test image display...</div>
+            </div>
+        </div>
+
+        <div class="summary">
+            <h3>📊 Summary</h3>
+            <div id="summary-content">
+                <p>Click "Run Test" to check if images are displaying correctly.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let consoleDiv = document.getElementById('console-output');
+        let testResults = document.getElementById('test-results');
+        let eaImages = document.getElementById('ea-images');
+        let summaryContent = document.getElementById('summary-content');
+
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = {
+                error: '❌',
+                success: '✅',
+                info: 'ℹ️',
+                warning: '⚠️'
+            }[type] || 'ℹ️';
+            entry.textContent = `[${timestamp}] ${icon} ${message}`;
+            consoleDiv.appendChild(entry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            console[type === 'error' ? 'error' : 'log'](message);
+        }
+
+        async function runTest() {
+            log('🚀 Starting final image test...', 'info');
+            testResults.innerHTML = '<div class="status loading">⏳ Testing...</div>';
+            
+            try {
+                // Fetch EA data
+                log('📡 Fetching EA data from API...', 'info');
+                const response = await fetch('https://web-production-fdb58.up.railway.app/api/eas');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                const eas = data.data || data;
+                
+                log(`✅ Found ${eas.length} EAs`, 'success');
+                
+                // Display EAs with images
+                displayEAs(eas);
+                
+                // Test image loading
+                await testImageLoading(eas);
+                
+                // Update summary
+                updateSummary(eas);
+                
+                testResults.innerHTML = '<div class="status success">✅ Test completed successfully!</div>';
+                
+            } catch (error) {
+                log(`❌ Test failed: ${error.message}`, 'error');
+                testResults.innerHTML = `<div class="status error">❌ Test failed: ${error.message}</div>`;
+            }
+        }
+
+        function displayEAs(eas) {
+            const easWithImages = eas.filter(ea => ea.image);
+            
+            if (easWithImages.length === 0) {
+                eaImages.innerHTML = '<p>No EAs with images found.</p>';
+                return;
+            }
+            
+            let html = `<h4>Found ${easWithImages.length} EAs with images:</h4>`;
+            
+            easWithImages.forEach((ea, index) => {
+                html += `
+                    <div class="ea-card">
+                        <div class="ea-image" id="image-${index}">
+                            <div>Loading...</div>
+                        </div>
+                        <div class="ea-info">
+                            <div class="ea-name">${ea.name}</div>
+                            <div class="ea-url">${ea.image}</div>
+                            <div id="status-${index}" class="status loading">Testing image...</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            eaImages.innerHTML = html;
+        }
+
+        async function testImageLoading(eas) {
+            const easWithImages = eas.filter(ea => ea.image);
+            
+            for (let i = 0; i < easWithImages.length; i++) {
+                const ea = easWithImages[i];
+                const imageDiv = document.getElementById(`image-${i}`);
+                const statusDiv = document.getElementById(`status-${i}`);
+                
+                log(`🖼️ Testing image for: ${ea.name}`, 'info');
+                
+                const img = new Image();
+                
+                img.onload = function() {
+                    log(`✅ Image loaded successfully: ${ea.name}`, 'success');
+                    imageDiv.innerHTML = `<img src="${ea.image}" alt="${ea.name}">`;
+                    statusDiv.textContent = '✅ Image loaded successfully';
+                    statusDiv.className = 'status success';
+                };
+                
+                img.onerror = function() {
+                    log(`❌ Image failed to load: ${ea.name}`, 'error');
+                    imageDiv.innerHTML = '<div style="color: red;">❌ Failed to load</div>';
+                    statusDiv.textContent = '❌ Image failed to load';
+                    statusDiv.className = 'status error';
+                };
+                
+                img.src = ea.image;
+                
+                // Wait a bit between tests
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        function updateSummary(eas) {
+            const easWithImages = eas.filter(ea => ea.image);
+            const supabaseUrls = easWithImages.filter(ea => ea.image.includes('supabase.co'));
+            const localUrls = easWithImages.filter(ea => ea.image.startsWith('/uploads/'));
+            
+            let summary = `
+                <p><strong>📊 Test Results:</strong></p>
+                <ul>
+                    <li>Total EAs: ${eas.length}</li>
+                    <li>EAs with images: ${easWithImages.length}</li>
+                    <li>Supabase URLs: ${supabaseUrls.length}</li>
+                    <li>Local URLs: ${localUrls.length}</li>
+                </ul>
+            `;
+            
+            if (supabaseUrls.length > 0) {
+                summary += `<p style="color: #4ade80;">✅ Images should be working with Supabase URLs!</p>`;
+            }
+            
+            if (localUrls.length > 0) {
+                summary += `<p style="color: #fbbf24;">⚠️ Some EAs have local URLs that may be broken.</p>`;
+            }
+            
+            summaryContent.innerHTML = summary;
+        }
+
+        // Auto-run test when page loads
+        window.addEventListener('load', () => {
+            setTimeout(runTest, 1000);
+        });
+    </script>
+</body>
+</html>

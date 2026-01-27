@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Image Loading Test - Algosmart</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .test-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .status.loading {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .image-test {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 20px;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .image-preview {
+            width: 200px;
+            height: 150px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            overflow: hidden;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .info-row {
+            display: flex;
+            gap: 10px;
+            font-size: 13px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 80px;
+        }
+        
+        .info-value {
+            color: #333;
+            word-break: break-all;
+            flex: 1;
+        }
+        
+        .console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 3px 0;
+        }
+        
+        .log-error {
+            color: #f87171;
+        }
+        
+        .log-success {
+            color: #4ade80;
+        }
+        
+        .log-info {
+            color: #60a5fa;
+        }
+        
+        .log-warning {
+            color: #fbbf24;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        
+        .summary h3 {
+            margin-bottom: 15px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Image Loading Diagnostic Test</h1>
+        <p class="subtitle">Testing Supabase Storage image accessibility</p>
+        
+        <div class="test-section">
+            <div class="test-title">
+                Test 1: Direct Supabase Storage URL
+                <span class="status loading" id="test1-status">Testing...</span>
+            </div>
+            <div class="image-test">
+                <div class="image-preview">
+                    <img id="test1-img" src="" alt="Test Image">
+                </div>
+                <div class="image-info">
+                    <div class="info-row">
+                        <span class="info-label">Test URL:</span>
+                        <span class="info-value" id="test1-url">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value" id="test1-result">Waiting...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Details:</span>
+                        <span class="info-value" id="test1-details">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">
+                Test 2: API Endpoint Check
+                <span class="status loading" id="test2-status">Testing...</span>
+            </div>
+            <div class="image-info">
+                <div class="info-row">
+                    <span class="info-label">Endpoint:</span>
+                    <span class="info-value" id="test2-url">Checking...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value" id="test2-result">Waiting...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Details:</span>
+                    <span class="info-value" id="test2-details">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">
+                Test 3: Fetch All EAs from API
+                <span class="status loading" id="test3-status">Testing...</span>
+            </div>
+            <div class="image-info">
+                <div class="info-row">
+                    <span class="info-label">Result:</span>
+                    <span class="info-value" id="test3-result">Fetching...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Image URLs:</span>
+                    <span class="info-value" id="test3-details">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">Console Log Output</div>
+            <div class="console-output" id="console-output">
+                <div class="log-info">🔍 Starting diagnostic tests...</div>
+            </div>
+        </div>
+
+        <div class="summary">
+            <h3>📊 Test Summary</h3>
+            <div class="summary-item">
+                <span>Direct Image Load:</span>
+                <strong id="summary-test1">⏳ Testing...</strong>
+            </div>
+            <div class="summary-item">
+                <span>API Endpoint:</span>
+                <strong id="summary-test2">⏳ Testing...</strong>
+            </div>
+            <div class="summary-item">
+                <span>EAs Fetch:</span>
+                <strong id="summary-test3">⏳ Testing...</strong>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <button class="btn" onclick="location.reload()">🔄 Rerun Tests</button>
+        </div>
+    </div>
+
+    <script>
+        // Console logger
+        function log(message, type = 'info') {
+            const console_div = document.getElementById('console-output');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = {
+                error: '❌',
+                success: '✅',
+                info: 'ℹ️',
+                warning: '⚠️'
+            }[type] || 'ℹ️';
+            
+            entry.textContent = `[${timestamp}] ${icon} ${message}`;
+            console_div.appendChild(entry);
+            console_div.scrollTop = console_div.scrollHeight;
+            
+            // Also log to browser console
+            console[type === 'error' ? 'error' : 'log'](message);
+        }
+
+        // Test 1: Direct Supabase image URL
+        async function test1() {
+            log('Test 1: Testing direct Supabase Storage URL...', 'info');
+            
+            // This is a sample URL - in reality, we need to fetch actual EA data
+            const testUrl = 'https://ncikobfahncdgwvkfivz.supabase.co/storage/v1/object/public/ea-images/test-image.png';
+            
+            document.getElementById('test1-url').textContent = testUrl;
+            document.getElementById('test1-img').src = testUrl;
+            
+            const img = document.getElementById('test1-img');
+            
+            img.onerror = () => {
+                log('❌ Direct Supabase image load FAILED', 'error');
+                log('This could mean: 1) Bucket is private, 2) Image doesn\'t exist, 3) CORS issue', 'warning');
+                
+                document.getElementById('test1-status').textContent = 'Failed';
+                document.getElementById('test1-status').className = 'status error';
+                document.getElementById('test1-result').textContent = 'Failed to load';
+                document.getElementById('test1-details').textContent = 'Image request was blocked or file not found';
+                document.getElementById('summary-test1').textContent = '❌ Failed';
+            };
+            
+            img.onload = () => {
+                log('✅ Direct Supabase image loaded successfully!', 'success');
+                document.getElementById('test1-status').textContent = 'Success';
+                document.getElementById('test1-status').className = 'status success';
+                document.getElementById('test1-result').textContent = 'Loaded successfully';
+                document.getElementById('test1-details').textContent = `Image size: ${img.naturalWidth}x${img.naturalHeight}`;
+                document.getElementById('summary-test1').textContent = '✅ Working';
+            };
+        }
+
+        // Test 2: Check API endpoint
+        async function test2() {
+            log('Test 2: Checking API endpoint...', 'info');
+            
+            const apiUrl = 'https://web-production-fdb58.up.railway.app/api/eas';
+            document.getElementById('test2-url').textContent = apiUrl;
+            
+            try {
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                log(`✅ API responded with ${data.length} EAs`, 'success');
+                document.getElementById('test2-status').textContent = 'Success';
+                document.getElementById('test2-status').className = 'status success';
+                document.getElementById('test2-result').textContent = `${data.length} EAs found`;
+                document.getElementById('test2-details').textContent = 'API is working correctly';
+                document.getElementById('summary-test2').textContent = '✅ Working';
+                
+                return data;
+            } catch (error) {
+                log(`❌ API request failed: ${error.message}`, 'error');
+                document.getElementById('test2-status').textContent = 'Failed';
+                document.getElementById('test2-status').className = 'status error';
+                document.getElementById('test2-result').textContent = 'Failed';
+                document.getElementById('test2-details').textContent = error.message;
+                document.getElementById('summary-test2').textContent = '❌ Failed';
+                
+                return null;
+            }
+        }
+
+        // Test 3: Fetch and check EA images
+        async function test3(eas) {
+            log('Test 3: Analyzing EA image URLs...', 'info');
+            
+            if (!eas || eas.length === 0) {
+                log('⚠️ No EAs to analyze', 'warning');
+                document.getElementById('test3-status').textContent = 'Skipped';
+                document.getElementById('test3-status').className = 'status error';
+                document.getElementById('test3-result').textContent = 'No data';
+                document.getElementById('summary-test3').textContent = '⚠️ No Data';
+                return;
+            }
+            
+            const imageUrls = eas
+                .filter(ea => ea.image)
+                .map(ea => ({ name: ea.name, image: ea.image }));
+            
+            if (imageUrls.length === 0) {
+                log('⚠️ No EAs have image URLs', 'warning');
+                document.getElementById('test3-result').textContent = 'No images found';
+                document.getElementById('test3-details').textContent = 'None of the EAs have image URLs in the database';
+                document.getElementById('test3-status').textContent = 'Warning';
+                document.getElementById('test3-status').className = 'status error';
+                document.getElementById('summary-test3').textContent = '⚠️ No Images';
+                return;
+            }
+            
+            log(`Found ${imageUrls.length} EAs with image URLs`, 'success');
+            
+            // Display image URLs
+            let detailsHtml = '<ul style="margin: 5px 0; padding-left: 20px;">';
+            imageUrls.slice(0, 5).forEach(({ name, image }) => {
+                detailsHtml += `<li style="margin: 5px 0;"><strong>${name}:</strong> ${image.substring(0, 50)}...</li>`;
+                log(`  📸 ${name}: ${image}`, 'info');
+            });
+            if (imageUrls.length > 5) {
+                detailsHtml += `<li>... and ${imageUrls.length - 5} more</li>`;
+            }
+            detailsHtml += '</ul>';
+            
+            document.getElementById('test3-result').textContent = `${imageUrls.length} EAs with images`;
+            document.getElementById('test3-details').innerHTML = detailsHtml;
+            document.getElementById('test3-status').textContent = 'Success';
+            document.getElementById('test3-status').className = 'status success';
+            document.getElementById('summary-test3').textContent = `✅ ${imageUrls.length} Images`;
+            
+            // Try to load the first image
+            if (imageUrls[0]) {
+                log(`Testing first image: ${imageUrls[0].image}`, 'info');
+                document.getElementById('test1-img').src = imageUrls[0].image;
+                document.getElementById('test1-url').textContent = imageUrls[0].image;
+            }
+        }
+
+        // Run all tests
+        async function runTests() {
+            log('🚀 Starting all tests...', 'info');
+            
+            // Run tests sequentially
+            test1();
+            
+            const eas = await test2();
+            
+            if (eas) {
+                await test3(eas);
+            }
+            
+            log('✨ All tests completed!', 'success');
+            log('Check the results above to diagnose any issues.', 'info');
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            setTimeout(runTests, 500);
+        });
+    </script>
+</body>
+</html>
+

@@ -63,8 +63,12 @@ const Sidebar = ({ isOpen, onClose }) => {
           <img 
             src="/logo.png" 
             alt="Smart Algos Trading Platform" 
-            className="h-16 w-auto object-contain transition-transform hover:scale-105"
+            className="h-24 w-auto object-contain transition-transform hover:scale-105"
             style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' }}
+            onError={(e) => {
+              console.error('Sidebar logo failed to load from /logo.png');
+              e.target.style.display = 'none';
+            }}
           />
         </div>
         

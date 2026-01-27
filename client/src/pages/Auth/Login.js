@@ -72,8 +72,12 @@ export default function SmartAlgosLogin() {
                 <img 
                   src="/logo.png" 
                   alt="Smart Algos" 
-                  className="h-20 w-auto object-contain"
+                  className="h-28 w-auto object-contain"
                   style={{ filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))' }}
+                  onError={(e) => {
+                    console.error('Login logo failed to load from /logo.png');
+                    e.target.style.display = 'none';
+                  }}
                 />
               </div>
               <div className="space-y-4">

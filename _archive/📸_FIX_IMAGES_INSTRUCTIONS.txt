@@ -1,0 +1,85 @@
+╔══════════════════════════════════════════════════════════════════╗
+║          🔥 IMAGES NOT SHOWING? FIX IT IN 2 MINUTES!            ║
+╚══════════════════════════════════════════════════════════════════╝
+
+WHY IMAGES AREN'T DISPLAYING:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Your Supabase storage buckets are PRIVATE by default.
+The frontend code is deployed ✅
+But Supabase won't serve the images until you make them PUBLIC.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ QUICK FIX - DO THIS NOW:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: Open Supabase
+   → Go to: https://app.supabase.com
+   → Click on your Algosmart project
+
+STEP 2: Open SQL Editor
+   → Click "SQL Editor" in the left sidebar
+   → Click "+ New Query" button
+
+STEP 3: Copy the SQL
+   → Open the file: 🔥_RUN_THIS_SQL_NOW.sql
+   → Select ALL text (Ctrl+A)
+   → Copy it (Ctrl+C)
+
+STEP 4: Paste & Run
+   → Paste into Supabase SQL Editor (Ctrl+V)
+   → Click the green "Run" button (or press Ctrl+Enter)
+   → Wait for "Success" message ✅
+
+STEP 5: Verify
+   → Look for "Success" at the bottom
+   → Should see: "public = true" for all buckets
+
+STEP 6: Refresh Your Admin Dashboard
+   → Go back to your admin dashboard
+   → Press Ctrl+Shift+R (hard refresh)
+   → Images should now display! 🎉
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WHAT THE SQL DOES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Makes ea-images bucket PUBLIC ✅
+2. Makes ea-screenshots bucket PUBLIC ✅
+3. Makes ea-files bucket PUBLIC ✅
+4. Sets access policies for viewing ✅
+5. Sets upload permissions for admins ✅
+
+This is SAFE - it only makes the images publicly viewable,
+which is exactly what you want for an EA marketplace!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TROUBLESHOOTING:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If you get "policy already exists" error:
+   → This is OK! It means some policies were already created
+   → The UPDATE command will still work
+   → Images should still display
+
+If images still don't show after SQL:
+   1. Hard refresh browser (Ctrl+Shift+R)
+   2. Clear browser cache
+   3. Check browser console for errors (F12)
+   4. Verify buckets are public in Supabase Storage tab
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏱️ TOTAL TIME: 2 MINUTES
+
+This is a ONE-TIME fix. Once done, all images will work forever!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 FILE TO RUN: 🔥_RUN_THIS_SQL_NOW.sql
+
+Open it, copy everything, paste in Supabase SQL Editor, click Run!
+
+Good luck! 🚀
+

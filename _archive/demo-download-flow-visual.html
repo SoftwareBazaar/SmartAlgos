@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EA Download Flow - Visual Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .demo-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e5e7eb;
+            z-index: 0;
+        }
+        
+        .step-progress {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            height: 3px;
+            background: #667eea;
+            z-index: 1;
+            transition: width 0.5s ease;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active .step-circle {
+            background: #667eea;
+            color: white;
+            transform: scale(1.2);
+        }
+        
+        .step.completed .step-circle {
+            background: #10b981;
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .screen {
+            display: none;
+            min-height: 400px;
+        }
+        
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .ea-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f9fafb;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .ea-image {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        
+        .ea-details {
+            flex: 1;
+        }
+        
+        .ea-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .ea-price {
+            color: #667eea;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-large {
+            padding: 15px 40px;
+            font-size: 18px;
+        }
+        
+        .modal {
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        }
+        
+        .modal h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .download-modal {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+        }
+        
+        .download-modal h3 {
+            color: white;
+        }
+        
+        .file-list {
+            margin: 20px 0;
+        }
+        
+        .file-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .file-icon {
+            font-size: 30px;
+            margin-right: 15px;
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .file-size {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .btn-white {
+            background: white;
+            color: #10b981;
+        }
+        
+        .btn-white:hover {
+            background: #f0fdf4;
+        }
+        
+        .success-icon {
+            text-align: center;
+            font-size: 80px;
+            margin: 20px 0;
+            animation: bounce 0.5s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .controls {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .info-box strong {
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📥 EA Download Flow - Visual Demo</h1>
+            <p class="subtitle">Watch how the complete download process works</p>
+        </div>
+
+        <div class="demo-container">
+            <div class="step-indicator">
+                <div class="step-progress" id="progress" style="width: 0%"></div>
+                
+                <div class="step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Browse EA</div>
+                </div>
+                
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Click Download</div>
+                </div>
+                
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Subscribe</div>
+                </div>
+                
+                <div class="step" id="step4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Auto-Download</div>
+                </div>
+                
+                <div class="step" id="step5">
+                    <div class="step-circle">5</div>
+                    <div class="step-label">Complete</div>
+                </div>
+            </div>
+
+            <!-- Screen 1: EA Marketplace -->
+            <div class="screen active" id="screen1">
+                <h2 style="margin-bottom: 20px; color: #333;">Step 1: EA Marketplace</h2>
+                <div class="ea-card">
+                    <div class="ea-image">📊</div>
+                    <div class="ea-details">
+                        <div class="ea-name">Multi Indicator Scalping Arrows EA v6.0</div>
+                        <p style="color: #666; font-size: 14px;">Advanced scalping EA with visual arrow indicators</p>
+                        <div class="ea-price">$18/month</div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span style="color: #10b981;">⭐⭐⭐⭐⭐</span>
+                            <span style="color: #666;">4.8 (120 reviews)</span>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="nextStep()">Download</button>
+                </div>
+                
+                <div class="info-box">
+                    <strong>What happens:</strong> User browses the EA Marketplace and finds an EA they want to download.
+                </div>
+            </div>
+
+            <!-- Screen 2: Subscription Modal -->
+            <div class="screen" id="screen2">
+                <h2 style="margin-bottom: 20px; color: #333;">Step 2: Subscription Modal Opens</h2>
+                <div class="modal">
+                    <h3>Subscribe to EA</h3>
+                    <div class="form-group">
+                        <label>Subscription Type</label>
+                        <select>
+                            <option>Monthly - $18</option>
+                            <option>Yearly - $97 (Save 55%)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select>
+                            <option>Paystack</option>
+                            <option>Cryptocurrency</option>
+                            <option>Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Reference</label>
+                        <input type="text" value="REF_123456789" readonly>
+                    </div>
+                    <button class="btn btn-large" style="width: 100%;" onclick="nextStep()">Subscribe Now</button>
+                </div>
+                
+                <div class="info-box">
+                    <strong>What happens:</strong> When user clicks "Download", the subscription modal opens automatically. User fills in their subscription preferences.
+                </div>
+            </div>
+
+            <!-- Screen 3: Processing -->
+            <div class="screen" id="screen3">
+                <h2 style="margin-bottom: 20px; color: #333;">Step 3: Creating Subscription...</h2>
+                <div style="text-align: center; padding: 60px 0;">
+                    <div style="font-size: 60px; margin-bottom: 20px;">⏳</div>
+                    <h3 style="color: #667eea;">Processing your subscription...</h3>
+                    <p style="color: #666; margin-top: 10px;">This will only take a moment</p>
+                    
+                    <div style="max-width: 400px; margin: 30px auto;">
+                        <div style="background: #e5e7eb; height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="background: #667eea; height: 100%; width: 0%; animation: progress 2s ease forwards;"></div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-large" style="margin-top: 30px;" onclick="nextStep()">Continue to Downloads →</button>
+                </div>
+                
+                <div class="info-box">
+                    <strong>What happens:</strong> Backend creates the subscription, sets status to "active", and generates download links with secure JWT tokens.
+                </div>
+            </div>
+
+            <!-- Screen 4: Download Modal (AUTO) -->
+            <div class="screen" id="screen4">
+                <h2 style="margin-bottom: 20px; color: #333;">Step 4: ✅ Download Modal Opens AUTOMATICALLY!</h2>
+                <div class="modal download-modal">
+                    <div class="success-icon">🎉</div>
+                    <h3>Subscription Successful!</h3>
+                    <p style="margin-bottom: 20px; opacity: 0.9;">Your files are ready to download</p>
+                    
+                    <div class="file-list">
+                        <div class="file-item">
+                            <div style="display: flex; align-items: center; flex: 1;">
+                                <div class="file-icon">⚙️</div>
+                                <div class="file-info">
+                                    <div class="file-name">EA File (.ex4)</div>
+                                    <div class="file-size">2.5 MB</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-white">Download</button>
+                        </div>
+                        
+                        <div class="file-item">
+                            <div style="display: flex; align-items: center; flex: 1;">
+                                <div class="file-icon">📄</div>
+                                <div class="file-info">
+                                    <div class="file-name">Settings File (.set)</div>
+                                    <div class="file-size">15 KB</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-white">Download</button>
+                        </div>
+                        
+                        <div class="file-item">
+                            <div style="display: flex; align-items: center; flex: 1;">
+                                <div class="file-icon">📖</div>
+                                <div class="file-info">
+                                    <div class="file-name">User Manual (PDF)</div>
+                                    <div class="file-size">3.2 MB</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-white">Download</button>
+                        </div>
+                        
+                        <div class="file-item">
+                            <div style="display: flex; align-items: center; flex: 1;">
+                                <div class="file-icon">📸</div>
+                                <div class="file-info">
+                                    <div class="file-name">Screenshots</div>
+                                    <div class="file-size">4 images</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-white">View</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <strong>✨ KEY POINT:</strong> This modal opens <strong>AUTOMATICALLY</strong> after subscription - no user confirmation needed! User can immediately download all files.
+                </div>
+                
+                <button class="btn btn-large" style="margin: 20px auto; display: block;" onclick="nextStep()">Start Downloading</button>
+            </div>
+
+            <!-- Screen 5: Complete -->
+            <div class="screen" id="screen5">
+                <h2 style="margin-bottom: 20px; color: #333;">Step 5: Download Complete! 🎊</h2>
+                <div style="text-align: center; padding: 40px 0;">
+                    <div style="font-size: 100px; margin-bottom: 20px;">✅</div>
+                    <h2 style="color: #10b981; margin-bottom: 10px;">All Files Downloaded!</h2>
+                    <p style="color: #666; font-size: 18px;">You can now use your EA in MetaTrader</p>
+                    
+                    <div style="background: #f0fdf4; border: 2px solid #10b981; border-radius: 10px; padding: 30px; margin: 30px auto; max-width: 500px;">
+                        <h3 style="color: #065f46; margin-bottom: 15px;">What You Got:</h3>
+                        <ul style="list-style: none; text-align: left; color: #065f46;">
+                            <li style="margin: 10px 0;">✅ EA File - Ready to install</li>
+                            <li style="margin: 10px 0;">✅ Settings File - Optimized parameters</li>
+                            <li style="margin: 10px 0;">✅ User Manual - Complete guide</li>
+                            <li style="margin: 10px 0;">✅ Screenshots - Performance proof</li>
+                        </ul>
+                    </div>
+                    
+                    <h3 style="color: #333; margin: 30px 0 15px;">The Complete Flow:</h3>
+                    <div style="background: #eff6ff; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto; text-align: left;">
+                        <strong style="color: #1e40af;">1.</strong> User clicks "Download" <br>
+                        <strong style="color: #1e40af;">2.</strong> Subscription modal opens <br>
+                        <strong style="color: #1e40af;">3.</strong> User subscribes <br>
+                        <strong style="color: #1e40af;">4.</strong> <strong style="color: #10b981;">✨ Download modal opens AUTOMATICALLY</strong> <br>
+                        <strong style="color: #1e40af;">5.</strong> User downloads files <br>
+                        <strong style="color: #1e40af;">6.</strong> Complete! 🎉
+                    </div>
+                </div>
+                
+                <button class="btn btn-large" style="margin: 20px auto; display: block;" onclick="restart()">Watch Again</button>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="prevStep()" id="prevBtn" style="display: none;">← Previous</button>
+                <button class="btn" onclick="restart()" style="background: #6b7280;">🔄 Restart Demo</button>
+            </div>
+        </div>
+        
+        <div class="demo-container">
+            <h2 style="color: #333; margin-bottom: 20px;">💡 Key Takeaways</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div style="background: #eff6ff; padding: 20px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+                    <div style="font-size: 30px; margin-bottom: 10px;">⚡</div>
+                    <strong style="color: #1e40af;">Automatic</strong>
+                    <p style="color: #1e3a8a; margin-top: 5px;">Download modal opens automatically after subscription - no extra clicks needed!</p>
+                </div>
+                
+                <div style="background: #f0fdf4; padding: 20px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <div style="font-size: 30px; margin-bottom: 10px;">🎯</div>
+                    <strong style="color: #065f46;">Seamless</strong>
+                    <p style="color: #064e3b; margin-top: 5px;">User gets instant access to all files immediately after subscribing</p>
+                </div>
+                
+                <div style="background: #fef3c7; padding: 20px; border-radius: 10px; border-left: 4px solid #f59e0b;">
+                    <div style="font-size: 30px; margin-bottom: 10px;">🔒</div>
+                    <strong style="color: #78350f;">Secure</strong>
+                    <p style="color: #713f12; margin-top: 5px;">JWT tokens ensure only subscribed users can download files</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes progress {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+    </style>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 5;
+
+        function updateProgress() {
+            const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+            
+            // Update step indicators
+            for (let i = 1; i <= totalSteps; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.classList.remove('active', 'completed');
+                
+                if (i < currentStep) {
+                    step.classList.add('completed');
+                } else if (i === currentStep) {
+                    step.classList.add('active');
+                }
+            }
+            
+            // Show/hide screens
+            for (let i = 1; i <= totalSteps; i++) {
+                const screen = document.getElementById(`screen${i}`);
+                screen.classList.toggle('active', i === currentStep);
+            }
+            
+            // Show/hide previous button
+            document.getElementById('prevBtn').style.display = currentStep > 1 ? 'inline-block' : 'none';
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateProgress();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateProgress();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function restart() {
+            currentStep = 1;
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Auto-advance through steps for demo
+        function autoDemonstrate() {
+            if (currentStep < totalSteps) {
+                setTimeout(() => {
+                    nextStep();
+                    autoDemonstrate();
+                }, currentStep === 3 ? 2500 : 4000); // Faster on processing screen
+            }
+        }
+
+        // Uncomment to auto-play demo
+        // setTimeout(autoDemonstrate, 2000);
+    </script>
+</body>
+</html>
+

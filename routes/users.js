@@ -111,22 +111,53 @@ router.get('/dashboard-stats', [auth, updateActivity], async (req, res) => {
       .select('*')
       .eq('is_active', true);
 
-    // Get user data for portfolio value
-    const user = await getUserRecordById(userId);
-    const portfolio = user?.portfolio || {};
+    // Get portfolio PnL data from database (CSV uploads)
+    const { data: pnlData, error: pnlError } = await databaseService.supabase
+      .from('portfolio_pnl')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date', { ascending: true });
+
+    let portfolioValue = 0;
+    let todayPnL = 0;
+    let todayPnLPercent = 0;
+    let winRate = 0;
+    let totalTrades = 0;
+
+    if (pnlData && pnlData.length > 0) {
+      // Calculate portfolio value from cumulative PnL
+      const latestEntry = pnlData[pnlData.length - 1];
+      portfolioValue = latestEntry.cumulative_pnl || 0;
+
+      // Get today's PnL (last entry)
+      todayPnL = latestEntry.pnl || 0;
+
+      // Calculate today's PnL percentage
+      const previousValue = portfolioValue - todayPnL;
+      if (previousValue !== 0) {
+        todayPnLPercent = (todayPnL / Math.abs(previousValue)) * 100;
+      }
+
+      // Calculate win rate
+      const profitableDays = pnlData.filter(entry => entry.pnl > 0).length;
+      totalTrades = pnlData.length;
+      winRate = totalTrades > 0 ? (profitableDays / totalTrades) * 100 : 0;
+    }
 
     // Calculate stats
     const stats = {
-      portfolioValue: portfolio.totalValue || 0,
-      todayPnL: portfolio.todayPnL || 0,
-      todayPnLPercent: portfolio.todayPnLPercent || 0,
+      portfolioValue: portfolioValue,
+      todayPnL: todayPnL,
+      todayPnLPercent: todayPnLPercent,
       activeSignals: signals?.length || 0,
-      winRate: portfolio.winRate || 0,
+      winRate: winRate,
       activeSubscriptions: subscriptions?.length || 0,
-      totalTrades: portfolio.totalTrades || 0,
-      profitFactor: portfolio.profitFactor || 0,
+      totalTrades: totalTrades,
+      profitFactor: 0, // Can be calculated if needed
       updatedAt: new Date().toISOString()
     };
+
+    console.log(`[Dashboard] Stats for user ${userId}:`, stats);
 
     res.json({
       success: true,

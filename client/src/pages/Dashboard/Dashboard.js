@@ -114,57 +114,7 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error('[Dashboard] Failed to fetch signals:', error.message);
-        
-        // Use sample data for demonstration while APIs are being configured
-        const sampleSignals = [
-          {
-            id: 'sample-1',
-            symbol: 'AAPL',
-            name: 'Apple Inc.',
-            signal: 'BUY',
-            confidence: 85,
-            price: 175.50,
-            change: '+2.30',
-            changePercent: '+1.33%',
-            time: '2 min ago'
-          },
-          {
-            id: 'sample-2',
-            symbol: 'TSLA',
-            name: 'Tesla Inc.',
-            signal: 'SELL',
-            confidence: 72,
-            price: 245.80,
-            change: '-5.20',
-            changePercent: '-2.07%',
-            time: '15 min ago'
-          },
-          {
-            id: 'sample-3',
-            symbol: 'MSFT',
-            name: 'Microsoft Corporation',
-            signal: 'BUY',
-            confidence: 91,
-            price: 378.25,
-            change: '+4.15',
-            changePercent: '+1.11%',
-            time: '32 min ago'
-          },
-          {
-            id: 'sample-4',
-            symbol: 'GOOGL',
-            name: 'Alphabet Inc.',
-            signal: 'HOLD',
-            confidence: 58,
-            price: 142.80,
-            change: '+0.45',
-            changePercent: '+0.32%',
-            time: '1 hour ago'
-          }
-        ];
-        
-        setRecentSignals(sampleSignals);
-        console.log('[Dashboard] ℹ️ Using sample signals for demonstration');
+        setRecentSignals([]);
       } finally {
         setLoadingSignals(false);
       }
@@ -178,42 +128,15 @@ const Dashboard = () => {
     const fetchMarketOverview = async () => {
       try {
         setLoadingMarket(true);
-        const response = await apiClient.get('/api/markets/overview');
+        // Use simple markets endpoint for direct API calls
+        const response = await apiClient.get('/api/simple-markets/overview');
         
         if (response.data && response.data.success && response.data.data) {
-          const data = response.data.data;
-          const overview = [];
-          
-          // Add US indices (S&P 500, NASDAQ, DOW)
-          if (data.us && data.us.indices) {
-            data.us.indices.slice(0, 3).forEach(index => {
-              overview.push({
-                symbol: index.symbol || index.name,
-                value: formatMarketValue(index.price || index.value),
-                change: formatChange(index.change),
-                changePercent: formatChangePercent(index.changePercent || index.change_percent),
-                trend: (index.change || 0) >= 0 ? 'up' : 'down'
-              });
-            });
-          }
-          
-          // Add top crypto (BTC)
-          if (data.crypto && data.crypto.top) {
-            const btc = data.crypto.top.find(c => c.symbol === 'BTC' || c.symbol === 'BTCUSD');
-            if (btc) {
-              overview.push({
-                symbol: 'BTC/USD',
-                value: formatMarketValue(btc.price),
-                change: formatChange(btc.change),
-                changePercent: formatChangePercent(btc.changePercent || btc.change_percent),
-                trend: (btc.change || 0) >= 0 ? 'up' : 'down'
-              });
-            }
-          }
+          const overview = response.data.data;
           
           if (overview.length > 0) {
             setMarketOverview(overview);
-            console.log('[Dashboard] ✅ Loaded', overview.length, 'market indices');
+            console.log('[Dashboard] ✅ Loaded', overview.length, 'market indices from API');
           } else {
             console.log('[Dashboard] No market data in API response');
             setMarketOverview([]);
@@ -224,41 +147,7 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error('[Dashboard] Failed to fetch market data:', error.message);
-        
-        // Use sample data for demonstration while APIs are being configured
-        const sampleMarket = [
-          {
-            symbol: 'S&P 500',
-            value: '4,567.89',
-            change: '+23.45',
-            changePercent: '+0.52%',
-            trend: 'up'
-          },
-          {
-            symbol: 'NASDAQ',
-            value: '14,234.56',
-            change: '+45.67',
-            changePercent: '+0.32%',
-            trend: 'up'
-          },
-          {
-            symbol: 'DOW',
-            value: '35,678.90',
-            change: '-123.45',
-            changePercent: '-0.34%',
-            trend: 'down'
-          },
-          {
-            symbol: 'BTC/USD',
-            value: '$52,450.00',
-            change: '+1,250.00',
-            changePercent: '+2.44%',
-            trend: 'up'
-          }
-        ];
-        
-        setMarketOverview(sampleMarket);
-        console.log('[Dashboard] ℹ️ Using sample market data for demonstration');
+        setMarketOverview([]);
       } finally {
         setLoadingMarket(false);
       }

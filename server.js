@@ -455,6 +455,7 @@ app.use('/api/eas', eaRoutes); // Public routes - auth handled per-endpoint
 app.use('/api/hft', auth, validateCSRF, hftRoutes);
 app.use('/api/signals', auth, validateCSRF, signalRoutes);
 app.use('/api/markets', auth, marketRoutes); // Read-only, no CSRF needed
+app.use('/api/simple-markets', require('./routes/simpleMarkets')); // Direct API calls, no complex services
 app.use('/api/news', auth, newsRoutes); // Read-only, no CSRF needed
 app.use('/api/subscriptions', auth, validateCSRF, subscriptionRoutes);
 app.use('/api/escrow', auth, validateCSRF, escrowRoutes);

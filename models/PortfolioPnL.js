@@ -7,8 +7,7 @@ const mongoose = require('mongoose');
 
 const portfolioPnLSchema = new mongoose.Schema({
   user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String, // UUID from Supabase
     required: true,
     index: true
   },

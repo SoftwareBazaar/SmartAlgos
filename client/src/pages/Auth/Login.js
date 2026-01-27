@@ -72,10 +72,10 @@ export default function SmartAlgosLogin() {
                 <img 
                   src="/logo.png" 
                   alt="Smart Algos" 
-                  className="h-20 sm:h-24 md:h-28 w-auto object-contain"
+                  className="h-24 w-auto object-contain"
                   style={{ 
                     filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))',
-                    maxWidth: '100%',
+                    maxWidth: '280px',
                     height: 'auto'
                   }}
                   onError={(e) => {

@@ -63,10 +63,10 @@ const Sidebar = ({ isOpen, onClose }) => {
           <img 
             src="/logo.png" 
             alt="Smart Algos Trading Platform" 
-            className="h-16 sm:h-20 md:h-24 w-auto object-contain transition-transform hover:scale-105"
+            className="h-20 w-auto object-contain transition-transform hover:scale-105"
             style={{ 
               filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))',
-              maxWidth: '100%',
+              maxWidth: '220px',
               height: 'auto'
             }}
             onError={(e) => {

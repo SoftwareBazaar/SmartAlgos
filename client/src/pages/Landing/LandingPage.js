@@ -227,10 +227,11 @@ const LandingPage = () => {
         <div className="container-custom">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Smart Algos</span>
+              <img 
+                src="/logo.png" 
+                alt="Smart Algos" 
+                className="h-10 w-auto object-contain"
+              />
             </div>
             <div className="flex space-x-4">
               <Link to="/auth/login">
@@ -493,10 +494,11 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div>
               <div className="flex items-center space-x-2 mb-6">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">Smart Algos</span>
+                <img 
+                  src="/logo.png" 
+                  alt="Smart Algos" 
+                  className="h-10 w-auto object-contain"
+                />
               </div>
               <p className="text-gray-400 leading-relaxed">
                 Professional algorithmic trading platform for serious traders and institutional investors.

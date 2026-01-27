@@ -67,8 +67,13 @@ export default function SmartAlgosLogin() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(168,85,247,0.22),_transparent_60%)]" />
           <div className="relative z-10 flex h-full flex-col justify-start gap-12 pt-6 lg:pt-8">
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200/80 backdrop-blur">
-                Smart Algos
+              {/* Logo */}
+              <div className="flex items-center gap-3">
+                <img 
+                  src="/logo.png" 
+                  alt="Smart Algos" 
+                  className="h-14 w-auto object-contain"
+                />
               </div>
               <div className="space-y-4">
                 <h1 className="text-3xl font-semibold leading-snug md:text-4xl">

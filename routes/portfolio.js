@@ -7,7 +7,7 @@ const XLSX = require('xlsx');
 const { auth, updateActivity } = require('../middleware/auth');
 const mt5APIService = require('../services/mt5APIService');
 const mt5Service = require('../services/mt5Service');
-const PortfolioPnL = require('../models/PortfolioPnL');
+const portfolioService = require('../services/portfolioService');
 
 const router = express.Router();
 
@@ -790,7 +790,7 @@ router.post('/upload-csv', [auth, updateActivity], (req, res, next) => {
           uploadedAt: new Date()
         };
 
-        await PortfolioPnL.upsertPnLEntries(
+        await portfolioService.upsertPnLEntries(
           userId,
           analysis.pnlEntries,
           isExcelUpload ? 'excel' : 'csv',
@@ -841,7 +841,7 @@ router.get('/pnl', [auth, updateActivity], async (req, res) => {
 
     // First, try to get data from database (CSV uploads)
     try {
-      const dbEntries = await PortfolioPnL.getUserPnL(userId);
+      const dbEntries = await portfolioService.getUserPnL(userId);
       
       if (dbEntries && dbEntries.length > 0) {
         pnlEntries = dbEntries.map(entry => ({
@@ -904,7 +904,7 @@ router.get('/pnl', [auth, updateActivity], async (req, res) => {
 
         if (pnlEntries.length > 0) {
           // Save MT5 data to database for future use
-          await PortfolioPnL.upsertPnLEntries(userId, pnlEntries, 'mt5');
+          await portfolioService.upsertPnLEntries(userId, pnlEntries, 'mt5');
           console.log(`[Portfolio] ✅ Fetched ${pnlEntries.length} days of PnL data from MT5 and saved to database`);
           source = 'mt5';
         }

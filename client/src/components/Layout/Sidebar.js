@@ -59,14 +59,14 @@ const Sidebar = ({ isOpen, onClose }) => {
     <>
       <div className="flex items-center justify-between h-16 px-4 bg-white dark:bg-gradient-to-r dark:from-black dark:via-brand-900 dark:to-black border-b border-gray-200 dark:border-brand-800/70 shadow-lg">
         {/* Logo */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center">
           <img 
             src="/logo.png" 
             alt="Smart Algos Trading Platform" 
-            className="h-14 w-auto object-contain transition-transform hover:scale-105"
+            className="h-12 w-auto object-contain transition-transform hover:scale-105"
             style={{ 
               filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))',
-              maxWidth: '160px',
+              maxWidth: '130px',
               height: 'auto'
             }}
             onError={(e) => {

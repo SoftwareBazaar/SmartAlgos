@@ -68,14 +68,14 @@ export default function SmartAlgosLogin() {
           <div className="relative z-10 flex h-full flex-col justify-start gap-12 pt-6 lg:pt-8">
             <div className="space-y-6">
               {/* Logo */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <img 
                   src="/logo.png" 
                   alt="Smart Algos" 
-                  className="h-16 w-auto object-contain"
+                  className="h-14 w-auto object-contain"
                   style={{ 
                     filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))',
-                    maxWidth: '180px',
+                    maxWidth: '140px',
                     height: 'auto'
                   }}
                   onError={(e) => {

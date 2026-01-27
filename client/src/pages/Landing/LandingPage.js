@@ -225,15 +225,15 @@ const LandingPage = () => {
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="container-custom">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
+          <div className="flex justify-between items-center py-3">
+            <div className="flex items-center">
               <img 
                 src="/logo.png" 
                 alt="Smart Algos" 
-                className="h-12 w-auto object-contain"
+                className="h-10 w-auto object-contain"
                 style={{ 
                   filter: 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12))',
-                  maxWidth: '150px',
+                  maxWidth: '120px',
                   height: 'auto'
                 }}
                 onError={(e) => {
@@ -502,14 +502,14 @@ const LandingPage = () => {
         <div className="container-custom">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div>
-              <div className="flex items-center space-x-2 mb-6">
+              <div className="flex items-center mb-6">
                 <img 
                   src="/logo.png" 
                   alt="Smart Algos" 
-                  className="h-12 w-auto object-contain"
+                  className="h-10 w-auto object-contain"
                   style={{ 
                     filter: 'drop-shadow(0 1px 3px rgba(255, 255, 255, 0.3))',
-                    maxWidth: '150px',
+                    maxWidth: '120px',
                     height: 'auto'
                   }}
                   onError={(e) => {

@@ -86,8 +86,8 @@ try {
     'http://localhost:5000',
     'https://localhost:3000',
     'https://localhost:5000',
-    'https://web-production-fdb58.up.railway.app',
-    'https://smartalgos-production.up.railway.app'
+    'https://smartalgosts.com',
+    'https://www.smartalgosts.com'
   ].filter(Boolean);
 
   app.use(
@@ -203,8 +203,8 @@ try {
     cors: {
       origin: [
         process.env.CLIENT_URL || 'http://localhost:3000',
-        'https://web-production-fdb58.up.railway.app',
-        'https://smartalgos-production.up.railway.app'
+        'https://smartalgosts.com',
+        'https://www.smartalgosts.com'
       ],
       methods: ['GET', 'POST'],
       credentials: true

@@ -230,7 +230,8 @@ const LandingPage = () => {
               <img 
                 src="/logo.png" 
                 alt="Smart Algos" 
-                className="h-10 w-auto object-contain"
+                className="h-14 w-auto object-contain"
+                style={{ filter: 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12))' }}
               />
             </div>
             <div className="flex space-x-4">
@@ -497,7 +498,8 @@ const LandingPage = () => {
                 <img 
                   src="/logo.png" 
                   alt="Smart Algos" 
-                  className="h-10 w-auto object-contain"
+                  className="h-14 w-auto object-contain"
+                  style={{ filter: 'drop-shadow(0 1px 3px rgba(255, 255, 255, 0.3))' }}
                 />
               </div>
               <p className="text-gray-400 leading-relaxed">

@@ -63,7 +63,8 @@ const Sidebar = ({ isOpen, onClose }) => {
           <img 
             src="/logo.png" 
             alt="Smart Algos Trading Platform" 
-            className="h-12 w-auto object-contain transition-transform hover:scale-105"
+            className="h-16 w-auto object-contain transition-transform hover:scale-105"
+            style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' }}
           />
         </div>
         

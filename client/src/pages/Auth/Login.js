@@ -72,7 +72,8 @@ export default function SmartAlgosLogin() {
                 <img 
                   src="/logo.png" 
                   alt="Smart Algos" 
-                  className="h-14 w-auto object-contain"
+                  className="h-20 w-auto object-contain"
+                  style={{ filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))' }}
                 />
               </div>
               <div className="space-y-4">

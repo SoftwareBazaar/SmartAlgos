@@ -437,9 +437,9 @@ const Portfolio = () => {
   };
 
   const pnlColorClass = (value) => {
-    if (value > 0) return 'bg-success-500/10 border border-success-500/30 text-success-200';
-    if (value < 0) return 'bg-danger-500/10 border border-danger-500/30 text-danger-200';
-    return 'bg-brand-900/60 border border-brand-800/70 text-brand-200';
+    if (value > 0) return 'bg-gradient-to-br from-emerald-500 to-green-600 border-2 border-emerald-400 text-white shadow-lg shadow-emerald-500/30';
+    if (value < 0) return 'bg-gradient-to-br from-rose-500 to-red-600 border-2 border-rose-400 text-white shadow-lg shadow-rose-500/30';
+    return 'bg-gradient-to-br from-gray-700 to-gray-800 border-2 border-gray-600 text-gray-300 shadow-md';
   };
 
   const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -716,18 +716,18 @@ const Portfolio = () => {
                   {monthLabel} - {formatPnLValue(totalMonthlyPnL)} total
                 </p>
               </div>
-              <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded bg-success-500/70" />
-                  <span>Gain</span>
+              <div className="flex items-center gap-4 text-xs font-medium text-gray-700 dark:text-gray-300">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700">
+                  <span className="w-4 h-4 rounded-md bg-gradient-to-br from-emerald-500 to-green-600 shadow-md" />
+                  <span className="font-semibold">Gain</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded bg-danger-500/70" />
-                  <span>Loss</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-100 dark:bg-rose-900/30 border border-rose-300 dark:border-rose-700">
+                  <span className="w-4 h-4 rounded-md bg-gradient-to-br from-rose-500 to-red-600 shadow-md" />
+                  <span className="font-semibold">Loss</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded bg-brand-800" />
-                  <span>Flat</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700">
+                  <span className="w-4 h-4 rounded-md bg-gradient-to-br from-gray-700 to-gray-800 shadow-md" />
+                  <span className="font-semibold">Flat</span>
                 </div>
               </div>
             </div>
@@ -737,32 +737,32 @@ const Portfolio = () => {
             ) : pnlEntries.length === 0 ? (
               <div className="py-8 text-center text-gray-500 dark:text-gray-400">No performance data yet. Upload a CSV to populate this chart.</div>
             ) : (
-            <div className="grid grid-cols-7 gap-2 text-xs">
+            <div className="grid grid-cols-7 gap-3 text-xs">
               {dayLabels.map((label) => (
-                <div key={label} className="text-center text-gray-600 dark:text-gray-300 uppercase tracking-widest">
+                <div key={label} className="text-center text-gray-700 dark:text-gray-200 uppercase tracking-widest font-bold text-[10px]">
                   {label}
                 </div>
               ))}
               {calendarCells.map((cell, index) => {
                 if (!cell) {
-                  return <div key={`empty-${index}`} className="h-16 rounded-lg bg-transparent" />;
+                  return <div key={`empty-${index}`} className="h-20 rounded-xl bg-transparent" />;
                 }
 
                 return (
                   <div
                     key={cell.dateKey}
-                    className={`flex flex-col justify-between rounded-lg p-2 h-16 shadow-inner transition-transform duration-200 hover:scale-[1.02] ${pnlColorClass(cell.pnl)}`}
+                    className={`flex flex-col justify-between rounded-xl p-3 h-20 transition-all duration-200 hover:scale-105 hover:shadow-2xl cursor-pointer ${pnlColorClass(cell.pnl)}`}
                   >
-                    <div className="flex items-center justify-between text-[11px] font-semibold">
-                      <span>{cell.day}</span>
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span className="text-white/90">{cell.day}</span>
                       {cell.pnl !== 0 && (
-                        <span>{formatPnLValue(cell.pnl)}</span>
+                        <span className="text-white font-extrabold">{formatPnLValue(cell.pnl)}</span>
                       )}
                     </div>
-                    <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden">
+                    <div className="w-full h-1.5 rounded-full bg-white/20 overflow-hidden shadow-inner">
                       {cell.pnl !== 0 && (
                         <div
-                          className={`h-full ${cell.pnl > 0 ? 'bg-success-400' : 'bg-danger-500'}`}
+                          className={`h-full ${cell.pnl > 0 ? 'bg-white' : 'bg-white'}`}
                           style={{ width: `${Math.min(Math.abs(cell.pnl) / 1200 * 100, 100)}%` }}
                         />
                       )}

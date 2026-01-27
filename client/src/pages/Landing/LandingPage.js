@@ -230,10 +230,10 @@ const LandingPage = () => {
               <img 
                 src="/logo.png" 
                 alt="Smart Algos" 
-                className="h-16 w-auto object-contain"
+                className="h-12 w-auto object-contain"
                 style={{ 
                   filter: 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12))',
-                  maxWidth: '200px',
+                  maxWidth: '150px',
                   height: 'auto'
                 }}
                 onError={(e) => {
@@ -506,10 +506,10 @@ const LandingPage = () => {
                 <img 
                   src="/logo.png" 
                   alt="Smart Algos" 
-                  className="h-14 w-auto object-contain"
+                  className="h-12 w-auto object-contain"
                   style={{ 
                     filter: 'drop-shadow(0 1px 3px rgba(255, 255, 255, 0.3))',
-                    maxWidth: '180px',
+                    maxWidth: '150px',
                     height: 'auto'
                   }}
                   onError={(e) => {

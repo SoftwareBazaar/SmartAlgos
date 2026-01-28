@@ -18,15 +18,15 @@ async function updatePricesAndActivatePaystack() {
     ];
 
     const prices = {
-      weekly_price: 19.00,
-      monthly_price: 55.00,
-      lifetime_price: 399.00
+      price_weekly: 19.00,
+      price_monthly: 55.00,
+      price_yearly: 399.00
     };
 
     console.log('💰 Updating EA Prices:');
-    console.log(`   Weekly: $${prices.weekly_price}`);
-    console.log(`   Monthly: $${prices.monthly_price}`);
-    console.log(`   Lifetime: $${prices.lifetime_price}\n`);
+    console.log(`   Weekly: $${prices.price_weekly}`);
+    console.log(`   Monthly: $${prices.price_monthly}`);
+    console.log(`   Yearly (Lifetime): $${prices.price_yearly}\n`);
 
     // Update each EA
     for (const ea of easToUpdate) {
@@ -68,7 +68,7 @@ async function updatePricesAndActivatePaystack() {
     console.log('\n📊 Verifying Updates:');
     const { data: allEAs, error: verifyError } = await supabase
       .from('expert_advisors')
-      .select('id, name, weekly_price, monthly_price, lifetime_price')
+      .select('id, name, price_weekly, price_monthly, price_yearly')
       .order('name');
 
     if (verifyError) {
@@ -79,9 +79,9 @@ async function updatePricesAndActivatePaystack() {
       console.log('='.repeat(80));
       allEAs.forEach(ea => {
         console.log(`\n${ea.name} (ID: ${ea.id})`);
-        console.log(`  Weekly:   $${ea.weekly_price || 'Not set'}`);
-        console.log(`  Monthly:  $${ea.monthly_price || 'Not set'}`);
-        console.log(`  Lifetime: $${ea.lifetime_price || 'Not set'}`);
+        console.log(`  Weekly:  $${ea.price_weekly || 'Not set'}`);
+        console.log(`  Monthly: $${ea.price_monthly || 'Not set'}`);
+        console.log(`  Yearly:  $${ea.price_yearly || 'Not set'}`);
       });
     }
 

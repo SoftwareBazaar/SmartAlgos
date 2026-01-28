@@ -20,7 +20,7 @@ async function updatePricesAndActivatePaystack() {
     const prices = {
       weekly_price: 19.00,
       monthly_price: 55.00,
-      lifetime_price: 999.00
+      lifetime_price: 399.00
     };
 
     console.log('💰 Updating EA Prices:');

@@ -1,12 +1,12 @@
 -- Update EA Prices for London Breakout, Multi Indicator, and Gold Scalper
--- Weekly: $19, Monthly: $55, Lifetime: $999
+-- Weekly: $19, Monthly: $55, Lifetime: $399
 
 -- Update London Breakout EA
 UPDATE expert_advisors
 SET 
   weekly_price = 19.00,
   monthly_price = 55.00,
-  lifetime_price = 999.00,
+  lifetime_price = 399.00,
   updated_at = NOW()
 WHERE LOWER(name) LIKE '%london%breakout%';
 
@@ -15,7 +15,7 @@ UPDATE expert_advisors
 SET 
   weekly_price = 19.00,
   monthly_price = 55.00,
-  lifetime_price = 999.00,
+  lifetime_price = 399.00,
   updated_at = NOW()
 WHERE LOWER(name) LIKE '%multi%indicator%';
 
@@ -24,7 +24,7 @@ UPDATE expert_advisors
 SET 
   weekly_price = 19.00,
   monthly_price = 55.00,
-  lifetime_price = 999.00,
+  lifetime_price = 399.00,
   updated_at = NOW()
 WHERE LOWER(name) LIKE '%gold%scalper%';
 

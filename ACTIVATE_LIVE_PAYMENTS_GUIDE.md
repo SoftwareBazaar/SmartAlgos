@@ -6,9 +6,9 @@ All three EAs now have the same pricing:
 
 | EA Name | Weekly | Monthly | Lifetime |
 |---------|--------|---------|----------|
-| London Breakout | $19 | $55 | $999 |
-| Multi Indicator | $19 | $55 | $999 |
-| Gold Scalper | $19 | $55 | $999 |
+| London Breakout | $19 | $55 | $399 |
+| Multi Indicator | $19 | $55 | $399 |
+| Gold Scalper | $19 | $55 | $399 |
 
 ## Step 1: Update EA Prices in Database
 
@@ -65,7 +65,7 @@ After deployment, check:
 2. Check each EA shows correct prices:
    - Weekly: $19
    - Monthly: $55
-   - Lifetime: $999
+   - Lifetime: $399
 
 ## Important Notes
 

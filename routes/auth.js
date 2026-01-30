@@ -991,7 +991,6 @@ router.get('/me', auth, async (req, res) => {
 // @desc    Send password reset email
 // @access  Public
 router.post('/forgot-password', [
-  // passwordResetRateLimit REMOVED - no rate limiting
   body('email')
     .isEmail()
     .normalizeEmail(EMAIL_NORMALIZE_OPTIONS)
@@ -1009,23 +1008,11 @@ router.post('/forgot-password', [
 
     const { email } = req.body;
 
+    // Check if user exists
     const user = await authStore.getUserByEmail(email);
+    
     if (!user) {
-      console.warn('[admin-login] user not found for email:', email);
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    console.log('[admin-login] fetched user', {
-      id: user.id,
-      role: user.role,
-      is_active: user.is_active,
-      login_attempts: user.login_attempts
-    });
-    if (!user) {
-      // Don't reveal if email exists or not
+      // Don't reveal if email exists or not (security best practice)
       return res.json({
         success: true,
         message: 'If an account with that email exists, a password reset link has been sent'
@@ -1033,7 +1020,13 @@ router.post('/forgot-password', [
     }
 
     // Generate reset token using Supabase
-    const { data: resetData, error: resetError } = await supabase.auth.resetPasswordForEmail(email);
+    const redirectUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://smartalgosts.com/auth/reset-password'
+      : 'http://localhost:3000/auth/reset-password';
+
+    const { data: resetData, error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl
+    });
     
     if (resetError) {
       console.error('Password reset error:', resetError);
@@ -1042,20 +1035,12 @@ router.post('/forgot-password', [
         message: 'Failed to send password reset email'
       });
     }
-    
-    const resetToken = null; // Supabase handles the reset flow
 
-    await authStore.updateUser(user.id, {
-      password_reset_token: resetToken,
-      password_reset_expires: new Date(Date.now() + 60 * 60 * 1000).toISOString()
-    });
+    console.log('✓ Password reset email sent to:', email);
 
-    // In a real application, you would send an email here
-    // For now, we'll just return the token (remove this in production)
     res.json({
       success: true,
-      message: 'Password reset link sent to your email',
-      resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined
+      message: 'Password reset link sent to your email'
     });
 
   } catch (error) {
@@ -1068,12 +1053,12 @@ router.post('/forgot-password', [
 });
 
 // @route   POST /api/auth/reset-password
-// @desc    Reset password with token
+// @desc    Reset password with access token from Supabase
 // @access  Public
 router.post('/reset-password', [
-  body('token')
+  body('accessToken')
     .notEmpty()
-    .withMessage('Reset token is required'),
+    .withMessage('Access token is required'),
   body('password')
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters long')
@@ -1090,17 +1075,29 @@ router.post('/reset-password', [
       });
     }
 
-    const { token, password } = req.body;
+    const { accessToken, password } = req.body;
 
-    // Password reset is handled by Supabase - no custom token verification needed
-    // This endpoint should not be used with Supabase authentication
-    return res.status(400).json({
-      success: false,
-      message: 'Password reset is handled by Supabase. Use the reset link from your email.'
+    // Update password using Supabase
+    const { data, error } = await supabase.auth.updateUser(
+      { password },
+      { accessToken }
+    );
+
+    if (error) {
+      console.error('Password reset error:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Failed to reset password'
+      });
+    }
+
+    console.log('✓ Password reset successful for user:', data.user?.email);
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully'
     });
 
-    // This code is unreachable due to the return statement above
-    // Password reset is handled by Supabase
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({

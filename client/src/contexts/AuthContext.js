@@ -448,9 +448,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Reset password
-  const resetPassword = async (token, password) => {
+  const resetPassword = async (accessToken, password) => {
     try {
-      await apiClient.post('/api/auth/reset-password', { token, password });
+      await apiClient.post('/api/auth/reset-password', { accessToken, password });
       toast.success('Password reset successfully');
       return { success: true };
     } catch (error) {

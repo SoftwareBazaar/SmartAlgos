@@ -23,31 +23,43 @@ ALTER TABLE IF EXISTS public.payment_signin_jobs ENABLE ROW LEVEL SECURITY;
 -- 2. AI MODELS POLICIES
 -- ============================================
 
--- Anyone can read active AI models
-CREATE POLICY "Anyone can read active AI models"
-ON public.ai_models
-FOR SELECT
-USING (is_active = true);
+-- Check if table exists before creating policies
+DO $$ 
+BEGIN
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'ai_models') THEN
+    -- Anyone can read active AI models
+    EXECUTE 'CREATE POLICY "Anyone can read active AI models"
+    ON public.ai_models
+    FOR SELECT
+    USING (is_active = true)';
 
--- Service role can manage all AI models
-CREATE POLICY "Service role can manage AI models"
-ON public.ai_models
-FOR ALL
-TO service_role
-USING (true)
-WITH CHECK (true);
+    -- Service role can manage all AI models
+    EXECUTE 'CREATE POLICY "Service role can manage AI models"
+    ON public.ai_models
+    FOR ALL
+    TO service_role
+    USING (true)
+    WITH CHECK (true)';
+  END IF;
+END $$;
 
 -- ============================================
 -- 3. AI SIGNAL JOBS POLICIES
 -- ============================================
 
--- Only service role can access AI signal jobs
-CREATE POLICY "Service role can manage AI signal jobs"
-ON public.ai_signal_jobs
-FOR ALL
-TO service_role
-USING (true)
-WITH CHECK (true);
+-- Check if table exists before creating policies
+DO $$ 
+BEGIN
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'ai_signal_jobs') THEN
+    -- Only service role can access AI signal jobs
+    EXECUTE 'CREATE POLICY "Service role can manage AI signal jobs"
+    ON public.ai_signal_jobs
+    FOR ALL
+    TO service_role
+    USING (true)
+    WITH CHECK (true)';
+  END IF;
+END $$;
 
 -- ============================================
 -- 4. EA REVIEWS POLICIES
@@ -90,7 +102,7 @@ CREATE POLICY "Users can view their own escrow transactions"
 ON public.escrow_transactions
 FOR SELECT
 TO authenticated
-USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
+USING (auth.uid() = user_id);
 
 -- Service role can manage all escrow transactions
 CREATE POLICY "Service role can manage escrow transactions"

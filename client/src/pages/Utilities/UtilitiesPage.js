@@ -86,18 +86,30 @@ const UtilitiesPage = () => {
     try {
       console.log(`Downloading ${utility.name}...`);
       
-      // Create a download link that goes through our server
-      const downloadUrl = `/api/utilities/${utility.id}/download`;
-      
-      // Open the download URL in a new tab/window
-      // This will trigger the server-side download logic
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `${utility.name}-v${utility.version}.exe`;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Check if download_url is an external link (like TradingView)
+      if (utility.download_url && (utility.download_url.startsWith('http://') || utility.download_url.startsWith('https://'))) {
+        // External link - open directly in new tab
+        console.log('Opening external link:', utility.download_url);
+        window.open(utility.download_url, '_blank', 'noopener,noreferrer');
+        
+        // Still increment download counter
+        try {
+          await fetch(`/api/utilities/${utility.id}/download`, { method: 'POST' });
+        } catch (e) {
+          console.error('Failed to increment download counter:', e);
+        }
+      } else {
+        // Internal file - go through server download endpoint
+        const downloadUrl = `/api/utilities/${utility.id}/download`;
+        
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `${utility.name}-v${utility.version}.exe`;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
       
       console.log('Download initiated for:', utility.name);
       

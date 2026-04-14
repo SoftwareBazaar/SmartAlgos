@@ -22,20 +22,16 @@ function genRef() {
 }
 
 function getMailer() {
+  // Use port 465 with secure: true for better Gmail compatibility
   return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT) || 587,
-    secure: false,
+    service: 'gmail', // Use Gmail service shorthand
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD
     },
     tls: { 
       rejectUnauthorized: false
-    },
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 10000,
-    socketTimeout: 10000
+    }
   });
 }
 

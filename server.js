@@ -478,6 +478,20 @@ app.use('/api/economic-calendar', require('./routes/economic-calendar')); // Eco
 app.use('/api/custom-ea', auth, validateCSRF, customEARoutes); // Custom EA development service
 app.use('/api/ai-assistant', auth, validateCSRF, aiAssistantRoutes); // AI EA Assistant
 app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
+console.log('📅 [Server] About to register bookings routes...');
+console.log('📅 [Server] bookingsRoutes type:', typeof bookingsRoutes);
+console.log('📅 [Server] bookingsRoutes is function:', typeof bookingsRoutes === 'function');
+
+// Add logging middleware specifically for bookings
+app.use('/api/bookings', (req, res, next) => {
+  console.log('📅 [Server] Bookings middleware hit');
+  console.log('📅 [Server] Method:', req.method);
+  console.log('📅 [Server] Path:', req.path);
+  console.log('📅 [Server] Original URL:', req.originalUrl);
+  console.log('📅 [Server] Body:', req.body);
+  next();
+});
+
 app.use('/api/bookings', bookingsRoutes); // Consultation booking system (public – no auth required)
 console.log('✅ Booking routes registered at /api/bookings');
 

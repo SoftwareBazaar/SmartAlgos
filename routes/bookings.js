@@ -11,6 +11,7 @@ const axios = require('axios');
 const databaseService = require('../services/databaseService');
 
 console.log('📅 [Bookings] Route file loaded');
+console.log('📅 [Bookings] Router object created:', typeof router);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -185,7 +186,12 @@ async function saveBookingToDb(bookingData) {
 // ─── Route: POST /api/bookings  (free booking) ────────────────────────────────
 
 router.post('/', async (req, res) => {
-  console.log('📅 [Bookings] POST / received:', req.body);
+  console.log('📅 [Bookings] POST / handler called');
+  console.log('📅 [Bookings] Request method:', req.method);
+  console.log('📅 [Bookings] Request path:', req.path);
+  console.log('📅 [Bookings] Request body:', req.body);
+  console.log('📅 [Bookings] Content-Type:', req.headers['content-type']);
+  
   const { service, consultation_type, date, time, name, email, phone, notes, amount } = req.body;
 
   if (!service || !consultation_type || !date || !time || !name || !email) {
@@ -423,5 +429,19 @@ router.post('/verify-payment/:reference', async (req, res) => {
 router.get('/public-key', (req, res) => {
   res.json({ success: true, publicKey: process.env.PAYSTACK_PUBLIC_KEY || '' });
 });
+
+// ─── Route: GET /api/bookings/test  ───────────────────────────────────────────
+
+router.get('/test', (req, res) => {
+  console.log('📅 [Bookings] Test endpoint hit');
+  res.json({ 
+    success: true, 
+    message: 'Booking routes are working!',
+    timestamp: new Date().toISOString()
+  });
+});
+
+console.log('📅 [Bookings] All routes registered on router');
+console.log('📅 [Bookings] Router stack length:', router.stack ? router.stack.length : 'N/A');
 
 module.exports = router;

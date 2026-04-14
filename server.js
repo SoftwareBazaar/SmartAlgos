@@ -479,6 +479,7 @@ app.use('/api/custom-ea', auth, validateCSRF, customEARoutes); // Custom EA deve
 app.use('/api/ai-assistant', auth, validateCSRF, aiAssistantRoutes); // AI EA Assistant
 app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
 app.use('/api/bookings', bookingsRoutes); // Consultation booking system (public – no auth required)
+console.log('✅ Booking routes registered at /api/bookings');
 
 
 // Health check endpoints moved to top of file (before middleware)
@@ -645,6 +646,8 @@ module.exports = app;
 
 
 
- 
- / /   B o o k i n g   s y s t e m   v 1 . 0  
+
+ 
+ / /   B o o k i n g   s y s t e m   v 1 . 0 
+ 
  

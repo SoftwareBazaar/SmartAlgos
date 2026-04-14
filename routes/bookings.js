@@ -10,6 +10,8 @@ const nodemailer = require('nodemailer');
 const axios = require('axios');
 const databaseService = require('../services/databaseService');
 
+console.log('📅 [Bookings] Route file loaded');
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function genRef() {
@@ -183,6 +185,7 @@ async function saveBookingToDb(bookingData) {
 // ─── Route: POST /api/bookings  (free booking) ────────────────────────────────
 
 router.post('/', async (req, res) => {
+  console.log('📅 [Bookings] POST / received:', req.body);
   const { service, consultation_type, date, time, name, email, phone, notes, amount } = req.body;
 
   if (!service || !consultation_type || !date || !time || !name || !email) {

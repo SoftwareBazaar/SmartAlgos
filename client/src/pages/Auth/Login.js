@@ -168,9 +168,17 @@ export default function SmartAlgosLogin() {
             </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">
-                Password
-              </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">
+                    Password
+                  </label>
+                  <Link 
+                    to="/auth/forgot-password" 
+                    className="text-xs font-medium text-sky-400 hover:text-sky-300 transition"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
               <div className="relative">
                 <input
                     type={showPassword ? 'text' : 'password'}

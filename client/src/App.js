@@ -118,6 +118,9 @@ function App() {
                     {/* Booking Page - Public */}
                     <Route path="book-consultation" element={<BookConsultation />} />
 
+                    {/* Custom EA Service - Public */}
+                    <Route path="custom-ea" element={<CustomEA />} />
+
                     {/* Documentation Pages - Public */}
                     <Route path="about" element={<AboutMe />} />
                     <Route path="privacy" element={<PrivacyPolicy />} />
@@ -148,9 +151,6 @@ function App() {
                       <Route path="ea-marketplace/:id" element={<ProtectedRoute><EADetail /></ProtectedRoute>} />
                       <Route path="create-ea" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><CreateEA /></ErrorBoundary></ProtectedRoute>} />
                       <Route path="edit-ea/:id" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><EditEA /></ErrorBoundary></ProtectedRoute>} />
-
-                      {/* Custom EA Service */}
-                      <Route path="custom-ea" element={<ProtectedRoute><CustomEA /></ProtectedRoute>} />
 
                       {/* Free Utilities */}
                       <Route path="utilities" element={<ProtectedRoute><UtilitiesPage /></ProtectedRoute>} />

@@ -139,7 +139,8 @@ try {
           "https://fonts.googleapis.com",
           "https://connect.facebook.net", // Common tracker causing issues
           "https://*.google.com",
-          "https://*.gstatic.com"
+          "https://*.gstatic.com",
+          "https://accounts.google.com" // Google OAuth
         ],
         // Removed scriptSrcElem to avoid 'invalid path' errors with rigorous browsers
         connectSrc: [
@@ -151,7 +152,9 @@ try {
           "wss://*.supabase.co",
           "https://web-production-fdb58.up.railway.app",
           "https://smartalgos-production.up.railway.app",
-          "https://*.google-analytics.com"
+          "https://*.google-analytics.com",
+          "https://accounts.google.com", // Google OAuth
+          "https://*.googleapis.com" // Google APIs
         ],
         frameSrc: [
           "'self'",
@@ -159,7 +162,8 @@ try {
           "https://*.paystack.co",
           "https://*.paystack.com",
           "https://checkout.paystack.com",
-          "https://*.supabase.co"
+          "https://*.supabase.co",
+          "https://accounts.google.com" // Google OAuth iframe
         ],
         styleSrc: [
           "'self'",
@@ -167,7 +171,8 @@ try {
           "https://fonts.googleapis.com",
           "https://*.paystack.co",
           "https://*.paystack.com",
-          "https://paystack.com"
+          "https://paystack.com",
+          "https://accounts.google.com" // Google OAuth styles
         ],
         // Removed styleSrcElem
         fontSrc: [

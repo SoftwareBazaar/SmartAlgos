@@ -30,14 +30,19 @@ function getMailer() {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD
     },
-    tls: { rejectUnauthorized: false }
+    tls: { 
+      rejectUnauthorized: false
+    },
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 10000
   });
 }
 
 async function sendConfirmationEmail({ name, email, service, consultationType, date, time, reference, isPaid }) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
     console.warn('[Bookings] Email not configured – skipping confirmation email');
-    return;
+    return { success: false, reason: 'not_configured' };
   }
 
   const serviceLabels = {
@@ -49,9 +54,11 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
   };
 
   const serviceLabel = serviceLabels[service] || service;
-  const mailer = getMailer();
+  
+  try {
+    const mailer = getMailer();
 
-  const html = `
+    const html = `
     <!DOCTYPE html>
     <html>
     <head><meta charset="utf-8"></head>
@@ -103,21 +110,23 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
     </html>
   `;
 
-  try {
     await mailer.sendMail({
       from: `"Smart Algos" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: `✅ Booking Confirmed – ${serviceLabel} on ${date}`,
       html
     });
+    
     console.log(`[Bookings] Confirmation email sent to ${email}`);
+    return { success: true };
   } catch (err) {
     console.error('[Bookings] Email send error:', err.message);
+    return { success: false, reason: err.message };
   }
 }
 
 async function sendAdminNotification({ name, email, phone, service, consultationType, date, time, reference, isPaid }) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) return;
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) return { success: false, reason: 'not_configured' };
 
   const serviceLabels = {
     algo_development: 'Algo Development',
@@ -127,36 +136,43 @@ async function sendAdminNotification({ name, email, phone, service, consultation
     other: 'Other Service'
   };
 
-  const mailer = getMailer();
+  try {
+    const mailer = getMailer();
 
-  await mailer.sendMail({
-    from: `"Smart Algos Bookings" <${process.env.EMAIL_USER}>`,
-    to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
-    subject: `📅 New Booking: ${name} – ${date} ${time}`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;">
-        <h2>New Consultation Booking</h2>
-        <table style="width:100%;border-collapse:collapse;">
-          ${[
-            ['Name', name],
-            ['Email', email],
-            ['Phone', phone || 'Not provided'],
-            ['Service', serviceLabels[service] || service],
-            ['Session', consultationType === 'free_30' ? 'Free 30-min' : 'Paid 1h30 ($5)'],
-            ['Date', date],
-            ['Time', time],
-            ['Payment', isPaid ? 'Paid – $5' : 'Free session'],
-            ['Reference', reference]
-          ].map(([k, v]) => `
-            <tr style="border-bottom:1px solid #eee;">
-              <td style="padding:8px;color:#666;font-size:13px;">${k}</td>
-              <td style="padding:8px;font-weight:600;font-size:13px;">${v}</td>
-            </tr>
-          `).join('')}
-        </table>
-      </div>
-    `
-  }).catch(e => console.error('[Bookings] Admin notification error:', e.message));
+    await mailer.sendMail({
+      from: `"Smart Algos Bookings" <${process.env.EMAIL_USER}>`,
+      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+      subject: `📅 New Booking: ${name} – ${date} ${time}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;">
+          <h2>New Consultation Booking</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            ${[
+              ['Name', name],
+              ['Email', email],
+              ['Phone', phone || 'Not provided'],
+              ['Service', serviceLabels[service] || service],
+              ['Session', consultationType === 'free_30' ? 'Free 30-min' : 'Paid 1h30 ($5)'],
+              ['Date', date],
+              ['Time', time],
+              ['Payment', isPaid ? 'Paid – $5' : 'Free session'],
+              ['Reference', reference]
+            ].map(([k, v]) => `
+              <tr style="border-bottom:1px solid #eee;">
+                <td style="padding:8px;color:#666;font-size:13px;">${k}</td>
+                <td style="padding:8px;font-weight:600;font-size:13px;">${v}</td>
+              </tr>
+            `).join('')}
+          </table>
+        </div>
+      `
+    });
+    
+    return { success: true };
+  } catch (e) {
+    console.error('[Bookings] Admin notification error:', e.message);
+    return { success: false, reason: e.message };
+  }
 }
 
 // ─── Save booking to Supabase (if available) ──────────────────────────────────

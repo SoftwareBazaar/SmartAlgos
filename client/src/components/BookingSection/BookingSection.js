@@ -132,11 +132,18 @@ function formatDate(d) {
 // ─── PaystackWrapper ──────────────────────────────────────────────────────────
 
 function PaystackWrapper({ config, onSuccess, onClose, trigger }) {
-  const initializePayment = usePaystackPayment(config);
+  // Add callbacks to config
+  const configWithCallbacks = {
+    ...config,
+    onSuccess: onSuccess,
+    onClose: onClose
+  };
+  
+  const initializePayment = usePaystackPayment(configWithCallbacks);
 
   useEffect(() => {
-    if (trigger) {
-      initializePayment(onSuccess, onClose);
+    if (trigger && initializePayment) {
+      initializePayment();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trigger]);

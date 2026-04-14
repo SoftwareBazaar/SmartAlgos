@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, ShieldCheck, CheckCircle, XCircle, AlertCircle, Key, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getPasswordStrength, validatePassword } from '../../utils/passwordStrength';
@@ -32,7 +33,7 @@ const Register = () => {
   const [registrationEmail, setRegistrationEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [resendingOTP, setResendingOTP] = useState(false);
-  const { register: registerUser, verifyOTP, resendOTP, loading } = useAuth();
+  const { register: registerUser, loginWithGoogle, verifyOTP, resendOTP, loading } = useAuth();
   const navigate = useNavigate();
   
   const {
@@ -95,8 +96,20 @@ const Register = () => {
     setResendingOTP(false);
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const result = await loginWithGoogle(credentialResponse.credential);
+    if (result.success) {
+      navigate('/dashboard');
+    }
+  };
+
+  const handleGoogleError = () => {
+    // Error is already handled by AuthContext with toast
+  };
+
   return (
-    <div className="min-h-screen bg-[#050611] text-white">
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+      <div className="min-h-screen bg-[#050611] text-white">
       <div className="mx-auto flex min-h-screen w-full flex-col lg:flex-row">
         <div className="relative flex-[1.1] overflow-hidden bg-gradient-to-br from-[#0b1220] via-[#081733] to-[#160b36] px-10 py-10 sm:px-14 lg:px-16">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(168,85,247,0.22),_transparent_60%)]" />
@@ -403,6 +416,27 @@ const Register = () => {
               </button>
             </form>
 
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-800"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-[#050611] px-2 text-slate-500">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="filled_black"
+                size="large"
+                text="signup_with"
+                shape="pill"
+                width="100%"
+              />
+            </div>
+
             {showOTPStep && (
               <div className="space-y-4 rounded-2xl border border-sky-500/30 bg-slate-900/80 px-6 py-6">
                 <div className="space-y-2 text-center">
@@ -473,7 +507,7 @@ const Register = () => {
           </div>
         </div>
       </div>
-    </div>
+    </GoogleOAuthProvider>
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, ShieldCheck } from 'lucide-react';
 import FinancialGlobe from '../../components/animations/FinancialGlobe';
@@ -29,7 +30,7 @@ export default function SmartAlgosLogin() {
   const [error, setError] = useState('');
   const [showCompliance, setShowCompliance] = useState(false);
 
-  const { login, loading } = useAuth();
+  const { login, loginWithGoogle, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -49,19 +50,34 @@ export default function SmartAlgosLogin() {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setError('');
+    const result = await loginWithGoogle(credentialResponse.credential);
+    if (result.success) {
+      redirectAfterLogin();
+    } else {
+      setError(result.message || 'Google sign-in failed. Please try again.');
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google sign-in was cancelled or failed. Please try again.');
+  };
+
   return (
-    <div className="min-h-screen bg-[#050611] text-white">
-      <style>{`
-        @keyframes orbit {
-          from { transform: rotate(0deg) translateY(-50%); }
-          to { transform: rotate(360deg) translateY(-50%); }
-        }
-        @keyframes pulse {
-          0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
-          70% { transform: translate(-50%, -50%) scale(1.35); opacity: 0; }
-          100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
-        }
-      `}</style>
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+      <div className="min-h-screen bg-[#050611] text-white">
+        <style>{`
+          @keyframes orbit {
+            from { transform: rotate(0deg) translateY(-50%); }
+            to { transform: rotate(360deg) translateY(-50%); }
+          }
+          @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+            70% { transform: translate(-50%, -50%) scale(1.35); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+          }
+        `}</style>
       <div className="mx-auto flex min-h-screen w-full flex-col lg:flex-row">
         <div className="relative flex-[1.1] overflow-hidden bg-gradient-to-br from-[#0b1220] via-[#081733] to-[#160b36] px-10 py-10 sm:px-14 lg:px-16">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(168,85,247,0.22),_transparent_60%)]" />
@@ -185,6 +201,27 @@ export default function SmartAlgosLogin() {
             </button>
             </form>
 
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-800"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-[#050611] px-2 text-slate-500">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="filled_black"
+                size="large"
+                text="signin_with"
+                shape="pill"
+                width="100%"
+              />
+            </div>
+
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-3 text-xs text-slate-400">
             <button
               type="button"
@@ -228,6 +265,7 @@ export default function SmartAlgosLogin() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </GoogleOAuthProvider>
   );
 }

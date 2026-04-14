@@ -1,0 +1,355 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                    📅 BOOKING SYSTEM - VISUAL GUIDE                          ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          🎯 WHAT YOU HAVE                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    ✅ Free 30-minute consultations (first session)
+    ✅ $5 deep-dive 1hr 30min sessions (follow-ups)
+    ✅ Available every day from 7 AM to 3 PM
+    ✅ 5 service categories
+    ✅ Paystack payment integration
+    ✅ Email notifications
+    ✅ Beautiful, mobile-responsive UI
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                       🚀 3-STEP SETUP PROCESS                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │  STEP 1: Setup Database (2 minutes)                                 │
+    ├─────────────────────────────────────────────────────────────────────┤
+    │                                                                     │
+    │  1. Go to: https://supabase.com/dashboard                          │
+    │  2. Click: SQL Editor → New Query                                  │
+    │  3. Copy SQL from: database/create_consultation_bookings.sql       │
+    │  4. Paste and click "Run"                                          │
+    │  5. See: ✅ "table created successfully"                           │
+    │                                                                     │
+    └─────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │  STEP 2: Add Your Keys (1 minute)                                   │
+    ├─────────────────────────────────────────────────────────────────────┤
+    │                                                                     │
+    │  Edit .env file and add:                                           │
+    │                                                                     │
+    │  PAYSTACK_SECRET_KEY=sk_live_your_key                              │
+    │  PAYSTACK_PUBLIC_KEY=pk_live_your_key                              │
+    │  EMAIL_USER=your-email@gmail.com                                   │
+    │  EMAIL_PASSWORD=your-app-password                                  │
+    │  ADMIN_EMAIL=admin@smartalgos.com                                  │
+    │  CLIENT_URL=http://localhost:3000                                  │
+    │                                                                     │
+    └─────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │  STEP 3: Test It! (2 minutes)                                       │
+    ├─────────────────────────────────────────────────────────────────────┤
+    │                                                                     │
+    │  1. Run: npm run dev                                               │
+    │  2. Visit: http://localhost:3000                                   │
+    │  3. Scroll to "Book a Consultation"                                │
+    │  4. Test a free booking                                            │
+    │  5. Check your email ✅                                            │
+    │                                                                     │
+    └─────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        📍 WHERE TO FIND IT                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    Your Website:
+    ┌─────────────────────────────────────────────────────────────────┐
+    │  Landing Page (Homepage)                                        │
+    │  ↓                                                              │
+    │  Scroll down                                                    │
+    │  ↓                                                              │
+    │  "Book a Consultation" Section                                 │
+    │  ↓                                                              │
+    │  Or click: "📅 Book Free Consultation" button in hero          │
+    └─────────────────────────────────────────────────────────────────┘
+
+    Direct Link: https://your-domain.com/#book-consultation
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        💰 PRICING STRUCTURE                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    ┌──────────────────────────┐     ┌──────────────────────────┐
+    │  FREE CONSULTATION       │     │  DEEP-DIVE SESSION       │
+    ├──────────────────────────┤     ├──────────────────────────┤
+    │  Duration: 30 minutes    │     │  Duration: 1hr 30min     │
+    │  Price: FREE             │     │  Price: $5               │
+    │  When: First session     │     │  When: Follow-up         │
+    │  Payment: None           │     │  Payment: Paystack       │
+    └──────────────────────────┘     └──────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        🕐 YOUR AVAILABILITY                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    Days:  Every day (7 days/week)
+    Hours: 7:00 AM ─────────────────────────► 3:00 PM
+    Slots: Every 30 minutes
+
+    Example slots:
+    ├─ 7:00 AM
+    ├─ 7:30 AM
+    ├─ 8:00 AM
+    ├─ 8:30 AM
+    │  ...
+    ├─ 2:00 PM
+    └─ 2:30 PM
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        🛠️ SERVICES YOU OFFER                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    1. 🤖 Algo Development
+       └─ Trading algorithms, EAs, automated strategies
+
+    2. 📈 Stock Trading
+       └─ Equity markets, fundamentals, technical analysis
+
+    3. 🌍 Forex Trading
+       └─ Currency pairs, price action, risk management
+
+    4. 💻 Web Development
+       └─ Full-stack apps, APIs, modern UI/UX
+
+    5. 📦 Other Services
+       └─ General tech consulting and advisory
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        🎨 USER BOOKING FLOW                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    Step 1: Choose Service
+    ┌─────────────────────────────────────────────────────────────────┐
+    │  [ Algo Dev ]  [ Stock ]  [ Forex ]  [ Web Dev ]  [ Other ]    │
+    └─────────────────────────────────────────────────────────────────┘
+              ↓
+    Step 2: Choose Session Type
+    ┌─────────────────────────────────────────────────────────────────┐
+    │  [ FREE 30-min ]              [ $5 Deep-dive 1hr 30min ]        │
+    └─────────────────────────────────────────────────────────────────┘
+              ↓
+    Step 3: Pick Date & Time
+    ┌─────────────────────────────────────────────────────────────────┐
+    │  Calendar: [Next 14 days]                                       │
+    │  Time: [7 AM - 3 PM slots]                                      │
+    └─────────────────────────────────────────────────────────────────┘
+              ↓
+    Step 4: Contact Details
+    ┌─────────────────────────────────────────────────────────────────┐
+    │  Name:  [____________]  (required)                              │
+    │  Email: [____________]  (required)                              │
+    │  Phone: [____________]  (optional)                              │
+    │  Notes: [____________]  (optional)                              │
+    └─────────────────────────────────────────────────────────────────┘
+              ↓
+    Step 5: Confirm & Pay
+    ┌─────────────────────────────────────────────────────────────────┐
+    │  Review Summary                                                 │
+    │  ├─ Service: Algo Development                                   │
+    │  ├─ Session: Free 30-min                                        │
+    │  ├─ Date: Jan 15, 2025                                          │
+    │  ├─ Time: 9:00 AM                                               │
+    │  └─ Total: FREE                                                 │
+    │                                                                 │
+    │  [Book Free Session]  or  [Pay $5 & Book]                      │
+    └─────────────────────────────────────────────────────────────────┘
+              ↓
+    Success! ✅
+    ┌─────────────────────────────────────────────────────────────────┐
+    │  🎉 Booking Confirmed!                                          │
+    │  📧 Confirmation email sent                                     │
+    │  🔖 Reference: BOOK-1234567890-ABC123                           │
+    └─────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        📧 EMAIL NOTIFICATIONS                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    Customer Email:                    Admin Email:
+    ┌─────────────────────────┐       ┌─────────────────────────┐
+    │ ✅ Booking Confirmed    │       │ 📅 New Booking Alert    │
+    │                         │       │                         │
+    │ Hi John,                │       │ Customer: John Doe      │
+    │                         │       │ Email: john@email.com   │
+    │ Your consultation is    │       │ Service: Algo Dev       │
+    │ scheduled:              │       │ Date: Jan 15, 2025      │
+    │                         │       │ Time: 9:00 AM           │
+    │ Service: Algo Dev       │       │ Payment: Free           │
+    │ Date: Jan 15, 2025      │       │ Ref: BOOK-123...        │
+    │ Time: 9:00 AM           │       │                         │
+    │ Ref: BOOK-123...        │       └─────────────────────────┘
+    │                         │
+    └─────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        🔐 SECURITY FEATURES                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    ✅ Input sanitization
+    ✅ CSRF protection
+    ✅ Rate limiting
+    ✅ Secure payments (Paystack PCI compliant)
+    ✅ Database RLS (Row Level Security)
+    ✅ Email validation
+    ✅ HTTPS encryption
+    ✅ Reference number generation
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        🧪 TESTING GUIDE                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    Test Free Booking:
+    ├─ Visit: http://localhost:3000
+    ├─ Scroll to booking section
+    ├─ Select: Any service
+    ├─ Choose: Free Consultation
+    ├─ Pick: Tomorrow, 9:00 AM
+    ├─ Fill: Your details
+    ├─ Submit: Book Free Session
+    └─ Check: Your email ✅
+
+    Test Paid Booking:
+    ├─ Visit: http://localhost:3000
+    ├─ Scroll to booking section
+    ├─ Select: Any service
+    ├─ Choose: Deep-Dive ($5)
+    ├─ Pick: Tomorrow, 10:00 AM
+    ├─ Fill: Your details
+    ├─ Submit: Pay $5 & Book
+    ├─ Use test card:
+    │  ├─ Card: 4084084084084081
+    │  ├─ CVV: 408
+    │  ├─ Expiry: 12/25
+    │  ├─ PIN: 0000
+    │  └─ OTP: 123456
+    └─ Check: Your email ✅
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        📊 MONITORING BOOKINGS                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    Supabase Dashboard:
+    ├─ Go to: https://supabase.com/dashboard
+    ├─ Select: Your project
+    ├─ Click: Table Editor
+    ├─ Select: consultation_bookings
+    └─ View: All bookings with filters
+
+    SQL Queries:
+    ├─ Recent bookings:
+    │  SELECT * FROM consultation_bookings
+    │  ORDER BY created_at DESC LIMIT 10;
+    │
+    ├─ Today's bookings:
+    │  SELECT * FROM consultation_bookings
+    │  WHERE date = CURRENT_DATE;
+    │
+    └─ Pending payments:
+       SELECT * FROM consultation_bookings
+       WHERE payment_status = 'pending';
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        🚨 TROUBLESHOOTING                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    Problem: Emails not sending
+    Solution: Use Gmail App Password, not regular password
+
+    Problem: Payment fails
+    Solution: Verify Paystack keys are correct
+
+    Problem: Bookings not saving
+    Solution: Run database setup SQL in Supabase
+
+    Problem: Can't see booking section
+    Solution: Clear cache and hard refresh (Ctrl+F5)
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        📚 DOCUMENTATION FILES                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    START_HERE_BOOKING.md
+    └─ Quick start guide (read this first!)
+
+    BOOKING_SETUP_MANUAL.md
+    └─ Step-by-step manual setup
+
+    BOOKING_SYSTEM_COMPLETE_GUIDE.md
+    └─ Full documentation
+
+    BOOKING_QUICK_REFERENCE.md
+    └─ Quick reference card
+
+    BOOKING_SYSTEM_ARCHITECTURE.md
+    └─ System architecture diagrams
+
+    BOOKING_SYSTEM_SUMMARY.md
+    └─ Executive summary
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        ✅ QUICK CHECKLIST                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    Before Going Live:
+    [ ] Database table created in Supabase
+    [ ] Environment variables added to .env
+    [ ] Paystack keys configured
+    [ ] Gmail app password configured
+    [ ] Dev server started successfully
+    [ ] Free booking test successful
+    [ ] Confirmation email received
+    [ ] Paid booking test successful
+    [ ] Payment confirmation email received
+    [ ] Bookings visible in Supabase
+    [ ] Mobile view tested
+    [ ] Production deployment complete
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        🎉 YOU'RE READY!                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    Your booking system is production-ready!
+
+    Setup Time: 5-10 minutes
+    Difficulty: Easy ⭐
+    Status: ✅ Ready to Accept Bookings
+
+    Next Steps:
+    1. Complete the 3-step setup
+    2. Test locally
+    3. Deploy to production
+    4. Share booking link with clients
+    5. Start accepting consultations!
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                    Questions? Check START_HERE_BOOKING.md                    ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝

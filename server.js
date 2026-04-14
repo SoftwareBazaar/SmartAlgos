@@ -36,6 +36,7 @@ const adminCMSRoutes = require('./routes/admin-cms');
 const customEARoutes = require('./routes/customEA');
 const aiAssistantRoutes = require('./routes/aiAssistant');
 const downloadsRoutes = require('./routes/downloads');
+const bookingsRoutes = require('./routes/bookings');
 const csrfRoutes = require('./routes/csrf');
 const { validateCSRF } = require('./routes/csrf');
 
@@ -477,6 +478,7 @@ app.use('/api/economic-calendar', require('./routes/economic-calendar')); // Eco
 app.use('/api/custom-ea', auth, validateCSRF, customEARoutes); // Custom EA development service
 app.use('/api/ai-assistant', auth, validateCSRF, aiAssistantRoutes); // AI EA Assistant
 app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
+app.use('/api/bookings', bookingsRoutes); // Consultation booking system (public – no auth required)
 
 
 // Health check endpoints moved to top of file (before middleware)

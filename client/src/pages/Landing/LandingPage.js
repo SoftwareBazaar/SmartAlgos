@@ -18,6 +18,7 @@ import {
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import FeaturePreviewModal from '../../components/FeaturePreviewModal';
+import BookingSection from '../../components/BookingSection/BookingSection';
 
 const LandingPage = () => {
   const [selectedFeature, setSelectedFeature] = useState(null);
@@ -278,6 +279,11 @@ const LandingPage = () => {
                   <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
+              <a href="#book-consultation">
+                <Button size="lg" variant="outline" className="flex items-center space-x-2">
+                  <span>📅 Book Free Consultation</span>
+                </Button>
+              </a>
             </div>
           </motion.div>
         </div>
@@ -460,6 +466,9 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Booking Section */}
+      <BookingSection />
 
       {/* CTA Section */}
       <section className="py-20 bg-primary-600">

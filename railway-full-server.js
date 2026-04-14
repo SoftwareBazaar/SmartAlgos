@@ -300,6 +300,11 @@ try {
     app.use('/api/downloads', downloadsRoutes);
     console.log('   ✅ Downloads routes loaded and registered');
 
+    console.log('   Loading bookings routes...');
+    const bookingsRoutes = require('./routes/bookings');
+    app.use('/api/bookings', bookingsRoutes);
+    console.log('   ✅ Bookings routes loaded and registered');
+
     console.log('   Loading crypto payment routes...');
     const cryptoPaymentRoutes = require('./routes/cryptoPayments');
     app.use('/api/payments/crypto', cryptoPaymentRoutes);
@@ -352,6 +357,7 @@ try {
     console.log('   - /api/eas');
     console.log('   - /api/subscriptions');
     console.log('   - /api/downloads');
+    console.log('   - /api/bookings');
     console.log('   - /api/payments/crypto');
     console.log('   - /api/payments');
     console.log('   - /api/mpesa');

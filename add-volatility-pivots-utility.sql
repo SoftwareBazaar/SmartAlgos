@@ -2,6 +2,11 @@
 -- Includes required version column
 -- Run this in Supabase SQL Editor
 
+-- First, delete the old entry if it exists (without download_url)
+DELETE FROM utilities 
+WHERE name = 'Volatility Pivots by SmartAlgos' 
+  AND download_url IS NULL;
+
 -- Add Volatility Pivots utility with TradingView link
 INSERT INTO utilities (
   name,

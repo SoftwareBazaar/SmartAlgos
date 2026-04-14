@@ -69,6 +69,9 @@ import VismeDemo from './pages/Demo/VismeDemo';
 // Landing Page
 import LandingPage from './pages/Landing/LandingPage';
 
+// Booking Page
+import BookConsultation from './pages/BookConsultation/BookConsultation';
+
 // Documentation Pages
 import AboutMe from './pages/Documentation/AboutMe';
 import PrivacyPolicy from './pages/Documentation/PrivacyPolicy';
@@ -111,6 +114,9 @@ function App() {
 
                     {/* Landing Page - Public */}
                     <Route index element={<LandingPage />} />
+
+                    {/* Booking Page - Public */}
+                    <Route path="book-consultation" element={<BookConsultation />} />
 
                     {/* Documentation Pages - Public */}
                     <Route path="about" element={<AboutMe />} />

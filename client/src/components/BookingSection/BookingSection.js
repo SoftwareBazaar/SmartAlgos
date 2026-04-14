@@ -9,11 +9,6 @@ import {
   ChevronRight,
   X,
   Star,
-  TrendingUp,
-  Bot,
-  Globe,
-  Code,
-  Layers,
   AlertCircle,
   Loader2,
   User,
@@ -24,75 +19,79 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
+// AI-generated image URLs from Unsplash (free, no attribution required for UI use)
+const SERVICE_IMAGES = {
+  algo_development: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=80&h=80&fit=crop&auto=format',
+  stock_trading:    'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=80&h=80&fit=crop&auto=format',
+  forex_trading:    'https://images.unsplash.com/photo-1642790106117-e829e14a795f?w=80&h=80&fit=crop&auto=format',
+  web_development:  'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=80&h=80&fit=crop&auto=format',
+  other:            'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=80&h=80&fit=crop&auto=format',
+};
+
 const SERVICES = [
   {
     id: 'algo_development',
     label: 'Algo Development',
-    icon: Bot,
     color: '#6366f1',
     bg: 'rgba(99,102,241,0.12)',
-    description: 'Custom trading algorithms, EAs, and automated strategies'
+    description: 'Build profitable automated trading bots & Expert Advisors. Learn to trade like a pro with algorithmic strategies that work 24/7.'
   },
   {
     id: 'stock_trading',
     label: 'Stock Trading',
-    icon: TrendingUp,
     color: '#10b981',
     bg: 'rgba(16,185,129,0.12)',
-    description: 'Equity markets, fundamentals, and technical analysis'
+    description: 'Master stock market investing, NSE & global equities. Proven strategies to grow your portfolio and beat the market consistently.'
   },
   {
     id: 'forex_trading',
     label: 'Forex Trading',
-    icon: Globe,
     color: '#f59e0b',
     bg: 'rgba(245,158,11,0.12)',
-    description: 'Currency pairs, price action, and risk management'
+    description: 'Unlock forex profits with expert price action, risk management & funded account strategies. Trade smarter, not harder.'
   },
   {
     id: 'web_development',
     label: 'Web Development',
-    icon: Code,
     color: '#ec4899',
     bg: 'rgba(236,72,153,0.12)',
-    description: 'Full-stack web apps, APIs, and modern UI/UX'
+    description: 'Launch high-converting fintech apps, trading dashboards & SaaS platforms. Full-stack solutions that scale with your business.'
   },
   {
     id: 'other',
     label: 'Other Service',
-    icon: Layers,
     color: '#8b5cf6',
     bg: 'rgba(139,92,246,0.12)',
-    description: 'General tech consulting and advisory services'
+    description: 'Custom tech consulting, automation & digital transformation. Turn your ideas into revenue-generating products fast.'
   }
 ];
 
 const CONSULTATION_TYPES = [
   {
     id: 'free_30',
-    label: 'Free Consultation',
+    label: 'Free Strategy Session',
     duration: '30 min',
     price: 0,
     priceLabel: 'FREE',
     badge: '1st Session',
-    description: 'Your first introductory session — no charge, no commitment.',
+    description: 'Kick off your trading journey with a free 1-on-1 strategy call. No commitment — just real, actionable insights.',
     color: '#10b981',
     gradient: 'linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05))'
   },
   {
     id: 'paid_90',
-    label: 'Deep-Dive Consultation',
+    label: 'Deep-Dive Mentorship',
     duration: '1hr 30 min',
     price: 5,
     priceLabel: '$5',
-    badge: 'Follow-up',
-    description: 'An in-depth session for complex problems, strategy building, or project reviews.',
+    badge: 'Best Value',
+    description: 'Intensive 90-minute session covering your full trading plan, live chart analysis, EA setup, or project deep-dive.',
     color: '#6366f1',
     gradient: 'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))'
   }
 ];
 
-// Generate next 14 days (skipping none — available every day)
+// Generate next 14 days — available every day Mon–Sun
 function generateAvailableDates() {
   const dates = [];
   const today = new Date();
@@ -104,14 +103,15 @@ function generateAvailableDates() {
   return dates;
 }
 
-// Build time slots 7am–3pm in 30-min increments
+// Build time slots 7 PM – 9 PM EAT (East Africa Time = UTC+3)
+// Slots: 19:00, 19:30, 20:00, 20:30, 21:00
 function buildTimeSlots() {
   const slots = [];
-  for (let h = 7; h < 15; h++) {
-    for (let m = 0; m < 60; m += 30) {
-      const hour12 = h > 12 ? h - 12 : h;
-      const ampm = h < 12 ? 'AM' : 'PM';
-      const label = `${hour12}:${m === 0 ? '00' : m} ${ampm}`;
+  for (let h = 19; h <= 21; h++) {
+    const minutes = h === 21 ? [0] : [0, 30]; // 9:00 PM is last slot
+    for (const m of minutes) {
+      const hour12 = h - 12;
+      const label = `${hour12}:${m === 0 ? '00' : m} PM (EAT)`;
       slots.push({ value: `${String(h).padStart(2,'0')}:${m === 0 ? '00' : m}`, label });
     }
   }
@@ -376,18 +376,19 @@ const BookingSection = () => {
             lineHeight: 1.15,
             marginBottom: '16px'
           }}>
-            Let's Build Something{' '}
+            Learn to Trade Like a Pro —{' '}
             <span style={{
               backgroundImage: 'linear-gradient(90deg, #818cf8, #34d399)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
-              Great Together
+              Book a Free Session
             </span>
           </h2>
           <p style={{ color: '#94a3b8', fontSize: '17px', maxWidth: '560px', margin: '0 auto' }}>
-            Schedule a free 30-minute intro session or a $5 deep-dive consultation.
-            Available <strong style={{ color: '#e2e8f0' }}>every day from 7 AM to 3 PM</strong>.
+            Get expert 1-on-1 mentorship in forex, stocks, algo trading & more.
+            First session is <strong style={{ color: '#34d399' }}>completely free</strong>.
+            Available <strong style={{ color: '#e2e8f0' }}>every day, 7 PM – 9 PM EAT</strong>.
           </p>
         </motion.div>
 
@@ -466,7 +467,6 @@ const BookingSection = () => {
               <StepTitle icon={Star} label="What can we help you with?" />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '14px', marginTop: '24px' }}>
                 {SERVICES.map(svc => {
-                  const Icon = svc.icon;
                   const selected = selectedService?.id === svc.id;
                   return (
                     <motion.button
@@ -492,16 +492,22 @@ const BookingSection = () => {
                         </div>
                       )}
                       <div style={{
-                        width: 40, height: 40, borderRadius: '10px',
-                        background: svc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        marginBottom: '12px'
+                        width: 48, height: 48, borderRadius: '12px',
+                        overflow: 'hidden',
+                        border: `2px solid ${selected ? svc.color : 'rgba(255,255,255,0.1)'}`,
+                        marginBottom: '12px', flexShrink: 0
                       }}>
-                        <Icon style={{ width: 20, height: 20, color: svc.color }} />
+                        <img
+                          src={SERVICE_IMAGES[svc.id]}
+                          alt={svc.label}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={e => { e.target.style.display = 'none'; }}
+                        />
                       </div>
-                      <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '15px', marginBottom: '4px' }}>
+                      <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '15px', marginBottom: '6px' }}>
                         {svc.label}
                       </div>
-                      <div style={{ color: '#64748b', fontSize: '13px', lineHeight: 1.4 }}>
+                      <div style={{ color: '#64748b', fontSize: '13px', lineHeight: 1.5 }}>
                         {svc.description}
                       </div>
                     </motion.button>
@@ -583,7 +589,7 @@ const BookingSection = () => {
             <div>
               <StepTitle icon={Calendar} label="Pick a date and time" />
               <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>
-                Available every day · 7:00 AM – 3:00 PM
+                Available every day · 7:00 PM – 9:00 PM (East Africa Time)
               </p>
 
               {/* Date picker */}

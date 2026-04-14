@@ -6,9 +6,17 @@
 
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
 const axios = require('axios');
 const databaseService = require('../services/databaseService');
+
+// Use SendGrid for reliable email delivery
+const sgMail = require('@sendgrid/mail');
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('📧 [Bookings] SendGrid configured');
+} else {
+  console.warn('⚠️  [Bookings] SendGrid API key not found - emails will not be sent');
+}
 
 console.log('📅 [Bookings] Route file loaded');
 console.log('📅 [Bookings] Router object created:', typeof router);
@@ -21,23 +29,9 @@ function genRef() {
   return `BOOK-${ts}-${rand}`;
 }
 
-function getMailer() {
-  // Use port 465 with secure: true for better Gmail compatibility
-  return nodemailer.createTransport({
-    service: 'gmail', // Use Gmail service shorthand
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    },
-    tls: { 
-      rejectUnauthorized: false
-    }
-  });
-}
-
 async function sendConfirmationEmail({ name, email, service, consultationType, date, time, reference, isPaid }) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-    console.warn('[Bookings] Email not configured – skipping confirmation email');
+  if (!process.env.SENDGRID_API_KEY) {
+    console.warn('[Bookings] SendGrid not configured – skipping confirmation email');
     return { success: false, reason: 'not_configured' };
   }
 
@@ -52,8 +46,6 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
   const serviceLabel = serviceLabels[service] || service;
   
   try {
-    const mailer = getMailer();
-
     const html = `
     <!DOCTYPE html>
     <html>
@@ -106,23 +98,30 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
     </html>
   `;
 
-    await mailer.sendMail({
-      from: `"Smart Algos" <${process.env.EMAIL_USER}>`,
+    const msg = {
       to: email,
+      from: {
+        email: process.env.EMAIL_USER || 'softwarebazaar.ke@gmail.com',
+        name: 'Smart Algos'
+      },
       subject: `✅ Booking Confirmed – ${serviceLabel} on ${date}`,
-      html
-    });
-    
-    console.log(`[Bookings] Confirmation email sent to ${email}`);
+      html: html
+    };
+
+    await sgMail.send(msg);
+    console.log(`[Bookings] ✅ Confirmation email sent to ${email} via SendGrid`);
     return { success: true };
   } catch (err) {
-    console.error('[Bookings] Email send error:', err.message);
+    console.error('[Bookings] SendGrid error:', err.message);
+    if (err.response) {
+      console.error('[Bookings] SendGrid response:', err.response.body);
+    }
     return { success: false, reason: err.message };
   }
 }
 
 async function sendAdminNotification({ name, email, phone, service, consultationType, date, time, reference, isPaid }) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) return { success: false, reason: 'not_configured' };
+  if (!process.env.SENDGRID_API_KEY) return { success: false, reason: 'not_configured' };
 
   const serviceLabels = {
     algo_development: 'Algo Development',
@@ -133,11 +132,12 @@ async function sendAdminNotification({ name, email, phone, service, consultation
   };
 
   try {
-    const mailer = getMailer();
-
-    await mailer.sendMail({
-      from: `"Smart Algos Bookings" <${process.env.EMAIL_USER}>`,
-      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+    const msg = {
+      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'softwarebazaar.ke@gmail.com',
+      from: {
+        email: process.env.EMAIL_USER || 'softwarebazaar.ke@gmail.com',
+        name: 'Smart Algos Bookings'
+      },
       subject: `📅 New Booking: ${name} – ${date} ${time}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;">
@@ -162,8 +162,10 @@ async function sendAdminNotification({ name, email, phone, service, consultation
           </table>
         </div>
       `
-    });
-    
+    };
+
+    await sgMail.send(msg);
+    console.log(`[Bookings] ✅ Admin notification sent via SendGrid`);
     return { success: true };
   } catch (e) {
     console.error('[Bookings] Admin notification error:', e.message);

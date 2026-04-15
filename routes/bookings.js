@@ -121,7 +121,16 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
 }
 
 async function sendAdminNotification({ name, email, phone, service, consultationType, date, time, reference, isPaid }) {
-  if (!process.env.SENDGRID_API_KEY) return { success: false, reason: 'not_configured' };
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'softwarebazaar.ke@gmail.com';
+  const fromEmail = process.env.EMAIL_USER || 'softwarebazaar.ke@gmail.com';
+
+  console.log(`[Bookings] 📨 Sending admin notification to: ${adminEmail}`);
+  console.log(`[Bookings] 📨 SendGrid configured: ${!!process.env.SENDGRID_API_KEY}`);
+
+  if (!process.env.SENDGRID_API_KEY) {
+    console.warn('[Bookings] ⚠️  SENDGRID_API_KEY not set – admin notification skipped! Set ADMIN_EMAIL and SENDGRID_API_KEY in Railway env vars.');
+    return { success: false, reason: 'not_configured' };
+  }
 
   const serviceLabels = {
     algo_development: 'Algo Development',
@@ -133,16 +142,17 @@ async function sendAdminNotification({ name, email, phone, service, consultation
 
   try {
     const msg = {
-      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'softwarebazaar.ke@gmail.com',
+      to: adminEmail,
       from: {
-        email: process.env.EMAIL_USER || 'softwarebazaar.ke@gmail.com',
+        email: fromEmail,
         name: 'Smart Algos Bookings'
       },
       subject: `📅 New Booking: ${name} – ${date} ${time}`,
       html: `
-        <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;">
-          <h2>New Consultation Booking</h2>
-          <table style="width:100%;border-collapse:collapse;">
+        <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;background:#f9f9f9;padding:24px;border-radius:8px;">
+          <h2 style="color:#4f46e5;margin-top:0;">📅 New Consultation Booking</h2>
+          <p style="color:#374151;margin-bottom:16px;">Someone just booked a consultation. Details below:</p>
+          <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;">
             ${[
               ['Name', name],
               ['Email', email],
@@ -151,24 +161,29 @@ async function sendAdminNotification({ name, email, phone, service, consultation
               ['Session', consultationType === 'free_30' ? 'Free 30-min' : 'Paid 1h30 ($5)'],
               ['Date', date],
               ['Time', time],
-              ['Payment', isPaid ? 'Paid – $5' : 'Free session'],
+              ['Payment', isPaid ? '✅ Paid – $5' : '🆓 Free session'],
               ['Reference', reference]
             ].map(([k, v]) => `
-              <tr style="border-bottom:1px solid #eee;">
-                <td style="padding:8px;color:#666;font-size:13px;">${k}</td>
-                <td style="padding:8px;font-weight:600;font-size:13px;">${v}</td>
+              <tr style="border-bottom:1px solid #f0f0f0;">
+                <td style="padding:10px 12px;color:#6b7280;font-size:13px;width:35%;">${k}</td>
+                <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${v}</td>
               </tr>
             `).join('')}
           </table>
+          <p style="color:#6b7280;font-size:12px;margin-top:16px;">Reply directly to the client at: <a href="mailto:${email}">${email}</a></p>
         </div>
       `
     };
 
     await sgMail.send(msg);
-    console.log(`[Bookings] ✅ Admin notification sent via SendGrid`);
+    console.log(`[Bookings] ✅ Admin notification sent to ${adminEmail} via SendGrid`);
     return { success: true };
   } catch (e) {
-    console.error('[Bookings] Admin notification error:', e.message);
+    console.error('[Bookings] ❌ Admin notification error:', e.message);
+    if (e.response) {
+      console.error('[Bookings] SendGrid response body:', JSON.stringify(e.response.body));
+    }
+    console.error(`[Bookings] ⚠️  Admin was NOT notified about booking ${reference} from ${name} (${email})`);
     return { success: false, reason: e.message };
   }
 }

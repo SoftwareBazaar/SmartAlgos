@@ -21,6 +21,46 @@ if (process.env.SENDGRID_API_KEY) {
 console.log('📅 [Bookings] Route file loaded');
 console.log('📅 [Bookings] Router object created:', typeof router);
 
+// ─── Route: GET /api/bookings/available-slots ─────────────────────────────────
+
+router.get('/available-slots', async (req, res) => {
+  try {
+    const { date } = req.query;
+    
+    if (!date) {
+      return res.status(400).json({ success: false, error: 'Date parameter required' });
+    }
+
+    const supabase = databaseService.getClient();
+    if (!supabase) {
+      // If no database, return all slots as available
+      return res.json({ success: true, bookedSlots: [] });
+    }
+
+    // Get all bookings for this date
+    const { data, error } = await supabase
+      .from('consultation_bookings')
+      .select('time')
+      .eq('date', date)
+      .in('status', ['confirmed', 'pending']);
+
+    if (error) {
+      console.error('[Bookings] Error fetching slots:', error);
+      return res.json({ success: true, bookedSlots: [] });
+    }
+
+    // Extract booked time slots
+    const bookedSlots = data.map(booking => booking.time);
+    
+    console.log(`[Bookings] Date ${date}: ${bookedSlots.length} slots booked`);
+    return res.json({ success: true, bookedSlots });
+    
+  } catch (err) {
+    console.error('[Bookings] Available slots error:', err);
+    return res.json({ success: true, bookedSlots: [] });
+  }
+});
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function genRef() {

@@ -170,9 +170,36 @@ const BookingSection = () => {
   const [paystackConfig, setPaystackConfig] = useState(null);
   const [paystackTrigger, setPaystackTrigger] = useState(false);
   const sectionRef = useRef(null);
+  // Booked slots for selected date
+  const [bookedSlots, setBookedSlots] = useState([]);
 
   const DATES_PER_PAGE = 5;
   const visibleDates = AVAILABLE_DATES.slice(dateOffset, dateOffset + DATES_PER_PAGE);
+
+  // Fetch booked slots when date changes
+  useEffect(() => {
+    if (!selectedDate) {
+      setBookedSlots([]);
+      return;
+    }
+
+    const fetchBookedSlots = async () => {
+      try {
+        const dateStr = selectedDate.toISOString().split('T')[0];
+        const res = await fetch(`/api/bookings/available-slots?date=${dateStr}`);
+        const data = await res.json();
+        if (data.success) {
+          setBookedSlots(data.bookedSlots || []);
+          console.log(`[Booking] ${data.bookedSlots.length} slots booked for ${dateStr}`);
+        }
+      } catch (err) {
+        console.error('[Booking] Error fetching booked slots:', err);
+        setBookedSlots([]);
+      }
+    };
+
+    fetchBookedSlots();
+  }, [selectedDate]);
 
   // ── Validation ──────────────────────────────────────────────────────────────
 
@@ -641,6 +668,11 @@ const BookingSection = () => {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                   {TIME_SLOTS.map((ts, i) => {
                     const sel = selectedTime?.value === ts.value;
+                    const isBooked = bookedSlots.includes(ts.value);
+                    
+                    // Don't render booked slots
+                    if (isBooked) return null;
+                    
                     return (
                       <motion.button
                         key={i}
@@ -660,6 +692,13 @@ const BookingSection = () => {
                       </motion.button>
                     );
                   })}
+                  {bookedSlots.length > 0 && (
+                    <div style={{ width: '100%', marginTop: '8px', padding: '8px 12px', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: '8px' }}>
+                      <p style={{ color: '#fbbf24', fontSize: '12px', margin: 0 }}>
+                        ⚠️ {bookedSlots.length} slot{bookedSlots.length > 1 ? 's' : ''} already booked for this date
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

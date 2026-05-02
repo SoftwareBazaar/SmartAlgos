@@ -29,8 +29,8 @@ import MarketDetail from './pages/Markets/MarketDetail';
 import News from './pages/News/News';
 import Signals from './pages/Signals/Signals';
 import SignalDetail from './pages/Signals/SignalDetail';
-import EAMarketplace from './pages/EAMarketplace/EAMarketplace';
-import EADetail from './pages/EAMarketplace/EADetail';
+import EAMarketplace from './pages/EAMarketplace/PublicEAMarketplace';
+import EADetail from './pages/EAMarketplace/PublicEADetail';
 import CreateEA from './pages/EAMarketplace/CreateEA';
 import EditEA from './pages/EAMarketplace/EditEA';
 import UtilitiesPage from './pages/Utilities/UtilitiesPage';
@@ -121,6 +121,10 @@ function App() {
                     {/* Custom EA Service - Public */}
                     <Route path="custom-ea" element={<CustomEA />} />
 
+                    {/* EA Marketplace - Public (No Login Required) */}
+                    <Route path="ea-marketplace" element={<EAMarketplace />} />
+                    <Route path="ea-marketplace/:id" element={<EADetail />} />
+
                     {/* Documentation Pages - Public */}
                     <Route path="about" element={<AboutMe />} />
                     <Route path="privacy" element={<PrivacyPolicy />} />
@@ -146,9 +150,7 @@ function App() {
                       <Route path="signals" element={<ProtectedRoute><Signals /></ProtectedRoute>} />
                       <Route path="signals/:id" element={<ProtectedRoute><SignalDetail /></ProtectedRoute>} />
 
-                      {/* EA Marketplace */}
-                      <Route path="ea-marketplace" element={<ProtectedRoute><EAMarketplace /></ProtectedRoute>} />
-                      <Route path="ea-marketplace/:id" element={<ProtectedRoute><EADetail /></ProtectedRoute>} />
+  
                       <Route path="create-ea" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><CreateEA /></ErrorBoundary></ProtectedRoute>} />
                       <Route path="edit-ea/:id" element={<ProtectedRoute requireAdmin={true}><ErrorBoundary><EditEA /></ErrorBoundary></ProtectedRoute>} />
 

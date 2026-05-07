@@ -878,14 +878,16 @@ const BookingSection = () => {
                 borderRadius: '16px', padding: '24px', marginTop: '24px'
               }}>
                 <SummaryRow label="Service" value={selectedService?.label} color={selectedService?.color} />
-                <SummaryRow label="Package" value={`${selectedType?.label} — ${selectedType?.duration}`} />
-                {selectedType?.id === 'free_guide_preview' || selectedType?.id === 'full_guide_delivery' ? (
+                <SummaryRow label={selectedType?.price === 0 ? "Package" : "Consultation"} value={`${selectedType?.label} — ${selectedType?.duration}`} />
+                {selectedType?.id === 'free_outline_guide' ? (
                   <SummaryRow label="Guide Topic" value={selectedTime?.label} />
-                ) : (
+                ) : selectedType?.id === 'full_guide_mentorship_7' ? (
                   <>
                     <SummaryRow label="Date" value={selectedDate ? formatDate(selectedDate) : ''} />
                     <SummaryRow label="Time" value={selectedTime?.label} />
                   </>
+                ) : (
+                  <SummaryRow label="Training Type" value="1-on-1 Personal Guidance" />
                 )}
                 <SummaryRow label="Name" value={form.name} />
                 <SummaryRow label="Email" value={form.email} />
@@ -905,17 +907,17 @@ const BookingSection = () => {
               {/* Pricing note */}
               <div style={{
                 marginTop: '16px', padding: '12px 16px', borderRadius: '10px',
-                background: selectedType?.id === 'free_guide_preview' ? 'rgba(52,211,153,0.08)' : 'rgba(99,102,241,0.08)',
-                border: `1px solid ${selectedType?.id === 'free_guide_preview' ? 'rgba(52,211,153,0.2)' : 'rgba(99,102,241,0.2)'}`,
+                background: selectedType?.id === 'free_outline_guide' ? 'rgba(52,211,153,0.08)' : 'rgba(99,102,241,0.08)',
+                border: `1px solid ${selectedType?.id === 'free_outline_guide' ? 'rgba(52,211,153,0.2)' : 'rgba(99,102,241,0.2)'}`,
                 display: 'flex', alignItems: 'flex-start', gap: '10px'
               }}>
-                <AlertCircle style={{ width: 16, height: 16, color: selectedType?.id === 'free_guide_preview' ? '#34d399' : '#818cf8', marginTop: 2, flexShrink: 0 }} />
-                <p style={{ color: selectedType?.id === 'free_guide_preview' ? '#34d399' : '#818cf8', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>
-                  {selectedType?.id === 'free_guide_preview'
-                    ? '🎁 Get a preview with roadmap and sample strategies. Upgrade to the full guide anytime for just $7!'
-                    : selectedType?.id === 'full_guide_delivery'
-                    ? '📖 Your complete guide will be delivered within 24 hours. Secure payment via Paystack.'
-                    : '🎥 Secure payment via Paystack. Meeting link will be confirmed before your session.'}
+                <AlertCircle style={{ width: 16, height: 16, color: selectedType?.id === 'free_outline_guide' ? '#34d399' : '#818cf8', marginTop: 2, flexShrink: 0 }} />
+                <p style={{ color: selectedType?.id === 'free_outline_guide' ? '#34d399' : '#818cf8', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>
+                  {selectedType?.id === 'free_outline_guide'
+                    ? '🎁 Get a personalized outline guide. Upgrade to premium consultation anytime!'
+                    : selectedType?.id === 'full_guide_mentorship_7'
+                    ? '🎥 Premium consultation with live guidance. Secure payment via Paystack. Meeting link will be confirmed before your session.'
+                    : '🎓 Intensive 1-on-1 training week. Secure payment via Paystack. Your personalized schedule will be sent shortly.'}
                 </p>
               </div>
 
@@ -965,8 +967,8 @@ const BookingSection = () => {
                   {loading
                     ? <><Loader2 style={{ width: 18, height: 18, animation: 'spin 1s linear infinite' }} /> Processing…</>
                     : selectedType?.price === 0
-                      ? <><CheckCircle style={{ width: 18, height: 18 }} /> Book Free Session</>
-                      : <><span>Pay $5 & Book</span></>
+                      ? <><CheckCircle style={{ width: 18, height: 18 }} /> Request Free Guide</>
+                      : <><span>Pay ${selectedType?.price} & Book Premium Consultation</span></>
                   }
                 </motion.button>
               </div>

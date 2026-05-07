@@ -68,26 +68,40 @@ const SERVICES = [
 
 const CONSULTATION_TYPES = [
   {
-    id: 'free_30',
-    label: 'Free Strategy Session',
-    duration: '30 min',
-    price: 0,
-    priceLabel: 'FREE',
-    badge: '1st Session',
-    description: 'Kick off your trading journey with a free 1-on-1 strategy call. No commitment — just real, actionable insights.',
+    id: 'guide_delivery',
+    label: 'Expert Trading Guide',
+    duration: 'Instant Delivery',
+    price: 7,
+    priceLabel: '$7',
+    badge: 'Most Popular',
+    description: 'Get a comprehensive, personalized trading guide on your topic of choice. Delivered instantly with actionable strategies, charts, and step-by-step instructions.',
     color: '#10b981',
-    gradient: 'linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05))'
+    gradient: 'linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05))',
+    features: [
+      '📖 Comprehensive guide (5-15 pages)',
+      '📊 Real market examples & charts',
+      '✅ Step-by-step action plan',
+      '🎯 Personalized to your level',
+      '💬 Follow-up support included'
+    ]
   },
   {
-    id: 'paid_90',
-    label: 'Deep-Dive Mentorship',
+    id: 'paid_mentorship',
+    label: 'Premium 1-on-1 Mentorship',
     duration: '1hr 30 min',
-    price: 5,
-    priceLabel: '$5',
-    badge: 'Best Value',
-    description: 'Intensive 90-minute session covering your full trading plan, live chart analysis, EA setup, or project deep-dive.',
+    price: 7,
+    priceLabel: '$7',
+    badge: 'Deep Dive',
+    description: 'After receiving your guide, book a live 1-on-1 session for personalized guidance, live chart analysis, and direct answers to your questions.',
     color: '#6366f1',
-    gradient: 'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))'
+    gradient: 'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))',
+    features: [
+      '🎥 Live 1-on-1 video call',
+      '📈 Real-time chart analysis',
+      '💡 Personalized strategy review',
+      '🔧 EA setup & troubleshooting',
+      '📞 Direct expert guidance'
+    ]
   }
 ];
 
@@ -216,7 +230,13 @@ const BookingSection = () => {
 
   const handleNext = () => {
     if (step === 3 && !validateDetails()) return;
-    setStep(s => s + 1);
+    
+    // Skip date/time for guide delivery (step 1 -> step 3)
+    if (step === 1 && selectedType?.id === 'guide_delivery') {
+      setStep(3);
+    } else {
+      setStep(s => s + 1);
+    }
     sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -261,18 +281,20 @@ const BookingSection = () => {
     setLoading(true);
     setError(null);
     try {
+      const isGuide = selectedType.id === 'guide_delivery';
       const res = await fetch('/api/bookings/initialize-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           service: selectedService.id,
           consultation_type: selectedType.id,
-          date: selectedDate.toISOString().split('T')[0],
-          time: selectedTime.value,
+          date: isGuide ? null : selectedDate.toISOString().split('T')[0],
+          time: isGuide ? null : selectedTime.value,
           name: form.name,
           email: form.email,
           phone: form.phone,
-          notes: form.notes
+          notes: form.notes,
+          guideTopic: isGuide ? selectedTime.label : null
         })
       });
       const data = await res.json();
@@ -283,18 +305,24 @@ const BookingSection = () => {
       setPaystackConfig({
         reference: data.reference,
         email: form.email,
-        amount: 500 * 150, // $5 × 150 KES/USD × 100 kobo = 75000 kobo
+        amount: 700 * 150, // $7 × 150 KES/USD × 100 kobo = 105000 kobo
         publicKey: key,
         currency: 'KES',
         metadata: {
           booking_reference: data.reference,
           service: selectedService.id,
           consultation_type: selectedType.id,
-          custom_fields: [
-            { display_name: 'Service', variable_name: 'service', value: selectedService.label },
-            { display_name: 'Date', variable_name: 'date', value: selectedDate.toISOString().split('T')[0] },
-            { display_name: 'Time', variable_name: 'time', value: selectedTime.label }
-          ]
+          custom_fields: isGuide
+            ? [
+                { display_name: 'Type', variable_name: 'type', value: 'Guide' },
+                { display_name: 'Topic', variable_name: 'topic', value: selectedTime.label }
+              ]
+            : [
+                { display_name: 'Type', variable_name: 'type', value: 'Mentorship' },
+                { display_name: 'Service', variable_name: 'service', value: selectedService.label },
+                { display_name: 'Date', variable_name: 'date', value: selectedDate.toISOString().split('T')[0] },
+                { display_name: 'Time', variable_name: 'time', value: selectedTime.label }
+              ]
         }
       });
 
@@ -403,19 +431,18 @@ const BookingSection = () => {
             lineHeight: 1.15,
             marginBottom: '16px'
           }}>
-            Learn to Trade Like a Pro —{' '}
+            Master Trading with Expert{' '}
             <span style={{
               backgroundImage: 'linear-gradient(90deg, #818cf8, #34d399)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
-              Book a Free Session
+              Guides & Mentorship
             </span>
           </h2>
           <p style={{ color: '#94a3b8', fontSize: '17px', maxWidth: '560px', margin: '0 auto' }}>
-            Get expert 1-on-1 mentorship in forex, stocks, algo trading & more.
-            First session is <strong style={{ color: '#34d399' }}>completely free</strong>.
-            Available <strong style={{ color: '#e2e8f0' }}>every day, 7 PM – 9 PM EAT</strong>.
+            Get a personalized trading guide on any topic, then book 1-on-1 mentorship if you want deeper guidance.
+            Choose your topic, pay just <strong style={{ color: '#34d399' }}>$7</strong>, and get instant access.
           </p>
         </motion.div>
 
@@ -552,8 +579,8 @@ const BookingSection = () => {
           {/* ── STEP 1: Consultation type ── */}
           {step === 1 && (
             <div>
-              <StepTitle icon={Clock} label="Choose your session type" />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: '16px', marginTop: '24px' }}>
+              <StepTitle icon={Clock} label="Choose your package" />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: '20px', marginTop: '24px' }}>
                 {CONSULTATION_TYPES.map(ct => {
                   const selected = selectedType?.id === ct.id;
                   return (
@@ -563,44 +590,60 @@ const BookingSection = () => {
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setSelectedType(ct)}
                       style={{
-                        textAlign: 'left', padding: '24px',
-                        borderRadius: '18px', cursor: 'pointer',
+                        textAlign: 'left', padding: '28px',
+                        borderRadius: '20px', cursor: 'pointer',
                         background: selected ? ct.gradient : 'rgba(255,255,255,0.03)',
                         border: `2px solid ${selected ? ct.color : 'rgba(255,255,255,0.08)'}`,
-                        transition: 'all 0.25s ease', position: 'relative'
+                        transition: 'all 0.25s ease', position: 'relative',
+                        boxShadow: selected ? `0 0 30px ${ct.color}33` : 'none'
                       }}
                     >
                       <span style={{
                         position: 'absolute', top: 16, right: 16,
                         background: `${ct.color}22`, border: `1px solid ${ct.color}44`,
-                        borderRadius: '6px', padding: '3px 10px',
+                        borderRadius: '8px', padding: '4px 12px',
                         fontSize: '11px', fontWeight: 700, color: ct.color, letterSpacing: '0.05em'
                       }}>
                         {ct.badge}
                       </span>
-                      <div style={{ fontSize: '28px', fontWeight: 900, color: ct.color, marginBottom: '4px' }}>
+                      <div style={{ fontSize: '32px', fontWeight: 900, color: ct.color, marginBottom: '2px' }}>
                         {ct.priceLabel}
                       </div>
-                      <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '17px', marginBottom: '6px' }}>
+                      <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '18px', marginBottom: '8px' }}>
                         {ct.label}
                       </div>
                       <div style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
-                        color: '#94a3b8', fontSize: '13px', marginBottom: '12px'
+                        color: '#94a3b8', fontSize: '13px', marginBottom: '16px'
                       }}>
                         <Clock style={{ width: 13, height: 13 }} />
                         {ct.duration}
                       </div>
-                      <div style={{ color: '#64748b', fontSize: '13px', lineHeight: 1.5 }}>
+                      <div style={{ color: '#64748b', fontSize: '13px', lineHeight: 1.6, marginBottom: '16px' }}>
                         {ct.description}
                       </div>
+                      
+                      {/* Features list */}
+                      <div style={{ borderTop: `1px solid ${ct.color}22`, paddingTop: '16px' }}>
+                        {ct.features.map((feature, idx) => (
+                          <div key={idx} style={{
+                            display: 'flex', alignItems: 'flex-start', gap: '8px',
+                            marginBottom: idx < ct.features.length - 1 ? '10px' : '0',
+                            fontSize: '13px', color: '#cbd5e1'
+                          }}>
+                            <span style={{ minWidth: '20px', color: ct.color }}>{feature.split(' ')[0]}</span>
+                            <span>{feature.substring(feature.indexOf(' ') + 1)}</span>
+                          </div>
+                        ))}
+                      </div>
+
                       {selected && (
                         <div style={{
                           position: 'absolute', top: 12, left: 12,
-                          width: 22, height: 22, borderRadius: '50%',
+                          width: 24, height: 24, borderRadius: '50%',
                           background: ct.color, display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}>
-                          <CheckCircle style={{ width: 13, height: 13, color: '#fff' }} />
+                          <CheckCircle style={{ width: 14, height: 14, color: '#fff' }} />
                         </div>
                       )}
                     </motion.button>
@@ -611,98 +654,149 @@ const BookingSection = () => {
             </div>
           )}
 
-          {/* ── STEP 2: Date & Time ── */}
+          {/* ── STEP 2: Guide Topic or Date & Time ── */}
           {step === 2 && (
             <div>
-              <StepTitle icon={Calendar} label="Pick a date and time" />
-              <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>
-                Available every day · 7:00 PM – 9:00 PM (East Africa Time)
-              </p>
-
-              {/* Date picker */}
-              <div style={{ marginBottom: '32px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <span style={{ fontWeight: 600, color: '#94a3b8', fontSize: '13px' }}>SELECT DATE</span>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <ArrowButton dir="left" onClick={() => setDateOffset(o => Math.max(0, o - DATES_PER_PAGE))} disabled={dateOffset === 0} />
-                    <ArrowButton dir="right" onClick={() => setDateOffset(o => Math.min(AVAILABLE_DATES.length - DATES_PER_PAGE, o + DATES_PER_PAGE))} disabled={dateOffset + DATES_PER_PAGE >= AVAILABLE_DATES.length} />
+              {selectedType?.id === 'guide_delivery' ? (
+                // Guide topic selection
+                <>
+                  <StepTitle icon={Star} label="What topic would you like a guide on?" />
+                  <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>
+                    Choose a trading topic and we'll create a personalized guide for you
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px', marginTop: '24px' }}>
+                    {SERVICES.map(svc => {
+                      const isSelected = selectedTime?.value === svc.id; // Reuse selectedTime for topic
+                      return (
+                        <motion.button
+                          key={svc.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedTime({ value: svc.id, label: svc.label })}
+                          style={{
+                            padding: '16px 18px',
+                            borderRadius: '14px', cursor: 'pointer',
+                            background: isSelected ? svc.bg : 'rgba(255,255,255,0.03)',
+                            border: `1.5px solid ${isSelected ? svc.color : 'rgba(255,255,255,0.08)'}`,
+                            transition: 'all 0.2s ease', position: 'relative',
+                            textAlign: 'left'
+                          }}
+                        >
+                          {isSelected && (
+                            <div style={{
+                              position: 'absolute', top: 10, right: 10,
+                              width: 18, height: 18, borderRadius: '50%',
+                              background: svc.color, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                              <CheckCircle style={{ width: 11, height: 11, color: '#fff' }} />
+                            </div>
+                          )}
+                          <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '14px', marginBottom: '4px' }}>
+                            {svc.label}
+                          </div>
+                          <div style={{ color: '#64748b', fontSize: '12px' }}>
+                            {svc.description.substring(0, 50)}...
+                          </div>
+                        </motion.button>
+                      );
+                    })}
                   </div>
-                </div>
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  {visibleDates.map((d, i) => {
-                    const sel = selectedDate?.toDateString() === d.toDateString();
-                    return (
-                      <motion.button
-                        key={i}
-                        whileHover={{ scale: 1.04 }}
-                        whileTap={{ scale: 0.96 }}
-                        onClick={() => setSelectedDate(d)}
-                        style={{
-                          flex: '1', minWidth: '80px',
-                          padding: '14px 10px', borderRadius: '14px', cursor: 'pointer',
-                          background: sel ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)',
-                          border: `1.5px solid ${sel ? '#6366f1' : 'rgba(255,255,255,0.08)'}`,
-                          textAlign: 'center', transition: 'all 0.2s'
-                        }}
-                      >
-                        <div style={{ fontSize: '11px', fontWeight: 600, color: sel ? '#818cf8' : '#64748b', marginBottom: '4px' }}>
-                          {DAYS[d.getDay()]}
-                        </div>
-                        <div style={{ fontSize: '20px', fontWeight: 800, color: sel ? '#e0e7ff' : '#94a3b8' }}>
-                          {d.getDate()}
-                        </div>
-                        <div style={{ fontSize: '11px', color: sel ? '#818cf8' : '#475569', marginTop: '2px' }}>
-                          {MONTHS[d.getMonth()]}
-                        </div>
-                      </motion.button>
-                    );
-                  })}
-                </div>
-              </div>
+                  <NavigationRow onNext={handleNext} onBack={handleBack} nextDisabled={!selectedTime} />
+                </>
+              ) : (
+                // Date & Time selection for mentorship
+                <>
+                  <StepTitle icon={Calendar} label="Pick a date and time" />
+                  <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>
+                    Available every day · 7:00 PM – 9:00 PM (East Africa Time)
+                  </p>
 
-              {/* Time picker */}
-              <div>
-                <div style={{ fontWeight: 600, color: '#94a3b8', fontSize: '13px', marginBottom: '14px' }}>
-                  SELECT TIME
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                  {TIME_SLOTS.map((ts, i) => {
-                    const sel = selectedTime?.value === ts.value;
-                    const isBooked = bookedSlots.includes(ts.value);
-                    
-                    // Don't render booked slots
-                    if (isBooked) return null;
-                    
-                    return (
-                      <motion.button
-                        key={i}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setSelectedTime(ts)}
-                        style={{
-                          padding: '10px 18px', borderRadius: '10px', cursor: 'pointer',
-                          background: sel ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)',
-                          border: `1.5px solid ${sel ? '#6366f1' : 'rgba(255,255,255,0.08)'}`,
-                          color: sel ? '#e0e7ff' : '#64748b',
-                          fontWeight: sel ? 700 : 500, fontSize: '13px',
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        {ts.label}
-                      </motion.button>
-                    );
-                  })}
-                  {bookedSlots.length > 0 && (
-                    <div style={{ width: '100%', marginTop: '8px', padding: '8px 12px', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: '8px' }}>
-                      <p style={{ color: '#fbbf24', fontSize: '12px', margin: 0 }}>
-                        ⚠️ {bookedSlots.length} slot{bookedSlots.length > 1 ? 's' : ''} already booked for this date
-                      </p>
+                  {/* Date picker */}
+                  <div style={{ marginBottom: '32px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                      <span style={{ fontWeight: 600, color: '#94a3b8', fontSize: '13px' }}>SELECT DATE</span>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <ArrowButton dir="left" onClick={() => setDateOffset(o => Math.max(0, o - DATES_PER_PAGE))} disabled={dateOffset === 0} />
+                        <ArrowButton dir="right" onClick={() => setDateOffset(o => Math.min(AVAILABLE_DATES.length - DATES_PER_PAGE, o + DATES_PER_PAGE))} disabled={dateOffset + DATES_PER_PAGE >= AVAILABLE_DATES.length} />
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      {visibleDates.map((d, i) => {
+                        const sel = selectedDate?.toDateString() === d.toDateString();
+                        return (
+                          <motion.button
+                            key={i}
+                            whileHover={{ scale: 1.04 }}
+                            whileTap={{ scale: 0.96 }}
+                            onClick={() => setSelectedDate(d)}
+                            style={{
+                              flex: '1', minWidth: '80px',
+                              padding: '14px 10px', borderRadius: '14px', cursor: 'pointer',
+                              background: sel ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)',
+                              border: `1.5px solid ${sel ? '#6366f1' : 'rgba(255,255,255,0.08)'}`,
+                              textAlign: 'center', transition: 'all 0.2s'
+                            }}
+                          >
+                            <div style={{ fontSize: '11px', fontWeight: 600, color: sel ? '#818cf8' : '#64748b', marginBottom: '4px' }}>
+                              {DAYS[d.getDay()]}
+                            </div>
+                            <div style={{ fontSize: '20px', fontWeight: 800, color: sel ? '#e0e7ff' : '#94a3b8' }}>
+                              {d.getDate()}
+                            </div>
+                            <div style={{ fontSize: '11px', color: sel ? '#818cf8' : '#475569', marginTop: '2px' }}>
+                              {MONTHS[d.getMonth()]}
+                            </div>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-              <NavigationRow onNext={handleNext} onBack={handleBack} nextDisabled={!selectedDate || !selectedTime} />
+                  {/* Time picker */}
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#94a3b8', fontSize: '13px', marginBottom: '14px' }}>
+                      SELECT TIME
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                      {TIME_SLOTS.map((ts, i) => {
+                        const sel = selectedTime?.value === ts.value;
+                        const isBooked = bookedSlots.includes(ts.value);
+                        
+                        // Don't render booked slots
+                        if (isBooked) return null;
+                        
+                        return (
+                          <motion.button
+                            key={i}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setSelectedTime(ts)}
+                            style={{
+                              padding: '10px 18px', borderRadius: '10px', cursor: 'pointer',
+                              background: sel ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)',
+                              border: `1.5px solid ${sel ? '#6366f1' : 'rgba(255,255,255,0.08)'}`,
+                              color: sel ? '#e0e7ff' : '#64748b',
+                              fontWeight: sel ? 700 : 500, fontSize: '13px',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            {ts.label}
+                          </motion.button>
+                        );
+                      })}
+                      {bookedSlots.length > 0 && (
+                        <div style={{ width: '100%', marginTop: '8px', padding: '8px 12px', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: '8px' }}>
+                          <p style={{ color: '#fbbf24', fontSize: '12px', margin: 0 }}>
+                            ⚠️ {bookedSlots.length} slot{bookedSlots.length > 1 ? 's' : ''} already booked for this date
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <NavigationRow onNext={handleNext} onBack={handleBack} nextDisabled={!selectedDate || !selectedTime} />
+                </>
+              )}
             </div>
           )}
 
@@ -748,9 +842,15 @@ const BookingSection = () => {
                 borderRadius: '16px', padding: '24px', marginTop: '24px'
               }}>
                 <SummaryRow label="Service" value={selectedService?.label} color={selectedService?.color} />
-                <SummaryRow label="Session" value={`${selectedType?.label} — ${selectedType?.duration}`} />
-                <SummaryRow label="Date" value={selectedDate ? formatDate(selectedDate) : ''} />
-                <SummaryRow label="Time" value={selectedTime?.label} />
+                <SummaryRow label="Package" value={`${selectedType?.label} — ${selectedType?.duration}`} />
+                {selectedType?.id === 'guide_delivery' ? (
+                  <SummaryRow label="Guide Topic" value={selectedTime?.label} />
+                ) : (
+                  <>
+                    <SummaryRow label="Date" value={selectedDate ? formatDate(selectedDate) : ''} />
+                    <SummaryRow label="Time" value={selectedTime?.label} />
+                  </>
+                )}
                 <SummaryRow label="Name" value={form.name} />
                 <SummaryRow label="Email" value={form.email} />
                 {form.phone && <SummaryRow label="Phone" value={form.phone} />}
@@ -775,8 +875,8 @@ const BookingSection = () => {
               }}>
                 <AlertCircle style={{ width: 16, height: 16, color: selectedType?.price === 0 ? '#34d399' : '#818cf8', marginTop: 2, flexShrink: 0 }} />
                 <p style={{ color: selectedType?.price === 0 ? '#34d399' : '#818cf8', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>
-                  {selectedType?.price === 0
-                    ? 'Your first consultation is completely free. No payment needed!'
+                  {selectedType?.id === 'guide_delivery'
+                    ? 'Your personalized guide will be delivered within 24 hours. Secure payment via Paystack.'
                     : 'Secure payment via Paystack. You will be redirected to complete payment.'}
                 </p>
               </div>

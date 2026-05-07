@@ -84,7 +84,9 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
   };
 
   const serviceLabel = serviceLabels[service] || service;
-  const isGuide = consultationType === 'free_guide_preview' || consultationType === 'full_guide_delivery';
+  const isGuide = consultationType === 'free_outline_guide';
+  const isMentorship7 = consultationType === 'full_guide_mentorship_7';
+  const isWeekClass = consultationType === 'week_class_package';
   
   try {
     const html = `
@@ -94,22 +96,22 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
     <body style="font-family:'Segoe UI',Arial,sans-serif;background:#0f172a;margin:0;padding:0;">
       <div style="max-width:580px;margin:40px auto;background:#1e293b;border-radius:16px;overflow:hidden;border:1px solid rgba(99,102,241,0.2);">
         <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:36px;text-align:center;">
-          <h1 style="color:#fff;margin:0;font-size:26px;font-weight:800;">✓ ${isFreePreview ? '🎁 Free Preview Ready' : '✓ Payment Confirmed'}</h1>
-          <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;">${isFreePreview ? 'Your guide preview is ready' : isGuide ? 'Your guide is being prepared' : 'Your mentorship session is scheduled'}</p>
+          <h1 style="color:#fff;margin:0;font-size:26px;font-weight:800;">✓ ${isGuide ? '📖 Guide Request Received' : '✓ Payment Confirmed'}</h1>
+          <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;">${isGuide ? 'Your outline guide is being prepared' : isMentorship7 ? 'Your mentorship session is scheduled' : 'Your 1-week training starts soon'}</p>
         </div>
         <div style="padding:36px;">
           <p style="color:#94a3b8;font-size:16px;margin-top:0;">Hi <strong style="color:#e2e8f0;">${name}</strong>,</p>
           <p style="color:#64748b;font-size:15px;line-height:1.6;">
-            ${isFreePreview 
-              ? `Your FREE guide preview on <strong>${guideTopic}</strong> is ready! This preview includes the roadmap and sample strategies to show you what's included in the full guide.`
-              : isGuide 
-              ? `Thank you for your purchase! Your personalized trading guide on <strong>${guideTopic}</strong> is being prepared and will be delivered to your email within 24 hours.`
-              : `Your mentorship session has been successfully booked. Here are your details:`
+            ${isGuide 
+              ? `Your FREE outline guide on <strong>${guideTopic}</strong> is being prepared! This personalized guide will give you the complete roadmap and key insights to start your trading journey.`
+              : isMentorship7 
+              ? `Thank you for your purchase! Your 90-minute 1-on-1 mentorship session has been confirmed. We'll provide live chart analysis, strategy coaching, and direct expert guidance tailored to your level.`
+              : `Welcome to the 1-Week Class Package! Your intensive 1-on-1 training begins soon. You'll master all market information, risk management, trading psychology, and advanced strategies.`
             }
           </p>
 
           <div style="background:#0f172a;border-radius:12px;padding:20px;margin:24px 0;border:1px solid rgba(255,255,255,0.08);">
-            ${isFreePreview 
+            ${isGuide 
               ? `
                 <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
                   <span style="color:#64748b;font-size:13px;">Guide Topic</span>
@@ -117,18 +119,22 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
                 </div>
                 <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
                   <span style="color:#64748b;font-size:13px;">Type</span>
-                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">FREE Preview</span>
+                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">FREE Outline Guide</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;padding:10px 0;">
                   <span style="color:#64748b;font-size:13px;">Reference</span>
                   <span style="color:#e2e8f0;font-weight:600;font-size:13px;">${reference}</span>
                 </div>
               `
-              : isGuide 
+              : isMentorship7 
               ? `
                 <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <span style="color:#64748b;font-size:13px;">Guide Topic</span>
-                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">${guideTopic}</span>
+                  <span style="color:#64748b;font-size:13px;">Package</span>
+                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">Full Guide + 1-on-1 Mentorship</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <span style="color:#64748b;font-size:13px;">Duration</span>
+                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">90 Minutes</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
                   <span style="color:#64748b;font-size:13px;">Amount Paid</span>
@@ -141,20 +147,20 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
               `
               : `
                 <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <span style="color:#64748b;font-size:13px;">Service</span>
-                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">${serviceLabel}</span>
+                  <span style="color:#64748b;font-size:13px;">Package</span>
+                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">1-Week Class Package</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <span style="color:#64748b;font-size:13px;">Session Type</span>
-                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">Premium 1-on-1 Mentorship</span>
+                  <span style="color:#64748b;font-size:13px;">Duration</span>
+                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">1 Full Week</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <span style="color:#64748b;font-size:13px;">Date</span>
-                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">${date}</span>
+                  <span style="color:#64748b;font-size:13px;">Training Type</span>
+                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">1-on-1 Personal Guidance</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <span style="color:#64748b;font-size:13px;">Time</span>
-                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">${time}</span>
+                  <span style="color:#64748b;font-size:13px;">Amount Paid</span>
+                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">$49.00</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;padding:10px 0;">
                   <span style="color:#64748b;font-size:13px;">Reference</span>
@@ -166,11 +172,11 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
 
           <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:16px;margin-bottom:24px;">
             <p style="color:#818cf8;font-size:14px;margin:0;line-height:1.5;">
-              ${isFreePreview 
-                ? '📖 This preview shows you the roadmap and sample strategies. Ready to see the full guide? Upgrade for just $7 to unlock everything!'
-                : isGuide 
-                ? '📖 Your guide will include actionable strategies, real market examples, and step-by-step instructions tailored to your level.'
-                : '📅 We will reach out to confirm the meeting link before your session. If you need to reschedule, please reply to this email with your reference number.'
+              ${isGuide 
+                ? '📖 Your outline guide will be delivered within 24 hours. It includes the complete roadmap and key insights to get you started.'
+                : isMentorship7 
+                ? '🎥 We will reach out within 24 hours to schedule your 90-minute session. You\'ll get live chart analysis, strategy coaching, and direct expert guidance.'
+                : '🎓 Your 1-week intensive training will begin shortly. You\'ll receive a personalized schedule for your 1-on-1 sessions covering all market information and advanced strategies.'
               }
             </p>
           </div>
@@ -194,11 +200,11 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
         email: process.env.EMAIL_USER || 'softwarebazaar.ke@gmail.com',
         name: 'Smart Algos'
       },
-      subject: isFreePreview 
-        ? `🎁 Free Preview – ${guideTopic} Trading Guide`
-        : isGuide 
-        ? `✅ Guide Ready – ${guideTopic} Trading Guide`
-        : `✅ Mentorship Booked – ${serviceLabel} on ${date}`,
+      subject: isGuide 
+        ? `📖 Outline Guide Request – ${guideTopic} Trading`
+        : isMentorship7 
+        ? `✅ Mentorship Confirmed – 90-Min 1-on-1 Session`
+        : `✅ 1-Week Class Package – Intensive Training Starts`,
       html: html
     };
 
@@ -234,7 +240,9 @@ async function sendAdminNotification({ name, email, phone, service, consultation
     other: 'Other Service'
   };
 
-  const isGuide = consultationType === 'guide_delivery';
+  const isGuide = consultationType === 'free_outline_guide';
+  const isMentorship7 = consultationType === 'full_guide_mentorship_7';
+  const isWeekClass = consultationType === 'week_class_package';
 
   try {
     const msg = {
@@ -244,72 +252,77 @@ async function sendAdminNotification({ name, email, phone, service, consultation
         name: 'Smart Algos Bookings'
       },
       subject: isGuide 
-        ? `📖 New Guide Purchase: ${name} – ${guideTopic}`
-        : `📅 New Mentorship Booking: ${name} – ${date} ${time}`,
+        ? `📖 New Guide Request: ${name} – ${guideTopic}`
+        : isMentorship7
+        ? `🎥 New Mentorship Booking: ${name} – 90 Min Session`
+        : `🎓 New 1-Week Class: ${name} – Intensive Training`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;background:#f9f9f9;padding:24px;border-radius:8px;">
-          <h2 style="color:#4f46e5;margin-top:0;">${isGuide ? '📖 New Guide Purchase' : '📅 New Mentorship Booking'}</h2>
-          <p style="color:#374151;margin-bottom:16px;">${isGuide ? 'Someone just purchased a trading guide.' : 'Someone just booked a mentorship session.'} Details below:</p>
+          <h2 style="color:#4f46e5;margin-top:0;">${isGuide ? '📖 New Guide Request' : isMentorship7 ? '🎥 New Mentorship Booking' : '🎓 New 1-Week Class Package'}</h2>
+          <p style="color:#374151;margin-bottom:16px;">${isGuide ? 'Someone requested a free outline guide.' : isMentorship7 ? 'Someone booked a 90-minute 1-on-1 mentorship session.' : 'Someone enrolled in the 1-week intensive training.'} Details below:</p>
           <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;">
-            ${isGuide
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <td style="padding:10px 12px;color:#6b7280;font-size:13px;width:35%;">Name</td>
+              <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${name}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Email</td>
+              <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${email}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Phone</td>
+              <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${phone || 'Not provided'}</td>
+            </tr>
+            ${isGuide 
               ? `
-                <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;width:35%;">Name</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${name}</td>
-                </tr>
-                <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Email</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${email}</td>
-                </tr>
-                <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Phone</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${phone || 'Not provided'}</td>
-                </tr>
                 <tr style="border-bottom:1px solid #f0f0f0;">
                   <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Guide Topic</td>
                   <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${guideTopic}</td>
                 </tr>
                 <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Amount</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">$7.00</td>
+                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Type</td>
+                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">FREE Outline Guide</td>
                 </tr>
-                <tr style="border-bottom:1px solid #f0f0f0;">
+                <tr>
                   <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Reference</td>
                   <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${reference}</td>
                 </tr>
+              `
+              : isMentorship7
+              ? `
+                <tr style="border-bottom:1px solid #f0f0f0;">
+                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Package</td>
+                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">Full Guide + 1-on-1 Mentorship</td>
+                </tr>
+                <tr style="border-bottom:1px solid #f0f0f0;">
+                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Duration</td>
+                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">90 Minutes</td>
+                </tr>
+                <tr style="border-bottom:1px solid #f0f0f0;">
+                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Amount</td>
+                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#10b981;">$7.00 ✓ Paid</td>
+                </tr>
                 <tr>
-                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Status</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#10b981;">✅ Paid</td>
+                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Reference</td>
+                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${reference}</td>
                 </tr>
               `
               : `
                 <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;width:35%;">Name</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${name}</td>
+                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Package</td>
+                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">1-Week Class Package</td>
                 </tr>
                 <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Email</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${email}</td>
+                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Duration</td>
+                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">1 Full Week</td>
                 </tr>
                 <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Phone</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${phone || 'Not provided'}</td>
-                </tr>
-                <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Service</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${serviceLabels[service] || service}</td>
-                </tr>
-                <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Date</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${date}</td>
-                </tr>
-                <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Time</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">${time}</td>
+                  <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Training Type</td>
+                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">1-on-1 Personal Guidance</td>
                 </tr>
                 <tr style="border-bottom:1px solid #f0f0f0;">
                   <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Amount</td>
-                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#111827;">$7.00</td>
+                  <td style="padding:10px 12px;font-weight:600;font-size:13px;color:#10b981;">$49.00 ✓ Paid</td>
                 </tr>
                 <tr>
                   <td style="padding:10px 12px;color:#6b7280;font-size:13px;">Reference</td>
@@ -489,7 +502,12 @@ router.post('/initialize-payment', async (req, res) => {
   }
 
   // For paid packages, initialize Paystack
-  const amountUsd = 7;
+  // Determine amount based on consultation type
+  let amountUsd = 7; // Default for full_guide_mentorship_7
+  if (consultation_type === 'week_class_package') {
+    amountUsd = 49;
+  }
+  
   const KES_RATE = 150;
   const amountKobo = Math.round(amountUsd * KES_RATE * 100); // in kobo
 

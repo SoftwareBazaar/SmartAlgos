@@ -68,57 +68,57 @@ const SERVICES = [
 
 const CONSULTATION_TYPES = [
   {
-    id: 'free_guide_preview',
-    label: 'Free Guide Preview',
-    duration: 'Instant',
+    id: 'free_outline_guide',
+    label: 'Free Outline Guide',
+    duration: 'Instant Access',
     price: 0,
     priceLabel: 'FREE',
-    badge: 'Get Started',
-    description: 'Get a preview of your personalized trading guide with key insights, roadmap, and sample strategies. See what\'s included before upgrading.',
+    badge: 'Start Here',
+    description: 'Subscribe and request a personalized outline guide on your chosen trading topic. Get the roadmap and key insights to start your journey.',
     color: '#34d399',
     gradient: 'linear-gradient(135deg,rgba(52,211,153,0.15),rgba(52,211,153,0.05))',
     features: [
-      '📖 Preview guide (3-5 pages)',
-      '🗺️ Complete roadmap included',
-      '📊 Sample market examples',
-      '✨ Teaser of full strategies',
-      '⬆️ Upgrade to full guide anytime'
+      '📖 Personalized outline guide',
+      '🗺️ Complete learning roadmap',
+      '📊 Key market insights',
+      '✨ Topic-specific strategies',
+      '🚀 Foundation to build on'
     ]
   },
   {
-    id: 'full_guide_delivery',
-    label: 'Full Expert Trading Guide',
-    duration: 'Instant Delivery',
+    id: 'full_guide_mentorship_7',
+    label: 'Full Guide + 1-on-1 Mentorship',
+    duration: '90 Minutes',
     price: 7,
     priceLabel: '$7',
-    badge: 'Complete Access',
-    description: 'Get the COMPLETE personalized trading guide with all strategies, detailed charts, step-by-step action plans, and everything you need to succeed.',
+    badge: 'Personal Guidance',
+    description: 'Get the complete trading guide PLUS a 90-minute personal 1-on-1 mentorship session. Real-time guidance, chart analysis, and direct expert support.',
     color: '#10b981',
     gradient: 'linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05))',
     features: [
-      '📖 Complete guide (15-25 pages)',
-      '📊 All market examples & charts',
-      '✅ Full step-by-step action plan',
-      '🎯 Advanced strategies included',
-      '💬 Priority follow-up support'
+      '📖 Complete trading guide',
+      '🎥 90-min 1-on-1 video session',
+      '📈 Live chart analysis & review',
+      '💡 Personalized strategy coaching',
+      '🎯 Direct expert answers'
     ]
   },
   {
-    id: 'paid_mentorship',
-    label: 'Premium 1-on-1 Mentorship',
-    duration: '1hr 30 min',
-    price: 7,
-    priceLabel: '$7',
-    badge: 'Deep Dive',
-    description: 'Live 1-on-1 session for personalized guidance, live chart analysis, strategy review, and direct answers to your questions.',
+    id: 'week_class_package',
+    label: '1-Week Class Package',
+    duration: '1 Week',
+    price: 49,
+    priceLabel: '$49',
+    badge: 'Intensive Training',
+    description: 'Intensive 1-on-1 personal guidance for a full week. Master all market information, trading psychology, risk management, and advanced strategies.',
     color: '#6366f1',
     gradient: 'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))',
     features: [
-      '🎥 Live 1-on-1 video call',
-      '📈 Real-time chart analysis',
-      '💡 Personalized strategy review',
-      '🔧 EA setup & troubleshooting',
-      '📞 Direct expert guidance'
+      '🎓 Full week of 1-on-1 training',
+      '📚 All market information covered',
+      '💰 Risk management mastery',
+      '🧠 Trading psychology & mindset',
+      '🎯 Advanced strategy deep-dive'
     ]
   }
 ];
@@ -301,8 +301,9 @@ const BookingSection = () => {
     setLoading(true);
     setError(null);
     try {
-      const isGuide = selectedType.id === 'free_guide_preview' || selectedType.id === 'full_guide_delivery';
-      const isFreePreview = selectedType.id === 'free_guide_preview';
+      const isGuide = selectedType.id === 'free_outline_guide';
+      const isMentorship7 = selectedType.id === 'full_guide_mentorship_7';
+      const isWeekClass = selectedType.id === 'week_class_package';
       
       const res = await fetch('/api/bookings/initialize-payment', {
         method: 'POST',
@@ -317,14 +318,14 @@ const BookingSection = () => {
           phone: form.phone,
           notes: form.notes,
           guideTopic: isGuide ? selectedTime?.label : null,
-          isFreePreview: isFreePreview
+          isFreePreview: isGuide
         })
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Could not initialize payment');
 
-      // For free preview, skip Paystack and go straight to success
-      if (isFreePreview) {
+      // For free outline guide, skip Paystack and go straight to success
+      if (isGuide) {
         setBookingRef(data.reference);
         setStep(5);
         return;
@@ -332,26 +333,32 @@ const BookingSection = () => {
 
       // Build paystack config for paid packages
       const key = process.env.REACT_APP_PAYSTACK_PUBLIC_KEY || data.publicKey || '';
+      
+      // Calculate amount based on package type
+      let amountUsd = 7; // Default for mentorship
+      if (isWeekClass) {
+        amountUsd = 49;
+      }
+      const amountKobo = amountUsd * 150 * 100; // USD × KES rate × 100 kobo
+      
       setPaystackConfig({
         reference: data.reference,
         email: form.email,
-        amount: 700 * 150, // $7 × 150 KES/USD × 100 kobo = 105000 kobo
+        amount: amountKobo,
         publicKey: key,
         currency: 'KES',
         metadata: {
           booking_reference: data.reference,
           service: selectedService.id,
           consultation_type: selectedType.id,
-          custom_fields: isGuide
+          custom_fields: isMentorship7
             ? [
-                { display_name: 'Type', variable_name: 'type', value: 'Full Guide' },
-                { display_name: 'Topic', variable_name: 'topic', value: selectedTime.label }
+                { display_name: 'Type', variable_name: 'type', value: 'Full Guide + 1-on-1 Mentorship' },
+                { display_name: 'Duration', variable_name: 'duration', value: '90 Minutes' }
               ]
             : [
-                { display_name: 'Type', variable_name: 'type', value: 'Mentorship' },
-                { display_name: 'Service', variable_name: 'service', value: selectedService.label },
-                { display_name: 'Date', variable_name: 'date', value: selectedDate ? selectedDate.toISOString().split('T')[0] : 'TBD' },
-                { display_name: 'Time', variable_name: 'time', value: selectedTime?.label }
+                { display_name: 'Type', variable_name: 'type', value: '1-Week Class Package' },
+                { display_name: 'Training', variable_name: 'training', value: '1-on-1 Personal Guidance' }
               ]
         }
       });
@@ -461,17 +468,17 @@ const BookingSection = () => {
             lineHeight: 1.15,
             marginBottom: '16px'
           }}>
-            Master Trading with Expert{' '}
+            Master Trading with{' '}
             <span style={{
               backgroundImage: 'linear-gradient(90deg, #818cf8, #34d399)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
-              Guides & Mentorship
+              Personal Guidance
             </span>
           </h2>
           <p style={{ color: '#94a3b8', fontSize: '17px', maxWidth: '560px', margin: '0 auto' }}>
-            Start free with a guide preview. See the roadmap and sample strategies. Then upgrade to the full guide for just <strong style={{ color: '#34d399' }}>$7</strong> to unlock everything.
+            Start free with an outline guide. Get personalized 1-on-1 mentorship for <strong style={{ color: '#34d399' }}>$7</strong> or intensive 1-week training for <strong style={{ color: '#34d399' }}>$49</strong>.
           </p>
         </motion.div>
 

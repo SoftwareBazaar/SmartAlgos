@@ -265,7 +265,7 @@ const BookingSection = () => {
     setError(null);
   };
 
-  // Confirm free booking
+  // Confirm free booking (for mentorship only - guides use initiatePaidBooking)
   const confirmFreeBooking = async () => {
     setLoading(true);
     setError(null);
@@ -941,7 +941,7 @@ const BookingSection = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   disabled={loading}
-                  onClick={selectedType?.price === 0 ? confirmFreeBooking : initiatePaidBooking}
+                  onClick={initiatePaidBooking}
                   style={{
                     flex: 1, padding: '14px 28px', borderRadius: '12px', cursor: loading ? 'not-allowed' : 'pointer',
                     background: loading ? 'rgba(99,102,241,0.4)' : (

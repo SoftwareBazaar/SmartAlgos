@@ -308,13 +308,13 @@ const BookingSection = () => {
         body: JSON.stringify({
           service: selectedService.id,
           consultation_type: selectedType.id,
-          date: isGuide ? null : selectedDate.toISOString().split('T')[0],
-          time: isGuide ? null : selectedTime.value,
+          date: isGuide ? null : (selectedDate ? selectedDate.toISOString().split('T')[0] : null),
+          time: isGuide ? null : selectedTime?.value,
           name: form.name,
           email: form.email,
           phone: form.phone,
           notes: form.notes,
-          guideTopic: isGuide ? selectedTime.label : null,
+          guideTopic: isGuide ? selectedTime?.label : null,
           isFreePreview: isFreePreview
         })
       });

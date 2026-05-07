@@ -217,7 +217,9 @@ const BookingSection = () => {
 
     const fetchBookedSlots = async () => {
       try {
-        const dateStr = selectedDate.toISOString().split('T')[0];
+        const dateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : null;
+        if (!dateStr) return;
+        
         const res = await fetch(`/api/bookings/available-slots?date=${dateStr}`);
         const data = await res.json();
         if (data.success) {
@@ -274,8 +276,8 @@ const BookingSection = () => {
         body: JSON.stringify({
           service: selectedService.id,
           consultation_type: selectedType.id,
-          date: selectedDate.toISOString().split('T')[0],
-          time: selectedTime.value,
+          date: selectedDate ? selectedDate.toISOString().split('T')[0] : null,
+          time: selectedTime?.value,
           name: form.name,
           email: form.email,
           phone: form.phone,
@@ -348,8 +350,8 @@ const BookingSection = () => {
             : [
                 { display_name: 'Type', variable_name: 'type', value: 'Mentorship' },
                 { display_name: 'Service', variable_name: 'service', value: selectedService.label },
-                { display_name: 'Date', variable_name: 'date', value: selectedDate.toISOString().split('T')[0] },
-                { display_name: 'Time', variable_name: 'time', value: selectedTime.label }
+                { display_name: 'Date', variable_name: 'date', value: selectedDate ? selectedDate.toISOString().split('T')[0] : 'TBD' },
+                { display_name: 'Time', variable_name: 'time', value: selectedTime?.label }
               ]
         }
       });

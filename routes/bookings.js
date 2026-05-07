@@ -69,7 +69,7 @@ function genRef() {
   return `BOOK-${ts}-${rand}`;
 }
 
-async function sendConfirmationEmail({ name, email, service, consultationType, date, time, reference, isPaid, guideTopic }) {
+async function sendConfirmationEmail({ name, email, service, consultationType, date, time, reference, isPaid, guideTopic, isFreePreview }) {
   if (!process.env.SENDGRID_API_KEY) {
     console.warn('[Bookings] SendGrid not configured – skipping confirmation email');
     return { success: false, reason: 'not_configured' };
@@ -84,7 +84,7 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
   };
 
   const serviceLabel = serviceLabels[service] || service;
-  const isGuide = consultationType === 'guide_delivery';
+  const isGuide = consultationType === 'free_guide_preview' || consultationType === 'full_guide_delivery';
   
   try {
     const html = `
@@ -94,20 +94,37 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
     <body style="font-family:'Segoe UI',Arial,sans-serif;background:#0f172a;margin:0;padding:0;">
       <div style="max-width:580px;margin:40px auto;background:#1e293b;border-radius:16px;overflow:hidden;border:1px solid rgba(99,102,241,0.2);">
         <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:36px;text-align:center;">
-          <h1 style="color:#fff;margin:0;font-size:26px;font-weight:800;">✓ Payment Confirmed</h1>
-          <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;">${isGuide ? 'Your guide is being prepared' : 'Your mentorship session is scheduled'}</p>
+          <h1 style="color:#fff;margin:0;font-size:26px;font-weight:800;">✓ ${isFreePreview ? '🎁 Free Preview Ready' : '✓ Payment Confirmed'}</h1>
+          <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;">${isFreePreview ? 'Your guide preview is ready' : isGuide ? 'Your guide is being prepared' : 'Your mentorship session is scheduled'}</p>
         </div>
         <div style="padding:36px;">
           <p style="color:#94a3b8;font-size:16px;margin-top:0;">Hi <strong style="color:#e2e8f0;">${name}</strong>,</p>
           <p style="color:#64748b;font-size:15px;line-height:1.6;">
-            ${isGuide 
+            ${isFreePreview 
+              ? `Your FREE guide preview on <strong>${guideTopic}</strong> is ready! This preview includes the roadmap and sample strategies to show you what's included in the full guide.`
+              : isGuide 
               ? `Thank you for your purchase! Your personalized trading guide on <strong>${guideTopic}</strong> is being prepared and will be delivered to your email within 24 hours.`
               : `Your mentorship session has been successfully booked. Here are your details:`
             }
           </p>
 
           <div style="background:#0f172a;border-radius:12px;padding:20px;margin:24px 0;border:1px solid rgba(255,255,255,0.08);">
-            ${isGuide 
+            ${isFreePreview 
+              ? `
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <span style="color:#64748b;font-size:13px;">Guide Topic</span>
+                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">${guideTopic}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <span style="color:#64748b;font-size:13px;">Type</span>
+                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">FREE Preview</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;">
+                  <span style="color:#64748b;font-size:13px;">Reference</span>
+                  <span style="color:#e2e8f0;font-weight:600;font-size:13px;">${reference}</span>
+                </div>
+              `
+              : isGuide 
               ? `
                 <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
                   <span style="color:#64748b;font-size:13px;">Guide Topic</span>
@@ -149,7 +166,9 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
 
           <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:16px;margin-bottom:24px;">
             <p style="color:#818cf8;font-size:14px;margin:0;line-height:1.5;">
-              ${isGuide 
+              ${isFreePreview 
+                ? '📖 This preview shows you the roadmap and sample strategies. Ready to see the full guide? Upgrade for just $7 to unlock everything!'
+                : isGuide 
                 ? '📖 Your guide will include actionable strategies, real market examples, and step-by-step instructions tailored to your level.'
                 : '📅 We will reach out to confirm the meeting link before your session. If you need to reschedule, please reply to this email with your reference number.'
               }
@@ -175,7 +194,9 @@ async function sendConfirmationEmail({ name, email, service, consultationType, d
         email: process.env.EMAIL_USER || 'softwarebazaar.ke@gmail.com',
         name: 'Smart Algos'
       },
-      subject: isGuide 
+      subject: isFreePreview 
+        ? `🎁 Free Preview – ${guideTopic} Trading Guide`
+        : isGuide 
         ? `✅ Guide Ready – ${guideTopic} Trading Guide`
         : `✅ Mentorship Booked – ${serviceLabel} on ${date}`,
       html: html
@@ -397,22 +418,80 @@ router.post('/', async (req, res) => {
 // ─── Route: POST /api/bookings/initialize-payment  ────────────────────────────
 
 router.post('/initialize-payment', async (req, res) => {
-  const { service, consultation_type, date, time, name, email, phone, notes, guideTopic } = req.body;
+  const { service, consultation_type, date, time, name, email, phone, notes, guideTopic, isFreePreview } = req.body;
 
   if (!service || !consultation_type || !name || !email) {
     return res.status(400).json({ success: false, error: 'Missing required fields' });
   }
 
-  // For guide delivery, we don't need date/time
-  if (consultation_type !== 'guide_delivery' && (!date || !time)) {
+  // For paid mentorship, we need date/time
+  if (consultation_type === 'paid_mentorship' && (!date || !time)) {
     return res.status(400).json({ success: false, error: 'Date and time required for mentorship' });
   }
 
+  const reference = genRef();
+
+  // For free preview, no payment needed
+  if (isFreePreview) {
+    const bookingData = {
+      reference,
+      service,
+      consultation_type,
+      date: null,
+      time: null,
+      name,
+      email,
+      phone: phone || null,
+      notes: notes || null,
+      guide_topic: guideTopic || null,
+      amount: 0,
+      currency: 'USD',
+      status: 'confirmed',
+      payment_status: 'free',
+      created_at: new Date().toISOString()
+    };
+
+    await saveBookingToDb(bookingData);
+
+    // Send free preview email
+    sendConfirmationEmail({
+      name,
+      email,
+      service,
+      consultationType: consultation_type,
+      date: null,
+      time: null,
+      reference,
+      isPaid: false,
+      guideTopic,
+      isFreePreview: true
+    }).catch(e => console.error(e));
+
+    sendAdminNotification({
+      name,
+      email,
+      phone,
+      service,
+      consultationType: consultation_type,
+      date: null,
+      time: null,
+      reference,
+      isPaid: false,
+      guideTopic,
+      isFreePreview: true
+    }).catch(e => console.error(e));
+
+    return res.json({
+      success: true,
+      reference,
+      message: 'Free preview guide sent!'
+    });
+  }
+
+  // For paid packages, initialize Paystack
   const amountUsd = 7;
   const KES_RATE = 150;
   const amountKobo = Math.round(amountUsd * KES_RATE * 100); // in kobo
-
-  const reference = genRef();
 
   // Store pending booking in DB
   const bookingData = {
@@ -464,7 +543,7 @@ router.post('/initialize-payment', async (req, res) => {
           guide_topic: guideTopic || '',
           custom_fields: [
             { display_name: 'Booking Reference', variable_name: 'booking_ref', value: reference },
-            { display_name: 'Type', variable_name: 'type', value: consultation_type === 'guide_delivery' ? 'Guide' : 'Mentorship' },
+            { display_name: 'Type', variable_name: 'type', value: consultation_type === 'full_guide_delivery' ? 'Full Guide' : 'Mentorship' },
             { display_name: 'Topic/Service', variable_name: 'topic', value: guideTopic || service }
           ]
         }

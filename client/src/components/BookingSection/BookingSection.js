@@ -68,21 +68,39 @@ const SERVICES = [
 
 const CONSULTATION_TYPES = [
   {
-    id: 'guide_delivery',
-    label: 'Expert Trading Guide',
+    id: 'free_guide_preview',
+    label: 'Free Guide Preview',
+    duration: 'Instant',
+    price: 0,
+    priceLabel: 'FREE',
+    badge: 'Get Started',
+    description: 'Get a preview of your personalized trading guide with key insights, roadmap, and sample strategies. See what\'s included before upgrading.',
+    color: '#34d399',
+    gradient: 'linear-gradient(135deg,rgba(52,211,153,0.15),rgba(52,211,153,0.05))',
+    features: [
+      '📖 Preview guide (3-5 pages)',
+      '🗺️ Complete roadmap included',
+      '📊 Sample market examples',
+      '✨ Teaser of full strategies',
+      '⬆️ Upgrade to full guide anytime'
+    ]
+  },
+  {
+    id: 'full_guide_delivery',
+    label: 'Full Expert Trading Guide',
     duration: 'Instant Delivery',
     price: 7,
     priceLabel: '$7',
-    badge: 'Most Popular',
-    description: 'Get a comprehensive, personalized trading guide on your topic of choice. Delivered instantly with actionable strategies, charts, and step-by-step instructions.',
+    badge: 'Complete Access',
+    description: 'Get the COMPLETE personalized trading guide with all strategies, detailed charts, step-by-step action plans, and everything you need to succeed.',
     color: '#10b981',
     gradient: 'linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05))',
     features: [
-      '📖 Comprehensive guide (5-15 pages)',
-      '📊 Real market examples & charts',
-      '✅ Step-by-step action plan',
-      '🎯 Personalized to your level',
-      '💬 Follow-up support included'
+      '📖 Complete guide (15-25 pages)',
+      '📊 All market examples & charts',
+      '✅ Full step-by-step action plan',
+      '🎯 Advanced strategies included',
+      '💬 Priority follow-up support'
     ]
   },
   {
@@ -92,7 +110,7 @@ const CONSULTATION_TYPES = [
     price: 7,
     priceLabel: '$7',
     badge: 'Deep Dive',
-    description: 'After receiving your guide, book a live 1-on-1 session for personalized guidance, live chart analysis, and direct answers to your questions.',
+    description: 'Live 1-on-1 session for personalized guidance, live chart analysis, strategy review, and direct answers to your questions.',
     color: '#6366f1',
     gradient: 'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05))',
     features: [
@@ -231,8 +249,8 @@ const BookingSection = () => {
   const handleNext = () => {
     if (step === 3 && !validateDetails()) return;
     
-    // Skip date/time for guide delivery (step 1 -> step 3)
-    if (step === 1 && selectedType?.id === 'guide_delivery') {
+    // Skip date/time for guide delivery (both free preview and full)
+    if (step === 1 && (selectedType?.id === 'free_guide_preview' || selectedType?.id === 'full_guide_delivery')) {
       setStep(3);
     } else {
       setStep(s => s + 1);
@@ -281,7 +299,9 @@ const BookingSection = () => {
     setLoading(true);
     setError(null);
     try {
-      const isGuide = selectedType.id === 'guide_delivery';
+      const isGuide = selectedType.id === 'free_guide_preview' || selectedType.id === 'full_guide_delivery';
+      const isFreePreview = selectedType.id === 'free_guide_preview';
+      
       const res = await fetch('/api/bookings/initialize-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -294,13 +314,21 @@ const BookingSection = () => {
           email: form.email,
           phone: form.phone,
           notes: form.notes,
-          guideTopic: isGuide ? selectedTime.label : null
+          guideTopic: isGuide ? selectedTime.label : null,
+          isFreePreview: isFreePreview
         })
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Could not initialize payment');
 
-      // Build paystack config
+      // For free preview, skip Paystack and go straight to success
+      if (isFreePreview) {
+        setBookingRef(data.reference);
+        setStep(5);
+        return;
+      }
+
+      // Build paystack config for paid packages
       const key = process.env.REACT_APP_PAYSTACK_PUBLIC_KEY || data.publicKey || '';
       setPaystackConfig({
         reference: data.reference,
@@ -314,7 +342,7 @@ const BookingSection = () => {
           consultation_type: selectedType.id,
           custom_fields: isGuide
             ? [
-                { display_name: 'Type', variable_name: 'type', value: 'Guide' },
+                { display_name: 'Type', variable_name: 'type', value: 'Full Guide' },
                 { display_name: 'Topic', variable_name: 'topic', value: selectedTime.label }
               ]
             : [
@@ -441,8 +469,7 @@ const BookingSection = () => {
             </span>
           </h2>
           <p style={{ color: '#94a3b8', fontSize: '17px', maxWidth: '560px', margin: '0 auto' }}>
-            Get a personalized trading guide on any topic, then book 1-on-1 mentorship if you want deeper guidance.
-            Choose your topic, pay just <strong style={{ color: '#34d399' }}>$7</strong>, and get instant access.
+            Start free with a guide preview. See the roadmap and sample strategies. Then upgrade to the full guide for just <strong style={{ color: '#34d399' }}>$7</strong> to unlock everything.
           </p>
         </motion.div>
 
@@ -657,7 +684,7 @@ const BookingSection = () => {
           {/* ── STEP 2: Guide Topic or Date & Time ── */}
           {step === 2 && (
             <div>
-              {selectedType?.id === 'guide_delivery' ? (
+              {selectedType?.id === 'free_guide_preview' || selectedType?.id === 'full_guide_delivery' ? (
                 // Guide topic selection
                 <>
                   <StepTitle icon={Star} label="What topic would you like a guide on?" />
@@ -843,7 +870,7 @@ const BookingSection = () => {
               }}>
                 <SummaryRow label="Service" value={selectedService?.label} color={selectedService?.color} />
                 <SummaryRow label="Package" value={`${selectedType?.label} — ${selectedType?.duration}`} />
-                {selectedType?.id === 'guide_delivery' ? (
+                {selectedType?.id === 'free_guide_preview' || selectedType?.id === 'full_guide_delivery' ? (
                   <SummaryRow label="Guide Topic" value={selectedTime?.label} />
                 ) : (
                   <>
@@ -859,7 +886,7 @@ const BookingSection = () => {
                   <span style={{ color: '#94a3b8', fontWeight: 600 }}>Total</span>
                   <span style={{
                     fontSize: '24px', fontWeight: 900,
-                    color: selectedType?.price === 0 ? '#10b981' : '#818cf8'
+                    color: selectedType?.price === 0 ? '#34d399' : '#818cf8'
                   }}>
                     {selectedType?.priceLabel}
                   </span>
@@ -869,15 +896,17 @@ const BookingSection = () => {
               {/* Pricing note */}
               <div style={{
                 marginTop: '16px', padding: '12px 16px', borderRadius: '10px',
-                background: selectedType?.price === 0 ? 'rgba(16,185,129,0.08)' : 'rgba(99,102,241,0.08)',
-                border: `1px solid ${selectedType?.price === 0 ? 'rgba(16,185,129,0.2)' : 'rgba(99,102,241,0.2)'}`,
+                background: selectedType?.id === 'free_guide_preview' ? 'rgba(52,211,153,0.08)' : 'rgba(99,102,241,0.08)',
+                border: `1px solid ${selectedType?.id === 'free_guide_preview' ? 'rgba(52,211,153,0.2)' : 'rgba(99,102,241,0.2)'}`,
                 display: 'flex', alignItems: 'flex-start', gap: '10px'
               }}>
-                <AlertCircle style={{ width: 16, height: 16, color: selectedType?.price === 0 ? '#34d399' : '#818cf8', marginTop: 2, flexShrink: 0 }} />
-                <p style={{ color: selectedType?.price === 0 ? '#34d399' : '#818cf8', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>
-                  {selectedType?.id === 'guide_delivery'
-                    ? 'Your personalized guide will be delivered within 24 hours. Secure payment via Paystack.'
-                    : 'Secure payment via Paystack. You will be redirected to complete payment.'}
+                <AlertCircle style={{ width: 16, height: 16, color: selectedType?.id === 'free_guide_preview' ? '#34d399' : '#818cf8', marginTop: 2, flexShrink: 0 }} />
+                <p style={{ color: selectedType?.id === 'free_guide_preview' ? '#34d399' : '#818cf8', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>
+                  {selectedType?.id === 'free_guide_preview'
+                    ? '🎁 Get a preview with roadmap and sample strategies. Upgrade to the full guide anytime for just $7!'
+                    : selectedType?.id === 'full_guide_delivery'
+                    ? '📖 Your complete guide will be delivered within 24 hours. Secure payment via Paystack.'
+                    : '🎥 Secure payment via Paystack. Meeting link will be confirmed before your session.'}
                 </p>
               </div>
 

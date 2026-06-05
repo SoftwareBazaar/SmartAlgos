@@ -209,6 +209,17 @@ const corsOptions = {
       return callback(null, normalizedOrigin);
     }
 
+    // Allow all *.vercel.app preview deployments
+    try {
+      const originHost = new URL(normalizedOrigin).hostname;
+      if (originHost.endsWith('.vercel.app')) {
+        return callback(null, normalizedOrigin);
+      }
+      if (originHost.endsWith('.up.railway.app')) {
+        return callback(null, normalizedOrigin);
+      }
+    } catch (_) {}
+
     if (vercelUrl && origin === vercelUrl) {
       return callback(null, normalizedOrigin);
     }
@@ -282,6 +293,7 @@ app.use(
           "wss://*.supabase.co",
           "https://web-production-fdb58.up.railway.app",
           "https://smartalgos-production.up.railway.app",
+          "https://*.vercel.app",
           "https://*.google-analytics.com"
         ],
         frameSrc: [

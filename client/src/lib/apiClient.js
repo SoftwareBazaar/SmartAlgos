@@ -43,8 +43,12 @@ const getBaseURL = () => {
     return 'http://localhost:5000';
   }
   
-  // Production - Railway backend
-  return 'https://web-production-fdb58.up.railway.app';
+  // Production fallback - use current origin (works on Vercel and other hosts)
+  if (typeof window !== 'undefined' && window.location.origin) {
+    return window.location.origin;
+  }
+
+  return '';
 };
 
 const apiClient = axios.create({

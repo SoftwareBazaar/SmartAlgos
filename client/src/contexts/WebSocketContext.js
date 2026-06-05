@@ -17,9 +17,10 @@ export const WebSocketProvider = ({ children }) => {
   // Initialize WebSocket connection
   useEffect(() => {
     if (user && !socket) {
-      const wsUrl = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:5000' 
-        : 'https://web-production-fdb58.up.railway.app';
+      const wsUrl = process.env.REACT_APP_WS_URL || 
+        (process.env.NODE_ENV === 'development' 
+          ? 'http://localhost:5000' 
+          : window.location.origin);
       
       const newSocket = io(wsUrl, {
         auth: {

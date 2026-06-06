@@ -426,25 +426,34 @@ class MockDataStore {
   }
 
   _ensureUploadsDir() {
-    const uploadsDir = path.join(__dirname, '..', 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
+    // Skip filesystem operations on Vercel (read-only serverless environment)
+    if (process.env.VERCEL) return;
+    try {
+      const uploadsDir = path.join(__dirname, '..', 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+    } catch (err) {
+      console.warn('[MockDataStore] Could not create uploads dir:', err.message);
     }
   }
 
   _persist() {
     try {
+      // Update in-memory globals to keep them in sync
+      mockEAs = this.eas;
+      mockSubscriptions = this.subscriptions;
+      mockUtilities = this.utilities;
+
+      // Skip filesystem write on Vercel (read-only serverless environment)
+      if (process.env.VERCEL) return;
+
       const data = {
         eas: this.eas,
         subscriptions: this.subscriptions,
         utilities: this.utilities
       };
       fs.writeFileSync(this.storagePath, JSON.stringify(data, null, 2));
-
-      // Update the global variables too to keep them in sync
-      mockEAs = this.eas;
-      mockSubscriptions = this.subscriptions;
-      mockUtilities = this.utilities;
     } catch (error) {
       console.error('[MockDataStore] Failed to persist data:', error.message);
     }

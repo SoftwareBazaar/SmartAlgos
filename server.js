@@ -60,12 +60,12 @@ const app = express();
 
 // Log server version on startup
 console.log('');
-console.log('🚀 ============================================');
-console.log('🚀 SERVER VERSION: v2.0-CSP-FIX-EMERGENCY');
-console.log('🚀 HELMET: DISABLED');
-console.log('🚀 CSP: CUSTOM HEADER WITH SUPABASE');
-console.log('🚀 Deploy Time:', new Date().toISOString());
-console.log('🚀 ============================================');
+console.log('ðŸš€ ============================================');
+console.log('ðŸš€ SERVER VERSION: v2.0-CSP-FIX-EMERGENCY');
+console.log('ðŸš€ HELMET: DISABLED');
+console.log('ðŸš€ CSP: CUSTOM HEADER WITH SUPABASE');
+console.log('ðŸš€ Deploy Time:', new Date().toISOString());
+console.log('ðŸš€ ============================================');
 console.log('');
 
 // ========================================
@@ -256,7 +256,7 @@ app.use((req, res, next) => {
     const originalSetHeader = res.setHeader;
     res.setHeader = function (name, value) {
       if (name && name.toLowerCase() === 'content-security-policy') {
-        process.stdout.write(`🔒 [CSP] Setting CSP for ${req.url}\n`);
+        process.stdout.write(`ðŸ”’ [CSP] Setting CSP for ${req.url}\n`);
       }
       return originalSetHeader.apply(this, arguments);
     };
@@ -490,22 +490,22 @@ app.use('/api/economic-calendar', require('./routes/economic-calendar')); // Eco
 app.use('/api/custom-ea', auth, validateCSRF, customEARoutes); // Custom EA development service
 app.use('/api/ai-assistant', auth, validateCSRF, aiAssistantRoutes); // AI EA Assistant
 app.use('/api/downloads', downloadsRoutes); // EA file downloads with token verification
-console.log('📅 [Server] About to register bookings routes...');
-console.log('📅 [Server] bookingsRoutes type:', typeof bookingsRoutes);
-console.log('📅 [Server] bookingsRoutes is function:', typeof bookingsRoutes === 'function');
+console.log('ðŸ“… [Server] About to register bookings routes...');
+console.log('ðŸ“… [Server] bookingsRoutes type:', typeof bookingsRoutes);
+console.log('ðŸ“… [Server] bookingsRoutes is function:', typeof bookingsRoutes === 'function');
 
 // Add logging middleware specifically for bookings
 app.use('/api/bookings', (req, res, next) => {
-  console.log('📅 [Server] Bookings middleware hit');
-  console.log('📅 [Server] Method:', req.method);
-  console.log('📅 [Server] Path:', req.path);
-  console.log('📅 [Server] Original URL:', req.originalUrl);
-  console.log('📅 [Server] Body:', req.body);
+  console.log('ðŸ“… [Server] Bookings middleware hit');
+  console.log('ðŸ“… [Server] Method:', req.method);
+  console.log('ðŸ“… [Server] Path:', req.path);
+  console.log('ðŸ“… [Server] Original URL:', req.originalUrl);
+  console.log('ðŸ“… [Server] Body:', req.body);
   next();
 });
 
-app.use('/api/bookings', bookingsRoutes); // Consultation booking system (public – no auth required)
-console.log('✅ Booking routes registered at /api/bookings');
+app.use('/api/bookings', bookingsRoutes); // Consultation booking system (public â€“ no auth required)
+console.log('âœ… Booking routes registered at /api/bookings');
 
 
 // Health check endpoints moved to top of file (before middleware)
@@ -526,7 +526,7 @@ const buildPath = path.join(__dirname, 'client/build');
 const indexPath = path.join(buildPath, 'index.html');
 
 if (fs.existsSync(indexPath)) {
-  console.log('📱 Serving React frontend from:', buildPath);
+  console.log('ðŸ“± Serving React frontend from:', buildPath);
 
   // Serve static files from React build
   app.use(express.static(buildPath));
@@ -546,8 +546,8 @@ if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   });
 } else {
-  console.log('⚠️  React build not found at:', buildPath);
-  console.log('💡 Run "npm run build" to create the React build');
+  console.log('âš ï¸  React build not found at:', buildPath);
+  console.log('ðŸ’¡ Run "npm run build" to create the React build');
 }
 
 // Error handling middleware
@@ -608,16 +608,16 @@ function initializeServices() {
       .select('id', { count: 'exact', head: true })
       .limit(1)
       .then(() => {
-        console.log('✅ Connected to Supabase');
+        console.log('âœ… Connected to Supabase');
       })
       .catch((error) => {
-        console.error('⚠️  Supabase connection error:', error.message);
+        console.error('âš ï¸  Supabase connection error:', error.message);
         console.warn('Database operations may be degraded until connectivity is restored.');
       });
 
     global.supabase = supabaseClient;
   } catch (error) {
-    console.error('❌ Supabase initialization failed:', error.message);
+    console.error('âŒ Supabase initialization failed:', error.message);
     // Don't exit in production - let service run with degraded functionality
     console.warn('Service will continue with limited functionality');
   }
@@ -625,9 +625,9 @@ function initializeServices() {
   // Setup WebSocket handlers
   try {
     setupWebSocketHandlers(io);
-    console.log('✅ WebSocket handlers initialized');
+    console.log('âœ… WebSocket handlers initialized');
   } catch (error) {
-    console.error('⚠️  WebSocket initialization error:', error.message);
+    console.error('âš ï¸  WebSocket initialization error:', error.message);
   }
 }
 
@@ -668,12 +668,3 @@ process.on('uncaughtException', (error) => {
 });
 
 module.exports = app;
-
-
-
-
-
- 
- / /   B o o k i n g   s y s t e m   v 1 . 0 
- 
- 

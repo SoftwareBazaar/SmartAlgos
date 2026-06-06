@@ -26,8 +26,13 @@ class MT5APIService {
   }
 
   ensurePythonScriptsDir() {
-    if (!fs.existsSync(this.pythonScriptsPath)) {
-      fs.mkdirSync(this.pythonScriptsPath, { recursive: true });
+    if (process.env.VERCEL) return;
+    try {
+      if (!fs.existsSync(this.pythonScriptsPath)) {
+        fs.mkdirSync(this.pythonScriptsPath, { recursive: true });
+      }
+    } catch (err) {
+      console.warn('[MT5 API] Could not create scripts dir:', err.message);
     }
   }
 

@@ -12,7 +12,9 @@ const portfolioService = require('../services/portfolioService');
 const router = express.Router();
 
 const uploadRoot = path.join(__dirname, '..', 'uploads', 'portfolio');
-fs.mkdirSync(uploadRoot, { recursive: true });
+if (!process.env.VERCEL) {
+  try { fs.mkdirSync(uploadRoot, { recursive: true }); } catch (_) {}
+}
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadRoot),

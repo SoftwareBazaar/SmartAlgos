@@ -67,6 +67,7 @@ class MockAuthStore {
   }
 
   _ensureUploadsDir() {
+    if (process.env.VERCEL) return;
     try {
       if (!fs.existsSync(this.uploadsDir)) {
         fs.mkdirSync(this.uploadsDir, { recursive: true });
@@ -412,8 +413,10 @@ function saveMockData() {
   }
 }
 
-// Load data on startup
-loadMockData();
+// Load data on startup (skip on Vercel - read-only filesystem)
+if (!process.env.VERCEL) {
+  loadMockData();
+}
 
 // Add methods to handle EAs and subscriptions
 class MockDataStore {

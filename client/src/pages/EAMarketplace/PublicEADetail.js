@@ -63,14 +63,20 @@ const PublicEADetail = () => {
         email: email
       });
 
-      if (response.data.data && response.data.data.authorization_url) {
-        window.location.href = response.data.data.authorization_url;
+      if (response.data.success && response.data.payment && response.data.payment.authorization_url) {
+        // Redirect to Paystack
+        window.location.href = response.data.payment.authorization_url;
+      } else if (response.data.payment?.authorization_url) {
+        window.location.href = response.data.payment.authorization_url;
       } else {
-        alert('Failed to initialize payment. Please try again.');
+        console.error('Payment response:', response.data);
+        alert('Failed to initialize payment: ' + (response.data.error || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Payment error:', error);
-      alert('Payment initialization failed. Please try again.');
+      console.error('Payment error:', error.response?.data || error.message);
+      const errorMessage = error.response?.data?.error || error.message || 'Payment initialization failed. Please try again.';
+      alert('Error: ' + errorMessage);
+    } finally {
     } finally {
       setProcessingPayment(false);
     }

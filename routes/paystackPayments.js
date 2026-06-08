@@ -17,11 +17,11 @@ router.get('/config', auth, (req, res) => {
 /**
  * @route   POST /api/payments/paystack/initialize
  * @desc    Initialize Paystack payment for EA subscription
- * @access  Private
+ * @access  Public (for EA marketplace)
  */
-router.post('/initialize', auth, async (req, res) => {
+router.post('/initialize', async (req, res) => {
     const { eaId, subscriptionType, email } = req.body;
-    const userId = req.user?.id || req.user?._id;
+    const userId = req.user?.id || req.user?._id || 'guest_' + Date.now();
     const userEmail = email || req.user?.email || 'user@example.com';
 
     try {

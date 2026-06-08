@@ -4,8 +4,15 @@ const { pipeline } = require('stream/promises');
 const { createWriteStream, promises: fsp } = require('fs');
 const { createGunzip } = require('zlib');
 const readline = require('readline');
-const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+
+// AWS SDK is optional — polygon flat file features disabled if not installed
+let S3Client = null, ListObjectsV2Command = null, GetObjectCommand = null, getSignedUrl = null;
+try {
+  ({ S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3'));
+  ({ getSignedUrl } = require('@aws-sdk/s3-request-presigner'));
+} catch (_) {
+  console.warn('[polygonFlatFileService] @aws-sdk not installed — S3/flat-file features disabled');
+}
 
 const POLYGON_S3_ACCESS_KEY = process.env.POLYGON_S3_ACCESS_KEY;
 const POLYGON_S3_SECRET_KEY = process.env.POLYGON_S3_SECRET_KEY;

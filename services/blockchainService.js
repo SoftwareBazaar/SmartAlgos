@@ -1,5 +1,8 @@
-const Web3 = require('web3');
-const { ethers } = require('ethers');
+// web3 and ethers are optional — if not installed the service runs in stub mode
+let Web3 = null;
+let ethers = null;
+try { Web3 = require('web3'); } catch (_) { console.warn('[blockchainService] web3 not installed — blockchain features disabled'); }
+try { ({ ethers } = require('ethers')); } catch (_) { console.warn('[blockchainService] ethers not installed — blockchain features disabled'); }
 const crypto = require('crypto');
 
 class BlockchainService {
@@ -27,12 +30,15 @@ class BlockchainService {
     };
 
     this.providers = {};
-    this.initializeProviders();
+    if (ethers) {
+      this.initializeProviders();
+    }
   }
 
   // ==================== PROVIDER INITIALIZATION ====================
 
   initializeProviders() {
+    if (!ethers) return;
     for (const [network, configs] of Object.entries(this.networks)) {
       this.providers[network] = {};
       for (const [chain, rpc] of Object.entries(configs)) {

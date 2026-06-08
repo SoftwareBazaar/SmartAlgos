@@ -40,6 +40,10 @@ export const getErrorMessage = (error) => {
       return 'Invalid request. Please check your input and try again.';
     
     case 401:
+      // If the server provided a specific message (e.g. Google token error, invalid password), use it
+      if (typeof message === 'string' && message !== 'An error occurred') {
+        return message;
+      }
       return 'Your session has expired. Please log in again.';
     
     case 403:

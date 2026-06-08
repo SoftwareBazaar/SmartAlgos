@@ -156,11 +156,11 @@ apiClient.interceptors.response.use(
 
       // Handle specific error cases
       if (status === 401) {
-        // Only clear auth on 401 if it's NOT the initial auth check endpoint
-        // During page refresh, /api/auth/me might fail but token could still be valid
+        // Only clear auth on 401 if it's NOT the initial auth check endpoint or auth login/google endpoints
         const isAuthCheck = url && (url.includes('/api/auth/me') || url.includes('/auth/me'));
+        const isAuthEndpoint = url && (url.includes('/api/auth/') || url.includes('/auth/'));
         
-        if (!isAuthCheck) {
+        if (!isAuthCheck && !isAuthEndpoint) {
           // For other endpoints, clear auth on 401
           if (isAdminContext) {
             removeToken('admin');

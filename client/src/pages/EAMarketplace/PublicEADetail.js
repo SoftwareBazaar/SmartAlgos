@@ -278,10 +278,6 @@ const PublicEADetail = () => {
                 {/* Info */}
                 <div className="space-y-3 mb-6 pb-6 border-b border-gray-700">
                   <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <Users className="h-4 w-4" />
-                    <span>No account needed</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Download className="h-4 w-4" />
                     <span>Instant download</span>
                   </div>

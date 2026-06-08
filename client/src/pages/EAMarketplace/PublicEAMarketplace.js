@@ -150,7 +150,7 @@ const PublicEAMarketplace = () => {
             <h1 className="text-4xl font-bold">Expert Advisors Marketplace</h1>
           </div>
           <p className="text-lg text-indigo-100 max-w-2xl">
-            Browse and purchase professional trading robots. No account needed - just add your email and pay!
+            Marketplace
           </p>
         </div>
       </motion.div>

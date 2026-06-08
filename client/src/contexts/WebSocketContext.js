@@ -12,23 +12,49 @@ export const WebSocketProvider = ({ children }) => {
   const { user } = useAuth();
   const reconnectTimeoutRef = useRef(null);
   const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 5;
+  const maxReconnectAttempts = 10; // Increased from 5
 
   // Initialize WebSocket connection
   useEffect(() => {
-    if (user && !socket) {
-      const wsUrl = process.env.REACT_APP_WS_URL || 
-        (process.env.NODE_ENV === 'development' 
-          ? 'http://localhost:5000' 
-          : window.location.origin);
+    // Skip WebSocket if no user (not logged in)
+    if (!user) {
+      return;
+    }
+
+    // Skip WebSocket connection - it's optional for the app
+    // Users can still use the app without real-time features
+    if (socket) {
+      return;
+    }
+
+    try {
+      // Build WebSocket URL with proper protocol
+      let wsUrl = process.env.REACT_APP_WS_URL;
+      
+      if (!wsUrl) {
+        if (process.env.NODE_ENV === 'development') {
+          wsUrl = 'http://localhost:5000';
+        } else {
+          // On production (Vercel/HTTPS), use the same origin
+          // socket.io will auto-upgrade to wss://
+          wsUrl = window.location.origin;
+        }
+      }
+
+      console.log('[WebSocket] Connecting to:', wsUrl);
       
       const newSocket = io(wsUrl, {
         auth: {
           token: localStorage.getItem('token')
         },
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'], // Try polling first (more reliable)
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: maxReconnectAttempts,
         timeout: 20000,
-        forceNew: true
+        forceNew: true,
+        secure: process.env.NODE_ENV === 'production' // Force secure on production
       });
 
       // Connection events
@@ -56,15 +82,15 @@ export const WebSocketProvider = ({ children }) => {
       });
 
       newSocket.on('connect_error', (error) => {
-        console.error('WebSocket connection error:', error);
+        console.warn('[WebSocket] Connection error:', error.message);
         setConnected(false);
         setReconnecting(true);
         
+        // Don't show toast - WebSocket is optional, app still works without it
+        // Authentication errors still disconnect
         if (error.message === 'Authentication error') {
-          toast.error('WebSocket authentication failed');
+          console.error('[WebSocket] Auth failed, disconnecting');
           newSocket.disconnect();
-        } else {
-          attemptReconnect();
         }
       });
 
@@ -144,12 +170,12 @@ export const WebSocketProvider = ({ children }) => {
     };
   }, [user]);
 
-  // Reconnection logic
+  // Reconnection logic - Optional, doesn't disrupt the app
   const attemptReconnect = () => {
     if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-      console.log('Max reconnection attempts reached');
+      console.warn('[WebSocket] Max reconnection attempts reached - WebSocket unavailable but app still works');
       setReconnecting(false);
-      toast.error('Connection lost. Please refresh the page.');
+      // Don't show toast - WebSocket is optional
       return;
     }
 

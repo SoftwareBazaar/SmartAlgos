@@ -711,7 +711,11 @@ router.get('/:id/download', async (req, res) => {
     console.log('[Utility Download] Request for utility ID:', req.params.id);
 
     // Get utility details
-    const { data: utility, error: utilError } = await databaseService.supabase
+    const supabaseClient = databaseService.getClient();
+    if (!supabaseClient) {
+      return res.status(503).json({ success: false, message: 'Database not available' });
+    }
+    const { data: utility, error: utilError } = await supabaseClient
       .from('utilities')
       .select('*')
       .eq('id', req.params.id)
@@ -789,7 +793,7 @@ router.get('/:id/download', async (req, res) => {
         }
 
         // Update download count
-        await databaseService.supabase
+        await databaseService.getClient()
           .from('utilities')
           .update({
             downloads: (utility.downloads || 0) + 1,

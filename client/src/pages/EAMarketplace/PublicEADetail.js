@@ -28,6 +28,7 @@ const PublicEADetail = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [email, setEmail] = useState('');
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [subscriptionType, setSubscriptionType] = useState('monthly');
 
   useEffect(() => {
     fetchEA();
@@ -57,15 +58,9 @@ const PublicEADetail = () => {
       setProcessingPayment(true);
 
       const response = await apiClient.post('/api/payments/paystack/initialize', {
-        email,
-        amount: (ea.price_monthly || 0) * 100,
-        currency: 'KES',
-        metadata: {
-          ea_id: ea.id,
-          ea_name: ea.name,
-          customer_email: email,
-          purchase_type: 'ea_marketplace'
-        }
+        eaId: ea.id,
+        subscriptionType: subscriptionType,
+        email: email
       });
 
       if (response.data.data && response.data.data.authorization_url) {
@@ -343,11 +338,39 @@ const PublicEADetail = () => {
             <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-4 mb-6">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Amount</p>
               <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
-                ${ea.price_monthly || 0}
+                ${(subscriptionType === 'weekly' ? ea.price_weekly : subscriptionType === 'monthly' ? ea.price_monthly : subscriptionType === 'quarterly' ? ea.price_quarterly : ea.price_yearly) || 0}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                Monthly subscription
+                {subscriptionType.charAt(0).toUpperCase() + subscriptionType.slice(1)} subscription
               </p>
+            </div>
+
+            {/* Subscription Type Selector */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Subscription Period
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { type: 'weekly', label: 'Weekly', price: ea.price_weekly },
+                  { type: 'monthly', label: 'Monthly', price: ea.price_monthly },
+                  { type: 'quarterly', label: 'Quarterly', price: ea.price_quarterly },
+                  { type: 'yearly', label: 'Yearly', price: ea.price_yearly }
+                ].map((option) => (
+                  <button
+                    key={option.type}
+                    onClick={() => setSubscriptionType(option.type)}
+                    className={`px-4 py-2 rounded-lg border-2 transition ${
+                      subscriptionType === option.type
+                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                        : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-indigo-600'
+                    }`}
+                  >
+                    <div className="text-sm font-medium">{option.label}</div>
+                    <div className="text-xs">${option.price || 0}</div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Email Input */}

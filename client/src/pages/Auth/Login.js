@@ -218,16 +218,19 @@ export default function SmartAlgosLogin() {
               </div>
             </div>
 
-            <div className="flex justify-center">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                theme="filled_black"
-                size="large"
-                text="signin_with"
-                shape="pill"
-                width="100%"
-              />
+            <div className="w-full">
+              <div className="flex justify-center">
+                <div style={{ width: '100%', maxWidth: '400px' }}>
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    theme="filled_black"
+                    size="large"
+                    text="signin_with"
+                    shape="pill"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-3 text-xs text-slate-400">

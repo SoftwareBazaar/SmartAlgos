@@ -425,16 +425,19 @@ const Register = () => {
               </div>
             </div>
 
-            <div className="flex justify-center">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                theme="filled_black"
-                size="large"
-                text="signup_with"
-                shape="pill"
-                width="100%"
-              />
+            <div className="w-full">
+              <div className="flex justify-center">
+                <div style={{ width: '100%', maxWidth: '400px' }}>
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    theme="filled_black"
+                    size="large"
+                    text="signup_with"
+                    shape="pill"
+                  />
+                </div>
+              </div>
             </div>
 
             {showOTPStep && (

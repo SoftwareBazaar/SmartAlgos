@@ -130,13 +130,25 @@ server.timeout = 120000; // 2 minutes
 
 const io = new Server(server, {
   cors: {
-    origin: [
-      process.env.CLIENT_URL || "http://localhost:3000",
-      "https://web-production-fdb58.up.railway.app",
-      "https://smartalgos-production.up.railway.app",
-      "http://localhost:3000",
-      "http://127.0.0.1:3000"
-    ],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        process.env.CLIENT_URL || "http://localhost:3000",
+        "https://web-production-fdb58.up.railway.app",
+        "https://smartalgos-production.up.railway.app",
+        "https://www.smartalgos.com",
+        "https://smartalgos.com",
+        "https://www.smartalgosts.com",
+        "https://smartalgosts.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+      ];
+      
+      if (!origin || allowedOrigins.includes(origin) || origin.includes('vercel.app') || origin.includes('railway.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -335,7 +347,8 @@ app.use(
       }
     },
     crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" }
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
   })
 );
 

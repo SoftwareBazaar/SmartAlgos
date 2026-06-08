@@ -77,7 +77,6 @@ const PublicEADetail = () => {
       const errorMessage = error.response?.data?.error || error.message || 'Payment initialization failed. Please try again.';
       alert('Error: ' + errorMessage);
     } finally {
-    } finally {
       setProcessingPayment(false);
     }
   };

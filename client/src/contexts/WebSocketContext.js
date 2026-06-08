@@ -159,6 +159,8 @@ export const WebSocketProvider = ({ children }) => {
           clearTimeout(reconnectTimeoutRef.current);
         }
       };
+    } catch (error) {
+      console.error('WebSocket connection error:', error);
     }
 
     return () => {

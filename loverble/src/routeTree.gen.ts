@@ -31,6 +31,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AlphaPortfolioRouteImport } from './routes/alpha-portfolio'
 import { Route as AlphaFactoryRouteImport } from './routes/alpha-factory'
 import { Route as AiCenterRouteImport } from './routes/ai-center'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -146,6 +147,11 @@ const AiCenterRoute = AiCenterRouteImport.update({
   path: '/ai-center',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AcademyRoute = AcademyRouteImport.update({
   id: '/academy',
   path: '/academy',
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/academy': typeof AcademyRoute
+  '/account': typeof AccountRoute
   '/ai-center': typeof AiCenterRoute
   '/alpha-factory': typeof AlphaFactoryRoute
   '/alpha-portfolio': typeof AlphaPortfolioRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/academy': typeof AcademyRoute
+  '/account': typeof AccountRoute
   '/ai-center': typeof AiCenterRoute
   '/alpha-factory': typeof AlphaFactoryRoute
   '/alpha-portfolio': typeof AlphaPortfolioRoute
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/academy': typeof AcademyRoute
+  '/account': typeof AccountRoute
   '/ai-center': typeof AiCenterRoute
   '/alpha-factory': typeof AlphaFactoryRoute
   '/alpha-portfolio': typeof AlphaPortfolioRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/academy'
+    | '/account'
     | '/ai-center'
     | '/alpha-factory'
     | '/alpha-portfolio'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/academy'
+    | '/account'
     | '/ai-center'
     | '/alpha-factory'
     | '/alpha-portfolio'
@@ -314,6 +325,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/academy'
+    | '/account'
     | '/ai-center'
     | '/alpha-factory'
     | '/alpha-portfolio'
@@ -343,6 +355,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AcademyRoute: typeof AcademyRoute
+  AccountRoute: typeof AccountRoute
   AiCenterRoute: typeof AiCenterRoute
   AlphaFactoryRoute: typeof AlphaFactoryRoute
   AlphaPortfolioRoute: typeof AlphaPortfolioRoute
@@ -523,6 +536,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AiCenterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/academy': {
       id: '/academy'
       path: '/academy'
@@ -570,6 +590,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AcademyRoute: AcademyRoute,
+  AccountRoute: AccountRoute,
   AiCenterRoute: AiCenterRoute,
   AlphaFactoryRoute: AlphaFactoryRoute,
   AlphaPortfolioRoute: AlphaPortfolioRoute,

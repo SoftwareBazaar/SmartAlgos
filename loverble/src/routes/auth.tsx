@@ -31,7 +31,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/research", replace: true });
+      if (data.session) navigate({ to: "/account", replace: true });
     });
   }, [navigate]);
 
@@ -54,17 +54,17 @@ function AuthPage() {
           email: parsed.data.email,
           password: parsed.data.password,
           options: {
-            emailRedirectTo: window.location.origin + "/research",
+            emailRedirectTo: window.location.origin + "/account",
             data: { full_name: fullName },
           },
         });
         if (error) throw error;
         toast.success("Account created. You're signed in.");
-        navigate({ to: "/research", replace: true });
+        navigate({ to: "/account", replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword(parsed.data);
         if (error) throw error;
-        navigate({ to: "/research", replace: true });
+        navigate({ to: "/account", replace: true });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Authentication failed";

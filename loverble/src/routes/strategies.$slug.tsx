@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { PageShell, SectionCard } from "@/components/page-shell";
 import { getStrategyBySlug } from "@/lib/mock-data";
+import { getStrategyVerificationUrl, hasDirectVerificationLink } from "@/lib/strategy-links";
 import { ExternalLink, ArrowLeft, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/strategies/$slug")({
@@ -63,19 +64,22 @@ function StrategyDetail() {
         </ul>
       </SectionCard>
 
-      {strategy.verificationUrl && strategy.status === "Live" && (
+      {strategy.status === "Live" && (
         <SectionCard title="Verification" subtitle="Third-party track record">
           <a
-            href={strategy.verificationUrl}
+            href={getStrategyVerificationUrl(strategy.slug, strategy.verificationUrl)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-sm border border-gold/40 px-4 py-2.5 text-sm text-gold hover:bg-gold/10 transition"
           >
-            View on {strategy.platform} <ExternalLink className="h-4 w-4" />
+            {hasDirectVerificationLink(strategy.slug) ? "View QuantConnect listing" : `View on ${strategy.platform}`}{" "}
+            <ExternalLink className="h-4 w-4" />
           </a>
-          <p className="text-xs text-muted-foreground mt-3">
-            Direct strategy URL will be linked when the QuantConnect listing is published.
-          </p>
+          {!hasDirectVerificationLink(strategy.slug) && (
+            <p className="text-xs text-muted-foreground mt-3">
+              Set <code className="text-gold">QC_GOLD_MOMENTUM_URL</code> or <code className="text-gold">QC_FX_MEAN_REVERSION_URL</code> in Vercel for a direct listing link.
+            </p>
+          )}
         </SectionCard>
       )}
 

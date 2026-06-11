@@ -8,6 +8,8 @@ import {
 import { BookOpen, FileText, TrendingUp, Mail } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/use-subscription";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/research")({
   head: () => ({
@@ -29,6 +31,7 @@ const categories = [
 
 function Research() {
   const [email, setEmail] = useState("");
+  const { tierLabel, hasAccess } = useSubscription();
 
   const subscribeNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +45,13 @@ function Research() {
       eyebrow="Research & Authority"
       title="Research"
       description="Published quantitative research with free previews. Subscribe for full methodology, notebooks, and strategy breakdowns."
+      actions={
+        hasAccess("research-pro") ? (
+          <Link to="/account" className="text-xs uppercase tracking-wider text-gold hover:underline">
+            {tierLabel} · My account →
+          </Link>
+        ) : undefined
+      }
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Research Notes" value={String(researchOverview.notesPublished)} />

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { verifyCapitalPayment } from "@/lib/payments-api";
+import { saveSubscriptionFromPayment } from "@/lib/subscription-access";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/payment-callback")({
@@ -23,9 +24,18 @@ function PaymentCallback() {
 
     verifyCapitalPayment(reference)
       .then((data) => {
+        if (data.product_type === "research_subscription") {
+          saveSubscriptionFromPayment({
+            product_id: data.product_id,
+            email: data.email,
+            reference,
+            amount_usd: data.amount_usd,
+          });
+        }
         setStatus("success");
+        const dest = data.product_type === "research_subscription" ? "/account" : "/research";
         setMessage(`Payment of $${Number(data.amount_usd).toFixed(2)} confirmed. Reference: ${reference}`);
-        setTimeout(() => navigate({ to: "/research" }), 4000);
+        setTimeout(() => navigate({ to: dest }), 3000);
       })
       .catch((err) => {
         setStatus("error");

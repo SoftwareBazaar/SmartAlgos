@@ -1,12 +1,16 @@
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { FileText } from "lucide-react";
+import { FileText, Unlock } from "lucide-react";
 import type { ResearchPaper } from "@/lib/mock-data";
 import { equityCurve } from "@/lib/mock-data";
 import { PremiumGate } from "@/components/premium-gate";
+import { useSubscription } from "@/hooks/use-subscription";
 
 export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
   const chartData = equityCurve.slice(-90);
+  const { hasAccess } = useSubscription();
   const isFree = paper.tier === "free";
+  const requiredTier = paper.tier === "quant-pro" ? "quant-pro" : "research-pro";
+  const unlocked = isFree || hasAccess(requiredTier);
 
   return (
     <article className="rounded-lg border border-border/60 bg-card/30 overflow-hidden">
@@ -19,6 +23,11 @@ export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
               <span>{paper.category}</span>
               <span>{paper.date}</span>
               {!isFree && <span className="text-gold">Premium</span>}
+              {unlocked && !isFree && (
+                <span className="text-bull inline-flex items-center gap-1">
+                  <Unlock className="h-3 w-3" /> Unlocked
+                </span>
+              )}
             </div>
             <h3 className="font-display text-xl font-semibold">{paper.title}</h3>
           </div>
@@ -64,10 +73,25 @@ export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
           </ul>
         </div>
 
-        {!isFree && paper.lockedContent.length > 0 && (
+        {unlocked && !isFree && paper.lockedContent.length > 0 && (
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-gold mb-2">Full content (subscriber)</div>
+            <ul className="space-y-2">
+              {paper.lockedContent.map((item) => (
+                <li key={item} className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Unlock className="h-3.5 w-3.5 text-bull shrink-0" />
+                  {item}
+                  <span className="text-[10px] text-muted-foreground">— delivery via account portal soon</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {!unlocked && paper.lockedContent.length > 0 && (
           <>
             <div className="hairline" />
-            <PremiumGate items={paper.lockedContent} />
+            <PremiumGate items={paper.lockedContent} tierId={requiredTier} />
           </>
         )}
       </div>

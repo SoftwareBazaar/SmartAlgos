@@ -1,35 +1,55 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { PageShell, StatCard, SectionCard } from "@/components/page-shell";
-import {
-  performanceMetrics, equityCurve, monthlyReturns, verificationSources, fmt,
-} from "@/lib/mock-data";
-import { ExternalLink, ShieldCheck } from "lucide-react";
+import { equityCurve, fmt } from "@/lib/mock-data";
+import { fetchCapitalPerformance } from "@/lib/performance-api";
+import { ExternalLink, ShieldCheck, Loader2 } from "lucide-react";
 import { IllustrativeChartNote } from "@/components/illustrative-chart-note";
 
 export const Route = createFileRoute("/performance")({
   head: () => ({
     meta: [
       { title: "Performance — Smart Algos Capital" },
-      { name: "description", content: "Actual strategy performance from verified third-party platforms." },
+      { name: "description", content: "Strategy performance from verified third-party platforms." },
     ],
   }),
   component: Performance,
 });
 
 function Performance() {
-  const data = equityCurve.slice(-365);
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["capital-performance"],
+    queryFn: fetchCapitalPerformance,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const metrics = data?.metrics;
+  const monthlyReturns = data?.monthlyReturns ?? [];
+  const verificationSources = data?.verificationSources ?? [];
+  const strategies = data?.strategies ?? [];
+  const illustrative = data?.illustrative ?? true;
+  const chartData = equityCurve.slice(-365);
 
   return (
     <PageShell
       eyebrow="Verified Performance"
       title="Strategy Performance"
-      description="Track actual strategy performance connected from QuantConnect, Collective2, and future Darwinex verification."
+      description="Track records connected from QuantConnect and partner platforms. Set QC_* URLs in Vercel to link live listings."
     >
-      <SectionCard title="Equity Curve" subtitle="Composite of live strategies — verified sources">
-        <IllustrativeChartNote />
+      {isLoading && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading performance data…
+        </div>
+      )}
+      {isError && (
+        <p className="text-sm text-bear">Could not load API performance config — showing illustrative fallback.</p>
+      )}
+
+      <SectionCard title="Equity Curve" subtitle={illustrative ? "Illustrative composite — pending live QC feed" : "Live composite from verified sources"}>
+        {illustrative && <IllustrativeChartNote />}
         <ResponsiveContainer width="100%" height={360} className="mt-4">
-          <AreaChart data={data}>
+          <AreaChart data={chartData}>
             <defs>
               <linearGradient id="perf-eq" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="oklch(0.78 0.13 85)" stopOpacity={0.35} />
@@ -45,8 +65,17 @@ function Performance() {
         </ResponsiveContainer>
       </SectionCard>
 
+      {metrics && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="Avg Monthly Return" value={fmt.pct(metrics.avgMonthlyReturn)} accent="up" />
+          <StatCard label="Max Drawdown" value={fmt.pct(metrics.maxDrawdown)} accent="down" />
+          <StatCard label="Win Rate" value={fmt.pct(metrics.winRate, 0)} />
+          <StatCard label="Sharpe" value={metrics.sharpe.toFixed(2)} accent="up" />
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-2 gap-6">
-        <SectionCard title="Monthly Returns" subtitle="Month | Return">
+        <SectionCard title="Monthly Returns" subtitle="Configured summary — update via CAPITAL_* env vars">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={monthlyReturns}>
               <CartesianGrid stroke="oklch(0.30 0.04 252 / 0.4)" vertical={false} />
@@ -56,39 +85,52 @@ function Performance() {
               <Bar dataKey="return" radius={[4, 4, 0, 0]} fill="oklch(0.78 0.13 85)" />
             </BarChart>
           </ResponsiveContainer>
-          <table className="w-full text-sm mt-4">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground border-b border-border">
-                <th className="text-left py-2">Month</th>
-                <th className="text-right py-2">Return</th>
-              </tr>
-            </thead>
-            <tbody className="font-mono">
-              {monthlyReturns.map((m) => (
-                <tr key={m.month} className="border-b border-border/40">
-                  <td className="py-2 font-sans text-muted-foreground">{m.month}</td>
-                  <td className={`py-2 text-right ${m.return >= 0 ? "text-bull" : "text-bear"}`}>
-                    {m.return >= 0 ? "+" : ""}{m.return.toFixed(2)}%
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </SectionCard>
 
-        <SectionCard title="Drawdown Analysis">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <StatCard label="Max Drawdown" value={fmt.pct(performanceMetrics.maxDrawdown)} accent="down" />
-            <StatCard label="Recovery Time" value={`${performanceMetrics.recoveryDays}d`} hint="To prior peak" />
-          </div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-gold mb-3">Risk Metrics</div>
-          <div className="grid grid-cols-3 gap-3">
-            <StatCard label="Sharpe" value={performanceMetrics.sharpe.toFixed(2)} />
-            <StatCard label="Sortino" value={performanceMetrics.sortino.toFixed(2)} />
-            <StatCard label="Profit Factor" value={performanceMetrics.profitFactor.toFixed(2)} accent="up" />
+        {metrics && (
+          <SectionCard title="Risk metrics">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <StatCard label="Max Drawdown" value={fmt.pct(metrics.maxDrawdown)} accent="down" />
+              <StatCard label="Recovery Time" value={`${metrics.recoveryDays}d`} hint="To prior peak" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <StatCard label="Sharpe" value={metrics.sharpe.toFixed(2)} />
+              <StatCard label="Sortino" value={metrics.sortino.toFixed(2)} />
+              <StatCard label="Profit Factor" value={metrics.profitFactor.toFixed(2)} accent="up" />
+            </div>
+          </SectionCard>
+        )}
+      </div>
+
+      {strategies.length > 0 && (
+        <SectionCard title="Live strategies" subtitle="Click through to QuantConnect listings">
+          <div className="space-y-3">
+            {strategies.map((s) => (
+              <div key={s.slug} className="flex flex-wrap items-center gap-4 rounded-sm border border-border/60 bg-card/30 p-4">
+                <div className="flex-1 min-w-[180px]">
+                  <Link to="/strategies/$slug" params={{ slug: s.slug }} className="font-medium text-sm hover:text-gold">
+                    {s.name}
+                  </Link>
+                  <div className="text-xs text-muted-foreground mt-1">{s.platform} · {s.status}</div>
+                </div>
+                {s.metrics && (
+                  <div className="text-xs text-muted-foreground font-mono">
+                    Sharpe {s.metrics.sharpe?.toFixed(2)} · MDD {((s.metrics.maxDrawdown ?? 0) * 100).toFixed(1)}%
+                  </div>
+                )}
+                <a
+                  href={s.verificationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-gold hover:underline"
+                >
+                  {s.hasDirectLink ? "View listing" : "QuantConnect"} <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            ))}
           </div>
         </SectionCard>
-      </div>
+      )}
 
       <SectionCard title="Verification" subtitle="Third-party performance verification" action={<ShieldCheck className="h-5 w-5 text-gold" />}>
         <div className="grid sm:grid-cols-3 gap-3">
@@ -111,7 +153,7 @@ function Performance() {
           ))}
         </div>
         <p className="text-xs text-muted-foreground mt-4">
-          Performance data will be progressively linked to live verification pages on each platform.
+          Set <code className="text-gold">QC_GOLD_MOMENTUM_URL</code> and <code className="text-gold">QC_FX_MEAN_REVERSION_URL</code> in Vercel for direct strategy links.
         </p>
       </SectionCard>
     </PageShell>

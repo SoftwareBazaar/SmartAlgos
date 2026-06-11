@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LineChart, FlaskConical, FileText, MessageCircle, Info, Mail,
+  LineChart, FlaskConical, FileText, MessageCircle, Info, Mail, User,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -16,6 +16,7 @@ const groups = [
       { title: "Strategies", url: "/strategies", icon: FlaskConical },
       { title: "Performance", url: "/performance", icon: LineChart },
       { title: "Consultation", url: "/consultation", icon: MessageCircle },
+      { title: "My Account", url: "/account", icon: User },
     ],
   },
   {

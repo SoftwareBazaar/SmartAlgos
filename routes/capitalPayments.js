@@ -61,6 +61,70 @@ function getCallbackBase() {
   ).replace(/\/$/, '');
 }
 
+function strategyVerificationUrl(slug) {
+  const map = {
+    'gold-momentum': process.env.QC_GOLD_MOMENTUM_URL || process.env.VITE_QC_GOLD_MOMENTUM_URL || '',
+    'fx-mean-reversion': process.env.QC_FX_MEAN_REVERSION_URL || process.env.VITE_QC_FX_MEAN_REVERSION_URL || '',
+  };
+  return (map[slug] || '').trim() || 'https://www.quantconnect.com';
+}
+
+function getPerformancePayload() {
+  const live = process.env.QC_LIVE_DATA_ENABLED === 'true';
+  return {
+    source: live ? 'live' : 'configured',
+    illustrative: !live,
+    updatedAt: new Date().toISOString(),
+    metrics: {
+      avgMonthlyReturn: Number(process.env.CAPITAL_AVG_MONTHLY_RETURN || 0.024),
+      maxDrawdown: Number(process.env.CAPITAL_MAX_DRAWDOWN || -0.068),
+      winRate: Number(process.env.CAPITAL_WIN_RATE || 0.58),
+      profitFactor: Number(process.env.CAPITAL_PROFIT_FACTOR || 1.62),
+      sharpe: Number(process.env.CAPITAL_SHARPE || 1.42),
+      sortino: Number(process.env.CAPITAL_SORTINO || 1.89),
+      recoveryDays: Number(process.env.CAPITAL_RECOVERY_DAYS || 42),
+    },
+    monthlyReturns: [
+      { month: 'Jan', return: 2.1 },
+      { month: 'Feb', return: -0.8 },
+      { month: 'Mar', return: 3.4 },
+      { month: 'Apr', return: 1.2 },
+      { month: 'May', return: 2.8 },
+      { month: 'Jun', return: 1.5 },
+    ],
+    strategies: [
+      {
+        slug: 'gold-momentum',
+        name: 'Gold Momentum',
+        status: 'Live',
+        platform: 'QuantConnect',
+        verificationUrl: strategyVerificationUrl('gold-momentum'),
+        hasDirectLink: Boolean((process.env.QC_GOLD_MOMENTUM_URL || process.env.VITE_QC_GOLD_MOMENTUM_URL || '').trim()),
+        metrics: { sharpe: 1.48, maxDrawdown: -0.061, winRate: 0.59 },
+      },
+      {
+        slug: 'fx-mean-reversion',
+        name: 'FX Mean Reversion',
+        status: 'Live',
+        platform: 'QuantConnect',
+        verificationUrl: strategyVerificationUrl('fx-mean-reversion'),
+        hasDirectLink: Boolean((process.env.QC_FX_MEAN_REVERSION_URL || process.env.VITE_QC_FX_MEAN_REVERSION_URL || '').trim()),
+        metrics: { sharpe: 1.31, maxDrawdown: -0.072, winRate: 0.56 },
+      },
+    ],
+    verificationSources: [
+      { name: 'QuantConnect', url: 'https://www.quantconnect.com', status: 'Connected' },
+      { name: 'Collective2', url: 'https://www.collective2.com', status: 'Planned' },
+      { name: 'Darwinex', url: 'https://www.darwinex.com', status: 'Future' },
+    ],
+  };
+}
+
+// Public performance config — no auth
+router.get('/performance', (_req, res) => {
+  res.json({ success: true, performance: getPerformancePayload() });
+});
+
 // Public config — no auth
 router.get('/config', (_req, res) => {
   res.json({

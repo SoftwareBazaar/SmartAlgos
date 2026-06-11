@@ -15,6 +15,7 @@ import { ShimmerButton } from "@/components/premium/shimmer-button";
 import { StickyNav } from "@/components/premium/sticky-nav";
 import { MiniEquityStrip } from "@/components/premium/mini-equity-strip";
 import { AdvisoryDeskSection } from "@/components/premium/advisory-desk";
+import { BrandLogo } from "@/components/brand-logo";
 
 const featuredLive = getStrategyBySlug("fx-mean-reversion");
 
@@ -50,14 +51,8 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       <StickyNav>
         <div className="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-2.5 cursor-pointer">
-            <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-gold text-primary-foreground">
-              <span className="font-display text-lg font-bold">S</span>
-            </div>
-            <div>
-              <div className="font-display text-base font-semibold leading-none">SMART ALGOS</div>
-              <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground mt-0.5">Capital</div>
-            </div>
+          <Link to="/" className="flex items-center cursor-pointer shrink-0">
+            <BrandLogo variant="nav" />
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm">
             {nav.map((item) => (
@@ -185,7 +180,7 @@ function Landing() {
         <div className="max-w-[1400px] mx-auto px-6 py-12">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10">
             <div className="max-w-sm">
-              <div className="font-display text-base font-semibold text-foreground">Smart Algos Capital</div>
+              <BrandLogo variant="footer" className="opacity-90" />
               <p className="text-sm text-muted-foreground mt-2">{company.operator}</p>
               <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
                 Quantitative research and systematic strategies. Performance figures reference third-party verification where noted; past results are not indicative of future returns.

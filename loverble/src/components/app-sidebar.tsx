@@ -7,6 +7,7 @@ import {
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
 } from "@/components/ui/sidebar";
 import { company } from "@/lib/mock-data";
+import { BrandLogo } from "@/components/brand-logo";
 
 const groups = [
   {
@@ -35,14 +36,8 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/" className="flex items-center gap-2 px-2 py-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-gold text-primary-foreground">
-            <span className="font-display text-base font-bold">S</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-display text-sm font-semibold tracking-wide">SMART ALGOS</span>
-            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Capital</span>
-          </div>
+        <Link to="/" className="flex items-center px-2 py-3">
+          <BrandLogo variant="sidebar" />
         </Link>
       </SidebarHeader>
       <SidebarContent>

@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -77,14 +78,11 @@ function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md">
-        <Link to="/" className="block text-xs uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground mb-6 text-center">
-          ← Smart Algos Capital
+        <Link to="/" className="flex justify-center mb-6">
+          <BrandLogo variant="auth" />
         </Link>
         <Card>
           <CardHeader className="text-center">
-            <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
             <CardTitle className="font-display text-2xl">Subscriber Sign In</CardTitle>
             <CardDescription>Access purchased research and strategy content.</CardDescription>
           </CardHeader>

@@ -114,6 +114,6 @@ export function hasLiveAccess(tier: SubscriptionTier): boolean {
 export function tierLabel(tier: SubscriptionTier): string {
   if (tier === "live-institutional") return "Live Strategy — Institutional";
   if (tier === "live-retail") return "Live Strategy — Retail";
-  if (tier === "research-pro") return "Research Full Access";
+  if (tier === "research-pro") return "Methodology Access";
   return "Free";
 }

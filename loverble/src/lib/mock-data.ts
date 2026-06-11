@@ -21,6 +21,9 @@ export type Strategy = {
   highlights: string[];
   verificationUrl?: string;
   tier: "free" | "quant-pro";
+  liveReturn?: number;
+  liveSharpe?: number;
+  liveMaxDrawdown?: number;
 };
 
 export const researchOverview = {
@@ -79,6 +82,9 @@ export const strategies: Strategy[] = [
     ],
     verificationUrl: "https://www.quantconnect.com",
     tier: "quant-pro",
+    liveReturn: 0.182,
+    liveSharpe: 1.4,
+    liveMaxDrawdown: -0.068,
   },
   {
     slug: "fx-mean-reversion",
@@ -96,6 +102,9 @@ export const strategies: Strategy[] = [
     ],
     verificationUrl: "https://www.quantconnect.com",
     tier: "quant-pro",
+    liveReturn: 0.314,
+    liveSharpe: 1.6,
+    liveMaxDrawdown: -0.052,
   },
   {
     slug: "volatility-breakout",
@@ -240,7 +249,7 @@ export const subscriptionTiers = [
   },
   {
     id: "research-pro",
-    name: "Research Full Access",
+    name: "Methodology Access",
     price: formatUsd(PRICING.researchFull),
     amountUsd: PRICING.researchFull,
     period: "",

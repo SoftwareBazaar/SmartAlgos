@@ -8,10 +8,10 @@ import { MotionReveal, MotionItem } from "@/components/motion-reveal";
 const tiers = [
   {
     id: "research-pro",
-    name: "Research Full Access",
+    name: "Methodology Access",
     price: formatUsd(PRICING.researchFull),
     amountUsd: PRICING.researchFull,
-    desc: "Unlock complete reports after free preview",
+    desc: "Full methodology, notebooks & research archive",
     features: ["Full methodology", "Complete findings", "PDF archive"],
     highlight: false,
   },

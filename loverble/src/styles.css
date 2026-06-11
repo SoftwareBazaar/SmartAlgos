@@ -154,6 +154,49 @@
   border-bottom: 1px solid oklch(0.30 0.04 252 / 40%);
 }
 
+@utility glass-nav-scrolled {
+  background: oklch(0.12 0.035 250 / 88%);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid oklch(0.35 0.05 252 / 50%);
+}
+
+@utility text-section-title {
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+@utility text-hero-display {
+  font-size: clamp(2.75rem, 6vw, 4.5rem);
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+@utility gold-headline-shimmer {
+  background: linear-gradient(
+    105deg,
+    oklch(0.96 0.01 90) 0%,
+    oklch(0.85 0.10 88) 35%,
+    oklch(0.78 0.13 85) 50%,
+    oklch(0.85 0.10 88) 65%,
+    oklch(0.96 0.01 90) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gold-headline-shimmer 6s ease-in-out infinite;
+}
+
+@keyframes gold-headline-shimmer {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 200% center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-headline-shimmer { animation: none; color: oklch(0.96 0.01 90); background: none; }
+}
+
 @utility premium-shimmer {
   background: linear-gradient(
     110deg,

@@ -1,11 +1,11 @@
 /**
- * Merges loverble Nitro Vercel output with a bundled Capital payments API.
+ * Merges loverble Nitro Vercel output for deploy.
+ * Capital payments API lives in loverble server routes (same __server function).
  * Run after: cd loverble && npm run build
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const loverbleOutput = path.join(root, "loverble", ".vercel", "output");
@@ -35,54 +35,7 @@ if (fs.existsSync(rootOutput)) {
 }
 copyDir(loverbleOutput, rootOutput);
 
-const apiFuncDir = path.join(rootOutput, "functions", "api.func");
-fs.mkdirSync(apiFuncDir, { recursive: true });
-
-// Bundle API + deps into one file — Vercel prebuilt output cannot resolve repo node_modules.
-const entry = path.join(root, "api", "vercel-entry.js");
-const outfile = path.join(apiFuncDir, "index.js");
-
-console.log("[merge] Bundling Capital API with esbuild...");
-execSync(
-  `npx --yes esbuild "${entry}" --bundle --platform=node --target=node20 --outfile="${outfile}"`,
-  { cwd: root, stdio: "inherit" },
-);
-
-const bundled = fs.readFileSync(outfile, "utf8");
-fs.writeFileSync(outfile, `process.env.VERCEL = "1";\n${bundled}`);
-console.log(`[merge] API bundle size: ${(fs.statSync(outfile).size / 1024 / 1024).toFixed(2)} MB`);
-
-fs.writeFileSync(
-  path.join(apiFuncDir, ".vc-config.json"),
-  JSON.stringify(
-    {
-      runtime: "nodejs20.x",
-      handler: "index.js",
-      launcherType: "Nodejs",
-      maxDuration: 60,
-      shouldAddHelpers: true,
-    },
-    null,
-    2,
-  ),
-);
-
-const configPath = path.join(rootOutput, "config.json");
-const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-
-const apiRoutes = [
-  { src: "/api/(.*)", dest: "/api" },
-  { src: "/health", dest: "/api" },
-];
-
-const routes = config.routes ?? [];
-const filesystemIdx = routes.findIndex((r) => r.handle === "filesystem");
-const insertAt = filesystemIdx >= 0 ? filesystemIdx : routes.length;
-routes.splice(insertAt, 0, ...apiRoutes);
-config.routes = routes;
-
-fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-
+// TanStack Start ships a dev-only manifest stub that breaks client hydration on Vercel.
 const serverFunc = path.join(rootOutput, "functions", "__server.func");
 const prodManifest = fs
   .readdirSync(serverFunc)
@@ -97,4 +50,4 @@ if (prodManifest) {
   console.warn("No hashed TanStack Start manifest found — client JS may not hydrate.");
 }
 
-console.log("Merged loverble frontend + bundled Capital API into .vercel/output");
+console.log("Merged loverble frontend into .vercel/output (API via TanStack server routes)");

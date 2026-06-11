@@ -4,7 +4,8 @@ import {
   researchOverview, strategyOverview, strategies, company,
 } from "@/lib/mock-data";
 import { DonateButton } from "@/components/donate-button";
-import { HeroVideo } from "@/components/hero-video";
+import { HeroCinematic } from "@/components/hero-cinematic";
+import { MotionHeroText, MotionItem, MotionReveal } from "@/components/motion-reveal";
 import { CheckoutForm } from "@/components/checkout-form";
 import { formatUsd, PRICING } from "@/lib/pricing";
 
@@ -38,7 +39,7 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <nav className="fixed top-0 inset-x-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+      <nav className="fixed top-0 inset-x-0 z-50 glass-nav">
         <div className="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-4">
           <Link to="/" className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-gold text-primary-foreground">
@@ -65,55 +66,53 @@ function Landing() {
         </div>
       </nav>
 
-      <section className="relative min-h-[88vh] pt-32 pb-20 overflow-hidden flex items-center">
-        <HeroVideo />
-        <div className="absolute inset-0 grid-bg pointer-events-none opacity-30" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 h-[600px] w-[900px] rounded-full bg-gold/5 blur-[120px] pointer-events-none" />
+      <section className="relative min-h-[92vh] pt-32 pb-20 overflow-hidden flex items-center bg-dominant">
+        <HeroCinematic />
         <div className="relative z-10 max-w-[1400px] mx-auto px-6 w-full">
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-gold mb-7">
+          <MotionHeroText className="max-w-4xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-gold/25 bg-secondary-surface/80 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-gold mb-7">
               <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" />
               Quantitative Research · Systematic Strategies
             </div>
-            <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-semibold leading-[1.02] tracking-tight">
+            <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-semibold leading-[1.02] tracking-tight text-foreground">
               {company.name}
             </h1>
             <p className="mt-4 text-xl md:text-2xl text-gold font-display">{company.tagline}</p>
             <p className="mt-4 text-sm uppercase tracking-[0.2em] text-muted-foreground">
               {company.operator}
             </p>
-            <p className="mt-8 text-lg text-muted-foreground max-w-2xl leading-relaxed">
+            <p className="mt-8 text-lg text-secondary-foreground/90 max-w-2xl leading-relaxed">
               We publish quantitative research, develop systematic strategies, and build a verifiable track record — sold through research subscriptions and advisory.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
-              <Link to="/strategies" className="inline-flex items-center gap-2 rounded-sm bg-primary px-6 py-3.5 text-sm font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition">
+              <Link to="/strategies" className="inline-flex items-center gap-2 rounded-sm bg-primary px-6 py-3.5 text-sm font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition duration-200 cursor-pointer">
                 View Strategies <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link to="/research" className="inline-flex items-center gap-2 rounded-sm border border-gold/40 px-6 py-3.5 text-sm font-semibold uppercase tracking-wider text-gold hover:bg-gold/10 transition">
+              <Link to="/research" className="inline-flex items-center gap-2 rounded-sm border border-gold/35 px-6 py-3.5 text-sm font-semibold uppercase tracking-wider text-gold hover:bg-gold/10 transition duration-200 cursor-pointer">
                 Research Library
               </Link>
-              <Link to="/performance" className="inline-flex items-center gap-2 rounded-sm border border-border bg-card/40 px-6 py-3.5 text-sm font-semibold uppercase tracking-wider hover:bg-card transition">
+              <Link to="/performance" className="inline-flex items-center gap-2 rounded-sm border border-border bg-secondary-surface/60 px-6 py-3.5 text-sm font-semibold uppercase tracking-wider text-secondary-foreground hover:bg-card transition duration-200 cursor-pointer">
                 Performance
               </Link>
             </div>
-          </div>
+          </MotionHeroText>
         </div>
       </section>
 
-      <section className="border-y border-border bg-card/30">
-        <div className="max-w-[1400px] mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+      <section className="border-y border-border bg-secondary-surface/80">
+        <MotionReveal className="max-w-[1400px] mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             ["Research Notes", researchOverview.notesPublished],
             ["Strategy Studies", researchOverview.studiesCompleted],
             ["Live Strategies", strategyOverview.live],
             ["Markets Covered", researchOverview.marketsCovered],
           ].map(([label, value]) => (
-            <div key={label as string}>
+            <MotionItem key={label as string}>
               <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</div>
-              <div className="mt-2 font-display text-3xl font-semibold">{value}</div>
-            </div>
+              <div className="mt-2 font-display text-3xl font-semibold text-foreground">{value}</div>
+            </MotionItem>
           ))}
-        </div>
+        </MotionReveal>
       </section>
 
       <section className="py-20">
@@ -126,39 +125,41 @@ function Landing() {
             </div>
             <Link to="/strategies" className="text-sm text-gold hover:underline">Full catalog →</Link>
           </div>
-          <div className="grid md:grid-cols-2 gap-4">
+          <MotionReveal className="grid md:grid-cols-2 gap-4">
             {liveStrategies.map((s) => (
-              <Link
-                key={s.slug}
-                to="/strategies/$slug"
-                params={{ slug: s.slug }}
-                className="surface-card rounded-lg p-6 hover:border-gold/40 transition block"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-display text-lg font-semibold">{s.name}</h3>
-                  <span className={`text-xs px-2 py-0.5 rounded ${statusColor(s.status)}`}>{s.status}</span>
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">{s.summary}</p>
-                <div className="mt-3 text-xs text-muted-foreground">{s.asset} · {s.platform}</div>
-              </Link>
+              <MotionItem key={s.slug}>
+                <Link
+                  to="/strategies/$slug"
+                  params={{ slug: s.slug }}
+                  className="surface-card rounded-lg p-6 hover:border-gold/40 transition duration-200 block cursor-pointer h-full"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-display text-lg font-semibold">{s.name}</h3>
+                    <span className={`text-xs px-2 py-0.5 rounded ${statusColor(s.status)}`}>{s.status}</span>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">{s.summary}</p>
+                  <div className="mt-3 text-xs text-muted-foreground">{s.asset} · {s.platform}</div>
+                </Link>
+              </MotionItem>
             ))}
-          </div>
+          </MotionReveal>
         </div>
       </section>
 
-      <section className="py-20 border-t border-border bg-card/20">
+      <section className="py-20 border-t border-border bg-secondary-surface/50">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-3">How it works</div>
             <h2 className="font-display text-4xl font-semibold">Research → Strategies → Subscribe</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-5">
+          <MotionReveal className="grid md:grid-cols-3 gap-5">
             {[
               { icon: FileText, t: "Research", items: ["Free previews", "Full reports — $10", "Methodology & notebooks"], link: "/research" },
               { icon: FlaskConical, t: "Strategies", items: ["Live models — $149.99 retail", "Institutional — $499.99", "Third-party verification"], link: "/strategies" },
               { icon: Brain, t: "Advisory", items: [`Consultation — ${formatUsd(PRICING.consultation)}`, "Strategy review", "System design"], link: "/consultation" },
             ].map(({ icon: Icon, t, items, link }) => (
-              <Link key={t} to={link} className="surface-card rounded-lg p-7 hover:border-gold/30 transition block">
+              <MotionItem key={t}>
+              <Link to={link} className="surface-card rounded-lg p-7 hover:border-gold/30 transition duration-200 block cursor-pointer h-full">
                 <Icon className="h-7 w-7 text-gold mb-5" />
                 <h3 className="font-display text-xl font-semibold">{t}</h3>
                 <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
@@ -169,14 +170,16 @@ function Landing() {
                   ))}
                 </ul>
               </Link>
+              </MotionItem>
             ))}
-          </div>
+          </MotionReveal>
         </div>
       </section>
 
-      <section className="py-20 border-t border-border bg-card/20">
+      <section className="py-20 border-t border-border bg-dominant">
         <div className="max-w-[1400px] mx-auto px-6">
-          <div className="max-w-xl mx-auto rounded-lg border border-border bg-card/40 p-8">
+          <MotionReveal className="max-w-xl mx-auto rounded-lg border border-gold/20 bg-secondary-surface/90 p-8">
+            <MotionItem>
             <div className="text-[10px] uppercase tracking-[0.2em] text-gold mb-2">Advisory</div>
             <h2 className="font-display text-3xl font-semibold">Book Consultation</h2>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -193,10 +196,11 @@ function Landing() {
                 label={`Pay ${formatUsd(PRICING.consultation)} via Paystack`}
               />
             </div>
-            <Link to="/consultation" className="mt-4 inline-block text-xs text-gold hover:underline">
+            <Link to="/consultation" className="mt-4 inline-block text-xs text-gold hover:underline cursor-pointer">
               View all consultation services →
             </Link>
-          </div>
+            </MotionItem>
+          </MotionReveal>
         </div>
       </section>
 

@@ -64,14 +64,26 @@ export function clearStoredSubscription() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-export function resolveTier(profileStatus?: string | null): SubscriptionTier {
-  const stored = getStoredSubscription();
-  if (stored?.tier) return stored.tier;
-  if (profileStatus === "quant-pro" || profileStatus === "quant_pro") return "quant-pro";
-  if (profileStatus === "active" || profileStatus === "research-pro" || profileStatus === "research_pro") {
-    return "research-pro";
+function normalizeTierInput(value?: string | null): SubscriptionTier | null {
+  if (!value) return null;
+  if (value === "quant-pro" || value === "quant_pro") return "quant-pro";
+  if (value === "research-pro" || value === "research_pro" || value === "active") return "research-pro";
+  if (value === "free") return "free";
+  return null;
+}
+
+export function mergeTiers(...candidates: (SubscriptionTier | string | null | undefined)[]): SubscriptionTier {
+  let best: SubscriptionTier = "free";
+  for (const c of candidates) {
+    const t = typeof c === "string" ? normalizeTierInput(c) : c;
+    if (t && TIER_RANK[t] > TIER_RANK[best]) best = t;
   }
-  return "free";
+  return best;
+}
+
+export function resolveTier(profileStatus?: string | null, remoteTier?: string | null): SubscriptionTier {
+  const stored = getStoredSubscription();
+  return mergeTiers(stored?.tier, remoteTier, normalizeTierInput(profileStatus));
 }
 
 export function hasTierAccess(current: SubscriptionTier, required: "free" | "research-pro" | "quant-pro"): boolean {

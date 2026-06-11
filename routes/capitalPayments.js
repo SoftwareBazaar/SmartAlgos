@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const databaseService = require('../services/databaseService');
 const paystackService = require('../services/paystackService');
+const capitalSubscriptionService = require('../services/capitalSubscriptionService');
 
 const KES_RATE = 150;
 
@@ -137,9 +138,10 @@ router.get('/config', (_req, res) => {
 
 // Initialize payment
 router.post('/initialize', async (req, res) => {
-  const { email, product_type: productType, product_id: productId, amount_usd: amountUsd, metadata = {} } = req.body;
+  let { email, product_type: productType, product_id: productId, amount_usd: amountUsd, metadata = {} } = req.body;
 
   try {
+    email = (email || '').trim().toLowerCase();
     if (!email || !email.includes('@')) {
       return res.status(400).json({ success: false, error: 'Valid email is required' });
     }
@@ -255,12 +257,23 @@ router.get('/verify/:reference', async (req, res) => {
         .maybeSingle();
 
       if (existing) {
+        const existingProductId = existing.metadata?.product_id || productId;
+        if (productType === 'research_subscription' && email) {
+          await capitalSubscriptionService.activateFromPayment(supabase, {
+            email,
+            productId: existingProductId,
+            productType,
+            reference,
+          });
+        }
         return res.json({
           success: true,
           message: 'Payment already processed',
           product_type: existing.product_type,
-          product_id: existing.metadata?.product_id,
+          product_id: existingProductId,
           amount_usd: existing.amount_usd,
+          email,
+          tier: capitalSubscriptionService.productIdToTier(existingProductId) || 'free',
         });
       }
 
@@ -273,6 +286,15 @@ router.get('/verify/:reference', async (req, res) => {
           paystack_data: txData,
         })
         .eq('paystack_reference', reference);
+
+      if (productType === 'research_subscription' && email) {
+        await capitalSubscriptionService.activateFromPayment(supabase, {
+          email,
+          productId,
+          productType,
+          reference,
+        });
+      }
     }
 
     try {
@@ -311,10 +333,71 @@ router.get('/verify/:reference', async (req, res) => {
       amount_usd: amountUsd,
       reference,
       email,
+      tier: capitalSubscriptionService.productIdToTier(productId) || 'free',
     });
   } catch (error) {
     console.error('[Capital] Verify error:', error.message);
     res.status(500).json({ success: false, error: error.message || 'Verification failed' });
+  }
+});
+
+// Subscription status — Bearer Supabase JWT (cross-device access)
+router.get('/subscription/status', async (req, res) => {
+  try {
+    const supabase = databaseService.getClient();
+    if (!supabase) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+
+    const user = await capitalSubscriptionService.getUserFromAuthHeader(supabase, req.headers.authorization);
+    if (!user?.email) {
+      return res.status(401).json({ success: false, error: 'Sign in required' });
+    }
+
+    const subscription = await capitalSubscriptionService.resolveSubscriptionForEmail(supabase, user.email);
+    res.json({
+      success: true,
+      subscription: {
+        tier: subscription.tier,
+        expiresAt: subscription.expiresAt,
+        email: subscription.email,
+        source: subscription.source,
+        latestReference: subscription.latestPayment?.paystack_reference ?? null,
+      },
+    });
+  } catch (error) {
+    console.error('[Capital] Subscription status error:', error.message);
+    res.status(500).json({ success: false, error: error.message || 'Failed to load subscription' });
+  }
+});
+
+// Sync paystack payments → profile after sign-in
+router.post('/subscription/sync', async (req, res) => {
+  try {
+    const supabase = databaseService.getClient();
+    if (!supabase) {
+      return res.status(503).json({ success: false, error: 'Database unavailable' });
+    }
+
+    const user = await capitalSubscriptionService.getUserFromAuthHeader(supabase, req.headers.authorization);
+    if (!user?.email) {
+      return res.status(401).json({ success: false, error: 'Sign in required' });
+    }
+
+    const subscription = await capitalSubscriptionService.syncUserSubscription(supabase, user);
+    res.json({
+      success: true,
+      subscription: {
+        tier: subscription.tier,
+        expiresAt: subscription.expiresAt,
+        email: subscription.email,
+        source: subscription.source,
+        latestReference: subscription.latestPayment?.paystack_reference ?? null,
+      },
+    });
+  } catch (error) {
+    console.error('[Capital] Subscription sync error:', error.message);
+    res.status(500).json({ success: false, error: error.message || 'Failed to sync subscription' });
   }
 });
 

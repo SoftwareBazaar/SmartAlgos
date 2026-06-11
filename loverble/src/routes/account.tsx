@@ -19,13 +19,31 @@ export const Route = createFileRoute("/account")({
 });
 
 function AccountPage() {
-  const { tier, tierLabel, email, loading, hasAccess } = useSubscription();
+  const { tier, tierLabel, email, expiresAt, loading, hasAccess, syncAfterLogin } = useSubscription();
   const [signedIn, setSignedIn] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const stored = getStoredSubscription();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
-  }, []);
+    let cancelled = false;
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (cancelled) return;
+      const isIn = Boolean(data.session);
+      setSignedIn(isIn);
+      if (!isIn) return;
+      setSyncing(true);
+      try {
+        await syncAfterLogin();
+      } catch {
+        // Non-fatal — local/payment cache may still apply
+      } finally {
+        if (!cancelled) setSyncing(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [syncAfterLogin]);
 
   const accessiblePapers = researchPapers.filter((p) => {
     if (p.tier === "free") return true;
@@ -68,6 +86,10 @@ function AccountPage() {
               <div className="font-display text-xl font-semibold">{loading ? "…" : tierLabel}</div>
               <div className="text-xs text-muted-foreground mt-1">
                 {email || "No email on file"}
+                {expiresAt && (
+                  <span> · expires {new Date(expiresAt).toLocaleDateString()}</span>
+                )}
+                {syncing && <span> · syncing…</span>}
               </div>
             </div>
           </div>

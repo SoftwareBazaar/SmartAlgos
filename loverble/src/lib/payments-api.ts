@@ -48,5 +48,44 @@ export async function verifyCapitalPayment(reference: string) {
   const res = await fetch(`${API_BASE}/api/payments/capital/verify/${encodeURIComponent(reference)}`);
   const data = await res.json();
   if (!data.success) throw new Error(data.error || "Payment verification failed");
-  return data;
+  return data as {
+    success: boolean;
+    product_type?: string;
+    product_id?: string;
+    amount_usd?: number;
+    email?: string;
+    reference?: string;
+    tier?: string;
+  };
+}
+
+export type RemoteSubscription = {
+  tier: "free" | "research-pro" | "quant-pro";
+  expiresAt: string | null;
+  email: string;
+  source?: string;
+  latestReference?: string | null;
+};
+
+async function authHeaders(accessToken: string) {
+  return { Authorization: `Bearer ${accessToken}` };
+}
+
+export async function fetchSubscriptionStatus(accessToken: string): Promise<RemoteSubscription> {
+  const res = await fetch(`${API_BASE}/api/payments/capital/subscription/status`, {
+    headers: await authHeaders(accessToken),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || "Failed to load subscription");
+  return data.subscription as RemoteSubscription;
+}
+
+export async function syncSubscription(accessToken: string): Promise<RemoteSubscription> {
+  const res = await fetch(`${API_BASE}/api/payments/capital/subscription/sync`, {
+    method: "POST",
+    headers: { ...(await authHeaders(accessToken)), "Content-Type": "application/json" },
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || "Failed to sync subscription");
+  return data.subscription as RemoteSubscription;
 }

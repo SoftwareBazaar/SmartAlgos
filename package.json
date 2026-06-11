@@ -5,8 +5,8 @@
   "main": "railway-full-server.js",
   "scripts": {
     "start": "node railway-full-server.js",
-    "build": "cd client && npm install && npm run build",
-    "postinstall": "npm run build"
+    "build": "cd loverble && npm install && npm run build && cd .. && node scripts/vercel-merge-output.mjs",
+    "build:client-legacy": "cd client && npm install && npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0",

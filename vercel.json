@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "buildCommand": "cd client && npm install && npm run build",
-  "outputDirectory": "client/build",
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.js" },
-    { "source": "/health", "destination": "/api/index.js" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "installCommand": "npm install && cd loverble && npm install",
+  "buildCommand": "cd loverble && npm run build && cd .. && node scripts/vercel-merge-output.mjs",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 60
+    }
+  }
 }

@@ -488,6 +488,7 @@ app.use('/api/escrow', auth, validateCSRF, escrowRoutes);
 app.use('/api/escrow', escrowWebhookRoutes); // Webhooks don't require auth or CSRF
 app.use('/api/payments/crypto', cryptoPaymentRoutes); // MUST come before /api/payments
 app.use('/api/payments/paystack', paystackPaymentRoutes); // Dedicated Paystack subscription routes
+app.use('/api/payments/capital', require('./routes/capitalPayments')); // Smart Algos Capital — public Paystack
 app.use('/api/payments', auth, validateCSRF, paymentRoutes);
 app.use('/api/mpesa', mpesaRoutes); // M-Pesa routes (callback doesn't require auth)
 app.use('/api/analysis', auth, analysisRoutes); // Read-only, no CSRF needed
@@ -533,12 +534,11 @@ app.get('/api', (req, res) => {
   });
 });
 
-// Serve React app (always serve if build exists)
-// Check if React build exists
+// Serve legacy React app only when not on Vercel (frontend is loverble via Nitro there)
 const buildPath = path.join(__dirname, 'client/build');
 const indexPath = path.join(buildPath, 'index.html');
 
-if (fs.existsSync(indexPath)) {
+if (!process.env.VERCEL && fs.existsSync(indexPath)) {
   console.log('ðŸ“± Serving React frontend from:', buildPath);
 
   // Serve static files from React build

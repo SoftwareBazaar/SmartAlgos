@@ -84,6 +84,7 @@ try {
     process.env.PUBLIC_URL,
     'http://localhost:3000',
     'http://localhost:5000',
+    'http://localhost:8080',
     'https://localhost:3000',
     'https://localhost:5000',
     'https://smartalgosts.com',
@@ -319,6 +320,11 @@ try {
     const paystackPaymentRoutes = require('./routes/paystackPayments');
     app.use('/api/payments/paystack', paystackPaymentRoutes);
     console.log('   ✅ Paystack payment routes loaded and registered');
+
+    console.log('   Loading Capital (Smart Algos) payment routes...');
+    const capitalPaymentRoutes = require('./routes/capitalPayments');
+    app.use('/api/payments/capital', capitalPaymentRoutes);
+    console.log('   ✅ Capital payment routes loaded and registered');
 
     console.log('   Loading test email route...');
     const testEmailRoute = require('./routes/testEmail');

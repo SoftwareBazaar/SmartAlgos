@@ -7,6 +7,27 @@
 const axios = require('axios');
 const moment = require('moment');
 
+function resolveMpesaCallbackUrl() {
+  const configured = (process.env.MPESA_CALLBACK_URL || '').trim();
+  const isPlaceholder =
+    !configured ||
+    /yourdomain|your-domain|localhost/i.test(configured);
+
+  if (!isPlaceholder) return configured.replace(/\/$/, '');
+
+  const base = (
+    process.env.BACKEND_URL ||
+    process.env.PUBLIC_URL ||
+    process.env.CLIENT_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')
+  )
+    .trim()
+    .replace(/\/$/, '');
+
+  if (base) return `${base}/api/mpesa/callback`;
+  return 'http://localhost:5000/api/mpesa/callback';
+}
+
 class MpesaService {
   constructor() {
     // M-Pesa Credentials from environment variables
@@ -25,8 +46,7 @@ class MpesaService {
     this.stkPushURL = `${this.baseURL}/mpesa/stkpush/v1/processrequest`;
     this.stkQueryURL = `${this.baseURL}/mpesa/stkpushquery/v1/query`;
     
-    // Callback URLs (set via environment or use default)
-    this.callbackURL = process.env.MPESA_CALLBACK_URL;
+    this.callbackURL = resolveMpesaCallbackUrl();
     
     // Cache for access token
     this.accessToken = null;

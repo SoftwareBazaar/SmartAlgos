@@ -35,6 +35,18 @@ if (fs.existsSync(rootOutput)) {
 }
 copyDir(loverbleOutput, rootOutput);
 
+const configPath = path.join(rootOutput, "config.json");
+const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+const routes = config.routes ?? [];
+const filesystemIdx = routes.findIndex((r) => r.handle === "filesystem");
+const insertAt = filesystemIdx >= 0 ? filesystemIdx : routes.length;
+// Ensure /api hits Nitro __server (Capital Paystack middleware in start.ts).
+if (!routes.some((r) => r.src === "/api/(.*)" && r.dest === "/__server")) {
+  routes.splice(insertAt, 0, { src: "/api/(.*)", dest: "/__server" });
+}
+config.routes = routes;
+fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
 // TanStack Start ships a dev-only manifest stub that breaks client hydration on Vercel.
 const serverFunc = path.join(rootOutput, "functions", "__server.func");
 const prodManifest = fs

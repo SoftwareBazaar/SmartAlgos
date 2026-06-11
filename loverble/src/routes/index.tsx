@@ -19,7 +19,6 @@ const nav = [
   { label: "Research", to: "/research" },
   { label: "Strategies", to: "/strategies" },
   { label: "Performance", to: "/performance" },
-  { label: "Consultation", to: "/consultation" },
   { label: "About", to: "/about" },
 ] as const;
 

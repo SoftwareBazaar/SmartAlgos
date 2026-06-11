@@ -77,7 +77,7 @@ function Consultation() {
             productType="consultation"
             productId="consultation"
             amountUsd={50}
-            label="Pay $50 & Book"
+            label="Pay $50 via Paystack"
           />
           {CALENDLY_URL && (
             <button

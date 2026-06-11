@@ -75,6 +75,7 @@ export async function checkoutCapitalPayment(
   if (!window.PaystackPop) throw new Error("Paystack not available");
 
   return new Promise<void>((resolve, reject) => {
+    let completed = false;
     const handler = window.PaystackPop!.setup({
       key: publicKey,
       email: input.email,
@@ -83,6 +84,7 @@ export async function checkoutCapitalPayment(
       ref: payment.reference,
       metadata: { product_type: input.product_type, product_id: input.product_id, ...input.metadata },
       callback: async (response) => {
+        completed = true;
         try {
           await verifyCapitalPayment(response.reference);
           callbacks?.onSuccess?.(response.reference);
@@ -93,6 +95,7 @@ export async function checkoutCapitalPayment(
       },
       onClose: () => {
         callbacks?.onClose?.();
+        if (!completed) reject(new Error("Payment window closed"));
       },
     });
     handler.openIframe();

@@ -11,6 +11,7 @@ type Props = {
   metadata?: Record<string, unknown>;
   className?: string;
   variant?: "primary" | "outline";
+  onSuccessClose?: () => void;
 };
 
 export function CheckoutForm({
@@ -21,6 +22,7 @@ export function CheckoutForm({
   metadata,
   className = "",
   variant = "primary",
+  onSuccessClose,
 }: Props) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,16 +33,21 @@ export function CheckoutForm({
       toast.error("Enter a valid email");
       return;
     }
+    if (productType === "research_donation" && (!amountUsd || amountUsd < 1)) {
+      toast.error("Select a donation amount");
+      return;
+    }
     setLoading(true);
     try {
       await checkoutCapitalPayment(
         { email, product_type: productType, product_id: productId, amount_usd: amountUsd, metadata },
         {
           onSuccess: (ref) => {
-            toast.success("Payment successful!", {
-              description: `Reference: ${ref}. Check your email for confirmation.`,
-            });
-            setEmail("");
+            onSuccessClose?.();
+            window.location.href = `/payment-callback?reference=${encodeURIComponent(ref)}`;
+          },
+          onClose: () => {
+            toast.message("Payment cancelled");
           },
         },
       );
@@ -57,21 +64,21 @@ export function CheckoutForm({
       : "border border-gold/60 text-gold hover:bg-gold/10";
 
   return (
-    <form onSubmit={pay} className={`flex flex-col sm:flex-row gap-2 ${className}`}>
+    <form onSubmit={pay} className={`flex flex-col gap-2 ${className}`}>
       <input
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@email.com"
         required
-        className="flex-1 bg-background border border-border rounded-sm px-3 py-2.5 text-sm focus:outline-none focus:border-gold/60"
+        className="w-full bg-background border border-border rounded-sm px-3 py-2.5 text-sm focus:outline-none focus:border-gold/60"
       />
       <button
         type="submit"
         disabled={loading}
-        className={`inline-flex items-center justify-center gap-2 rounded-sm px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition disabled:opacity-60 ${btnClass}`}
+        className={`w-full inline-flex items-center justify-center gap-2 rounded-sm px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition disabled:opacity-60 ${btnClass}`}
       >
-        {loading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Processing…</> : label}
+        {loading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Opening Paystack…</> : label}
       </button>
     </form>
   );

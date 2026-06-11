@@ -3,6 +3,7 @@ import { PageShell, SectionCard } from "@/components/page-shell";
 import { getStrategyBySlug } from "@/lib/mock-data";
 import { getStrategyVerificationUrl, hasDirectVerificationLink } from "@/lib/strategy-links";
 import { ExternalLink, ArrowLeft, Lock } from "lucide-react";
+import { CheckoutForm } from "@/components/checkout-form";
 
 export const Route = createFileRoute("/strategies/$slug")({
   loader: ({ params }) => {
@@ -91,9 +92,15 @@ function StrategyDetail() {
               <p className="text-sm text-muted-foreground">
                 Full rules summary, backtest report, and research notebook are available on the Quant Pro plan.
               </p>
-              <Link to="/research" className="mt-3 inline-flex text-sm text-gold hover:underline">
-                View subscription tiers →
-              </Link>
+              <div className="mt-4">
+                <CheckoutForm
+                  productType="research_subscription"
+                  productId="quant-pro"
+                  amountUsd={79}
+                  label="Subscribe Quant Pro — $79 via Paystack"
+                  variant="outline"
+                />
+              </div>
             </div>
           </div>
         </SectionCard>

@@ -22,7 +22,7 @@ export function PremiumGate({ items, tierId = "research-pro" }: { items: string[
         <CheckoutForm
           productType="research_subscription"
           productId={tierId}
-          label="Subscribe Now"
+          label={`Subscribe — ${tierId === "quant-pro" ? "Quant Pro" : "Research Pro"} via Paystack`}
         />
       </div>
       <Link to="/research" className="mt-3 inline-block text-xs text-muted-foreground hover:text-gold">

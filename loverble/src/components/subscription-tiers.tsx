@@ -50,7 +50,7 @@ export function SubscriptionTiers() {
                 productType="research_subscription"
                 productId={tier.id}
                 amountUsd={"amountUsd" in tier ? tier.amountUsd : undefined}
-                label={tier.cta}
+                label={`${tier.cta} — Paystack`}
                 variant={tier.highlight ? "primary" : "outline"}
               />
             </div>

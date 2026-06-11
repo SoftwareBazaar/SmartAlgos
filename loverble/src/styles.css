@@ -154,6 +154,28 @@
   border-bottom: 1px solid oklch(0.30 0.04 252 / 40%);
 }
 
+@utility premium-shimmer {
+  background: linear-gradient(
+    110deg,
+    transparent 25%,
+    oklch(0.78 0.13 85 / 0.08) 45%,
+    oklch(0.78 0.13 85 / 0.14) 50%,
+    oklch(0.78 0.13 85 / 0.08) 55%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  animation: premium-shimmer 4s ease-in-out infinite;
+}
+
+@keyframes premium-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .premium-shimmer { animation: none; }
+}
+
 @utility hairline {
   background-image: linear-gradient(to right, transparent, var(--color-border), transparent);
   height: 1px;

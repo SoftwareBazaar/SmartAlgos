@@ -108,8 +108,8 @@ export function SidebarMenuButton({
       className={cn(
         "flex items-center gap-2 rounded-sm px-2 py-2 text-sm transition-colors",
         isActive
-          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-          : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
+          ? "bg-gold/12 text-gold border-l-2 border-gold -ml-px pl-[calc(0.5rem+1px)] font-medium"
+          : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground border-l-2 border-transparent",
       )}
     >
       {children}

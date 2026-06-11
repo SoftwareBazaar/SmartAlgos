@@ -1,6 +1,7 @@
 // Research-first data — no fake AUM, investors, or hedge fund operations
 
 import { PRICING, formatUsd } from "@/lib/pricing";
+import { buildStrategyEquityCurve } from "@/lib/chart-domain";
 
 export const company = {
   name: "Smart Algos Capital",
@@ -250,17 +251,17 @@ export const subscriptionTiers = [
   {
     id: "research-pro",
     name: "Methodology Access",
-    price: formatUsd(PRICING.researchFull),
+    price: `${formatUsd(PRICING.researchFull)}/report`,
     amountUsd: PRICING.researchFull,
     period: "",
-    description: "Unlock full methodology, notebooks, and PDFs",
+    description: "One-time unlock per full research note — not a subscription",
     features: [
       "Full research notes",
       "Complete key findings",
       "Premium PDF downloads",
       "Research archive access",
     ],
-    cta: `Unlock full research — ${formatUsd(PRICING.researchFull)}`,
+    cta: `Unlock report — ${formatUsd(PRICING.researchFull)}`,
     highlight: false,
   },
   {
@@ -394,7 +395,10 @@ export const whitePapers = [
   { title: "Financial Systems Architecture for Asset Managers", date: "Nov 2025", tier: "quant-pro" as const },
 ];
 
-// Modest equity curve — research portfolio, not hedge fund
+/** FX Mean Reversion — featured live model curve (matches hero + card metrics). */
+export const fxMeanReversionCurve = buildStrategyEquityCurve(0.314, 180);
+
+// Modest equity curve — blended portfolio, not hedge fund
 export const equityCurve = (() => {
   const points: { date: string; equity: number }[] = [];
   let equity = 100;

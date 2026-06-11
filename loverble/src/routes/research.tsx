@@ -10,6 +10,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/use-subscription";
 import { Link } from "@tanstack/react-router";
+import { formatUsd, PRICING } from "@/lib/pricing";
 
 export const Route = createFileRoute("/research")({
   head: () => ({
@@ -44,7 +45,7 @@ function Research() {
     <PageShell
       eyebrow="Research & Authority"
       title="Research"
-      description="Published quantitative research with free previews. Unlock full reports for $10 via Paystack."
+      description={`Published quantitative research with free previews. Unlock individual full reports for ${formatUsd(PRICING.researchFull)} each (one-time, per note).`}
       actions={
         hasAccess("research-pro") ? (
           <Link to="/account" className="text-xs uppercase tracking-wider text-gold hover:underline">

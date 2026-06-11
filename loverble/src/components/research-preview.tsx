@@ -49,7 +49,7 @@ export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
       <div className="p-5 space-y-5">
         {!isFree && !unlocked && (
           <div className="rounded-sm border border-gold/25 bg-gold/5 px-3 py-2 text-xs text-muted-foreground">
-            Free preview below — unlock the full report for {formatUsd(PRICING.researchFull)} via Paystack.
+            Free preview below — unlock this report for {formatUsd(PRICING.researchFull)} (one-time, per note) via Paystack.
           </div>
         )}
 

@@ -1,12 +1,13 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, YAxis } from "recharts";
-import { equityCurve, fmt } from "@/lib/mock-data";
+import { fxMeanReversionCurve, getStrategyBySlug, fmt } from "@/lib/mock-data";
 import { GlowCard } from "./glow-card";
+import { EquityAreaChart } from "./equity-area-chart";
 
-const chartData = equityCurve.slice(-180);
-const startEquity = chartData[0]?.equity ?? 100;
-const endEquity = chartData[chartData.length - 1]?.equity ?? 100;
-const totalReturn = (endEquity / startEquity - 1) * 100;
+const strategy = getStrategyBySlug("fx-mean-reversion");
+const chartData = fxMeanReversionCurve;
+const liveReturn = strategy?.liveReturn ?? 0.314;
+const liveSharpe = strategy?.liveSharpe ?? 1.6;
+const liveDd = strategy?.liveMaxDrawdown ?? -0.052;
 
 export function HeroProofChart() {
   const reduceMotion = useReducedMotion();
@@ -16,46 +17,18 @@ export function HeroProofChart() {
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <div className="text-[10px] uppercase tracking-[0.2em] text-gold">Featured · Live model</div>
-          <div className="font-display text-lg md:text-xl font-semibold mt-1">FX Mean Reversion</div>
+          <div className="font-display text-lg md:text-xl font-semibold mt-1">{strategy?.name ?? "FX Mean Reversion"}</div>
         </div>
         <div className="text-right">
           <div className="font-mono text-2xl md:text-3xl font-bold text-bull tabular-nums">
-            +{totalReturn.toFixed(1)}%
+            +{fmt.pct(liveReturn, 1)}
           </div>
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">Since live</div>
         </div>
       </div>
 
       <div className="flex-1 min-h-[180px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="hero-proof-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="oklch(0.72 0.18 155 / 0.35)" />
-                <stop offset="100%" stopColor="oklch(0.72 0.18 155 / 0)" />
-              </linearGradient>
-            </defs>
-            <YAxis hide domain={["dataMin - 2", "dataMax + 2"]} />
-            <Tooltip
-              contentStyle={{
-                background: "oklch(0.20 0.04 251)",
-                border: "1px solid oklch(0.30 0.04 252)",
-                borderRadius: 6,
-                fontSize: 11,
-              }}
-              formatter={(v: number) => [fmt.num(v), "Equity"]}
-              labelFormatter={(l) => String(l).slice(0, 10)}
-            />
-            <Area
-              type="monotone"
-              dataKey="equity"
-              stroke="oklch(0.78 0.13 85)"
-              strokeWidth={2}
-              fill="url(#hero-proof-fill)"
-              isAnimationActive={!reduceMotion}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        <EquityAreaChart data={chartData} gradientId="hero-proof-fill" animate={!reduceMotion} />
       </div>
 
       <motion.div
@@ -64,7 +37,9 @@ export function HeroProofChart() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
       >
-        <span>Sharpe 1.6 · Max DD -5.2%</span>
+        <span>
+          Sharpe {liveSharpe} · Max DD {fmt.pct(liveDd, 1)}
+        </span>
         <span className="text-gold">Independently verified via QuantConnect</span>
       </motion.div>
     </GlowCard>

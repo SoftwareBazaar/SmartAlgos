@@ -9,10 +9,10 @@ const tiers = [
   {
     id: "research-pro",
     name: "Methodology Access",
-    price: formatUsd(PRICING.researchFull),
+    price: `${formatUsd(PRICING.researchFull)}/report`,
     amountUsd: PRICING.researchFull,
-    desc: "Full methodology, notebooks & research archive",
-    features: ["Full methodology", "Complete findings", "PDF archive"],
+    desc: "One-time unlock per full research note",
+    features: ["Per-report purchase", "Full methodology", "Complete findings & PDF"],
     highlight: false,
   },
   {
@@ -51,7 +51,7 @@ export function PremiumPricingShowcase() {
           </motion.div>
           <h2 className="font-display text-4xl font-semibold">Subscribe to depth</h2>
           <p className="mt-3 text-muted-foreground">
-            Preview research free — pay once for full reports, or subscribe to live verified strategies.
+            Preview research free — unlock individual reports at {formatUsd(PRICING.researchFull)} each, or subscribe to live verified strategies.
           </p>
         </div>
 
@@ -78,7 +78,7 @@ export function PremiumPricingShowcase() {
                     productType="research_subscription"
                     productId={tier.id}
                     amountUsd={tier.amountUsd}
-                    label={`Subscribe — ${tier.price}`}
+                    label={tier.id === "research-pro" ? `Unlock — ${tier.price}` : `Subscribe — ${tier.price}`}
                     variant={tier.highlight ? "primary" : "outline"}
                   />
                 </div>

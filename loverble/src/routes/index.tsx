@@ -1,21 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, FlaskConical, FileText, Brain, Building2 } from "lucide-react";
-import { strategyOverview, strategies, company, performanceMetrics } from "@/lib/mock-data";
+import { ArrowRight, FlaskConical, FileText, Brain } from "lucide-react";
+import { strategyOverview, strategies, company, performanceMetrics, getStrategyBySlug, fmt } from "@/lib/mock-data";
 import { DonateButton } from "@/components/donate-button";
 import { HeroCinematic } from "@/components/hero-cinematic";
 import { MotionHeroText } from "@/components/motion-reveal";
-import { CheckoutForm } from "@/components/checkout-form";
 import { formatUsd, PRICING } from "@/lib/pricing";
 import { PremiumBento } from "@/components/premium/premium-bento";
 import { PremiumPricingShowcase } from "@/components/premium/premium-pricing";
 import { StrategySpotlight } from "@/components/premium/strategy-spotlight";
-import { GlowCard } from "@/components/premium/glow-card";
 import { MotionReveal, MotionItem } from "@/components/motion-reveal";
 import { HeroProofChart } from "@/components/premium/hero-proof-chart";
 import { CountUpStat } from "@/components/premium/count-up-stat";
 import { ShimmerButton } from "@/components/premium/shimmer-button";
 import { StickyNav } from "@/components/premium/sticky-nav";
 import { MiniEquityStrip } from "@/components/premium/mini-equity-strip";
+import { AdvisoryDeskSection } from "@/components/premium/advisory-desk";
+
+const featuredLive = getStrategyBySlug("fx-mean-reversion");
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -86,7 +87,10 @@ function Landing() {
                 Independently verified · QuantConnect
               </div>
               <p className="font-mono text-bull text-lg md:text-xl font-semibold tabular-nums">
-                FX Mean Reversion: +31.4% since live
+                {featuredLive?.name ?? "FX Mean Reversion"}: +{fmt.pct(featuredLive?.liveReturn ?? 0.314, 1)} since live
+              </p>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                Same model shown in chart →
               </p>
               <h1 className="mt-4 font-display text-hero-display gold-headline-shimmer">
                 Systematic performance you can verify
@@ -165,7 +169,7 @@ function Landing() {
           </div>
           <PremiumBento
             items={[
-              { icon: FileText, title: "Research", items: ["Free previews", "Methodology access", "Notebooks & PDF archive"], link: "/research" },
+              { icon: FileText, title: "Research", items: ["Free previews", `${formatUsd(PRICING.researchFull)}/report unlock`, "Notebooks & PDF archive"], link: "/research" },
               { icon: FlaskConical, title: "Strategies", items: ["Live models — $149.99 retail", "Institutional — $499.99", "QuantConnect verification"], link: "/strategies" },
               { icon: Brain, title: "Strategy desk", items: ["Quant advisory sessions", "System design review", "Implementation guidance"], link: "/consultation" },
             ]}
@@ -175,55 +179,33 @@ function Landing() {
 
       <PremiumPricingShowcase />
 
-      <section className="py-20 border-t border-border bg-dominant">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <MotionReveal className="max-w-xl mx-auto">
-            <MotionItem>
-              <GlowCard accent className="p-8">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-gold mb-2">Strategy desk</div>
-                <h2 className="font-display text-section-title text-2xl md:text-3xl">Book a quant advisory session</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  30-minute strategy review with our research desk. Session fee {formatUsd(PRICING.consultation)} secures your slot via Paystack.
-                </p>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Live strategy subscriptions ({formatUsd(PRICING.liveRetail)} retail / {formatUsd(PRICING.liveInstitutional)} institutional) include ongoing model access and verification.
-                </p>
-                <div className="mt-6">
-                  <CheckoutForm
-                    productType="consultation"
-                    productId="consultation"
-                    amountUsd={PRICING.consultation}
-                    label={`Book session — ${formatUsd(PRICING.consultation)} via Paystack`}
-                  />
-                </div>
-                <Link to="/consultation" className="mt-4 inline-block text-xs text-gold hover:underline cursor-pointer">
-                  View advisory services →
-                </Link>
-              </GlowCard>
-            </MotionItem>
-          </MotionReveal>
-        </div>
-      </section>
+      <AdvisoryDeskSection />
 
-      <footer className="border-t border-border bg-secondary-surface/60">
-        <div className="max-w-[1400px] mx-auto px-6 py-10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
-            <div>
-              <div className="font-display text-sm font-semibold">{company.operator}</div>
-              <p className="text-xs text-muted-foreground mt-2">Quantitative research & systematic strategies</p>
+      <footer className="border-t-2 border-border bg-dominant mt-auto">
+        <div className="max-w-[1400px] mx-auto px-6 py-12">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10">
+            <div className="max-w-sm">
+              <div className="font-display text-base font-semibold text-foreground">Smart Algos Capital</div>
+              <p className="text-sm text-muted-foreground mt-2">{company.operator}</p>
+              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
+                Quantitative research and systematic strategies. Performance figures reference third-party verification where noted; past results are not indicative of future returns.
+              </p>
             </div>
-            <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+            <ul className="flex flex-wrap gap-x-8 gap-y-3 text-sm">
               {nav.map((item) => (
                 <li key={item.to}>
-                  <Link to={item.to} className="hover:text-gold transition cursor-pointer">{item.label}</Link>
+                  <Link to={item.to} className="text-muted-foreground hover:text-gold transition cursor-pointer">{item.label}</Link>
                 </li>
               ))}
             </ul>
           </div>
-          <div className="hairline my-6" />
-          <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
-            <span>© 2026 {company.operator}</span>
-            <DonateButton footer />
+          <div className="hairline my-8" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground/80">© 2026 {company.operator}. All rights reserved.</span>
+            <div className="flex flex-wrap items-center gap-4">
+              <span>Not investment advice · Kenya</span>
+              <DonateButton footer />
+            </div>
           </div>
         </div>
       </footer>

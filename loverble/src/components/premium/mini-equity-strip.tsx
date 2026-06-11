@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { equityCurve, performanceMetrics, fmt } from "@/lib/mock-data";
 import { GlowCard } from "./glow-card";
 import { MotionReveal, MotionItem } from "@/components/motion-reveal";
+import { EquityAreaChart } from "./equity-area-chart";
 
 const data = equityCurve.slice(-120);
 
@@ -19,7 +19,7 @@ export function MiniEquityStrip() {
                   <div className="text-[10px] uppercase tracking-[0.22em] text-gold mb-2">Verified performance</div>
                   <h2 className="font-display text-section-title text-3xl md:text-4xl font-bold">Live track record</h2>
                   <p className="mt-3 text-sm text-muted-foreground max-w-md">
-                    Portfolio equity curve from deployed systematic models — connected to QuantConnect, not self-reported marketing charts.
+                    Blended portfolio equity from deployed systematic models — scaled to show growth from inception baseline.
                   </p>
                   <div className="mt-6 grid grid-cols-3 gap-4">
                     <div>
@@ -42,18 +42,8 @@ export function MiniEquityStrip() {
                     Full performance breakdown <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
-                <div className="h-[200px] md:h-[240px] rounded-lg border border-border/50 bg-background/30 p-3">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data}>
-                      <defs>
-                        <linearGradient id="strip-fill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="oklch(0.78 0.13 85 / 0.3)" />
-                          <stop offset="100%" stopColor="oklch(0.78 0.13 85 / 0)" />
-                        </linearGradient>
-                      </defs>
-                      <Area type="monotone" dataKey="equity" stroke="oklch(0.78 0.13 85)" strokeWidth={1.5} fill="url(#strip-fill)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                <div className="h-[220px] md:h-[260px] rounded-lg border border-border/50 bg-background/30 p-3">
+                  <EquityAreaChart data={data} gradientId="strip-fill" showGrid />
                 </div>
               </div>
             </GlowCard>

@@ -11,7 +11,7 @@ export function PremiumGate({ items, tierId = "research-pro" }: { items: string[
       </div>
       <h4 className="font-display text-lg font-semibold">Unlock full research</h4>
       <p className="mt-1 text-sm text-muted-foreground">
-        You&apos;ve read the preview — pay {formatUsd(PRICING.researchFull)} to access the complete report
+        You&apos;ve read the preview — unlock this report for {formatUsd(PRICING.researchFull)} (one-time, per note)
       </p>
       <ul className="mt-4 space-y-2 text-left max-w-sm mx-auto">
         {items.map((item) => (
@@ -26,7 +26,7 @@ export function PremiumGate({ items, tierId = "research-pro" }: { items: string[
           productType="research_subscription"
           productId={tierId}
           amountUsd={PRICING.researchFull}
-          label={`Unlock full research — ${formatUsd(PRICING.researchFull)} via Paystack`}
+          label={`Unlock report — ${formatUsd(PRICING.researchFull)} via Paystack`}
         />
       </div>
       <Link to="/research" className="mt-3 inline-block text-xs text-muted-foreground hover:text-gold">

@@ -17,15 +17,15 @@ export function PremiumBento({ items }: { items: BentoItem[] }) {
     <MotionReveal className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
       {items.map(({ icon: Icon, title, items: bullets, link, wide }) => (
         <MotionItem key={title} className={wide ? "md:col-span-2 lg:col-span-1" : undefined}>
-          <Link to={link} className="block h-full cursor-pointer">
-            <GlowCard accent className="h-full p-7">
+          <Link to={link} className="group block h-full cursor-pointer">
+            <GlowCard accent className="h-full p-7 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-gold/10 group-hover:border-gold/40">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-gold/25 bg-gold/10">
                   <Icon className="h-5 w-5 text-gold" />
                 </div>
                 <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-gold transition-colors" />
               </div>
-              <h3 className="mt-5 font-display text-xl font-semibold">{title}</h3>
+              <h3 className="mt-5 font-display text-xl font-semibold group-hover:text-gold transition-colors duration-200">{title}</h3>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 {bullets.map((b) => (
                   <li key={b} className="flex items-center gap-2">

@@ -15,7 +15,10 @@ export function Dialog({
 }) {
   const [internal, setInternal] = React.useState(false);
   const isOpen = open ?? internal;
-  const setOpen = onOpenChange ?? setInternal;
+  const setOpen = React.useCallback(
+    (v: boolean) => (onOpenChange ?? setInternal)(v),
+    [onOpenChange],
+  );
   return <DialogCtx.Provider value={{ open: isOpen, setOpen }}>{children}</DialogCtx.Provider>;
 }
 
@@ -36,12 +39,9 @@ export function DialogTrigger({
     );
   }
   return React.cloneElement(child, {
-    type: "button",
     onClick: (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
       child.props.onClick?.(e);
-      ctx.setOpen(true);
+      if (!e.defaultPrevented) ctx.setOpen(true);
     },
   } as React.HTMLAttributes<HTMLElement>);
 }

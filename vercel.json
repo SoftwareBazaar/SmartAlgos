@@ -1,7 +1,7 @@
 {
   "version": 2,
   "installCommand": "npm install && cd loverble && npm install --include=dev",
-  "buildCommand": "cd loverble && npm run build && cd .. && node scripts/vercel-merge-output.mjs",
+  "buildCommand": "cd loverble && NODE_ENV=production npm run build && cd .. && node scripts/vercel-merge-output.mjs",
   "functions": {
     "api/index.js": {
       "maxDuration": 60

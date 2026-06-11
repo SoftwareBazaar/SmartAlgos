@@ -70,4 +70,20 @@ routes.splice(insertAt, 0, ...apiRoutes);
 config.routes = routes;
 
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+// TanStack Start ships a dev-only manifest stub that breaks client hydration on Vercel.
+const serverFunc = path.join(rootOutput, "functions", "__server.func");
+const prodManifest = fs
+  .readdirSync(serverFunc)
+  .find((f) => f.startsWith("_tanstack-start-manifest_v-") && f.endsWith(".mjs"));
+if (prodManifest) {
+  fs.copyFileSync(
+    path.join(serverFunc, prodManifest),
+    path.join(serverFunc, "_tanstack-start-manifest_v.mjs"),
+  );
+  console.log(`Patched production client manifest from ${prodManifest}`);
+} else {
+  console.warn("No hashed TanStack Start manifest found — client JS may not hydrate.");
+}
+
 console.log("Merged loverble frontend + Express API into .vercel/output");

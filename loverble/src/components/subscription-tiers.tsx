@@ -37,13 +37,6 @@ export function SubscriptionTiers() {
             >
               {tier.cta}
             </Link>
-          ) : tier.id === "institutional" ? (
-            <Link
-              to="/contact"
-              className="mt-6 w-full text-center rounded-sm border border-gold/60 text-gold px-4 py-2.5 text-xs font-semibold uppercase tracking-wider hover:bg-gold/10 transition"
-            >
-              {tier.cta}
-            </Link>
           ) : (
             <div className="mt-6">
               <CheckoutForm

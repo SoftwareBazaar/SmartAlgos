@@ -21,6 +21,7 @@ const viteEnv = {
     process.env.VITE_QC_GOLD_MOMENTUM_URL || process.env.QC_GOLD_MOMENTUM_URL || "",
   VITE_QC_FX_MEAN_REVERSION_URL:
     process.env.VITE_QC_FX_MEAN_REVERSION_URL || process.env.QC_FX_MEAN_REVERSION_URL || "",
+  VITE_HERO_VIDEO_URL: process.env.VITE_HERO_VIDEO_URL || "",
 };
 
 export default defineConfig({

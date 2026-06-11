@@ -7,8 +7,12 @@ const TIER_RANK = {
   'research-pro': 1,
   research_pro: 1,
   active: 1,
+  'live-retail': 2,
+  live_retail: 2,
   'quant-pro': 2,
   quant_pro: 2,
+  'live-institutional': 3,
+  live_institutional: 3,
 };
 
 const SUBSCRIPTION_DAYS = 30;
@@ -18,7 +22,8 @@ function normalizeEmail(email) {
 }
 
 function productIdToTier(productId) {
-  if (productId === 'quant-pro') return 'quant-pro';
+  if (productId === 'live-institutional') return 'live-institutional';
+  if (productId === 'live-retail' || productId === 'quant-pro') return 'live-retail';
   if (productId === 'research-pro') return 'research-pro';
   return null;
 }

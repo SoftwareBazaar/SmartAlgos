@@ -1,4 +1,4 @@
-export type SubscriptionTier = "free" | "research-pro" | "quant-pro";
+export type SubscriptionTier = "free" | "research-pro" | "live-retail" | "live-institutional";
 
 export type StoredSubscription = {
   tier: SubscriptionTier;
@@ -11,9 +11,11 @@ export type StoredSubscription = {
 
 const STORAGE_KEY = "capital_subscription";
 
-const TIER_RANK: Record<SubscriptionTier, number> = {
+const TIER_RANK: Record<SubscriptionTier | "quant-pro", number> = {
   free: 0,
   "research-pro": 1,
+  "live-retail": 2,
+  "live-institutional": 3,
   "quant-pro": 2,
 };
 
@@ -26,7 +28,13 @@ export function saveSubscriptionFromPayment(input: {
   if (typeof window === "undefined") return;
   const productId = input.product_id || "";
   const tier: SubscriptionTier | null =
-    productId === "quant-pro" ? "quant-pro" : productId === "research-pro" ? "research-pro" : null;
+    productId === "live-institutional"
+      ? "live-institutional"
+      : productId === "live-retail" || productId === "quant-pro"
+        ? "live-retail"
+        : productId === "research-pro"
+          ? "research-pro"
+          : null;
   if (!tier) return;
 
   const expires = new Date();
@@ -66,7 +74,9 @@ export function clearStoredSubscription() {
 
 function normalizeTierInput(value?: string | null): SubscriptionTier | null {
   if (!value) return null;
-  if (value === "quant-pro" || value === "quant_pro") return "quant-pro";
+  if (value === "live-institutional" || value === "live_institutional") return "live-institutional";
+  if (value === "live-retail" || value === "live_retail") return "live-retail";
+  if (value === "quant-pro" || value === "quant_pro") return "live-retail";
   if (value === "research-pro" || value === "research_pro" || value === "active") return "research-pro";
   if (value === "free") return "free";
   return null;
@@ -86,12 +96,24 @@ export function resolveTier(profileStatus?: string | null, remoteTier?: string |
   return mergeTiers(stored?.tier, remoteTier, normalizeTierInput(profileStatus));
 }
 
-export function hasTierAccess(current: SubscriptionTier, required: "free" | "research-pro" | "quant-pro"): boolean {
+export function hasTierAccess(
+  current: SubscriptionTier,
+  required: "free" | "research-pro" | "live-retail" | "live-institutional",
+): boolean {
   return TIER_RANK[current] >= TIER_RANK[required];
 }
 
+export function hasResearchAccess(tier: SubscriptionTier): boolean {
+  return hasTierAccess(tier, "research-pro");
+}
+
+export function hasLiveAccess(tier: SubscriptionTier): boolean {
+  return tier === "live-retail" || tier === "live-institutional";
+}
+
 export function tierLabel(tier: SubscriptionTier): string {
-  if (tier === "quant-pro") return "Quant Pro";
-  if (tier === "research-pro") return "Research Pro";
+  if (tier === "live-institutional") return "Live Strategy — Institutional";
+  if (tier === "live-retail") return "Live Strategy — Retail";
+  if (tier === "research-pro") return "Research Full Access";
   return "Free";
 }

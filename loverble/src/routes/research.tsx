@@ -44,7 +44,7 @@ function Research() {
     <PageShell
       eyebrow="Research & Authority"
       title="Research"
-      description="Published quantitative research with free previews. Subscribe for full methodology, notebooks, and strategy breakdowns."
+      description="Published quantitative research with free previews. Unlock full reports for $10 via Paystack."
       actions={
         hasAccess("research-pro") ? (
           <Link to="/account" className="text-xs uppercase tracking-wider text-gold hover:underline">
@@ -66,7 +66,7 @@ function Research() {
             <div className="text-[10px] uppercase tracking-[0.2em] text-gold font-semibold">Free Tier</div>
             <h2 className="font-display text-2xl font-semibold mt-1">Research Updates</h2>
             <p className="text-sm text-muted-foreground mt-2">
-              Free users see titles, abstracts, chart previews, and key findings (first 20–30%). Subscribe for full methodology, notebooks, and PDFs.
+              Free users see titles, summary excerpts, chart previews, and the first key finding. Pay $10 to unlock the full report.
             </p>
           </div>
           <form onSubmit={subscribeNewsletter} className="flex gap-2 w-full lg:w-auto">

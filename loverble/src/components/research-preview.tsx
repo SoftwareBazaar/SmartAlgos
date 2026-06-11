@@ -4,13 +4,25 @@ import type { ResearchPaper } from "@/lib/mock-data";
 import { equityCurve } from "@/lib/mock-data";
 import { PremiumGate } from "@/components/premium-gate";
 import { useSubscription } from "@/hooks/use-subscription";
+import { hasResearchAccess } from "@/lib/subscription-access";
+import { formatUsd, PRICING } from "@/lib/pricing";
+
+const PREVIEW_FINDINGS_COUNT = 1;
+
+function previewExcerpt(text: string, maxSentences = 2): string {
+  const parts = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+  if (parts.length <= maxSentences) return text;
+  return `${parts.slice(0, maxSentences).join(" ")}…`;
+}
 
 export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
   const chartData = equityCurve.slice(-90);
-  const { hasAccess } = useSubscription();
+  const { tier } = useSubscription();
   const isFree = paper.tier === "free";
-  const requiredTier = paper.tier === "quant-pro" ? "quant-pro" : "research-pro";
-  const unlocked = isFree || hasAccess(requiredTier);
+  const unlocked = isFree || hasResearchAccess(tier);
+  const previewFindings = paper.keyFindings.slice(0, PREVIEW_FINDINGS_COUNT);
+  const gatedFindings = paper.keyFindings.slice(PREVIEW_FINDINGS_COUNT);
+  const gatedItems = [...gatedFindings, ...paper.lockedContent];
 
   return (
     <article className="rounded-lg border border-border/60 bg-card/30 overflow-hidden">
@@ -22,10 +34,10 @@ export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
               <span className="font-mono text-gold">{paper.id}</span>
               <span>{paper.category}</span>
               <span>{paper.date}</span>
-              {!isFree && <span className="text-gold">Premium</span>}
-              {unlocked && !isFree && (
+              {!isFree && !unlocked && <span className="text-gold">Preview</span>}
+              {!isFree && unlocked && (
                 <span className="text-bull inline-flex items-center gap-1">
-                  <Unlock className="h-3 w-3" /> Unlocked
+                  <Unlock className="h-3 w-3" /> Full access
                 </span>
               )}
             </div>
@@ -35,9 +47,17 @@ export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
       </div>
 
       <div className="p-5 space-y-5">
+        {!isFree && !unlocked && (
+          <div className="rounded-sm border border-gold/25 bg-gold/5 px-3 py-2 text-xs text-muted-foreground">
+            Free preview below — unlock the full report for {formatUsd(PRICING.researchFull)} via Paystack.
+          </div>
+        )}
+
         <div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-gold mb-2">Executive Summary</div>
-          <p className="text-sm text-muted-foreground leading-relaxed">{paper.executiveSummary}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {unlocked || isFree ? paper.executiveSummary : previewExcerpt(paper.executiveSummary)}
+          </p>
         </div>
 
         <div>
@@ -64,7 +84,7 @@ export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
         <div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-gold mb-2">Key Findings</div>
           <ul className="space-y-2">
-            {paper.keyFindings.map((f) => (
+            {(unlocked || isFree ? paper.keyFindings : previewFindings).map((f) => (
               <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
                 <span className="h-1.5 w-1.5 rounded-full bg-gold mt-2 shrink-0" />
                 {f}
@@ -88,10 +108,10 @@ export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
           </div>
         )}
 
-        {!unlocked && paper.lockedContent.length > 0 && (
+        {!unlocked && gatedItems.length > 0 && (
           <>
             <div className="hairline" />
-            <PremiumGate items={paper.lockedContent} tierId={requiredTier} />
+            <PremiumGate items={gatedItems} />
           </>
         )}
       </div>

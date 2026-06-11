@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Lock, Check } from "lucide-react";
 import { CheckoutForm } from "@/components/checkout-form";
+import { formatUsd, PRICING } from "@/lib/pricing";
 
 export function PremiumGate({ items, tierId = "research-pro" }: { items: string[]; tierId?: string }) {
   return (
@@ -8,8 +9,10 @@ export function PremiumGate({ items, tierId = "research-pro" }: { items: string[
       <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gold/15">
         <Lock className="h-5 w-5 text-gold" />
       </div>
-      <h4 className="font-display text-lg font-semibold">Premium Research</h4>
-      <p className="mt-1 text-sm text-muted-foreground">Subscribe to continue reading</p>
+      <h4 className="font-display text-lg font-semibold">Unlock full research</h4>
+      <p className="mt-1 text-sm text-muted-foreground">
+        You&apos;ve read the preview — pay {formatUsd(PRICING.researchFull)} to access the complete report
+      </p>
       <ul className="mt-4 space-y-2 text-left max-w-sm mx-auto">
         {items.map((item) => (
           <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -22,7 +25,8 @@ export function PremiumGate({ items, tierId = "research-pro" }: { items: string[
         <CheckoutForm
           productType="research_subscription"
           productId={tierId}
-          label={`Subscribe — ${tierId === "quant-pro" ? "Quant Pro" : "Research Pro"} via Paystack`}
+          amountUsd={PRICING.researchFull}
+          label={`Unlock full research — ${formatUsd(PRICING.researchFull)} via Paystack`}
         />
       </div>
       <Link to="/research" className="mt-3 inline-block text-xs text-muted-foreground hover:text-gold">

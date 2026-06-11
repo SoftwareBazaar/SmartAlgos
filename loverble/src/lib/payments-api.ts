@@ -60,7 +60,7 @@ export async function verifyCapitalPayment(reference: string) {
 }
 
 export type RemoteSubscription = {
-  tier: "free" | "research-pro" | "quant-pro";
+  tier: "free" | "research-pro" | "live-retail" | "live-institutional";
   expiresAt: string | null;
   email: string;
   source?: string;

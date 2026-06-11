@@ -36,7 +36,7 @@ function StrategiesPage() {
     <PageShell
       eyebrow="Strategy Library"
       title="Strategies"
-      description="Systematic strategies we develop and validate. Live models link to third-party verification; research-stage models are available via Quant Pro."
+      description="Systematic strategies we develop and validate. Live models link to third-party verification — subscribe from $149.99 retail or $499.99 institutional."
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Live Strategies" value={String(strategyOverview.live)} hint="QuantConnect" accent="up" />

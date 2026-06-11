@@ -5,6 +5,7 @@ import { consultationServices, company } from "@/lib/mock-data";
 import { Calendar, MessageCircle, ExternalLink } from "lucide-react";
 import { CheckoutForm } from "@/components/checkout-form";
 import { toast } from "sonner";
+import { formatUsd, PRICING } from "@/lib/pricing";
 
 export const Route = createFileRoute("/consultation")({
   head: () => ({
@@ -21,6 +22,7 @@ const CALENDLY_URL = import.meta.env.VITE_CALENDLY_URL || "";
 function Consultation() {
   const [email, setEmail] = useState("");
   const [question, setQuestion] = useState("");
+  const consultationPrice = formatUsd(PRICING.consultation);
 
   const bookCalendly = () => {
     if (CALENDLY_URL) {
@@ -69,15 +71,15 @@ function Consultation() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <SectionCard title="Book Consultation" subtitle="Pay $50 via Paystack — then schedule your session">
+        <SectionCard title="Book Consultation" subtitle={`Pay ${consultationPrice} via Paystack — then schedule your session`}>
           <p className="text-sm text-muted-foreground mb-4">
             Pay for a consultation session with {company.name}. After payment, use Calendly to pick a time (or we email you to schedule).
           </p>
           <CheckoutForm
             productType="consultation"
             productId="consultation"
-            amountUsd={50}
-            label="Pay $50 via Paystack"
+            amountUsd={PRICING.consultation}
+            label={`Pay ${consultationPrice} via Paystack`}
           />
           {CALENDLY_URL && (
             <button

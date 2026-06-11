@@ -11,14 +11,16 @@ const capitalSubscriptionService = require('../services/capitalSubscriptionServi
 const KES_RATE = 150;
 
 const TIER_AMOUNTS_USD = {
-  'research-pro': 19,
-  'quant-pro': 79,
-  consultation: 50,
+  'research-pro': 10,
+  'live-retail': 149.99,
+  'live-institutional': 499.99,
+  consultation: 7.99,
 };
 
 const PRODUCT_IDS = {
   'research-pro': '11111111-1111-1111-1111-111111111111',
-  'quant-pro': '22222222-2222-2222-2222-222222222222',
+  'live-retail': '55555555-5555-5555-5555-555555555555',
+  'live-institutional': '66666666-6666-6666-6666-666666666666',
   consultation: '33333333-3333-3333-3333-333333333333',
   research_donation: '44444444-4444-4444-4444-444444444444',
 };
@@ -41,7 +43,7 @@ function resolveAmountUsd({ productType, productId, amountUsd }) {
   }
   if (productType === 'consultation' && amountUsd) {
     const n = Number(amountUsd);
-    if (n >= 10) return Math.round(n * 100) / 100;
+    if (n >= 1) return Math.round(n * 100) / 100;
   }
   if (productType === 'research_subscription') {
     return TIER_AMOUNTS_USD[productId] ?? null;

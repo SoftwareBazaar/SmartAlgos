@@ -5,6 +5,8 @@ import {
   getStoredSubscription,
   resolveTier,
   hasTierAccess,
+  hasResearchAccess,
+  hasLiveAccess,
   tierLabel,
   type SubscriptionTier,
   type StoredSubscription,
@@ -89,7 +91,10 @@ export function useSubscription() {
     expiresAt,
     loading,
     tierLabel: tierLabel(tier),
-    hasAccess: (required: "free" | "research-pro" | "quant-pro") => hasTierAccess(tier, required),
+    hasAccess: (required: "free" | "research-pro" | "live-retail" | "live-institutional") =>
+      hasTierAccess(tier, required),
+    hasResearchAccess: () => hasResearchAccess(tier),
+    hasLiveAccess: () => hasLiveAccess(tier),
     syncAfterLogin,
   };
 }

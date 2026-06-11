@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PageShell, SectionCard } from "@/components/page-shell";
 import { useSubscription } from "@/hooks/use-subscription";
-import { clearStoredSubscription, getStoredSubscription } from "@/lib/subscription-access";
+import { clearStoredSubscription, getStoredSubscription, hasResearchAccess, hasLiveAccess } from "@/lib/subscription-access";
 import { supabase } from "@/integrations/supabase/client";
 import { researchPapers, strategies } from "@/lib/mock-data";
 import { BookOpen, FlaskConical, LogOut, ShieldCheck, ExternalLink } from "lucide-react";
@@ -47,9 +47,7 @@ function AccountPage() {
 
   const accessiblePapers = researchPapers.filter((p) => {
     if (p.tier === "free") return true;
-    if (p.tier === "research-pro") return hasAccess("research-pro");
-    if (p.tier === "quant-pro") return hasAccess("quant-pro");
-    return false;
+    return hasResearchAccess(tier);
   });
 
   async function signOut() {
@@ -139,8 +137,8 @@ function AccountPage() {
         </div>
       </SectionCard>
 
-      {hasAccess("quant-pro") && (
-        <SectionCard title="Strategy breakdowns" subtitle="Quant Pro — rules summaries and research context">
+      {hasLiveAccess(tier) && (
+        <SectionCard title="Live strategy access" subtitle="Rules summaries and research context for live models">
           <div className="grid sm:grid-cols-2 gap-3">
             {strategies.filter((s) => s.status === "Live").map((s) => (
               <Link

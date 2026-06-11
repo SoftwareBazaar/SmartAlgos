@@ -4,6 +4,9 @@ import {
   researchOverview, strategyOverview, strategies, company,
 } from "@/lib/mock-data";
 import { DonateButton } from "@/components/donate-button";
+import { HeroVideo } from "@/components/hero-video";
+import { CheckoutForm } from "@/components/checkout-form";
+import { formatUsd, PRICING } from "@/lib/pricing";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -62,10 +65,11 @@ function Landing() {
         </div>
       </nav>
 
-      <section className="relative pt-32 pb-20 overflow-hidden">
-        <div className="absolute inset-0 grid-bg pointer-events-none" />
+      <section className="relative min-h-[88vh] pt-32 pb-20 overflow-hidden flex items-center">
+        <HeroVideo />
+        <div className="absolute inset-0 grid-bg pointer-events-none opacity-30" />
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 h-[600px] w-[900px] rounded-full bg-gold/5 blur-[120px] pointer-events-none" />
-        <div className="relative max-w-[1400px] mx-auto px-6">
+        <div className="relative z-10 max-w-[1400px] mx-auto px-6 w-full">
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-gold mb-7">
               <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" />
@@ -150,9 +154,9 @@ function Landing() {
           </div>
           <div className="grid md:grid-cols-3 gap-5">
             {[
-              { icon: FileText, t: "Research", items: ["Free previews", "Research Pro — full notes", "Quant Pro — notebooks & breakdowns"], link: "/research" },
-              { icon: FlaskConical, t: "Strategies", items: ["Live strategy catalog", "Verification links", "Pipeline transparency"], link: "/strategies" },
-              { icon: Brain, t: "Advisory", items: ["Strategy review", "System design", "Implementation help"], link: "/consultation" },
+              { icon: FileText, t: "Research", items: ["Free previews", "Full reports — $10", "Methodology & notebooks"], link: "/research" },
+              { icon: FlaskConical, t: "Strategies", items: ["Live models — $149.99 retail", "Institutional — $499.99", "Third-party verification"], link: "/strategies" },
+              { icon: Brain, t: "Advisory", items: [`Consultation — ${formatUsd(PRICING.consultation)}`, "Strategy review", "System design"], link: "/consultation" },
             ].map(({ icon: Icon, t, items, link }) => (
               <Link key={t} to={link} className="surface-card rounded-lg p-7 hover:border-gold/30 transition block">
                 <Icon className="h-7 w-7 text-gold mb-5" />
@@ -166,6 +170,32 @@ function Landing() {
                 </ul>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 border-t border-border bg-card/20">
+        <div className="max-w-[1400px] mx-auto px-6">
+          <div className="max-w-xl mx-auto rounded-lg border border-border bg-card/40 p-8">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-gold mb-2">Advisory</div>
+            <h2 className="font-display text-3xl font-semibold">Book Consultation</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Pay {formatUsd(PRICING.consultation)} via Paystack — then schedule your session with our research desk.
+            </p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Strategy review, trading system design, and quantitative research advisory for systematic traders.
+            </p>
+            <div className="mt-6">
+              <CheckoutForm
+                productType="consultation"
+                productId="consultation"
+                amountUsd={PRICING.consultation}
+                label={`Pay ${formatUsd(PRICING.consultation)} via Paystack`}
+              />
+            </div>
+            <Link to="/consultation" className="mt-4 inline-block text-xs text-gold hover:underline">
+              View all consultation services →
+            </Link>
           </div>
         </div>
       </section>

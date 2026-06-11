@@ -4,6 +4,9 @@ import { getStrategyBySlug } from "@/lib/mock-data";
 import { getStrategyVerificationUrl, hasDirectVerificationLink } from "@/lib/strategy-links";
 import { ExternalLink, ArrowLeft, Lock } from "lucide-react";
 import { CheckoutForm } from "@/components/checkout-form";
+import { formatUsd, PRICING } from "@/lib/pricing";
+import { useSubscription } from "@/hooks/use-subscription";
+import { hasLiveAccess } from "@/lib/subscription-access";
 
 export const Route = createFileRoute("/strategies/$slug")({
   loader: ({ params }) => {
@@ -29,6 +32,8 @@ function statusColor(s: string) {
 
 function StrategyDetail() {
   const strategy = Route.useLoaderData();
+  const { tier } = useSubscription();
+  const liveUnlocked = hasLiveAccess(tier);
 
   return (
     <PageShell
@@ -84,25 +89,40 @@ function StrategyDetail() {
         </SectionCard>
       )}
 
-      {strategy.tier === "quant-pro" && (
-        <SectionCard title="Full breakdown" subtitle="Quant Pro subscribers">
+      {strategy.status === "Live" && !liveUnlocked && (
+        <SectionCard title="Subscribe to live strategy" subtitle="Live models only — retail or institutional">
           <div className="flex items-start gap-3 rounded-sm border border-gold/30 bg-gold/5 p-4">
             <Lock className="h-5 w-5 text-gold shrink-0 mt-0.5" />
-            <div>
+            <div className="flex-1 space-y-4">
               <p className="text-sm text-muted-foreground">
-                Full rules summary, backtest report, and research notebook are available on the Quant Pro plan.
+                Full rules summary, backtest report, and live signal access are available with a live strategy subscription.
               </p>
-              <div className="mt-4">
+              <div className="grid sm:grid-cols-2 gap-3">
                 <CheckoutForm
                   productType="research_subscription"
-                  productId="quant-pro"
-                  amountUsd={79}
-                  label="Subscribe Quant Pro — $79 via Paystack"
+                  productId="live-retail"
+                  amountUsd={PRICING.liveRetail}
+                  label={`Retail — ${formatUsd(PRICING.liveRetail)} via Paystack`}
+                  variant="primary"
+                />
+                <CheckoutForm
+                  productType="research_subscription"
+                  productId="live-institutional"
+                  amountUsd={PRICING.liveInstitutional}
+                  label={`Institutional — ${formatUsd(PRICING.liveInstitutional)} via Paystack`}
                   variant="outline"
                 />
               </div>
             </div>
           </div>
+        </SectionCard>
+      )}
+
+      {strategy.status === "Live" && liveUnlocked && (
+        <SectionCard title="Live subscriber access" subtitle="Rules summary and research context">
+          <p className="text-sm text-muted-foreground">
+            Your live subscription is active. Full breakdown delivery via the subscriber portal is rolling out — check your account for updates.
+          </p>
         </SectionCard>
       )}
 

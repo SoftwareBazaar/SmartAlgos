@@ -36,9 +36,6 @@ import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StrategiesSlugRouteImport } from './routes/strategies.$slug'
-import { Route as ApiPaymentsCapitalInitializeRouteImport } from './routes/api/payments/capital/initialize'
-import { Route as ApiPaymentsCapitalConfigRouteImport } from './routes/api/payments/capital/config'
-import { Route as ApiPaymentsCapitalVerifyReferenceRouteImport } from './routes/api/payments/capital/verify.$reference'
 
 const TechnologyRoute = TechnologyRouteImport.update({
   id: '/technology',
@@ -175,24 +172,6 @@ const StrategiesSlugRoute = StrategiesSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => StrategiesRoute,
 } as any)
-const ApiPaymentsCapitalInitializeRoute =
-  ApiPaymentsCapitalInitializeRouteImport.update({
-    id: '/api/payments/capital/initialize',
-    path: '/api/payments/capital/initialize',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPaymentsCapitalConfigRoute =
-  ApiPaymentsCapitalConfigRouteImport.update({
-    id: '/api/payments/capital/config',
-    path: '/api/payments/capital/config',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPaymentsCapitalVerifyReferenceRoute =
-  ApiPaymentsCapitalVerifyReferenceRouteImport.update({
-    id: '/api/payments/capital/verify/$reference',
-    path: '/api/payments/capital/verify/$reference',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -222,9 +201,6 @@ export interface FileRoutesByFullPath {
   '/strategies': typeof StrategiesRouteWithChildren
   '/technology': typeof TechnologyRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
-  '/api/payments/capital/config': typeof ApiPaymentsCapitalConfigRoute
-  '/api/payments/capital/initialize': typeof ApiPaymentsCapitalInitializeRoute
-  '/api/payments/capital/verify/$reference': typeof ApiPaymentsCapitalVerifyReferenceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -254,9 +230,6 @@ export interface FileRoutesByTo {
   '/strategies': typeof StrategiesRouteWithChildren
   '/technology': typeof TechnologyRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
-  '/api/payments/capital/config': typeof ApiPaymentsCapitalConfigRoute
-  '/api/payments/capital/initialize': typeof ApiPaymentsCapitalInitializeRoute
-  '/api/payments/capital/verify/$reference': typeof ApiPaymentsCapitalVerifyReferenceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -287,9 +260,6 @@ export interface FileRoutesById {
   '/strategies': typeof StrategiesRouteWithChildren
   '/technology': typeof TechnologyRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
-  '/api/payments/capital/config': typeof ApiPaymentsCapitalConfigRoute
-  '/api/payments/capital/initialize': typeof ApiPaymentsCapitalInitializeRoute
-  '/api/payments/capital/verify/$reference': typeof ApiPaymentsCapitalVerifyReferenceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -321,9 +291,6 @@ export interface FileRouteTypes {
     | '/strategies'
     | '/technology'
     | '/strategies/$slug'
-    | '/api/payments/capital/config'
-    | '/api/payments/capital/initialize'
-    | '/api/payments/capital/verify/$reference'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -353,9 +320,6 @@ export interface FileRouteTypes {
     | '/strategies'
     | '/technology'
     | '/strategies/$slug'
-    | '/api/payments/capital/config'
-    | '/api/payments/capital/initialize'
-    | '/api/payments/capital/verify/$reference'
   id:
     | '__root__'
     | '/'
@@ -385,9 +349,6 @@ export interface FileRouteTypes {
     | '/strategies'
     | '/technology'
     | '/strategies/$slug'
-    | '/api/payments/capital/config'
-    | '/api/payments/capital/initialize'
-    | '/api/payments/capital/verify/$reference'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -417,9 +378,6 @@ export interface RootRouteChildren {
   RiskRoute: typeof RiskRoute
   StrategiesRoute: typeof StrategiesRouteWithChildren
   TechnologyRoute: typeof TechnologyRoute
-  ApiPaymentsCapitalConfigRoute: typeof ApiPaymentsCapitalConfigRoute
-  ApiPaymentsCapitalInitializeRoute: typeof ApiPaymentsCapitalInitializeRoute
-  ApiPaymentsCapitalVerifyReferenceRoute: typeof ApiPaymentsCapitalVerifyReferenceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -613,27 +571,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StrategiesSlugRouteImport
       parentRoute: typeof StrategiesRoute
     }
-    '/api/payments/capital/initialize': {
-      id: '/api/payments/capital/initialize'
-      path: '/api/payments/capital/initialize'
-      fullPath: '/api/payments/capital/initialize'
-      preLoaderRoute: typeof ApiPaymentsCapitalInitializeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/payments/capital/config': {
-      id: '/api/payments/capital/config'
-      path: '/api/payments/capital/config'
-      fullPath: '/api/payments/capital/config'
-      preLoaderRoute: typeof ApiPaymentsCapitalConfigRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/payments/capital/verify/$reference': {
-      id: '/api/payments/capital/verify/$reference'
-      path: '/api/payments/capital/verify/$reference'
-      fullPath: '/api/payments/capital/verify/$reference'
-      preLoaderRoute: typeof ApiPaymentsCapitalVerifyReferenceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -676,10 +613,6 @@ const rootRouteChildren: RootRouteChildren = {
   RiskRoute: RiskRoute,
   StrategiesRoute: StrategiesRouteWithChildren,
   TechnologyRoute: TechnologyRoute,
-  ApiPaymentsCapitalConfigRoute: ApiPaymentsCapitalConfigRoute,
-  ApiPaymentsCapitalInitializeRoute: ApiPaymentsCapitalInitializeRoute,
-  ApiPaymentsCapitalVerifyReferenceRoute:
-    ApiPaymentsCapitalVerifyReferenceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -50,7 +50,7 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <StickyNav>
-        <div className="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-4">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-3 md:py-4">
           <Link to="/" className="flex items-center cursor-pointer shrink-0">
             <BrandLogo variant="nav" />
           </Link>

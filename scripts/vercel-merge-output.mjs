@@ -33,11 +33,40 @@ copyDir(loverbleOutput, rootOutput);
 const apiFuncDir = path.join(rootOutput, "functions", "api.func");
 fs.mkdirSync(apiFuncDir, { recursive: true });
 
+// Bundle Express into the function — require("../../../api") breaks on Vercel (outside .vercel/output).
+const backendPaths = [
+  "server.js",
+  "admin-panel.js",
+  "fix-image-display.js",
+  "routes",
+  "services",
+  "middleware",
+  "websocket",
+  "utils",
+];
+
+for (const rel of backendPaths) {
+  const src = path.join(root, rel);
+  const dest = path.join(apiFuncDir, rel);
+  if (!fs.existsSync(src)) {
+    console.warn(`[merge] Skipping missing backend path: ${rel}`);
+    continue;
+  }
+  if (fs.statSync(src).isDirectory()) {
+    copyDir(src, dest);
+  } else {
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.copyFileSync(src, dest);
+  }
+}
+
+fs.copyFileSync(path.join(root, "package.json"), path.join(apiFuncDir, "package.json"));
+
 fs.writeFileSync(
   path.join(apiFuncDir, "index.js"),
   `require("dotenv").config();
 process.env.VERCEL = "1";
-module.exports = require("../../../api/index.js");
+module.exports = require("./server.js");
 `,
 );
 

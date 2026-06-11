@@ -5,13 +5,13 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs').promises;
 const supabaseStorage = require('../services/supabaseStorage');
-const { createClient } = require('@supabase/supabase-js');
+const databaseService = require('../services/databaseService');
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+function getSupabase() {
+  const client = databaseService.getClient();
+  if (!client) throw new Error('Database unavailable');
+  return client;
+}
 
 // Middleware to verify download token
 const verifyDownloadToken = async (req, res, next) => {
@@ -79,7 +79,7 @@ router.get('/ea/:eaId/zip', [verifyDownloadToken], async (req, res) => {
       const mockDataStore = require('../services/mockAuthStore').mockDataStore;
       subscription = await mockDataStore.getSubscriptionById(subscriptionId);
     } else {
-      const { data, error: subError } = await supabase
+      const { data, error: subError } = await getSupabase()
         .from('subscriptions')
         .select('id, user_id, status, end_date')
         .eq('id', subscriptionId)
@@ -126,7 +126,7 @@ router.get('/ea/:eaId/zip', [verifyDownloadToken], async (req, res) => {
       const mockDataStore = require('../services/mockAuthStore').mockDataStore;
       ea = await mockDataStore.getEAById(eaId);
     } else {
-      const { data, error: eaError } = await supabase
+      const { data, error: eaError } = await getSupabase()
         .from('expert_advisors')
         .select('id, name, zip_file_path')
         .eq('id', eaId)
@@ -158,7 +158,7 @@ router.get('/ea/:eaId/zip', [verifyDownloadToken], async (req, res) => {
 
     // Record the download
     try {
-      await supabase
+      await getSupabase()
         .from('download_logs')
         .insert({
           subscription_id: subscriptionId,
@@ -253,7 +253,7 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
       subscription = await mockDataStore.getSubscriptionById(subscriptionId);
     } else {
       // Use Supabase
-      const { data, error: subError } = await supabase
+      const { data, error: subError } = await getSupabase()
         .from('subscriptions')
         .select('id, user_id, status, end_date')
         .eq('id', subscriptionId)
@@ -303,7 +303,7 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
       ea = await mockDataStore.getEAById(eaId);
     } else {
       // Use Supabase - table is 'expert_advisors' not 'eas'
-      const { data, error: eaError } = await supabase
+      const { data, error: eaError } = await getSupabase()
         .from('expert_advisors')
         .select('id, name, ea_file_path, set_file_path, manual_file_path, screenshots')
         .eq('id', eaId)
@@ -378,7 +378,7 @@ router.get('/ea/:eaId', [verifyDownloadToken], async (req, res) => {
     }
 
     // Record the download
-    await supabase
+    await getSupabase()
       .from('download_logs')
       .insert({
         subscription_id: subscriptionId,
@@ -464,7 +464,7 @@ router.post('/generate-token', [auth], async (req, res) => {
     }
 
     // Verify the subscription belongs to the user
-    const { data: subscription, error: subError } = await supabase
+    const { data: subscription, error: subError } = await getSupabase()
       .from('subscriptions')
       .select('id, user_id, status, has_access')
       .eq('id', subscriptionId)

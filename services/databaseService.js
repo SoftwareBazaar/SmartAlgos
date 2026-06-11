@@ -61,7 +61,10 @@ class DatabaseService {
       process.env.SUPABASE_PUBLIC_ANON_KEY;
 
     if (!supabaseUrl) {
-      throw new Error('SUPABASE_URL environment variable is required');
+      console.warn('[database] SUPABASE_URL missing — API will run without database persistence');
+      this.supabase = null;
+      this.mockMode = true;
+      return;
     }
 
     const serviceRoleKey = sanitizeSupabaseKey(rawServiceRoleKey);

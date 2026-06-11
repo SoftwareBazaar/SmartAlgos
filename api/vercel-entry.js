@@ -1,5 +1,5 @@
 /**
- * Minimal Express app for Vercel serverless — Capital payments + health only.
+ * esbuild entry — bundles Capital payments API for Vercel serverless.
  */
 require("dotenv").config();
 
@@ -14,8 +14,6 @@ const allowedOrigins = [
   process.env.CAPITAL_CLIENT_URL,
   "https://www.smartalgosts.com",
   "https://smartalgosts.com",
-  "http://localhost:5173",
-  "http://localhost:3000",
 ]
   .filter(Boolean)
   .map((o) => o.replace(/\/$/, ""));
@@ -25,12 +23,6 @@ app.use(
     origin(origin, callback) {
       if (!origin) return callback(null, true);
       const normalized = origin.replace(/\/$/, "");
-      if (
-        allowedOrigins.includes(normalized) ||
-        normalized.endsWith(".vercel.app")
-      ) {
-        return callback(null, normalized);
-      }
       return callback(null, normalized);
     },
     credentials: true,
@@ -47,7 +39,7 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "OK", service: "capital-api", timestamp: new Date().toISOString() });
 });
 
-const capitalPayments = require("./routes/capitalPayments");
+const capitalPayments = require("../routes/capitalPayments");
 app.use("/api/payments/capital", capitalPayments);
 app.use("/payments/capital", capitalPayments);
 

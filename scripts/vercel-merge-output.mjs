@@ -1,10 +1,11 @@
 /**
- * Merges loverble Nitro Vercel output with a minimal Express API for Capital payments.
+ * Merges loverble Nitro Vercel output with a bundled Capital payments API.
  * Run after: cd loverble && npm run build
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { execSync } from "node:child_process";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const loverbleOutput = path.join(root, "loverble", ".vercel", "output");
@@ -25,11 +26,6 @@ function copyDir(src, dest) {
   }
 }
 
-function copyFile(src, dest) {
-  fs.mkdirSync(path.dirname(dest), { recursive: true });
-  fs.copyFileSync(src, dest);
-}
-
 if (fs.existsSync(rootOutput)) {
   try {
     fs.rmSync(rootOutput, { recursive: true, force: true });
@@ -42,34 +38,19 @@ copyDir(loverbleOutput, rootOutput);
 const apiFuncDir = path.join(rootOutput, "functions", "api.func");
 fs.mkdirSync(apiFuncDir, { recursive: true });
 
-// Minimal API only — full server.js crashes Vercel serverless (socket.io, timers, etc.)
-const minimalFiles = [
-  ["api/vercel-app.js", "vercel-app.js"],
-  ["routes/capitalPayments.js", "routes/capitalPayments.js"],
-  ["services/databaseService.js", "services/databaseService.js"],
-  ["services/paystackService.js", "services/paystackService.js"],
-  ["services/capitalSubscriptionService.js", "services/capitalSubscriptionService.js"],
-  ["services/mockAuthStore.js", "services/mockAuthStore.js"],
-];
+// Bundle API + deps into one file — Vercel prebuilt output cannot resolve repo node_modules.
+const entry = path.join(root, "api", "vercel-entry.js");
+const outfile = path.join(apiFuncDir, "index.js");
 
-for (const [srcRel, destRel] of minimalFiles) {
-  const src = path.join(root, srcRel);
-  const dest = path.join(apiFuncDir, destRel);
-  if (!fs.existsSync(src)) {
-    console.warn(`[merge] Skipping missing: ${srcRel}`);
-    continue;
-  }
-  copyFile(src, dest);
-}
-
-fs.copyFileSync(path.join(root, "package.json"), path.join(apiFuncDir, "package.json"));
-
-fs.writeFileSync(
-  path.join(apiFuncDir, "index.js"),
-  `process.env.VERCEL = "1";
-module.exports = require("./vercel-app.js");
-`,
+console.log("[merge] Bundling Capital API with esbuild...");
+execSync(
+  `npx --yes esbuild "${entry}" --bundle --platform=node --target=node20 --outfile="${outfile}"`,
+  { cwd: root, stdio: "inherit" },
 );
+
+const bundled = fs.readFileSync(outfile, "utf8");
+fs.writeFileSync(outfile, `process.env.VERCEL = "1";\n${bundled}`);
+console.log(`[merge] API bundle size: ${(fs.statSync(outfile).size / 1024 / 1024).toFixed(2)} MB`);
 
 fs.writeFileSync(
   path.join(apiFuncDir, ".vc-config.json"),
@@ -116,4 +97,4 @@ if (prodManifest) {
   console.warn("No hashed TanStack Start manifest found — client JS may not hydrate.");
 }
 
-console.log("Merged loverble frontend + minimal Capital API into .vercel/output");
+console.log("Merged loverble frontend + bundled Capital API into .vercel/output");

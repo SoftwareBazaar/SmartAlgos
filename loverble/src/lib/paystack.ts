@@ -64,12 +64,24 @@ export async function payWithPaystack(opts: Omit<PaystackSetupOptions, "key">) {
   window.PaystackPop.setup({ key, currency: "KES", ...opts }).openIframe();
 }
 
-/** Initialize via Express backend, open Paystack inline, verify on success */
+/** Initialize via backend, then redirect to Paystack hosted checkout (reliable in modals). */
 export async function checkoutCapitalPayment(
   input: InitializePaymentInput,
-  callbacks?: { onSuccess?: (reference: string) => void; onClose?: () => void },
+  callbacks?: {
+    onSuccess?: (reference: string) => void;
+    onClose?: () => void;
+    onBeforeRedirect?: () => void;
+  },
 ) {
   const payment = await initializeCapitalPayment(input);
+
+  // Hosted checkout avoids Paystack inline iframe hiding behind dialog overlays.
+  if (payment.authorization_url) {
+    callbacks?.onBeforeRedirect?.();
+    window.location.assign(payment.authorization_url);
+    return;
+  }
+
   const publicKey = payment.publicKey || (await getPaystackPublicKey());
   await loadPaystack();
   if (!window.PaystackPop) throw new Error("Paystack not available");

@@ -26,15 +26,21 @@ export function CheckoutForm({
 }: Props) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const pay = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     if (!email.includes("@")) {
-      toast.error("Enter a valid email");
+      const msg = "Enter a valid email";
+      setError(msg);
+      toast.error(msg);
       return;
     }
     if (productType === "research_donation" && (!amountUsd || amountUsd < 1)) {
-      toast.error("Select a donation amount");
+      const msg = "Select a donation amount";
+      setError(msg);
+      toast.error(msg);
       return;
     }
     setLoading(true);
@@ -42,6 +48,7 @@ export function CheckoutForm({
       await checkoutCapitalPayment(
         { email, product_type: productType, product_id: productId, amount_usd: amountUsd, metadata },
         {
+          onBeforeRedirect: () => onSuccessClose?.(),
           onSuccess: (ref) => {
             onSuccessClose?.();
             window.location.href = `/payment-callback?reference=${encodeURIComponent(ref)}`;
@@ -52,7 +59,9 @@ export function CheckoutForm({
         },
       );
     } catch (err) {
-      toast.error((err as Error).message || "Payment failed");
+      const msg = (err as Error).message || "Payment failed";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -73,12 +82,17 @@ export function CheckoutForm({
         required
         className="w-full bg-background border border-border rounded-sm px-3 py-2.5 text-sm focus:outline-none focus:border-gold/60"
       />
+      {error ? (
+        <p className="text-sm text-bear rounded-sm border border-bear/30 bg-bear/10 px-3 py-2" role="alert">
+          {error}
+        </p>
+      ) : null}
       <button
         type="submit"
         disabled={loading}
         className={`w-full inline-flex items-center justify-center gap-2 rounded-sm px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition disabled:opacity-60 ${btnClass}`}
       >
-        {loading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Opening Paystack…</> : label}
+        {loading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Redirecting to Paystack…</> : label}
       </button>
     </form>
   );

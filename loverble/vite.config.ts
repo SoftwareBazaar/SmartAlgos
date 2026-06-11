@@ -17,6 +17,10 @@ const viteEnv = {
   VITE_PAYSTACK_PUBLIC_KEY:
     process.env.VITE_PAYSTACK_PUBLIC_KEY || process.env.PAYSTACK_PUBLIC_KEY || "",
   VITE_API_URL: process.env.VITE_API_URL || "",
+  VITE_QC_GOLD_MOMENTUM_URL:
+    process.env.VITE_QC_GOLD_MOMENTUM_URL || process.env.QC_GOLD_MOMENTUM_URL || "",
+  VITE_QC_FX_MEAN_REVERSION_URL:
+    process.env.VITE_QC_FX_MEAN_REVERSION_URL || process.env.QC_FX_MEAN_REVERSION_URL || "",
 };
 
 export default defineConfig({

@@ -1,31 +1,21 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, LineChart, FlaskConical, FileText, MessageCircle,
-  Cpu, Info, Mail, ShieldCheck,
+  LineChart, FlaskConical, FileText, MessageCircle, Info, Mail,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
 } from "@/components/ui/sidebar";
-import { DonateButton } from "@/components/donate-button";
 import { company } from "@/lib/mock-data";
 
 const groups = [
   {
     label: "Platform",
     items: [
-      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Performance", url: "/performance", icon: LineChart },
-      { title: "Alpha Portfolio", url: "/alpha-portfolio", icon: FlaskConical },
       { title: "Research", url: "/research", icon: FileText },
+      { title: "Strategies", url: "/strategies", icon: FlaskConical },
+      { title: "Performance", url: "/performance", icon: LineChart },
       { title: "Consultation", url: "/consultation", icon: MessageCircle },
-      { title: "Technology Division", url: "/technology", icon: Cpu },
-    ],
-  },
-  {
-    label: "Client Portal",
-    items: [
-      { title: "Client Dashboard", url: "/client-dashboard", icon: ShieldCheck },
     ],
   },
   {
@@ -39,6 +29,8 @@ const groups = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isActive = (url: string) => pathname === url || pathname.startsWith(`${url}/`);
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
@@ -60,7 +52,7 @@ export function AppSidebar() {
               <SidebarMenu>
                 {g.items.map((item) => (
                   <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
                       <Link to={item.url}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
@@ -73,8 +65,7 @@ export function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border flex flex-col gap-2">
-        <DonateButton />
+      <SidebarFooter className="border-t border-sidebar-border">
         <p className="text-[10px] text-muted-foreground leading-snug px-1">
           {company.operator}
         </p>

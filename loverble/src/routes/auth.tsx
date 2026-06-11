@@ -13,8 +13,8 @@ import { Loader2, ShieldCheck } from "lucide-react";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Client Login — Smart Algos Capital" },
-      { name: "description", content: "Secure client portal for Smart Algos Trade Copier subscribers." },
+      { title: "Sign In — Smart Algos Capital" },
+      { name: "description", content: "Subscriber sign-in for research and strategy access." },
     ],
   }),
   component: AuthPage,
@@ -31,7 +31,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/client-dashboard", replace: true });
+      if (data.session) navigate({ to: "/research", replace: true });
     });
   }, [navigate]);
 
@@ -54,17 +54,17 @@ function AuthPage() {
           email: parsed.data.email,
           password: parsed.data.password,
           options: {
-            emailRedirectTo: window.location.origin + "/client-dashboard",
+            emailRedirectTo: window.location.origin + "/research",
             data: { full_name: fullName },
           },
         });
         if (error) throw error;
         toast.success("Account created. You're signed in.");
-        navigate({ to: "/client-dashboard", replace: true });
+        navigate({ to: "/research", replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword(parsed.data);
         if (error) throw error;
-        navigate({ to: "/client-dashboard", replace: true });
+        navigate({ to: "/research", replace: true });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Authentication failed";
@@ -85,8 +85,8 @@ function AuthPage() {
             <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
               <ShieldCheck className="h-5 w-5" />
             </div>
-            <CardTitle className="font-display text-2xl">Client Portal</CardTitle>
-            <CardDescription>Trade Copier subscribers only.</CardDescription>
+            <CardTitle className="font-display text-2xl">Subscriber Sign In</CardTitle>
+            <CardDescription>Access purchased research and strategy content.</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="signin">
@@ -133,7 +133,7 @@ function AuthPage() {
           </CardContent>
         </Card>
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          New accounts begin with a 14-day trial. Subscribe to activate the Trade Copier.
+          Subscriber portal is in development — sign in to access research previews.
         </p>
       </div>
     </div>

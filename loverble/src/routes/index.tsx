@@ -1,32 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { ArrowRight, FlaskConical, FileText, Cpu, Shield, Building2, LineChart, Brain, Activity } from "lucide-react";
+import { ArrowRight, FlaskConical, FileText, LineChart, Brain, Activity, Building2 } from "lucide-react";
 import {
-  equityCurve, researchOverview, strategyOverview, activeStrategies,
-  company, techProjects,
+  researchOverview, strategyOverview, strategies, company,
 } from "@/lib/mock-data";
 import { DonateButton } from "@/components/donate-button";
-import { FutureEcosystem } from "@/components/future-ecosystem";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: `${company.name} — Quantitative Research & Investment Technology` },
-      { name: "description", content: "Quantitative research, strategy development, and financial systems. Operated by Smart Algos Investment Solution Ltd (Kenya)." },
+      { title: `${company.name} — Quantitative Research & Systematic Strategies` },
+      { name: "description", content: "Quantitative research, systematic strategies, and verified performance. Operated by Smart Algos Investment Solution Ltd (Kenya)." },
     ],
   }),
   component: Landing,
 });
 
-const ranges = { "1M": 30, "3M": 90, "6M": 180, "YTD": 250, "All": 365 } as const;
-type RKey = keyof typeof ranges;
-
-const services = [
-  { icon: FlaskConical, t: "Quantitative Research", items: ["Strategy Research", "Market Studies", "White Papers", "Research Notes"] },
-  { icon: Brain, t: "Consultation Services", items: ["Quant Strategy Development", "Trading System Design", "Performance Analytics", "Financial Technology Advisory"] },
-  { icon: Cpu, t: "Financial Systems Development", items: ["Risk Analytics", "Banking Analytics", "Treasury Systems", "Compliance Technology"] },
-];
+const nav = [
+  { label: "Research", to: "/research" },
+  { label: "Strategies", to: "/strategies" },
+  { label: "Performance", to: "/performance" },
+  { label: "Consultation", to: "/consultation" },
+  { label: "About", to: "/about" },
+] as const;
 
 function statusColor(s: string) {
   if (s === "Live") return "bg-bull/15 text-bull";
@@ -36,8 +31,7 @@ function statusColor(s: string) {
 }
 
 function Landing() {
-  const [range, setRange] = useState<RKey>("YTD");
-  const data = equityCurve.slice(-ranges[range]);
+  const liveStrategies = strategies.filter((s) => s.status === "Live");
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -53,17 +47,16 @@ function Landing() {
             </div>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm">
-            <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition">Dashboard</Link>
-            <Link to="/performance" className="text-muted-foreground hover:text-foreground transition">Performance</Link>
-            <Link to="/alpha-portfolio" className="text-muted-foreground hover:text-foreground transition">Alpha Portfolio</Link>
-            <Link to="/research" className="text-muted-foreground hover:text-foreground transition">Research</Link>
-            <Link to="/consultation" className="text-muted-foreground hover:text-foreground transition">Consultation</Link>
-            <Link to="/technology" className="text-muted-foreground hover:text-foreground transition">Technology</Link>
+            {nav.map((item) => (
+              <Link key={item.to} to={item.to} className="text-muted-foreground hover:text-foreground transition">
+                {item.label}
+              </Link>
+            ))}
           </div>
           <div className="flex items-center gap-2">
             <DonateButton compact />
-            <Link to="/consultation" className="hidden sm:inline-flex items-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition">
-              Book Consultation <ArrowRight className="h-3.5 w-3.5" />
+            <Link to="/research" className="hidden sm:inline-flex items-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition">
+              View Research <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </div>
@@ -76,27 +69,27 @@ function Landing() {
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-gold mb-7">
               <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" />
-              Quantitative Research · Investment Technology · Financial Systems
+              Quantitative Research · Systematic Strategies
             </div>
             <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-semibold leading-[1.02] tracking-tight">
               {company.name}
             </h1>
             <p className="mt-4 text-xl md:text-2xl text-gold font-display">{company.tagline}</p>
             <p className="mt-4 text-sm uppercase tracking-[0.2em] text-muted-foreground">
-              Powered by {company.operator}
+              {company.operator}
             </p>
             <p className="mt-8 text-lg text-muted-foreground max-w-2xl leading-relaxed">
-              We develop strategies, publish research, build financial technology, and create systems that support modern investment and financial institutions.
+              We publish quantitative research, develop systematic strategies, and build a verifiable track record — sold through research subscriptions and advisory.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
-              <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-sm bg-primary px-6 py-3.5 text-sm font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition">
-                View Dashboard <ArrowRight className="h-4 w-4" />
+              <Link to="/strategies" className="inline-flex items-center gap-2 rounded-sm bg-primary px-6 py-3.5 text-sm font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition">
+                View Strategies <ArrowRight className="h-4 w-4" />
               </Link>
               <Link to="/research" className="inline-flex items-center gap-2 rounded-sm border border-gold/40 px-6 py-3.5 text-sm font-semibold uppercase tracking-wider text-gold hover:bg-gold/10 transition">
                 Research Library
               </Link>
-              <Link to="/alpha-portfolio" className="inline-flex items-center gap-2 rounded-sm border border-border bg-card/40 px-6 py-3.5 text-sm font-semibold uppercase tracking-wider hover:bg-card transition">
-                Alpha Portfolio
+              <Link to="/performance" className="inline-flex items-center gap-2 rounded-sm border border-border bg-card/40 px-6 py-3.5 text-sm font-semibold uppercase tracking-wider hover:bg-card transition">
+                Performance
               </Link>
             </div>
           </div>
@@ -123,70 +116,28 @@ function Landing() {
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-2">Performance</div>
-              <h2 className="font-display text-4xl font-semibold">Strategy performance tracking</h2>
-              <p className="mt-2 text-muted-foreground">Connected progressively from QuantConnect and Collective2 — verified, not fabricated.</p>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-2">Strategies</div>
+              <h2 className="font-display text-4xl font-semibold">Live systematic models</h2>
+              <p className="mt-2 text-muted-foreground">Researched, validated, and deployed with third-party verification.</p>
             </div>
-            <div className="flex gap-1 rounded-sm border border-border p-1 bg-card/40">
-              {(Object.keys(ranges) as RKey[]).map((k) => (
-                <button key={k} onClick={() => setRange(k)} className={`px-3 py-1.5 text-xs font-mono uppercase rounded-sm transition ${range === k ? "bg-gold text-primary-foreground" : "text-muted-foreground"}`}>
-                  {k}
-                </button>
-              ))}
-            </div>
+            <Link to="/strategies" className="text-sm text-gold hover:underline">Full catalog →</Link>
           </div>
-          <div className="surface-card rounded-lg p-6">
-            <ResponsiveContainer width="100%" height={380}>
-              <AreaChart data={data}>
-                <defs>
-                  <linearGradient id="landing-eq" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="oklch(0.78 0.13 85)" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="oklch(0.78 0.13 85)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke="oklch(0.30 0.04 252 / 0.4)" vertical={false} />
-                <XAxis dataKey="date" stroke="oklch(0.70 0.02 90)" fontSize={11} tickFormatter={(d) => d.slice(5)} minTickGap={50} />
-                <YAxis stroke="oklch(0.70 0.02 90)" fontSize={11} />
-                <Tooltip contentStyle={{ background: "oklch(0.20 0.04 251)", border: "1px solid oklch(0.30 0.04 252)", borderRadius: 6 }} />
-                <Area type="monotone" dataKey="equity" stroke="oklch(0.78 0.13 85)" strokeWidth={2} fill="url(#landing-eq)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 border-t border-border">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <div className="flex items-end justify-between mb-8">
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-2">Alpha Portfolio</div>
-              <h2 className="font-display text-4xl font-semibold">Active strategies</h2>
-            </div>
-            <Link to="/alpha-portfolio" className="text-sm text-gold hover:underline">Full portfolio →</Link>
-          </div>
-          <div className="surface-card rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-card/50">
-                <tr className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  <th className="text-left px-5 py-3">Strategy</th>
-                  <th className="text-left px-5 py-3">Asset</th>
-                  <th className="text-left px-5 py-3">Platform</th>
-                  <th className="text-right px-5 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {activeStrategies.map((s) => (
-                  <tr key={s.name} className="border-t border-border hover:bg-card/40 transition">
-                    <td className="px-5 py-3 font-medium">{s.name}</td>
-                    <td className="px-5 py-3 text-muted-foreground">{s.asset}</td>
-                    <td className="px-5 py-3 text-muted-foreground">{s.platform}</td>
-                    <td className="px-5 py-3 text-right">
-                      <span className={`text-xs px-2 py-0.5 rounded ${statusColor(s.status)}`}>{s.status}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid md:grid-cols-2 gap-4">
+            {liveStrategies.map((s) => (
+              <Link
+                key={s.slug}
+                to="/strategies/$slug"
+                params={{ slug: s.slug }}
+                className="surface-card rounded-lg p-6 hover:border-gold/40 transition block"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-display text-lg font-semibold">{s.name}</h3>
+                  <span className={`text-xs px-2 py-0.5 rounded ${statusColor(s.status)}`}>{s.status}</span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">{s.summary}</p>
+                <div className="mt-3 text-xs text-muted-foreground">{s.asset} · {s.platform}</div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -194,12 +145,16 @@ function Landing() {
       <section className="py-20 border-t border-border bg-card/20">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-3">Services</div>
-            <h2 className="font-display text-4xl font-semibold">Research & advisory today</h2>
+            <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-3">How it works</div>
+            <h2 className="font-display text-4xl font-semibold">Research → Strategies → Subscribe</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-5">
-            {services.map(({ icon: Icon, t, items }) => (
-              <div key={t} className="surface-card rounded-lg p-7">
+            {[
+              { icon: FileText, t: "Research", items: ["Free previews", "Research Pro — full notes", "Quant Pro — notebooks & breakdowns"], link: "/research" },
+              { icon: FlaskConical, t: "Strategies", items: ["Live strategy catalog", "Verification links", "Pipeline transparency"], link: "/strategies" },
+              { icon: Brain, t: "Advisory", items: ["Strategy review", "System design", "Implementation help"], link: "/consultation" },
+            ].map(({ icon: Icon, t, items, link }) => (
+              <Link key={t} to={link} className="surface-card rounded-lg p-7 hover:border-gold/30 transition block">
                 <Icon className="h-7 w-7 text-gold mb-5" />
                 <h3 className="font-display text-xl font-semibold">{t}</h3>
                 <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
@@ -209,45 +164,22 @@ function Landing() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </Link>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="py-20 border-t border-border">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <div className="mb-10">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-2">Technology Division</div>
-            <h2 className="font-display text-4xl font-semibold">Building financial systems</h2>
-            <Link to="/technology" className="text-sm text-gold hover:underline mt-2 inline-block">View technology division →</Link>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {techProjects.current.map((p) => (
-              <div key={p.name} className="surface-card rounded-lg p-5">
-                <Cpu className="h-5 w-5 text-gold mb-2" />
-                <div className="font-medium text-sm">{p.name}</div>
-                <span className={`mt-2 inline-block text-xs px-2 py-0.5 rounded ${statusColor(p.status)}`}>{p.status}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 border-t border-border bg-gradient-to-b from-card/10 to-background">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <FutureEcosystem />
         </div>
       </section>
 
       <section className="py-16 border-t border-border">
-        <div className="max-w-[1400px] mx-auto px-6 text-center max-w-3xl">
-          <p className="font-display text-xl md:text-2xl leading-relaxed text-foreground">
-            {company.name} is a quantitative research and investment technology firm.
+        <div className="max-w-[1400px] mx-auto px-6 text-center">
+          <LineChart className="h-8 w-8 text-gold mx-auto mb-4" />
+          <h2 className="font-display text-2xl font-semibold">Verified performance</h2>
+          <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
+            Track records connected progressively from QuantConnect and partner platforms — not self-reported marketing curves.
           </p>
-          <p className="mt-4 text-muted-foreground leading-relaxed">
-            We develop strategies, publish research, build financial technology, and create systems that support modern investment and financial institutions. The hedge fund vision is part of the roadmap — not something we pretend already exists.
-          </p>
+          <Link to="/performance" className="mt-6 inline-flex items-center gap-2 text-sm text-gold hover:underline">
+            View performance <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 
@@ -261,23 +193,21 @@ function Landing() {
             <div>
               <div className="text-[10px] uppercase tracking-[0.2em] text-gold mb-3">Platform</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {[["Dashboard", "/dashboard"], ["Research", "/research"], ["Consultation", "/consultation"], ["About", "/about"]].map(([l, u]) => (
-                  <li key={u}><Link to={u} className="hover:text-gold transition">{l}</Link></li>
+                {nav.map((item) => (
+                  <li key={item.to}><Link to={item.to} className="hover:text-gold transition">{item.label}</Link></li>
                 ))}
               </ul>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-gold mb-3">Future Ecosystem</div>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                {[["Live Trading", "/live-trading"], ["Backtesting", "/backtesting"], ["Investor Portal", "/investor"]].map(([l, u]) => (
-                  <li key={u}><Link to={u} className="hover:text-gold transition">{l}</Link></li>
-                ))}
-              </ul>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-gold mb-3">Roadmap</div>
+              <p className="text-sm text-muted-foreground">
+                <Link to="/about" hash="roadmap" className="hover:text-gold transition">View our roadmap</Link> — subscriber portal, Collective2 signals, and live performance API.
+              </p>
             </div>
           </div>
           <div className="hairline mb-6" />
           <div className="flex flex-wrap justify-between gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-2"><Activity className="h-3.5 w-3.5 text-gold" /> Research First · Performance Driven · Technology Focused</span>
+            <span className="flex items-center gap-2"><Activity className="h-3.5 w-3.5 text-gold" /> Research First · Verified Performance</span>
             <span className="flex items-center gap-2"><Building2 className="h-3.5 w-3.5" /> © 2026 {company.operator}</span>
           </div>
         </div>

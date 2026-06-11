@@ -1,8 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PlannedPage } from "@/components/planned-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/ai-center")({
-  component: () => (
-    <PlannedPage title="AI Command Center" description="AI-assisted research and strategy tools — research phase." phase="Research" />
-  ),
+  beforeLoad: () => {
+    throw redirect({ to: "/about", hash: "roadmap" });
+  },
 });

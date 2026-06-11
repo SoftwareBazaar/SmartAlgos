@@ -1,12 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PlannedPage } from "@/components/planned-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/backtesting")({
-  component: () => (
-    <PlannedPage
-      title="Backtesting Engine"
-      description="Institutional-grade backtesting for our research pipeline — in development."
-      phase="Development"
-    />
-  ),
+  beforeLoad: () => {
+    throw redirect({ to: "/about", hash: "roadmap" });
+  },
 });

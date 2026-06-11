@@ -1,12 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PlannedPage } from "@/components/planned-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/prop-firm")({
-  component: () => (
-    <PlannedPage
-      title="Prop Firm Program"
-      description="Capital allocation through partner prop firms — future initiative."
-      phase="Planning"
-    />
-  ),
+  beforeLoad: () => {
+    throw redirect({ to: "/about", hash: "roadmap" });
+  },
 });

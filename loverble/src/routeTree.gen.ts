@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TechnologyRouteImport } from './routes/technology'
+import { Route as StrategiesRouteImport } from './routes/strategies'
 import { Route as RiskRouteImport } from './routes/risk'
 import { Route as ResearchRouteImport } from './routes/research'
 import { Route as PropFirmRouteImport } from './routes/prop-firm'
@@ -33,10 +34,16 @@ import { Route as AiCenterRouteImport } from './routes/ai-center'
 import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StrategiesSlugRouteImport } from './routes/strategies.$slug'
 
 const TechnologyRoute = TechnologyRouteImport.update({
   id: '/technology',
   path: '/technology',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StrategiesRoute = StrategiesRouteImport.update({
+  id: '/strategies',
+  path: '/strategies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RiskRoute = RiskRouteImport.update({
@@ -154,6 +161,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StrategiesSlugRoute = StrategiesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => StrategiesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -179,7 +191,9 @@ export interface FileRoutesByFullPath {
   '/prop-firm': typeof PropFirmRoute
   '/research': typeof ResearchRoute
   '/risk': typeof RiskRoute
+  '/strategies': typeof StrategiesRouteWithChildren
   '/technology': typeof TechnologyRoute
+  '/strategies/$slug': typeof StrategiesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -205,7 +219,9 @@ export interface FileRoutesByTo {
   '/prop-firm': typeof PropFirmRoute
   '/research': typeof ResearchRoute
   '/risk': typeof RiskRoute
+  '/strategies': typeof StrategiesRouteWithChildren
   '/technology': typeof TechnologyRoute
+  '/strategies/$slug': typeof StrategiesSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -232,7 +248,9 @@ export interface FileRoutesById {
   '/prop-firm': typeof PropFirmRoute
   '/research': typeof ResearchRoute
   '/risk': typeof RiskRoute
+  '/strategies': typeof StrategiesRouteWithChildren
   '/technology': typeof TechnologyRoute
+  '/strategies/$slug': typeof StrategiesSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -260,7 +278,9 @@ export interface FileRouteTypes {
     | '/prop-firm'
     | '/research'
     | '/risk'
+    | '/strategies'
     | '/technology'
+    | '/strategies/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -286,7 +306,9 @@ export interface FileRouteTypes {
     | '/prop-firm'
     | '/research'
     | '/risk'
+    | '/strategies'
     | '/technology'
+    | '/strategies/$slug'
   id:
     | '__root__'
     | '/'
@@ -312,7 +334,9 @@ export interface FileRouteTypes {
     | '/prop-firm'
     | '/research'
     | '/risk'
+    | '/strategies'
     | '/technology'
+    | '/strategies/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -339,6 +363,7 @@ export interface RootRouteChildren {
   PropFirmRoute: typeof PropFirmRoute
   ResearchRoute: typeof ResearchRoute
   RiskRoute: typeof RiskRoute
+  StrategiesRoute: typeof StrategiesRouteWithChildren
   TechnologyRoute: typeof TechnologyRoute
 }
 
@@ -349,6 +374,13 @@ declare module '@tanstack/react-router' {
       path: '/technology'
       fullPath: '/technology'
       preLoaderRoute: typeof TechnologyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/strategies': {
+      id: '/strategies'
+      path: '/strategies'
+      fullPath: '/strategies'
+      preLoaderRoute: typeof StrategiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/risk': {
@@ -512,8 +544,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/strategies/$slug': {
+      id: '/strategies/$slug'
+      path: '/$slug'
+      fullPath: '/strategies/$slug'
+      preLoaderRoute: typeof StrategiesSlugRouteImport
+      parentRoute: typeof StrategiesRoute
+    }
   }
 }
+
+interface StrategiesRouteChildren {
+  StrategiesSlugRoute: typeof StrategiesSlugRoute
+}
+
+const StrategiesRouteChildren: StrategiesRouteChildren = {
+  StrategiesSlugRoute: StrategiesSlugRoute,
+}
+
+const StrategiesRouteWithChildren = StrategiesRoute._addFileChildren(
+  StrategiesRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -539,6 +590,7 @@ const rootRouteChildren: RootRouteChildren = {
   PropFirmRoute: PropFirmRoute,
   ResearchRoute: ResearchRoute,
   RiskRoute: RiskRoute,
+  StrategiesRoute: StrategiesRouteWithChildren,
   TechnologyRoute: TechnologyRoute,
 }
 export const routeTree = rootRouteImport

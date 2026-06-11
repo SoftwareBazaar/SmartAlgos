@@ -1,12 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PlannedPage } from "@/components/planned-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/copy-trading")({
-  component: () => (
-    <PlannedPage
-      title="Copy Trading Network"
-      description="Signal distribution via Collective2 and partner platforms — planned."
-      phase="Planning"
-    />
-  ),
+  beforeLoad: () => {
+    throw redirect({ to: "/about", hash: "roadmap" });
+  },
 });

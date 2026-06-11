@@ -41,7 +41,7 @@ function Research() {
     <PageShell
       eyebrow="Research & Authority"
       title="Research"
-      description="Our strongest section — demonstrating expertise, attracting investors and clients through honest, practical quantitative research."
+      description="Published quantitative research with free previews. Subscribe for full methodology, notebooks, and strategy breakdowns."
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Research Notes" value={String(researchOverview.notesPublished)} />

@@ -1,12 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PlannedPage } from "@/components/planned-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/institutional")({
-  component: () => (
-    <PlannedPage
-      title="Financial Intelligence Division"
-      description="AML monitoring, fraud detection, audit analytics, and regulatory technology — long-term research."
-      phase="Research"
-    />
-  ),
+  beforeLoad: () => {
+    throw redirect({ to: "/about", hash: "roadmap" });
+  },
 });

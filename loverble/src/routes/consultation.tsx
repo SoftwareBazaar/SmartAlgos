@@ -41,9 +41,9 @@ function Consultation() {
 
   return (
     <PageShell
-      eyebrow="Immediate Revenue"
+      eyebrow="Advisory"
       title="Consultation"
-      description="Get clients through quant consulting, strategy review, trading system design, and research advisory."
+      description="Strategy review, trading system design, and research advisory for quants and systematic traders."
       actions={
         <button
           onClick={bookCalendly}

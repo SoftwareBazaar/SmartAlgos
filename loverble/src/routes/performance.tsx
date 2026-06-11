@@ -5,6 +5,7 @@ import {
   performanceMetrics, equityCurve, monthlyReturns, verificationSources, fmt,
 } from "@/lib/mock-data";
 import { ExternalLink, ShieldCheck } from "lucide-react";
+import { IllustrativeChartNote } from "@/components/illustrative-chart-note";
 
 export const Route = createFileRoute("/performance")({
   head: () => ({
@@ -26,7 +27,8 @@ function Performance() {
       description="Track actual strategy performance connected from QuantConnect, Collective2, and future Darwinex verification."
     >
       <SectionCard title="Equity Curve" subtitle="Composite of live strategies — verified sources">
-        <ResponsiveContainer width="100%" height={360}>
+        <IllustrativeChartNote />
+        <ResponsiveContainer width="100%" height={360} className="mt-4">
           <AreaChart data={data}>
             <defs>
               <linearGradient id="perf-eq" x1="0" y1="0" x2="0" y2="1">

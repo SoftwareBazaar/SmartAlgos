@@ -2,8 +2,23 @@
 
 export const company = {
   name: "Smart Algos Capital",
-  tagline: "Quantitative Research & Investment Technology Platform",
+  tagline: "Quantitative Research & Systematic Strategies",
   operator: "Smart Algos Investment Solution Ltd (Kenya)",
+};
+
+export type StrategyStatus = "Live" | "Testing" | "Research" | "Development";
+
+export type Strategy = {
+  slug: string;
+  name: string;
+  asset: string;
+  platform: string;
+  status: StrategyStatus;
+  summary: string;
+  thesis: string;
+  highlights: string[];
+  verificationUrl?: string;
+  tier: "free" | "quant-pro";
 };
 
 export const researchOverview = {
@@ -45,12 +60,89 @@ export const verificationSources = [
   { name: "Darwinex", url: "https://www.darwinex.com", status: "Future" as const },
 ];
 
-export const activeStrategies = [
-  { name: "Gold Momentum", asset: "Commodities", platform: "QuantConnect", status: "Live" as const },
-  { name: "FX Mean Reversion", asset: "Forex", platform: "QuantConnect", status: "Live" as const },
-  { name: "Volatility Breakout", asset: "Multi-Asset", platform: "Internal Research", status: "Research" as const },
-  { name: "Trend Following Model", asset: "Equities", platform: "Internal Research", status: "Testing" as const },
-  { name: "Macro Regime Filter", asset: "Multi-Asset", platform: "Internal Research", status: "Development" as const },
+export const strategies: Strategy[] = [
+  {
+    slug: "gold-momentum",
+    name: "Gold Momentum",
+    asset: "Commodities",
+    platform: "QuantConnect",
+    status: "Live",
+    summary: "Trend-following momentum on gold with volatility regime filters.",
+    thesis:
+      "Gold momentum persists across macro regimes when filtered by realized volatility. We deploy a rules-based momentum overlay with dynamic position sizing tied to vol states.",
+    highlights: [
+      "Volatility regime filter reduces drawdown clusters",
+      "Deployed on QuantConnect with ongoing changelog",
+      "Full breakdown available on Quant Pro",
+    ],
+    verificationUrl: "https://www.quantconnect.com",
+    tier: "quant-pro",
+  },
+  {
+    slug: "fx-mean-reversion",
+    name: "FX Mean Reversion",
+    asset: "Forex",
+    platform: "QuantConnect",
+    status: "Live",
+    summary: "Short-horizon mean reversion on major FX pairs with spread-aware execution assumptions.",
+    thesis:
+      "Micro mean-reversion edges in liquid FX pairs decay quickly without spread filters. The model targets session-specific liquidity windows.",
+    highlights: [
+      "Spread and session filters for realistic execution",
+      "Validation review completed May 2026",
+      "QuantConnect listing in progress",
+    ],
+    verificationUrl: "https://www.quantconnect.com",
+    tier: "quant-pro",
+  },
+  {
+    slug: "volatility-breakout",
+    name: "Volatility Breakout",
+    asset: "Multi-Asset",
+    platform: "Internal Research",
+    status: "Research",
+    summary: "Breakout system triggered by compression-expansion volatility cycles.",
+    thesis: "Volatility compression phases precede directional breakouts across correlated asset baskets.",
+    highlights: ["Cross-asset signal research", "Notebook in progress", "Subscribe to Quant Pro for early access"],
+    tier: "quant-pro",
+  },
+  {
+    slug: "trend-following-model",
+    name: "Trend Following Model",
+    asset: "Equities",
+    platform: "Internal Research",
+    status: "Testing",
+    summary: "Equity index trend model with risk parity sizing.",
+    thesis: "Time-series momentum on broad equity indices with volatility-scaled exposure.",
+    highlights: ["Out-of-sample testing underway", "African markets extension planned"],
+    tier: "quant-pro",
+  },
+  {
+    slug: "macro-regime-filter",
+    name: "Macro Regime Filter",
+    asset: "Multi-Asset",
+    platform: "Internal Research",
+    status: "Development",
+    summary: "Macro regime classifier to gate strategy allocation across live models.",
+    thesis: "A lightweight regime filter improves composite strategy robustness without overfitting.",
+    highlights: ["Research initiated Apr 2026", "Will overlay live strategies when validated"],
+    tier: "quant-pro",
+  },
+];
+
+/** @deprecated Use `strategies` */
+export const activeStrategies = strategies.map(({ slug, summary, thesis, highlights, verificationUrl, tier, ...rest }) => rest);
+
+export function getStrategyBySlug(slug: string): Strategy | undefined {
+  return strategies.find((s) => s.slug === slug);
+}
+
+export const roadmap = [
+  { name: "Collective2 signal publication", phase: "Planned" },
+  { name: "Live performance API (QuantConnect)", phase: "Development" },
+  { name: "Subscriber portal & downloads", phase: "Development" },
+  { name: "Strategy backtesting sandbox", phase: "Research" },
+  { name: "Quant research tools", phase: "Research" },
 ];
 
 export const pipelineStages = [
@@ -105,35 +197,26 @@ export const techProjects = {
   ],
 };
 
-export const futureEcosystem = [
-  { name: "Live Trading Portal", path: "/live-trading", phase: "Development" },
-  { name: "Backtesting Engine", path: "/backtesting", phase: "Development" },
-  { name: "Investor Portal", path: "/investor", phase: "Planning" },
-  { name: "Copy Trading", path: "/copy-trading", phase: "Planning" },
-  { name: "Prop Firm Program", path: "/prop-firm", phase: "Planning" },
-  { name: "Financial Intelligence Division", path: "/institutional", phase: "Research" },
-];
-
 export const consultationServices = [
   {
     id: "quant",
-    title: "Quant Consulting",
-    items: ["Strategy review", "Alpha review", "Research methodology", "Performance attribution"],
+    title: "Strategy Review",
+    items: ["Alpha review", "Backtest methodology", "Performance attribution", "Risk sizing audit"],
   },
   {
     id: "trading",
-    title: "Trading System Consulting",
-    items: ["MT5 system design", "Python execution frameworks", "Backtest infrastructure", "Risk controls"],
-  },
-  {
-    id: "financial",
-    title: "Financial Systems Consulting",
-    items: ["Banking systems advisory", "Risk systems design", "Treasury analytics", "Compliance technology"],
+    title: "Trading Systems",
+    items: ["Python execution frameworks", "MT5 integration", "Backtest infrastructure", "Risk controls"],
   },
   {
     id: "research",
-    title: "Research Consulting",
-    items: ["Research papers", "Quant studies", "White paper development", "Market structure analysis"],
+    title: "Research Advisory",
+    items: ["Research paper development", "Quant studies", "White papers", "Market structure analysis"],
+  },
+  {
+    id: "implementation",
+    title: "Implementation",
+    items: ["QuantConnect deployment", "Signal publication setup", "Monitoring dashboards", "Strategy documentation"],
   },
 ];
 
@@ -145,7 +228,7 @@ export const subscriptionTiers = [
     period: "",
     description: "Public research and strategy summaries",
     features: [
-      "Dashboard access",
+      "Strategy summaries",
       "Public research previews",
       "Strategy summaries",
       "Executive summaries & key charts",

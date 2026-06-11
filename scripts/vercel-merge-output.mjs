@@ -1,5 +1,5 @@
 /**
- * Merges loverble Nitro Vercel output with the root Express API (api/index.js).
+ * Merges loverble Nitro Vercel output with a minimal Express API for Capital payments.
  * Run after: cd loverble && npm run build
  */
 import fs from "node:fs";
@@ -25,48 +25,49 @@ function copyDir(src, dest) {
   }
 }
 
+function copyFile(src, dest) {
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  fs.copyFileSync(src, dest);
+}
+
 if (fs.existsSync(rootOutput)) {
-  fs.rmSync(rootOutput, { recursive: true, force: true });
+  try {
+    fs.rmSync(rootOutput, { recursive: true, force: true });
+  } catch (err) {
+    console.warn("[merge] Could not remove old output, merging over:", err.message);
+  }
 }
 copyDir(loverbleOutput, rootOutput);
 
 const apiFuncDir = path.join(rootOutput, "functions", "api.func");
 fs.mkdirSync(apiFuncDir, { recursive: true });
 
-// Bundle Express into the function — require("../../../api") breaks on Vercel (outside .vercel/output).
-const backendPaths = [
-  "server.js",
-  "admin-panel.js",
-  "fix-image-display.js",
-  "routes",
-  "services",
-  "middleware",
-  "websocket",
-  "utils",
+// Minimal API only — full server.js crashes Vercel serverless (socket.io, timers, etc.)
+const minimalFiles = [
+  ["api/vercel-app.js", "vercel-app.js"],
+  ["routes/capitalPayments.js", "routes/capitalPayments.js"],
+  ["services/databaseService.js", "services/databaseService.js"],
+  ["services/paystackService.js", "services/paystackService.js"],
+  ["services/capitalSubscriptionService.js", "services/capitalSubscriptionService.js"],
+  ["services/mockAuthStore.js", "services/mockAuthStore.js"],
 ];
 
-for (const rel of backendPaths) {
-  const src = path.join(root, rel);
-  const dest = path.join(apiFuncDir, rel);
+for (const [srcRel, destRel] of minimalFiles) {
+  const src = path.join(root, srcRel);
+  const dest = path.join(apiFuncDir, destRel);
   if (!fs.existsSync(src)) {
-    console.warn(`[merge] Skipping missing backend path: ${rel}`);
+    console.warn(`[merge] Skipping missing: ${srcRel}`);
     continue;
   }
-  if (fs.statSync(src).isDirectory()) {
-    copyDir(src, dest);
-  } else {
-    fs.mkdirSync(path.dirname(dest), { recursive: true });
-    fs.copyFileSync(src, dest);
-  }
+  copyFile(src, dest);
 }
 
 fs.copyFileSync(path.join(root, "package.json"), path.join(apiFuncDir, "package.json"));
 
 fs.writeFileSync(
   path.join(apiFuncDir, "index.js"),
-  `require("dotenv").config();
-process.env.VERCEL = "1";
-module.exports = require("./server.js");
+  `process.env.VERCEL = "1";
+module.exports = require("./vercel-app.js");
 `,
 );
 
@@ -78,6 +79,7 @@ fs.writeFileSync(
       handler: "index.js",
       launcherType: "Nodejs",
       maxDuration: 60,
+      shouldAddHelpers: true,
     },
     null,
     2,
@@ -100,7 +102,6 @@ config.routes = routes;
 
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
-// TanStack Start ships a dev-only manifest stub that breaks client hydration on Vercel.
 const serverFunc = path.join(rootOutput, "functions", "__server.func");
 const prodManifest = fs
   .readdirSync(serverFunc)
@@ -115,4 +116,4 @@ if (prodManifest) {
   console.warn("No hashed TanStack Start manifest found — client JS may not hydrate.");
 }
 
-console.log("Merged loverble frontend + Express API into .vercel/output");
+console.log("Merged loverble frontend + minimal Capital API into .vercel/output");

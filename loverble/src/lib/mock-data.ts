@@ -211,24 +211,34 @@ export const techProjects = {
 
 export const consultationServices = [
   {
-    id: "quant",
-    title: "Strategy Review",
-    items: ["Alpha review", "Backtest methodology", "Performance attribution", "Risk sizing audit"],
+    id: "equities",
+    title: "Stocks & Equities",
+    items: ["Portfolio systematic rules", "Equity factor & momentum design", "Risk budgeting", "Execution on live markets"],
   },
   {
-    id: "trading",
-    title: "Trading Systems",
-    items: ["Python execution frameworks", "MT5 integration", "Backtest infrastructure", "Risk controls"],
+    id: "derivatives",
+    title: "Futures & Derivatives",
+    items: ["Contract selection & roll logic", "Margin and sizing frameworks", "Trend and breakout systems", "Backtest realism"],
   },
   {
-    id: "research",
-    title: "Research Advisory",
-    items: ["Research paper development", "Quant studies", "White papers", "Market structure analysis"],
+    id: "forex",
+    title: "Forex",
+    items: ["Pair selection & session filters", "Mean reversion & momentum models", "Spread-aware execution", "Our FX strategy methodology"],
   },
   {
-    id: "implementation",
-    title: "Implementation",
-    items: ["QuantConnect deployment", "Signal publication setup", "Monitoring dashboards", "Strategy documentation"],
+    id: "commodities",
+    title: "Commodities",
+    items: ["Gold and energy momentum", "Volatility regime filters", "Commodity trend systems", "Live model subscription fit"],
+  },
+  {
+    id: "our-strategies",
+    title: "Our Live Strategies",
+    items: ["Gold Momentum & FX Mean Reversion", "QuantConnect verification walkthrough", "Retail vs institutional access", "Signal and rules review"],
+  },
+  {
+    id: "custom-systems",
+    title: "Systems You Want to Build",
+    items: ["Research-to-production workflow", "Python / QuantConnect architecture", "Risk controls & monitoring", "Documentation and handoff"],
   },
 ];
 

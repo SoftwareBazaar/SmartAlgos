@@ -166,7 +166,7 @@ function Landing() {
             items={[
               { icon: FileText, title: "Research", items: ["Free previews", `${formatUsd(PRICING.researchFull)}/report unlock`, "Notebooks & PDF archive"], link: "/research" },
               { icon: FlaskConical, title: "Strategies", items: ["Live models — $149.99 retail", "Institutional — $499.99", "QuantConnect verification"], link: "/strategies" },
-              { icon: Brain, title: "Strategy desk", items: ["Quant advisory sessions", "System design review", "Implementation guidance"], link: "/consultation" },
+              { icon: Brain, title: "Strategy desk", items: ["90-min guide — $7.99", "Stocks · Futures · FX · Commodities", "Free question booking"], link: "/consultation" },
             ]}
           />
         </div>

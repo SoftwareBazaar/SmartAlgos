@@ -44,8 +44,8 @@ function Consultation() {
   return (
     <PageShell
       eyebrow="Advisory"
-      title="Consultation"
-      description="Strategy review, trading system design, and research advisory for quants and systematic traders."
+      title="Book an Advisory session"
+      description={`${formatUsd(PRICING.consultation)} for a 90-minute guided session — stocks, futures, forex, commodities, our strategies, or a system you want to build. Free question booking available.`}
       actions={
         <button
           onClick={bookCalendly}
@@ -55,7 +55,7 @@ function Consultation() {
         </button>
       }
     >
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {consultationServices.map((svc) => (
           <SectionCard key={svc.id} title={svc.title}>
             <ul className="space-y-2">
@@ -71,15 +71,16 @@ function Consultation() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <SectionCard title="Book Consultation" subtitle={`Pay ${consultationPrice} via Paystack — then schedule your session`}>
+        <SectionCard title="90-minute advisory" subtitle={`${consultationPrice} — one focused guide with our quant desk`}>
           <p className="text-sm text-muted-foreground mb-4">
-            Pay for a consultation session with {company.name}. After payment, use Calendly to pick a time (or we email you to schedule).
+            Reserve a 90-minute session with {company.name}. We cover investing and systematic design across stocks,
+            futures, forex, commodities, our live models, or a custom system you want to build.
           </p>
           <CheckoutForm
             productType="consultation"
             productId="consultation"
             amountUsd={PRICING.consultation}
-            label={`Pay ${consultationPrice} via Paystack`}
+            label={`Reserve 90-min session — ${consultationPrice}`}
           />
           {CALENDLY_URL && (
             <button
@@ -91,7 +92,7 @@ function Consultation() {
           )}
         </SectionCard>
 
-        <SectionCard title="Ask a Question" subtitle="Free inquiry — we reply within 24–48h" action={<MessageCircle className="h-5 w-5 text-gold" />}>
+        <SectionCard title="Free advisory — questions only" subtitle="No fee · we reply within 24–48h" action={<MessageCircle className="h-5 w-5 text-gold" />}>
           <form onSubmit={askQuestion} className="flex flex-col gap-3">
             <input
               type="email"
@@ -108,7 +109,7 @@ function Consultation() {
               className="bg-background border border-border rounded-sm px-3 py-2.5 text-sm focus:outline-none focus:border-gold/60 resize-none"
             />
             <button type="submit" className="rounded-sm border border-gold/60 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-gold hover:bg-gold/10 transition">
-              Send Inquiry
+              Book free question
             </button>
           </form>
         </SectionCard>

@@ -2,11 +2,11 @@ import { cn } from "@/lib/utils";
 import { SigmaMark } from "@/components/sigma-mark";
 
 const markSize = {
-  nav: 34,
-  sidebar: 30,
-  icon: 28,
-  footer: 26,
-  auth: 40,
+  nav: 42,
+  sidebar: 36,
+  icon: 32,
+  footer: 30,
+  auth: 48,
 } as const;
 
 function BrandWordmark() {

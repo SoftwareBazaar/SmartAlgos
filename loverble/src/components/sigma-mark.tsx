@@ -1,49 +1,64 @@
 import { cn } from "@/lib/utils";
 
-/** Concept B — geometric Σ with live signal trace. Scales cleanly from 16px favicon to nav. */
+type SigmaMarkProps = {
+  size?: number;
+  className?: string;
+  /** Hide signal line for smallest sizes / favicon-style use */
+  signal?: boolean;
+};
+
+/**
+ * Classic capital Σ — top bar, diagonal leg, bottom bar.
+ * Bold strokes so the symbol reads clearly from 16px favicon to nav.
+ */
 export function SigmaMark({
   size = 32,
   className,
-}: {
-  size?: number;
-  className?: string;
-}) {
+  signal = true,
+}: SigmaMarkProps) {
+  const stroke = Math.max(2.75, size * 0.1);
+
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 32 32"
+      viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("shrink-0", className)}
       aria-hidden
     >
       <path
-        d="M5 8H27"
+        d="M6 10H34"
         stroke="var(--color-gold)"
-        strokeWidth="2.5"
+        strokeWidth={stroke}
         strokeLinecap="square"
       />
       <path
-        d="M27 8L13 24"
+        d="M34 10L10 30"
         stroke="var(--color-gold)"
-        strokeWidth="2.5"
+        strokeWidth={stroke}
         strokeLinejoin="miter"
-      />
-      <path
-        d="M5 24H27"
-        stroke="var(--color-gold)"
-        strokeWidth="2.5"
         strokeLinecap="square"
       />
       <path
-        d="M4 16H28"
-        stroke="var(--color-bull)"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        opacity="0.92"
+        d="M10 30H34"
+        stroke="var(--color-gold)"
+        strokeWidth={stroke}
+        strokeLinecap="square"
       />
-      <circle cx="22" cy="16" r="1.75" fill="var(--color-bull)" />
+      {signal && (
+        <>
+          <path
+            d="M5 20H35"
+            stroke="var(--color-bull)"
+            strokeWidth={Math.max(1.25, stroke * 0.45)}
+            strokeLinecap="round"
+            opacity="0.95"
+          />
+          <circle cx="28" cy="20" r={stroke * 0.35} fill="var(--color-bull)" />
+        </>
+      )}
     </svg>
   );
 }

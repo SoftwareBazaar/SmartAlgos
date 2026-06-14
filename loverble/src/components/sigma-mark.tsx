@@ -3,22 +3,29 @@ import { cn } from "@/lib/utils";
 type SigmaMarkProps = {
   size?: number;
   className?: string;
-  /** Green trace on the diagonal — off for smallest favicon renders */
+  /** Green trace on the diagonal leg — off for smallest favicon renders */
   signal?: boolean;
 };
 
-/** Uniform stroke in viewBox units — keeps all Σ legs geometrically even. */
+/** Uniform stroke in viewBox units — all three Σ legs match. */
 const STROKE = 3.25;
-const SIGMA = {
-  top: "M6 10H34",
-  /** Diagonal split ~62% — signal cuts through the midpoint intentionally */
-  diagonalSignal: "M34 10L17 23",
-  diagonalBase: "M17 23L10 30",
-  bottom: "M10 30H34",
-} as const;
 
 /**
- * Concept B — capital Σ with live signal trace on the upper diagonal.
+ * Classic capital Σ (inverted-3 / W silhouette) — NOT a Z.
+ * Three separate legs: top bar, diagonal to left midpoint, bottom bar.
+ */
+const SIGMA = {
+  top: "M6 10H34",
+  /** Top-right → left midpoint vertex */
+  diagonal: "M34 10L6 20",
+  bottom: "M6 30H34",
+} as const;
+
+/** ~68% along diagonal — signal runs through the midpoint */
+const SIGNAL_SPLIT = { x: 15, y: 17 } as const;
+
+/**
+ * Concept B — Σ with live signal trace on the upper diagonal leg.
  */
 export function SigmaMark({
   size = 32,
@@ -40,11 +47,11 @@ export function SigmaMark({
       <path d={SIGMA.top} stroke="var(--color-gold)" {...cap} />
       {signal ? (
         <>
-          <path d={SIGMA.diagonalSignal} stroke="var(--color-bull)" {...cap} />
-          <path d={SIGMA.diagonalBase} stroke="var(--color-gold)" {...cap} />
+          <path d={`M34 10L${SIGNAL_SPLIT.x} ${SIGNAL_SPLIT.y}`} stroke="var(--color-bull)" {...cap} />
+          <path d={`M${SIGNAL_SPLIT.x} ${SIGNAL_SPLIT.y}L6 20`} stroke="var(--color-gold)" {...cap} />
         </>
       ) : (
-        <path d="M34 10L10 30" stroke="var(--color-gold)" {...cap} />
+        <path d={SIGMA.diagonal} stroke="var(--color-gold)" {...cap} />
       )}
       <path d={SIGMA.bottom} stroke="var(--color-gold)" {...cap} />
     </svg>

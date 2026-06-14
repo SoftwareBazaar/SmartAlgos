@@ -9,7 +9,6 @@ import { reportLovableError } from "@/lib/lovable-error-reporting";
 import { Toaster } from "sonner";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { BrandLogo } from "@/components/brand-logo";
 
 const SITE_ORIGIN = "https://smartalgosts.com";
 
@@ -58,18 +57,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Quantitative research, systematic strategies, and verified performance. Operated by Smart Algos Investment Solution Ltd (Kenya)." },
       { property: "og:type", content: "website" },
       { property: "og:url", content: SITE_ORIGIN },
-      { property: "og:image", content: `${SITE_ORIGIN}/logo.png` },
+      { property: "og:image", content: `${SITE_ORIGIN}/favicon.svg` },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Smart Algos Capital — Quantitative Research & Systematic Strategies" },
       { name: "twitter:description", content: "Quantitative research, systematic strategies, and verified performance." },
-      { name: "twitter:image", content: `${SITE_ORIGIN}/logo.png` },
+      { name: "twitter:image", content: `${SITE_ORIGIN}/favicon.svg` },
       { name: "theme-color", content: "#0a0f1a" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/logo.png", type: "image/png" },
-      { rel: "shortcut icon", href: "/logo.png", type: "image/png" },
-      { rel: "apple-touch-icon", href: "/logo.png" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "shortcut icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/favicon.svg" },
       { rel: "manifest", href: "/manifest.json" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" },
@@ -107,9 +106,6 @@ function RootComponent() {
             <div className="flex-1 flex flex-col min-w-0">
               <header className="h-14 flex items-center gap-3 border-b border-border bg-background/80 backdrop-blur px-4 sticky top-0 z-30">
                 <SidebarTrigger />
-                <Link to="/" className="hover:opacity-90 transition-opacity">
-                  <BrandLogo variant="nav" />
-                </Link>
                 <div className="ml-auto text-xs text-muted-foreground hidden sm:inline uppercase tracking-[0.18em]">
                   Research First · Building a Track Record
                 </div>

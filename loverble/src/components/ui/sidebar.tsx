@@ -6,6 +6,10 @@ const SidebarCtx = React.createContext<{ open: boolean; toggle: () => void }>({
   toggle: () => {},
 });
 
+export function useSidebar() {
+  return React.useContext(SidebarCtx);
+}
+
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(true);
   return (

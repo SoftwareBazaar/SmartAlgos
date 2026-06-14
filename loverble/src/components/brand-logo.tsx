@@ -1,26 +1,49 @@
 import { cn } from "@/lib/utils";
+import { SigmaMark } from "@/components/sigma-mark";
 
-const sizeClass = {
-  nav: "h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20",
-  sidebar: "h-14 w-14 sm:h-16 sm:w-16",
-  auth: "h-20 w-20 sm:h-24 sm:w-24",
-  footer: "h-12 w-12 sm:h-14 sm:w-14",
+const markSize = {
+  nav: 34,
+  sidebar: 30,
+  icon: 28,
+  footer: 26,
+  auth: 40,
 } as const;
+
+function BrandWordmark() {
+  return (
+    <div className="flex flex-col leading-none min-w-0">
+      <span className="font-display text-[13px] sm:text-sm font-semibold tracking-[0.16em] text-foreground whitespace-nowrap">
+        SMART ALGOS
+      </span>
+      <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-muted-foreground mt-1">
+        Capital
+      </span>
+    </div>
+  );
+}
 
 export function BrandLogo({
   variant = "nav",
+  iconOnly = false,
   className,
 }: {
-  variant?: keyof typeof sizeClass;
+  variant?: keyof typeof markSize;
+  /** Mark only — sidebar collapsed or favicon-style placements */
+  iconOnly?: boolean;
   className?: string;
 }) {
+  const size = markSize[variant];
+  const showWordmark = !iconOnly && variant !== "icon";
+
   return (
-    <img
-      src="/logo.png"
-      alt="Smart Algos Capital"
-      width={80}
-      height={80}
-      className={cn(sizeClass[variant], "object-contain shrink-0 transition-transform duration-200 hover:scale-[1.02]", className)}
-    />
+    <div
+      className={cn(
+        "flex items-center gap-2.5 sm:gap-3 transition-opacity duration-200 hover:opacity-90",
+        className,
+      )}
+    >
+      <SigmaMark size={size} />
+      {showWordmark && <BrandWordmark />}
+    </div>
   );
 }

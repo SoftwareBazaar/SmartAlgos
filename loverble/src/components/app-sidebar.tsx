@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import { company } from "@/lib/mock-data";
 import { BrandLogo } from "@/components/brand-logo";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const groups = [
   {
@@ -31,13 +32,14 @@ const groups = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { open } = useSidebar();
   const isActive = (url: string) => pathname === url || pathname.startsWith(`${url}/`);
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <Link to="/" className="flex items-center px-2 py-3">
-          <BrandLogo variant="sidebar" />
+          <BrandLogo variant="sidebar" iconOnly={!open} />
         </Link>
       </SidebarHeader>
       <SidebarContent>

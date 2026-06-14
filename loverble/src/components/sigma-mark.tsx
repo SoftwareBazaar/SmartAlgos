@@ -3,20 +3,29 @@ import { cn } from "@/lib/utils";
 type SigmaMarkProps = {
   size?: number;
   className?: string;
-  /** Hide signal line for smallest sizes / favicon-style use */
+  /** Green trace on the diagonal — off for smallest favicon renders */
   signal?: boolean;
 };
 
+/** Uniform stroke in viewBox units — keeps all Σ legs geometrically even. */
+const STROKE = 3.25;
+const SIGMA = {
+  top: "M6 10H34",
+  /** Diagonal split ~62% — signal cuts through the midpoint intentionally */
+  diagonalSignal: "M34 10L17 23",
+  diagonalBase: "M17 23L10 30",
+  bottom: "M10 30H34",
+} as const;
+
 /**
- * Classic capital Σ — top bar, diagonal leg, bottom bar.
- * Bold strokes so the symbol reads clearly from 16px favicon to nav.
+ * Concept B — capital Σ with live signal trace on the upper diagonal.
  */
 export function SigmaMark({
   size = 32,
   className,
   signal = true,
 }: SigmaMarkProps) {
-  const stroke = Math.max(2.75, size * 0.1);
+  const cap = { strokeWidth: STROKE, strokeLinecap: "square" as const, strokeLinejoin: "miter" as const };
 
   return (
     <svg
@@ -28,37 +37,16 @@ export function SigmaMark({
       className={cn("shrink-0", className)}
       aria-hidden
     >
-      <path
-        d="M6 10H34"
-        stroke="var(--color-gold)"
-        strokeWidth={stroke}
-        strokeLinecap="square"
-      />
-      <path
-        d="M34 10L10 30"
-        stroke="var(--color-gold)"
-        strokeWidth={stroke}
-        strokeLinejoin="miter"
-        strokeLinecap="square"
-      />
-      <path
-        d="M10 30H34"
-        stroke="var(--color-gold)"
-        strokeWidth={stroke}
-        strokeLinecap="square"
-      />
-      {signal && (
+      <path d={SIGMA.top} stroke="var(--color-gold)" {...cap} />
+      {signal ? (
         <>
-          <path
-            d="M5 20H35"
-            stroke="var(--color-bull)"
-            strokeWidth={Math.max(1.25, stroke * 0.45)}
-            strokeLinecap="round"
-            opacity="0.95"
-          />
-          <circle cx="28" cy="20" r={stroke * 0.35} fill="var(--color-bull)" />
+          <path d={SIGMA.diagonalSignal} stroke="var(--color-bull)" {...cap} />
+          <path d={SIGMA.diagonalBase} stroke="var(--color-gold)" {...cap} />
         </>
+      ) : (
+        <path d="M34 10L10 30" stroke="var(--color-gold)" {...cap} />
       )}
+      <path d={SIGMA.bottom} stroke="var(--color-gold)" {...cap} />
     </svg>
   );
 }

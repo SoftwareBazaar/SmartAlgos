@@ -2,9 +2,9 @@ import { cn } from "@/lib/utils";
 import { SigmaMark } from "@/components/sigma-mark";
 
 const markSize = {
-  nav: 50,
-  sidebar: 42,
-  icon: 38,
+  nav: 48,
+  sidebar: 40,
+  icon: 32,
   footer: 36,
   auth: 56,
 } as const;

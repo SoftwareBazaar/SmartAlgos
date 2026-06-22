@@ -1,11 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Check, MessageCircle } from "lucide-react";
-import { CheckoutForm } from "@/components/checkout-form";
+import { Check, Calendar, Sparkles } from "lucide-react";
 import { formatUsd, PRICING } from "@/lib/pricing";
+import { AdvisoryBookingForm } from "@/components/advisory-booking-form";
 import { GlowCard } from "./glow-card";
 import { MotionReveal, MotionItem } from "@/components/motion-reveal";
-import { toast } from "sonner";
 
 const advisoryCategories = [
   "Stocks & equities",
@@ -17,26 +15,14 @@ const advisoryCategories = [
 ];
 
 const sessionIncludes = [
-  "90-minute guided advisory with our quant desk",
+  "Free 20-minute intro — pick topic, date, and time (7–9 PM EAT daily)",
+  "Meeting link sent by email after you book",
+  "Optional 90-minute follow-up for deeper strategy work",
   "Asset-class fit: stocks, futures, forex, commodities",
-  "Strategy rules, risk framework, and execution review",
-  "Roadmap for systems you want to design or deploy",
 ];
 
 export function AdvisoryDeskSection() {
-  const [freeEmail, setFreeEmail] = useState("");
-  const [freeQuestion, setFreeQuestion] = useState("");
-
-  const submitFreeQuestion = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!freeEmail.includes("@") || !freeQuestion.trim()) {
-      return toast.error("Email and question are required");
-    }
-    toast.success("Question received", {
-      description: "Free advisory reply within 24–48 hours.",
-    });
-    setFreeQuestion("");
-  };
+  const followUpPrice = formatUsd(PRICING.consultation);
 
   return (
     <section className="py-20 border-t border-border bg-secondary-surface/30">
@@ -46,11 +32,11 @@ export function AdvisoryDeskSection() {
             <div className="grid lg:grid-cols-2 gap-6 items-stretch">
               <GlowCard accent className="p-8 flex flex-col">
                 <div className="text-[10px] uppercase tracking-[0.2em] text-gold mb-2">Strategy desk</div>
-                <h2 className="font-display text-section-title text-2xl md:text-3xl">Book an Advisory session</h2>
+                <h2 className="font-display text-section-title text-2xl md:text-3xl">Book an advisory session</h2>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                  <span className="text-gold font-semibold">{formatUsd(PRICING.consultation)} only</span> — a focused{" "}
-                  <span className="text-foreground font-medium">90-minute guide</span> with our research desk. One flat
-                  session fee, not a subscription.
+                  Start with a{" "}
+                  <span className="text-foreground font-medium">free 20-minute consultation</span> — choose your
+                  product focus and a slot between 7–9 PM EAT. We send your meeting link by email.
                 </p>
 
                 <div className="mt-5">
@@ -68,12 +54,11 @@ export function AdvisoryDeskSection() {
                 </div>
 
                 <div className="mt-6 flex-1 flex flex-col justify-end">
-                  <CheckoutForm
-                    productType="consultation"
-                    productId="consultation"
-                    amountUsd={PRICING.consultation}
-                    label={`Reserve 90-min session — ${formatUsd(PRICING.consultation)}`}
-                  />
+                  <div className="flex items-center gap-2 mb-3 text-gold">
+                    <Calendar className="h-4 w-4" />
+                    <span className="text-[10px] uppercase tracking-[0.18em] font-semibold">Free intro</span>
+                  </div>
+                  <AdvisoryBookingForm variant="free" />
                   <Link to="/consultation" className="mt-4 inline-block text-xs text-gold hover:underline cursor-pointer">
                     View all advisory services →
                   </Link>
@@ -82,7 +67,7 @@ export function AdvisoryDeskSection() {
 
               <div className="flex flex-col gap-6">
                 <GlowCard className="p-8 flex-1">
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-4">What&apos;s included</div>
+                  <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-4">How it works</div>
                   <ul className="space-y-4">
                     {sessionIncludes.map((item) => (
                       <li key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
@@ -92,42 +77,24 @@ export function AdvisoryDeskSection() {
                     ))}
                   </ul>
                   <div className="mt-6 rounded-lg border border-border/60 bg-background/40 p-4 text-xs text-muted-foreground leading-relaxed">
-                    Investing in stocks, futures, forex, or commodities — or building a systematic model like ours. We map
-                    your idea to a concrete next step.
+                    Investing in stocks, futures, forex, or commodities — or building a systematic model like ours. The
+                    free call maps your idea to a concrete next step; the follow-up goes deep when you are ready.
                   </div>
                 </GlowCard>
 
                 <GlowCard className="p-8">
                   <div className="flex items-center gap-2 mb-3">
-                    <MessageCircle className="h-4 w-4 text-gold" />
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-gold">Free advisory</div>
+                    <Sparkles className="h-4 w-4 text-gold" />
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-gold">Follow-up</div>
                   </div>
-                  <h3 className="font-display text-lg font-semibold">Questions only — no fee</h3>
+                  <h3 className="font-display text-lg font-semibold">90-minute session — {followUpPrice}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Not ready for a full session? Ask one question and we&apos;ll reply by email within 24–48 hours.
+                    After your free intro, book a paid follow-up if you want extended guidance — same scheduling window,
+                    payment via Paystack, meeting link after confirmation.
                   </p>
-                  <form onSubmit={submitFreeQuestion} className="mt-4 flex flex-col gap-3">
-                    <input
-                      type="email"
-                      value={freeEmail}
-                      onChange={(e) => setFreeEmail(e.target.value)}
-                      placeholder="you@email.com"
-                      className="bg-background border border-border rounded-sm px-3 py-2.5 text-sm focus:outline-none focus:border-gold/60"
-                    />
-                    <textarea
-                      value={freeQuestion}
-                      onChange={(e) => setFreeQuestion(e.target.value)}
-                      rows={3}
-                      placeholder="Your question — strategy idea, asset class, system design…"
-                      className="bg-background border border-border rounded-sm px-3 py-2.5 text-sm focus:outline-none focus:border-gold/60 resize-none"
-                    />
-                    <button
-                      type="submit"
-                      className="rounded-sm border border-gold/50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-gold hover:bg-gold/10 transition cursor-pointer"
-                    >
-                      Book free question
-                    </button>
-                  </form>
+                  <div className="mt-4">
+                    <AdvisoryBookingForm variant="paid" />
+                  </div>
                 </GlowCard>
               </div>
             </div>

@@ -3,6 +3,7 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { confirmPaidBookingFromPayment } from "@/lib/advisory-booking-server";
 import { PRICING } from "@/lib/pricing";
 
 const KES_RATE = 150;
@@ -272,6 +273,10 @@ export async function verifyCapitalPayment(reference: string) {
           })
           .eq("email", email);
       }
+    }
+
+    if (productType === "consultation" && metadata.booking_reference) {
+      await confirmPaidBookingFromPayment(metadata, reference);
     }
   }
 

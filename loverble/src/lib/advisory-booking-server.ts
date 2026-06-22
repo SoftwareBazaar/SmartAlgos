@@ -7,8 +7,12 @@ import { PRICING } from "@/lib/pricing";
 import {
   bookingRange,
   consultationDurationMinutes,
+  consultationTypeFromDb,
+  consultationTypeToDb,
   formatSlotLabel,
   isDateBookable,
+  normalizeTimeForDb,
+  normalizeTimeSlot,
   productLabel,
   rangesOverlap,
   slotsForType,
@@ -20,12 +24,18 @@ function genBookingRef() {
 }
 
 function getSupabase(): SupabaseClient | null {
-  const url = process.env.SUPABASE_URL;
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const key =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.SUPABASE_SERVICE_KEY ||
-    process.env.SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    console.warn("[Bookings] Supabase not configured — check SUPABASE_URL and service role key on Vercel");
+    return null;
+  }
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
@@ -93,7 +103,76 @@ async function fetchBookingsForDate(supabase: SupabaseClient | null, date: strin
     console.error("[Bookings] Slot query error:", error.message);
     return [];
   }
-  return (data ?? []) as BookingRow[];
+  return (data ?? []).map((row) => ({
+    ...row,
+    time: normalizeTimeSlot(String(row.time)),
+  })) as BookingRow[];
+}
+
+type DbBookingRow = {
+  reference: string;
+  service: string;
+  consultation_type: string;
+  date: string;
+  time: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  notes: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  payment_status: string;
+  guide_topic?: string | null;
+};
+
+function buildDbRow(
+  payload: BookingPayload,
+  reference: string,
+  consultationType: ConsultationType,
+  status: string,
+  paymentStatus: string,
+  amount: number,
+): DbBookingRow {
+  return {
+    reference,
+    service: payload.service!,
+    consultation_type: consultationTypeToDb(consultationType),
+    date: payload.date!,
+    time: normalizeTimeForDb(payload.time!),
+    name: payload.name!.trim(),
+    email: payload.email!.trim().toLowerCase(),
+    phone: payload.phone?.trim() || null,
+    notes: payload.notes?.trim() || null,
+    amount,
+    currency: "USD",
+    status,
+    payment_status: paymentStatus,
+    guide_topic: null,
+  };
+}
+
+async function insertConsultationBooking(
+  supabase: SupabaseClient,
+  row: DbBookingRow,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const attempts: Record<string, unknown>[] = [
+    row,
+    { ...row, time: normalizeTimeSlot(row.time) },
+    { ...row, guide_topic: undefined },
+    { ...row, time: normalizeTimeSlot(row.time), guide_topic: undefined },
+  ];
+
+  let lastMessage = "Unknown database error";
+  for (const attempt of attempts) {
+    const cleaned = Object.fromEntries(Object.entries(attempt).filter(([, v]) => v !== undefined));
+    const { error } = await supabase.from("consultation_bookings").insert(cleaned);
+    if (!error) return { ok: true };
+    lastMessage = error.message;
+    console.error("[Bookings] Insert attempt failed:", error.message, error.details, error.hint);
+  }
+
+  return { ok: false, message: lastMessage };
 }
 
 function slotAvailability(
@@ -106,7 +185,7 @@ function slotAvailability(
   }
 
   const occupied = bookings.map((b) =>
-    bookingRange(b.time, b.consultation_type === "paid_90" ? "paid_90" : "free_20"),
+    bookingRange(b.time, consultationTypeFromDb(b.consultation_type)),
   );
 
   return slotsForType(consultationType).map((time) => {
@@ -288,50 +367,36 @@ export async function createFreeBooking(body: BookingPayload) {
   }
 
   const reference = genBookingRef();
-  const email = body.email!.trim().toLowerCase();
-  const row = {
-    reference,
-    service: body.service!,
-    consultation_type: consultationType,
-    date: body.date!,
-    time: body.time!,
-    name: body.name!.trim(),
-    email,
-    phone: body.phone?.trim() || null,
-    notes: body.notes?.trim() || null,
-    amount: 0,
-    currency: "USD",
-    status: "confirmed",
-    payment_status: "free",
-  };
+  const row = buildDbRow(body, reference, consultationType, "confirmed", "free", 0);
+  const slotTime = normalizeTimeSlot(body.time!);
 
   if (supabase) {
-    const { error } = await supabase.from("consultation_bookings").insert(row);
-    if (error) {
-      console.error("[Bookings] Insert error:", error.message);
-      return { status: 500, body: { success: false, error: "Could not save booking" } };
+    const saved = await insertConsultationBooking(supabase, row);
+    if (!saved.ok) {
+      console.error("[Bookings] All insert attempts failed:", saved.message);
+      return { status: 500, body: { success: false, error: "Could not save booking. Please try again or contact us." } };
     }
   }
 
   const meetingLink = getMeetingLink();
   void sendClientConfirmation({
     name: row.name,
-    email,
+    email: row.email,
     service: row.service,
     consultationType,
     date: row.date,
-    time: row.time,
+    time: slotTime,
     reference,
     isPaid: false,
   }).catch(console.error);
   void sendAdminNotification({
     name: row.name,
-    email,
+    email: row.email,
     phone: body.phone,
     service: row.service,
     consultationType,
     date: row.date,
-    time: row.time,
+    time: slotTime,
     reference,
     isPaid: false,
     notes: body.notes,
@@ -365,28 +430,13 @@ export async function createPendingPaidBooking(body: BookingPayload) {
   }
 
   const reference = genBookingRef();
-  const email = body.email!.trim().toLowerCase();
-  const row = {
-    reference,
-    service: body.service!,
-    consultation_type: consultationType,
-    date: body.date!,
-    time: body.time!,
-    name: body.name!.trim(),
-    email,
-    phone: body.phone?.trim() || null,
-    notes: body.notes?.trim() || null,
-    amount: PRICING.consultation,
-    currency: "USD",
-    status: "pending",
-    payment_status: "pending",
-  };
+  const row = buildDbRow(body, reference, consultationType, "pending", "pending", PRICING.consultation);
 
   if (supabase) {
-    const { error } = await supabase.from("consultation_bookings").insert(row);
-    if (error) {
-      console.error("[Bookings] Pending insert error:", error.message);
-      return { status: 500, body: { success: false, error: "Could not reserve slot" } };
+    const saved = await insertConsultationBooking(supabase, row);
+    if (!saved.ok) {
+      console.error("[Bookings] Pending insert failed:", saved.message);
+      return { status: 500, body: { success: false, error: "Could not reserve slot. Please try again." } };
     }
   }
 
@@ -430,13 +480,14 @@ export async function confirmPaidBookingFromPayment(metadata: Record<string, unk
     })
     .eq("reference", bookingRef);
 
+  const slotTime = normalizeTimeSlot(String(booking.time));
   void sendClientConfirmation({
     name: booking.name,
     email: booking.email,
     service: booking.service,
     consultationType: "paid_90",
     date: booking.date,
-    time: booking.time,
+    time: slotTime,
     reference: bookingRef,
     isPaid: true,
   }).catch(console.error);
@@ -447,7 +498,7 @@ export async function confirmPaidBookingFromPayment(metadata: Record<string, unk
     service: booking.service,
     consultationType: "paid_90",
     date: booking.date,
-    time: booking.time,
+    time: slotTime,
     reference: bookingRef,
     isPaid: true,
     notes: booking.notes,

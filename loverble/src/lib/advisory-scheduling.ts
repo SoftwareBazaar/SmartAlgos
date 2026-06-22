@@ -35,8 +35,31 @@ function formatMinutes(total: number): string {
 }
 
 export function parseTimeToMinutes(time: string): number {
-  const [h, m] = time.split(":").map(Number);
+  const normalized = normalizeTimeSlot(time);
+  const [h, m] = normalized.split(":").map(Number);
   return h * 60 + m;
+}
+
+/** HH:MM from API/UI or HH:MM:SS from Postgres TIME columns */
+export function normalizeTimeSlot(time: string): string {
+  const match = time.trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return time;
+  return `${String(Number(match[1])).padStart(2, "0")}:${match[2]}`;
+}
+
+export function normalizeTimeForDb(time: string): string {
+  const slot = normalizeTimeSlot(time);
+  return slot.length === 5 ? `${slot}:00` : slot;
+}
+
+/** DB stores legacy free_30 for the 20-minute intro session */
+export function consultationTypeToDb(type: ConsultationType): string {
+  return type === "free_20" ? "free_30" : type;
+}
+
+export function consultationTypeFromDb(dbType: string): ConsultationType {
+  if (dbType === "paid_90") return "paid_90";
+  return "free_20";
 }
 
 export function bookingRange(time: string, type: ConsultationType): [number, number] {

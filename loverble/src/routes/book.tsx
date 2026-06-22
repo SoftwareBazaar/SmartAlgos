@@ -2,12 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ConsultationPageContent } from "@/components/consultation-page";
 import { PublicStandaloneLayout } from "@/components/public-standalone-layout";
 
-const SHARE_URL = "https://www.smartalgosts.com/consultation";
+const SHARE_URL = "https://www.smartalgosts.com/book";
 const SHARE_TITLE = "Book a Free 20-Min Advisory Session — Smart Algos Capital";
 const SHARE_DESC =
   "Pick your topic and a time (7–9 PM EAT). Free intro consultation with our quant desk — meeting link by email.";
 
-export const Route = createFileRoute("/consultation")({
+/** Short share link — same booking page as /consultation, no app sidebar. */
+export const Route = createFileRoute("/book")({
   head: () => ({
     meta: [
       { title: SHARE_TITLE },
@@ -21,14 +22,14 @@ export const Route = createFileRoute("/consultation")({
       { name: "twitter:title", content: SHARE_TITLE },
       { name: "twitter:description", content: SHARE_DESC },
     ],
-    links: [{ rel: "canonical", href: SHARE_URL }],
+    links: [{ rel: "canonical", href: "https://www.smartalgosts.com/consultation" }],
   }),
-  component: Consultation,
+  component: Book,
 });
 
-function Consultation() {
+function Book() {
   return (
-    <PublicStandaloneLayout tagline="Book advisory">
+    <PublicStandaloneLayout tagline="Client booking">
       <ConsultationPageContent />
     </PublicStandaloneLayout>
   );

@@ -26,6 +26,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CopyTradingRouteImport } from './routes/copy-trading'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ConsultationRouteImport } from './routes/consultation'
+import { Route as BookRouteImport } from './routes/book'
 import { Route as BacktestingRouteImport } from './routes/backtesting'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AlphaPortfolioRouteImport } from './routes/alpha-portfolio'
@@ -122,6 +123,11 @@ const ConsultationRoute = ConsultationRouteImport.update({
   path: '/consultation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookRoute = BookRouteImport.update({
+  id: '/book',
+  path: '/book',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BacktestingRoute = BacktestingRouteImport.update({
   id: '/backtesting',
   path: '/backtesting',
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/alpha-portfolio': typeof AlphaPortfolioRoute
   '/auth': typeof AuthRoute
   '/backtesting': typeof BacktestingRoute
+  '/book': typeof BookRoute
   '/consultation': typeof ConsultationRoute
   '/contact': typeof ContactRoute
   '/copy-trading': typeof CopyTradingRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/alpha-portfolio': typeof AlphaPortfolioRoute
   '/auth': typeof AuthRoute
   '/backtesting': typeof BacktestingRoute
+  '/book': typeof BookRoute
   '/consultation': typeof ConsultationRoute
   '/contact': typeof ContactRoute
   '/copy-trading': typeof CopyTradingRoute
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/alpha-portfolio': typeof AlphaPortfolioRoute
   '/auth': typeof AuthRoute
   '/backtesting': typeof BacktestingRoute
+  '/book': typeof BookRoute
   '/consultation': typeof ConsultationRoute
   '/contact': typeof ContactRoute
   '/copy-trading': typeof CopyTradingRoute
@@ -273,6 +282,7 @@ export interface FileRouteTypes {
     | '/alpha-portfolio'
     | '/auth'
     | '/backtesting'
+    | '/book'
     | '/consultation'
     | '/contact'
     | '/copy-trading'
@@ -302,6 +312,7 @@ export interface FileRouteTypes {
     | '/alpha-portfolio'
     | '/auth'
     | '/backtesting'
+    | '/book'
     | '/consultation'
     | '/contact'
     | '/copy-trading'
@@ -331,6 +342,7 @@ export interface FileRouteTypes {
     | '/alpha-portfolio'
     | '/auth'
     | '/backtesting'
+    | '/book'
     | '/consultation'
     | '/contact'
     | '/copy-trading'
@@ -361,6 +373,7 @@ export interface RootRouteChildren {
   AlphaPortfolioRoute: typeof AlphaPortfolioRoute
   AuthRoute: typeof AuthRoute
   BacktestingRoute: typeof BacktestingRoute
+  BookRoute: typeof BookRoute
   ConsultationRoute: typeof ConsultationRoute
   ContactRoute: typeof ContactRoute
   CopyTradingRoute: typeof CopyTradingRoute
@@ -501,6 +514,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsultationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/book': {
+      id: '/book'
+      path: '/book'
+      fullPath: '/book'
+      preLoaderRoute: typeof BookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/backtesting': {
       id: '/backtesting'
       path: '/backtesting'
@@ -596,6 +616,7 @@ const rootRouteChildren: RootRouteChildren = {
   AlphaPortfolioRoute: AlphaPortfolioRoute,
   AuthRoute: AuthRoute,
   BacktestingRoute: BacktestingRoute,
+  BookRoute: BookRoute,
   ConsultationRoute: ConsultationRoute,
   ContactRoute: ContactRoute,
   CopyTradingRoute: CopyTradingRoute,

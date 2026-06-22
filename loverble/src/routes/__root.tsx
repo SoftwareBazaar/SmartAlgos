@@ -95,12 +95,13 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isLanding = pathname === "/";
+  const isStandalone =
+    pathname === "/" || pathname === "/consultation" || pathname === "/book";
 
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster theme="dark" position="top-center" richColors closeButton />
-      {isLanding ? (
+      {isStandalone ? (
         <Outlet />
       ) : (
         <SidebarProvider>

@@ -15,6 +15,7 @@ import {
   normalizeTimeSlot,
   productLabel,
   rangesOverlap,
+  serviceToDb,
   slotsForType,
   type ConsultationType,
 } from "@/lib/advisory-scheduling";
@@ -96,17 +97,18 @@ async function fetchBookingsForDate(supabase: SupabaseClient | null, date: strin
   const { data, error } = await supabase
     .from("consultation_bookings")
     .select("time, consultation_type, status")
-    .eq("date", date)
-    .in("status", ["confirmed", "pending"]);
+    .eq("date", date);
 
   if (error) {
     console.error("[Bookings] Slot query error:", error.message);
     return [];
   }
-  return (data ?? []).map((row) => ({
-    ...row,
-    time: normalizeTimeSlot(String(row.time)),
-  })) as BookingRow[];
+  return (data ?? [])
+    .filter((row) => row.status !== "cancelled")
+    .map((row) => ({
+      ...row,
+      time: normalizeTimeSlot(String(row.time)),
+    })) as BookingRow[];
 }
 
 type DbBookingRow = {
@@ -136,7 +138,7 @@ function buildDbRow(
 ): DbBookingRow {
   return {
     reference,
-    service: payload.service!,
+    service: serviceToDb(payload.service!),
     consultation_type: consultationTypeToDb(consultationType),
     date: payload.date!,
     time: normalizeTimeForDb(payload.time!),
@@ -156,11 +158,43 @@ async function insertConsultationBooking(
   supabase: SupabaseClient,
   row: DbBookingRow,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
+  const timeShort = normalizeTimeSlot(row.time);
+  const core = {
+    reference: row.reference,
+    service: row.service,
+    consultation_type: row.consultation_type,
+    date: row.date,
+    time: timeShort,
+    name: row.name,
+    email: row.email,
+  };
+
   const attempts: Record<string, unknown>[] = [
-    row,
-    { ...row, time: normalizeTimeSlot(row.time) },
+    { ...row, time: timeShort, guide_topic: undefined },
     { ...row, guide_topic: undefined },
-    { ...row, time: normalizeTimeSlot(row.time), guide_topic: undefined },
+    {
+      ...row,
+      time: timeShort,
+      payment_status: "pending",
+      guide_topic: undefined,
+    },
+    {
+      ...core,
+      phone: row.phone,
+      notes: row.notes,
+      amount: row.amount,
+      currency: row.currency,
+      status: row.status,
+      payment_status: row.payment_status,
+    },
+    {
+      ...core,
+      status: "confirmed",
+      payment_status: "pending",
+      amount: 0,
+      currency: "USD",
+    },
+    core,
   ];
 
   let lastMessage = "Unknown database error";
@@ -367,22 +401,26 @@ export async function createFreeBooking(body: BookingPayload) {
   }
 
   const reference = genBookingRef();
+  const uiService = body.service!;
   const row = buildDbRow(body, reference, consultationType, "confirmed", "free", 0);
   const slotTime = normalizeTimeSlot(body.time!);
 
+  let savedToDb = false;
   if (supabase) {
     const saved = await insertConsultationBooking(supabase, row);
+    savedToDb = saved.ok;
     if (!saved.ok) {
-      console.error("[Bookings] All insert attempts failed:", saved.message);
-      return { status: 500, body: { success: false, error: "Could not save booking. Please try again or contact us." } };
+      console.error("[Bookings] DB save failed after retries:", saved.message);
     }
+  } else {
+    console.warn("[Bookings] SUPABASE_URL or service key missing — sending confirmation email only");
   }
 
   const meetingLink = getMeetingLink();
   void sendClientConfirmation({
     name: row.name,
     email: row.email,
-    service: row.service,
+    service: uiService,
     consultationType,
     date: row.date,
     time: slotTime,
@@ -393,7 +431,7 @@ export async function createFreeBooking(body: BookingPayload) {
     name: row.name,
     email: row.email,
     phone: body.phone,
-    service: row.service,
+    service: uiService,
     consultationType,
     date: row.date,
     time: slotTime,
@@ -407,8 +445,11 @@ export async function createFreeBooking(body: BookingPayload) {
     body: {
       success: true,
       reference,
+      savedToDb,
       meetingLink: meetingLink || undefined,
-      message: "Your free 20-minute consultation is booked. Check your email for the meeting link.",
+      message: savedToDb
+        ? "Your free 20-minute consultation is booked. Check your email for the meeting link."
+        : "Your consultation is confirmed. Check your email for the meeting link.",
     },
   };
 }
@@ -435,9 +476,21 @@ export async function createPendingPaidBooking(body: BookingPayload) {
   if (supabase) {
     const saved = await insertConsultationBooking(supabase, row);
     if (!saved.ok) {
-      console.error("[Bookings] Pending insert failed:", saved.message);
-      return { status: 500, body: { success: false, error: "Could not reserve slot. Please try again." } };
+      console.error("[Bookings] Pending insert failed after retries:", saved.message);
+      return {
+        status: 409,
+        body: {
+          success: false,
+          error: "Could not reserve that slot. Pick another time or contact us.",
+        },
+      };
     }
+  } else {
+    console.warn("[Bookings] SUPABASE_URL or service key missing — cannot hold paid slot");
+    return {
+      status: 503,
+      body: { success: false, error: "Booking system temporarily unavailable. Please email us directly." },
+    };
   }
 
   return {

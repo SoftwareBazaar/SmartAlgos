@@ -1,8 +1,10 @@
 function resolveApiBase(): string {
   const configured = import.meta.env.VITE_API_URL?.trim();
-  if (configured) return configured.replace(/\/$/, "");
-  if (import.meta.env.PROD && typeof window !== "undefined") return window.location.origin;
-  return typeof window !== "undefined" ? window.location.origin : "http://localhost:8080";
+  if (configured && !configured.includes("localhost") && !configured.includes("127.0.0.1")) {
+    return configured.replace(/\/$/, "");
+  }
+  if (typeof window !== "undefined") return window.location.origin;
+  return "http://localhost:8080";
 }
 
 const API_BASE = resolveApiBase();

@@ -1,12 +1,12 @@
 /** Advisory desk — products, slots (7–9 PM EAT daily). */
 
 export const ADVISORY_PRODUCTS = [
-  { id: "equities", label: "Stocks & Equities" },
-  { id: "derivatives", label: "Futures & Derivatives" },
-  { id: "forex", label: "Forex" },
-  { id: "commodities", label: "Commodities" },
-  { id: "our-strategies", label: "Our Live Strategies" },
-  { id: "custom-systems", label: "Systems You Want to Build" },
+  { id: "equities", label: "Stocks & Equities", dbService: "stock_trading" },
+  { id: "derivatives", label: "Futures & Derivatives", dbService: "algo_development" },
+  { id: "forex", label: "Forex", dbService: "forex_trading" },
+  { id: "commodities", label: "Commodities", dbService: "other" },
+  { id: "our-strategies", label: "Our Live Strategies", dbService: "algo_development" },
+  { id: "custom-systems", label: "Systems You Want to Build", dbService: "algo_development" },
 ] as const;
 
 export type AdvisoryProductId = (typeof ADVISORY_PRODUCTS)[number]["id"];
@@ -72,7 +72,21 @@ export function rangesOverlap(a: [number, number], b: [number, number]): boolean
 }
 
 export function productLabel(id: string): string {
-  return ADVISORY_PRODUCTS.find((p) => p.id === id)?.label ?? id;
+  const match = ADVISORY_PRODUCTS.find((p) => p.id === id || p.dbService === id);
+  if (match) return match.label;
+  const legacy: Record<string, string> = {
+    stock_trading: "Stocks & Equities",
+    algo_development: "Algo / Systems",
+    forex_trading: "Forex",
+    web_development: "Web Development",
+    other: "Other",
+  };
+  return legacy[id] ?? id;
+}
+
+/** Map UI product id to legacy consultation_bookings.service values */
+export function serviceToDb(service: string): string {
+  return ADVISORY_PRODUCTS.find((p) => p.id === service)?.dbService ?? service;
 }
 
 export function formatSlotLabel(time: string): string {

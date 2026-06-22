@@ -26,6 +26,8 @@ export type BookingResult = {
   message?: string;
   error?: string;
   meetingLink?: string;
+  emailsSent?: boolean;
+  savedToDb?: boolean;
 };
 
 export async function fetchAvailableSlots(date: string, consultationType: "free_20" | "paid_90") {

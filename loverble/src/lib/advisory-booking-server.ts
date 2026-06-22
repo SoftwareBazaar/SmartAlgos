@@ -4,6 +4,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { PRICING } from "@/lib/pricing";
+import { deliverBookingEmail, getAdminEmail, getFromEmail } from "@/lib/booking-email-server";
 import {
   bookingRange,
   consultationDurationMinutes,
@@ -50,43 +51,6 @@ function getMeetingLink() {
     process.env.MEETING_LINK ||
     ""
   ).trim();
-}
-
-function getFromEmail() {
-  return process.env.EMAIL_USER || "softwarebazaar.ke@gmail.com";
-}
-
-function getAdminEmail() {
-  return process.env.ADMIN_EMAIL || process.env.EMAIL_USER || "softwarebazaar.ke@gmail.com";
-}
-
-async function sendGridMail(to: string, subject: string, html: string) {
-  const apiKey = process.env.SENDGRID_API_KEY;
-  if (!apiKey) {
-    console.warn("[Bookings] SENDGRID_API_KEY not set — email skipped");
-    return { success: false, reason: "not_configured" };
-  }
-
-  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      personalizations: [{ to: [{ email: to }] }],
-      from: { email: getFromEmail(), name: "Smart Algos Capital" },
-      subject,
-      content: [{ type: "text/html", value: html }],
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("[Bookings] SendGrid error:", res.status, text);
-    return { success: false, reason: text };
-  }
-  return { success: true };
 }
 
 type BookingRow = {
@@ -375,7 +339,7 @@ async function sendClientConfirmation(opts: {
     ? `Advisory confirmed — ${date} at ${formatSlotLabel(time)}`
     : `Your free 20-min consultation — ${date} at ${formatSlotLabel(time)}`;
 
-  return sendGridMail(email, subject, html);
+  return deliverBookingEmail({ to: email, subject, html });
 }
 
 async function sendAdminNotification(opts: {
@@ -405,11 +369,11 @@ async function sendAdminNotification(opts: {
      ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}`,
   );
 
-  return sendGridMail(
-    getAdminEmail(),
-    `${isPaid ? "Paid" : "Free"} advisory — ${name} · ${date}`,
+  return deliverBookingEmail({
+    to: getAdminEmail(),
+    subject: `${isPaid ? "Paid" : "Free"} advisory — ${name} · ${date}`,
     html,
-  );
+  });
 }
 
 export async function getAvailableSlots(date: string, consultationType: string) {
@@ -488,28 +452,32 @@ export async function createFreeBooking(body: BookingPayload) {
   }
 
   const meetingLink = getMeetingLink();
-  void sendClientConfirmation({
-    name: row.name,
-    email: row.email,
-    service: uiService,
-    consultationType,
-    date: row.date,
-    time: slotTime,
-    reference,
-    isPaid: false,
-  }).catch(console.error);
-  void sendAdminNotification({
-    name: row.name,
-    email: row.email,
-    phone: body.phone,
-    service: uiService,
-    consultationType,
-    date: row.date,
-    time: slotTime,
-    reference,
-    isPaid: false,
-    notes: body.notes,
-  }).catch(console.error);
+  const [clientEmail, adminEmail] = await Promise.all([
+    sendClientConfirmation({
+      name: row.name,
+      email: row.email,
+      service: uiService,
+      consultationType,
+      date: row.date,
+      time: slotTime,
+      reference,
+      isPaid: false,
+    }),
+    sendAdminNotification({
+      name: row.name,
+      email: row.email,
+      phone: body.phone,
+      service: uiService,
+      consultationType,
+      date: row.date,
+      time: slotTime,
+      reference,
+      isPaid: false,
+      notes: body.notes,
+    }),
+  ]);
+
+  const emailsOk = clientEmail.success && adminEmail.success;
 
   return {
     status: 200,
@@ -518,9 +486,12 @@ export async function createFreeBooking(body: BookingPayload) {
       reference,
       savedToDb,
       meetingLink: meetingLink || undefined,
-      message: savedToDb
-        ? "Your free 20-minute consultation is booked. Check your email for the meeting link."
-        : "Your consultation is confirmed. Check your email for the meeting link.",
+      emailsSent: emailsOk,
+      message: emailsOk
+        ? savedToDb
+          ? "Your free 20-minute consultation is booked. Check your email for the meeting link."
+          : "Your consultation is confirmed. Check your email for the meeting link."
+        : `Booked (ref ${reference}). Confirmation email could not be sent — we will follow up manually.`,
     },
   };
 }
@@ -607,26 +578,28 @@ export async function confirmPaidBookingFromPayment(metadata: Record<string, unk
     .eq("reference", bookingRef);
 
   const slotTime = normalizeTimeSlot(String(booking.time));
-  void sendClientConfirmation({
-    name: booking.name,
-    email: booking.email,
-    service: booking.service,
-    consultationType: "paid_90",
-    date: booking.date,
-    time: slotTime,
-    reference: bookingRef,
-    isPaid: true,
-  }).catch(console.error);
-  void sendAdminNotification({
-    name: booking.name,
-    email: booking.email,
-    phone: booking.phone,
-    service: booking.service,
-    consultationType: "paid_90",
-    date: booking.date,
-    time: slotTime,
-    reference: bookingRef,
-    isPaid: true,
-    notes: booking.notes,
-  }).catch(console.error);
+  await Promise.all([
+    sendClientConfirmation({
+      name: booking.name,
+      email: booking.email,
+      service: booking.service,
+      consultationType: "paid_90",
+      date: booking.date,
+      time: slotTime,
+      reference: bookingRef,
+      isPaid: true,
+    }),
+    sendAdminNotification({
+      name: booking.name,
+      email: booking.email,
+      phone: booking.phone,
+      service: booking.service,
+      consultationType: "paid_90",
+      date: booking.date,
+      time: slotTime,
+      reference: bookingRef,
+      isPaid: true,
+      notes: booking.notes,
+    }),
+  ]);
 }

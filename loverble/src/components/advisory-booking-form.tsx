@@ -81,9 +81,15 @@ export function AdvisoryBookingForm({ variant, className = "" }: Props) {
         email: email.trim(),
         notes: notes.trim() || undefined,
       });
-      toast.success("Consultation booked", {
-        description: result.message || "Check your email for the meeting link.",
-      });
+      if (result.emailsSent === false) {
+        toast.warning("Booked — email not sent", {
+          description: result.message || `Save your reference: ${result.reference}`,
+        });
+      } else {
+        toast.success("Consultation booked", {
+          description: result.message || "Check your email for the meeting link.",
+        });
+      }
       setNotes("");
     } catch (err) {
       toast.error((err as Error).message || "Booking failed");

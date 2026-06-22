@@ -17,8 +17,11 @@ import {
   rangesOverlap,
   serviceToDb,
   slotsForType,
+  todayInEat,
   type ConsultationType,
 } from "@/lib/advisory-scheduling";
+
+const ACTIVE_BOOKING_STATUSES = ["pending", "confirmed"] as const;
 
 function genBookingRef() {
   return `BOOK-${Date.now()}-${Math.random().toString(36).slice(2, 9).toUpperCase()}`;
@@ -92,23 +95,89 @@ type BookingRow = {
   status: string;
 };
 
+/** Expire past days, purge test rows, optional one-time full reset (BOOKING_RESET_ALL=true on Vercel). */
+export async function runBookingMaintenance(supabase: SupabaseClient | null) {
+  if (!supabase) return;
+
+  const today = todayInEat();
+
+  if (process.env.BOOKING_RESET_ALL === "true") {
+    const { error } = await supabase.from("consultation_bookings").delete().neq("reference", "");
+    if (error) console.error("[Bookings] Reset all failed:", error.message);
+    else console.warn("[Bookings] BOOKING_RESET_ALL — all consultation bookings deleted");
+    return;
+  }
+
+  // Past calendar days (EAT) no longer hold slots
+  const { error: expireError } = await supabase
+    .from("consultation_bookings")
+    .update({ status: "completed", updated_at: new Date().toISOString() })
+    .lt("date", today)
+    .in("status", [...ACTIVE_BOOKING_STATUSES]);
+
+  if (expireError) {
+    console.error("[Bookings] Expire past bookings failed:", expireError.message);
+  }
+
+  // Remove automated test bookings cluttering live slots
+  const { error: testError } = await supabase
+    .from("consultation_bookings")
+    .delete()
+    .or(
+      "email.ilike.%@example.com,email.ilike.%@test.com,email.ilike.debug-%,name.ilike.%test%,name.eq.Test User,name.eq.Debug Test,name.eq.Slot Test",
+    );
+
+  if (testError) {
+    console.error("[Bookings] Purge test bookings failed:", testError.message);
+  }
+}
+
+export async function clearAllBookings(adminSecret: string) {
+  const expected = process.env.BOOKING_ADMIN_SECRET;
+  if (!expected || adminSecret !== expected) {
+    return { status: 401, body: { success: false, error: "Unauthorized" } };
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { status: 503, body: { success: false, error: "Database not configured" } };
+  }
+
+  const { error, count } = await supabase
+    .from("consultation_bookings")
+    .delete({ count: "exact" })
+    .neq("reference", "");
+
+  if (error) {
+    return { status: 500, body: { success: false, error: error.message } };
+  }
+
+  return {
+    status: 200,
+    body: { success: true, deleted: count ?? 0, message: "All consultation bookings cleared." },
+  };
+}
+
 async function fetchBookingsForDate(supabase: SupabaseClient | null, date: string): Promise<BookingRow[]> {
   if (!supabase) return [];
+  if (date < todayInEat()) return [];
+
+  await runBookingMaintenance(supabase);
+
   const { data, error } = await supabase
     .from("consultation_bookings")
     .select("time, consultation_type, status")
-    .eq("date", date);
+    .eq("date", date)
+    .in("status", [...ACTIVE_BOOKING_STATUSES]);
 
   if (error) {
     console.error("[Bookings] Slot query error:", error.message);
     return [];
   }
-  return (data ?? [])
-    .filter((row) => row.status !== "cancelled")
-    .map((row) => ({
-      ...row,
-      time: normalizeTimeSlot(String(row.time)),
-    })) as BookingRow[];
+  return (data ?? []).map((row) => ({
+    ...row,
+    time: normalizeTimeSlot(String(row.time)),
+  })) as BookingRow[];
 }
 
 type DbBookingRow = {
@@ -394,6 +463,8 @@ export async function createFreeBooking(body: BookingPayload) {
   }
 
   const supabase = getSupabase();
+  if (supabase) await runBookingMaintenance(supabase);
+
   try {
     await assertSlotAvailable(supabase, body.date!, body.time!, consultationType);
   } catch (e) {
@@ -464,6 +535,8 @@ export async function createPendingPaidBooking(body: BookingPayload) {
   }
 
   const supabase = getSupabase();
+  if (supabase) await runBookingMaintenance(supabase);
+
   try {
     await assertSlotAvailable(supabase, body.date!, body.time!, consultationType);
   } catch (e) {

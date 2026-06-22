@@ -3,6 +3,7 @@ import { createStart, createMiddleware } from "@tanstack/react-start";
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 import {
+  clearAllBookings,
   createFreeBooking,
   createPendingPaidBooking,
   getAvailableSlots,
@@ -87,6 +88,18 @@ const advisoryBookingsMiddleware = createMiddleware().server(async ({ request, n
     } catch (err) {
       console.error("[Bookings] Pending paid error:", err);
       return Response.json({ success: false, error: "Reservation failed" }, { status: 500 });
+    }
+  }
+
+  if (pathname === "/api/bookings/admin/clear" && request.method === "POST") {
+    try {
+      const auth = request.headers.get("authorization") || "";
+      const secret = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+      const result = await clearAllBookings(secret);
+      return Response.json(result.body, { status: result.status });
+    } catch (err) {
+      console.error("[Bookings] Admin clear error:", err);
+      return Response.json({ success: false, error: "Clear failed" }, { status: 500 });
     }
   }
 

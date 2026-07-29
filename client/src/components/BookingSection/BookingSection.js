@@ -916,8 +916,8 @@ const BookingSection = () => {
                   {selectedType?.id === 'free_outline_guide'
                     ? '🎁 Get a personalized outline guide. Upgrade to premium consultation anytime!'
                     : selectedType?.id === 'full_guide_mentorship_7'
-                    ? '🎥 Premium consultation with live guidance. Secure payment via Paystack. Meeting link will be confirmed before your session.'
-                    : '🎓 Intensive 1-on-1 training week. Secure payment via Paystack. Your personalized schedule will be sent shortly.'}
+                    ? '🎥 Premium consultation with live guidance. Secure payment. Meeting link will be confirmed before your session.'
+                    : '🎓 Intensive 1-on-1 training week. Secure payment. Your personalized schedule will be sent shortly.'}
                 </p>
               </div>
 

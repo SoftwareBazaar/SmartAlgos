@@ -924,7 +924,7 @@ const EADetail = () => {
                 }}
               >
                 <CreditCard className="h-4 w-4 mr-2" />
-                Pay with Paystack (Card/Bank)
+                Pay with Card / Bank
               </Button>
             </div>
 

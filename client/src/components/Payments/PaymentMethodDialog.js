@@ -61,7 +61,7 @@ const PaymentMethodDialog = ({
     {
       id: 'card',
       name: 'Card Payment',
-      description: 'Pay with Credit/Debit Card via Paystack',
+      description: 'Pay with Credit/Debit Card — secure & encrypted',
       icon: CreditCard,
       color: '#3b82f6', // Premium Blue
       iconColor: 'text-blue-500',

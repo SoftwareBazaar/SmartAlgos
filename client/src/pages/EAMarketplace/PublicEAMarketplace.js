@@ -413,7 +413,7 @@ const PublicEAMarketplace = () => {
             <div className="flex items-start gap-2 mb-6 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
               <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Secured by Paystack. Your card details are encrypted and secure.
+                Your card details are encrypted and secure. 256-bit SSL protection.
               </p>
             </div>
 

@@ -201,7 +201,7 @@ const LandingPage = () => {
     {
       icon: <DollarSign className="h-8 w-8 text-success-600" />,
       title: "Payment Integration",
-      description: "Secure payment processing with Paystack",
+      description: "Secure payment processing — card, bank transfer & mobile money",
       link: "/payments",
       benefits: [
         "Multiple payment methods supported",

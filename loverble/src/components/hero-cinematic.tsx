@@ -1,10 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { MarketVideoCanvas } from "@/components/market-video-canvas";
-
-const VIDEO_SOURCES = [
-  "/hero-bg.mp4",
-].filter(Boolean) as string[];
 
 const ORBS = [
   { className: "left-[8%] top-[18%] h-[420px] w-[420px] bg-gold/10", duration: 22 },
@@ -58,46 +53,36 @@ function EquityCurve() {
 export function HeroCinematic() {
   const reduceMotion = useReducedMotion();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoSrc, setVideoSrc] = useState<string | null>(null);
-  const [sourceIndex, setSourceIndex] = useState(0);
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
   useEffect(() => {
-    if (reduceMotion || VIDEO_SOURCES.length === 0) return;
-    setVideoSrc(VIDEO_SOURCES[0] ?? null);
-  }, [reduceMotion]);
-
-  const tryNextSource = () => {
-    const next = sourceIndex + 1;
-    if (next < VIDEO_SOURCES.length) {
-      setSourceIndex(next);
-      setVideoSrc(VIDEO_SOURCES[next] ?? null);
-    } else {
-      setVideoSrc(null);
+    if (reduceMotion) return;
+    const vid = videoRef.current;
+    if (vid) {
+      vid.play().catch(() => {});
     }
-  };
+  }, [reduceMotion]);
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-      <MarketVideoCanvas />
-
-      {videoSrc && !reduceMotion && (
+      {/* Your hero background video — only this, no canvas overlay */}
+      {!reduceMotion && (
         <video
           ref={videoRef}
-          key={videoSrc}
           autoPlay
           muted
           loop
           playsInline
-          preload="auto"
-          className="absolute inset-0 h-full w-full object-cover scale-[1.02] opacity-45 z-[1] motion-reduce:hidden"
-          onError={tryNextSource}
-          onLoadedData={() => videoRef.current?.play().catch(() => tryNextSource())}
+          preload="metadata"
+          className="absolute inset-0 h-full w-full object-cover object-center opacity-40 z-[1] motion-reduce:hidden"
+          onLoadedData={() => setVideoLoaded(true)}
+          style={{ objectPosition: "center 30%" }}
         >
-          <source src={videoSrc} type="video/mp4" />
+          <source src="/hero-bg.mp4" type="video/mp4" />
         </video>
       )}
 
-      <div className="absolute inset-0 bg-dominant/55 z-[2]" />
+      <div className="absolute inset-0 bg-dominant/60 z-[2]" />
 
       {!reduceMotion &&
         ORBS.map((orb) => (

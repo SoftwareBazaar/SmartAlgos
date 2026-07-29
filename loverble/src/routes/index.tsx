@@ -197,8 +197,8 @@ function Landing() {
 
           {/* Partner Prop Firms */}
           <div className="my-8 pt-6 border-t border-border/50">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-4">Collaborating with prop firms &amp; brokers</p>
-            <div className="flex flex-wrap items-center gap-6">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-5">Collaborating with prop firms &amp; brokers</p>
+            <div className="flex flex-wrap items-center gap-5">
               {[
                 { name: "Funding Pips", url: "https://fundingpips.com", logo: "/fundingpips.png" },
                 { name: "Funded Next", url: "https://fundednext.com", logo: "/fundednext.png" },
@@ -211,19 +211,19 @@ function Landing() {
                   target="_blank"
                   rel="noopener noreferrer"
                   title={p.name}
-                  className="opacity-60 hover:opacity-100 transition-opacity duration-200"
+                  className="flex items-center justify-center bg-white rounded-lg px-3 py-2 hover:scale-105 transition-transform duration-200"
+                  style={{ minWidth: "110px", height: "44px" }}
                 >
                   <img
                     src={p.logo}
                     alt={p.name}
-                    className="h-7 w-auto object-contain"
+                    className="h-8 w-auto object-contain max-w-[100px]"
                     onError={(e) => {
-                      // fallback to text badge if image fails
                       const el = e.currentTarget;
                       el.style.display = "none";
                       const span = document.createElement("span");
                       span.textContent = p.name;
-                      span.className = "text-xs text-muted-foreground font-medium";
+                      span.className = "text-xs text-gray-800 font-semibold";
                       el.parentElement?.appendChild(span);
                     }}
                   />

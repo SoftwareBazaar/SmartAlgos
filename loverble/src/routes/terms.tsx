@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FileText, ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/legal/terms")({
+export const Route = createFileRoute("/terms")({
   head: () => ({ meta: [{ title: "Terms of Service — Smart Algos Capital" }] }),
   component: Terms,
 });
@@ -104,7 +104,7 @@ function Terms() {
       </Block>
 
       <Block title="8. Disclaimers">
-        <p>The content on Smart Algos Capital is for informational and educational purposes only. Nothing on this platform constitutes financial, investment, tax, or legal advice. See our <Link to="/legal/disclaimers" className="text-gold hover:underline">Disclaimers</Link> for the full risk disclosure.</p>
+        <p>The content on Smart Algos Capital is for informational and educational purposes only. Nothing on this platform constitutes financial, investment, tax, or legal advice. See our <Link to="/disclaimers" className="text-gold hover:underline">Disclaimers</Link> for the full risk disclosure.</p>
         <p>The platform is provided on an "as is" basis without warranties of any kind, express or implied, including warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
       </Block>
 
@@ -134,3 +134,5 @@ function Terms() {
     </div>
   );
 }
+
+

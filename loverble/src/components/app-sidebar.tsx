@@ -62,13 +62,8 @@ export function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
-        {open && (
-          <p className="text-[10px] text-muted-foreground/60 leading-snug">
-            Smart Algos Investment Solution Ltd (Kenya)
-          </p>
-        )}
-      </SidebarFooter>
+      <SidebarFooter className="border-t border-sidebar-border" />
+
     </Sidebar>
   );
 }

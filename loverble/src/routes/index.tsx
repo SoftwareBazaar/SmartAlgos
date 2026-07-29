@@ -197,7 +197,7 @@ function Landing() {
 
           {/* Partner Prop Firms */}
           <div className="my-8 pt-6 border-t border-border/50">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-4">Compatible with leading prop firms</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-4">Collaborating with prop firms &amp; brokers</p>
             <div className="flex flex-wrap items-center gap-6">
               {[
                 { name: "Funding Pips", url: "https://fundingpips.com", logo: "/fundingpips.png" },
@@ -245,10 +245,10 @@ function Landing() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs text-muted-foreground">
             <span className="font-medium text-foreground/80">© 2026 {company.operator}. All rights reserved.</span>
             <div className="flex flex-wrap items-center gap-4">
-              <Link to="/legal/privacy" className="hover:text-gold transition">Privacy</Link>
-              <Link to="/legal/terms" className="hover:text-gold transition">Terms</Link>
-              <Link to="/legal/disclaimers" className="hover:text-gold transition">Disclaimers</Link>
-              <Link to="/legal/security" className="hover:text-gold transition">Security</Link>
+              <Link to="/privacy-policy" className="hover:text-gold transition">Privacy</Link>
+              <Link to="/terms" className="hover:text-gold transition">Terms</Link>
+              <Link to="/disclaimers" className="hover:text-gold transition">Disclaimers</Link>
+              <Link to="/security-policy" className="hover:text-gold transition">Security</Link>
               <span>Not investment advice · Kenya</span>
               <DonateButton footer />
             </div>

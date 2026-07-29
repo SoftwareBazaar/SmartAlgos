@@ -4,9 +4,6 @@ import { MarketVideoCanvas } from "@/components/market-video-canvas";
 
 const VIDEO_SOURCES = [
   "/hero-bg.mp4",
-  import.meta.env.VITE_HERO_VIDEO_URL,
-  "https://videos.pexels.com/video-files/3195394/3195394-uhd_2560_1440_25fps.mp4",
-  "https://videos.pexels.com/video-files/3129958/3129958-uhd_2560_1440_24fps.mp4",
 ].filter(Boolean) as string[];
 
 const ORBS = [

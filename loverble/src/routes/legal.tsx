@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Shield, FileText, Lock, AlertTriangle, Scale, Mail } from "lucide-react";
+import { Shield, FileText, Lock, AlertTriangle } from "lucide-react";
 import { company } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/legal")({
@@ -13,10 +13,10 @@ export const Route = createFileRoute("/legal")({
 });
 
 const sections = [
-  { icon: Shield, href: "/legal/privacy", label: "Privacy Policy", desc: "How we collect, use, and protect your personal data." },
-  { icon: FileText, href: "/legal/terms", label: "Terms of Service", desc: "The rules and conditions governing use of this platform." },
-  { icon: AlertTriangle, href: "/legal/disclaimers", label: "Disclaimers", desc: "Risk warnings and important disclosures about trading." },
-  { icon: Lock, href: "/legal/security", label: "Security Policy", desc: "How we keep your data and payments safe." },
+  { icon: Shield, href: "/privacy-policy", label: "Privacy Policy", desc: "How we collect, use, and protect your personal data." },
+  { icon: FileText, href: "/terms", label: "Terms of Service", desc: "The rules and conditions governing use of this platform." },
+  { icon: AlertTriangle, href: "/disclaimers", label: "Disclaimers", desc: "Risk warnings and important disclosures about trading." },
+  { icon: Lock, href: "/security-policy", label: "Security Policy", desc: "How we keep your data and payments safe." },
 ];
 
 function Legal() {

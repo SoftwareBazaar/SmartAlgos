@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Shield, ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/legal/privacy")({
+export const Route = createFileRoute("/privacy-policy")({
   head: () => ({ meta: [{ title: "Privacy Policy — Smart Algos Capital" }] }),
   component: Privacy,
 });
@@ -128,3 +128,5 @@ function Privacy() {
     </div>
   );
 }
+
+

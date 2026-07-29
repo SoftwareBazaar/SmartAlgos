@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/legal/disclaimers")({
+export const Route = createFileRoute("/disclaimers")({
   head: () => ({ meta: [{ title: "Disclaimers — Smart Algos Capital" }] }),
   component: Disclaimers,
 });
@@ -120,3 +120,5 @@ function Disclaimers() {
     </div>
   );
 }
+
+

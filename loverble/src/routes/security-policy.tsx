@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Lock, ArrowLeft, Shield, CheckCircle } from "lucide-react";
 
-export const Route = createFileRoute("/legal/security")({
+export const Route = createFileRoute("/security-policy")({
   head: () => ({ meta: [{ title: "Security Policy — Smart Algos Capital" }] }),
   component: Security,
 });
@@ -138,3 +138,5 @@ function Security() {
     </div>
   );
 }
+
+

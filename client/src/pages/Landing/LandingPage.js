@@ -10,19 +10,51 @@ import {
   Shield,
   ArrowRight,
   CheckCircle,
-  Star,
   Users,
   Globe,
-  Smartphone
+  Smartphone,
+  Mail,
+  Lock,
+  Loader
 } from 'lucide-react';
 import Card from '../../components/UI/Card';
 import Button from '../../components/UI/Button';
 import FeaturePreviewModal from '../../components/FeaturePreviewModal';
 import BookingSection from '../../components/BookingSection/BookingSection';
 
+const STORAGE_KEY = 'algosmart_subscriber_email';
+
 const LandingPage = () => {
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [subEmail, setSubEmail] = useState('');
+  const [subSubmitting, setSubSubmitting] = useState(false);
+  const [subSuccess, setSubSuccess] = useState(false);
+  const [subError, setSubError] = useState('');
+
+  const isValidEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    setSubError('');
+    if (!isValidEmail(subEmail)) { setSubError('Please enter a valid email address.'); return; }
+    setSubSubmitting(true);
+    try {
+      try {
+        await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: subEmail }),
+        });
+      } catch { /* non-blocking */ }
+      localStorage.setItem(STORAGE_KEY, subEmail);
+      setSubSuccess(true);
+    } catch {
+      setSubError('Something went wrong. Please try again.');
+    } finally {
+      setSubSubmitting(false);
+    }
+  };
 
   const handleFeatureClick = (feature) => {
     setSelectedFeature(feature);
@@ -264,12 +296,12 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 px-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 px-4 hyphens-none break-normal">
               Advanced Algorithmic
               <span className="text-gradient-primary"> Trading Platform</span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-              Professional-grade trading tools, real-time market data, and automated strategies 
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-4 hyphens-none">
+              Professional-grade trading tools, real-time market data, and automated strategies
               for serious traders and investors.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -325,7 +357,7 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-12"
           >
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 hyphens-none break-normal">
               Featured Expert Advisors
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto px-4">
@@ -425,7 +457,7 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 hyphens-none break-normal">
               Complete Trading Solution
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -464,6 +496,100 @@ const LandingPage = () => {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Subscribe Section */}
+      <section className="py-20 bg-gradient-to-br from-primary-900 via-primary-800 to-gray-900">
+        <div className="container-custom">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-2xl mx-auto text-center"
+          >
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
+                <Mail className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4 hyphens-none break-normal">
+              Get Access to Strategies &amp; Research
+            </h2>
+            <p className="text-lg text-primary-200 mb-8">
+              Subscribe with your email to unlock trading strategies, market analysis,
+              research content, and more. No account required to get started.
+            </p>
+
+            {/* What you unlock */}
+            <div className="grid grid-cols-2 gap-3 mb-8 text-left max-w-md mx-auto">
+              {[
+                'Trading strategies',
+                'Market research',
+                'EA performance data',
+                'Analysis reports',
+                'Market signals preview',
+                'Newsletter updates',
+              ].map((item) => (
+                <div key={item} className="flex items-center space-x-2 text-primary-100 text-sm">
+                  <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            {subSuccess ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white/10 rounded-2xl p-8 text-center"
+              >
+                <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">You're subscribed!</h3>
+                <p className="text-primary-200 mb-4">Content is now unlocked for you.</p>
+                <Link to="/auth/login">
+                  <Button variant="outline" className="border-white text-white hover:bg-white hover:text-primary-700">
+                    Sign In for Full Access
+                  </Button>
+                </Link>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="email"
+                    value={subEmail}
+                    onChange={(e) => { setSubEmail(e.target.value); setSubError(''); }}
+                    placeholder="Enter your email address"
+                    className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-300 text-sm"
+                    disabled={subSubmitting}
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={subSubmitting}
+                  className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-white font-semibold rounded-xl transition-colors duration-200 flex items-center justify-center space-x-2 text-sm whitespace-nowrap"
+                >
+                  {subSubmitting ? (
+                    <><Loader className="h-4 w-4 animate-spin" /><span>Subscribing...</span></>
+                  ) : (
+                    <><span>Subscribe &amp; Unlock</span><ArrowRight className="h-4 w-4" /></>
+                  )}
+                </button>
+              </form>
+            )}
+
+            {subError && (
+              <p className="mt-3 text-red-300 text-sm">{subError}</p>
+            )}
+
+            <p className="mt-4 text-xs text-primary-300">
+              No spam. Unsubscribe anytime. Already have an account?{' '}
+              <Link to="/auth/login" className="text-white underline font-medium">Sign in</Link>
+            </p>
+          </motion.div>
         </div>
       </section>
 
@@ -560,13 +686,15 @@ const LandingPage = () => {
                 <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
                 <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                <li><Link to="/security" className="hover:text-white transition-colors">Security Policy</Link></li>
+                <li><Link to="/disclaimers" className="hover:text-white transition-colors">Disclaimers</Link></li>
                 <li><Link to="/refund" className="hover:text-white transition-colors">Refund Policy</Link></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-700 pt-8 text-center text-gray-400">
-            <p className="mb-2">&copy; 2025 Smart Algos Trading Platform. All rights reserved.</p>
-            <p className="text-sm">Embu, Kenya | Licensed Financial Services Provider</p>
+            <p className="mb-1">&copy; 2025 Smart Algos Trading Platform. All rights reserved.</p>
+            <p className="text-sm">Smart Algos Investment Solution Ltd (Kenya) &middot; Embu, Kenya &middot; Licensed Financial Services Provider</p>
           </div>
         </div>
       </footer>

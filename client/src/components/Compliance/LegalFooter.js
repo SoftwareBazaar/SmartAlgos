@@ -33,6 +33,16 @@ const LegalFooter = ({ className = '' }) => {
                   Refund Policy
                 </Link>
               </li>
+              <li>
+                <Link to="/security" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                  Security Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/disclaimers" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                  Disclaimers
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -76,7 +86,10 @@ const LegalFooter = ({ className = '' }) => {
         {/* Copyright */}
         <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
           <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
-            © {new Date().getFullYear()} Smart Algos Trading Platform. All rights reserved. | Embu, Kenya
+            © {new Date().getFullYear()} Smart Algos Trading Platform. All rights reserved.
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 text-center mt-1">
+            Smart Algos Investment Solution Ltd (Kenya) · Embu, Kenya
           </p>
         </div>
       </div>

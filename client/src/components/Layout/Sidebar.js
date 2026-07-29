@@ -1,20 +1,20 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  Home,
-  TrendingUp,
+  LayoutDashboard,
+  LineChart,
   Newspaper,
-  Bot,
+  ShoppingBag,
   Zap,
   PieChart,
   User,
   Settings as SettingsIcon,
   CreditCard,
-  DollarSign,
+  Wallet,
   Monitor,
   X,
   Wrench,
-  Code
+  Code2
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -24,11 +24,11 @@ const Sidebar = ({ isOpen, onClose }) => {
   
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Markets', href: '/markets', icon: TrendingUp },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Markets', href: '/markets', icon: LineChart },
     { name: 'News & Analysis', href: '/news', icon: Newspaper },
-    { name: 'EA Marketplace', href: '/ea-marketplace', icon: Bot },
-    { name: 'Custom EA Service', href: '/custom-ea', icon: Code },
+    { name: 'EA Marketplace', href: '/ea-marketplace', icon: ShoppingBag },
+    { name: 'Custom EA Service', href: '/custom-ea', icon: Code2 },
     { name: 'Free Utilities', href: '/utilities', icon: Wrench },
     { name: 'HFT Bots', href: '/hft-bots', icon: Zap },
     { name: 'Portfolio', href: '/portfolio', icon: PieChart },
@@ -39,7 +39,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
     { name: 'Desktop Features', href: '/desktop-features', icon: Monitor },
     { name: 'Subscription', href: '/subscription', icon: CreditCard },
-    { name: 'Payments', href: '/payments', icon: DollarSign },
+    { name: 'Payments', href: '/payments', icon: Wallet },
   ];
 
   const isActive = (href) => {
@@ -48,7 +48,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const linkClassNames = (href) => {
     const active = isActive(href);
-    return `group flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 relative ${
+    return `flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 relative whitespace-nowrap ${
       active
         ? 'bg-primary-500/15 dark:bg-primary-500/20 text-primary-700 dark:text-primary-100 font-semibold shadow-md border-l-4 border-primary-600 dark:border-primary-400'
         : 'text-gray-700 dark:text-gray-300 border-l-4 border-transparent hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:border-l-primary-400 dark:hover:border-l-primary-500'
@@ -88,9 +88,9 @@ const Sidebar = ({ isOpen, onClose }) => {
       <nav className="mt-6 flex-1 px-3 pb-6 space-y-8 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-brand-700 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 dark:hover:scrollbar-thumb-brand-600 scroll-smooth">
         <div className="space-y-1">
           <p className="px-1 text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-brand-300">
-            Navigation
+            Platform
           </p>
-          <div className="mt-3 space-y-1">
+          <div className="mt-3 space-y-0.5">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
@@ -100,8 +100,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                   onClick={onClose}
                   className={linkClassNames(item.href)}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
-                  <span>{item.name}</span>
+                  <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                  <span className="truncate">{item.name}</span>
                 </NavLink>
               );
             })}
@@ -110,9 +110,9 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         <div>
           <p className="px-1 text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-brand-300">
-            Account
+            My Account
           </p>
-          <div className="mt-3 space-y-1">
+          <div className="mt-3 space-y-0.5">
             {userNavigation.map((item) => {
               const Icon = item.icon;
               return (
@@ -122,8 +122,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                   onClick={onClose}
                   className={linkClassNames(item.href)}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
-                  <span>{item.name}</span>
+                  <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                  <span className="truncate">{item.name}</span>
                 </NavLink>
               );
             })}

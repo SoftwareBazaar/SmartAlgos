@@ -77,6 +77,8 @@ import AboutMe from './pages/Documentation/AboutMe';
 import PrivacyPolicy from './pages/Documentation/PrivacyPolicy';
 import RefundPolicy from './pages/Documentation/RefundPolicy';
 import TermsOfService from './pages/Documentation/TermsOfService';
+import SecurityPolicy from './pages/Documentation/SecurityPolicy';
+import Disclaimers from './pages/Documentation/Disclaimers';
 import Pricing from './pages/Pricing/Pricing';
 import PaymentCallback from './pages/PaymentCallback/PaymentCallback';
 
@@ -130,6 +132,8 @@ function App() {
                     <Route path="privacy" element={<PrivacyPolicy />} />
                     <Route path="terms" element={<TermsOfService />} />
                     <Route path="refund" element={<RefundPolicy />} />
+                    <Route path="security" element={<SecurityPolicy />} />
+                    <Route path="disclaimers" element={<Disclaimers />} />
                     <Route path="pricing" element={<Pricing />} />
 
                     {/* Main Application Routes - Protected */}

@@ -194,10 +194,49 @@ function Landing() {
               ))}
             </ul>
           </div>
-          <div className="hairline my-8" />
+
+          {/* Partner Prop Firms */}
+          <div className="my-8 pt-6 border-t border-border/50">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3">Compatible with leading prop firms</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { name: "Funding Pips", url: "https://fundingpips.com" },
+                { name: "Funded Next", url: "https://fundednext.com" },
+                { name: "FTMO", url: "https://ftmo.com" },
+                { name: "MyForexFunds", url: "https://myforexfunds.com" },
+                { name: "The5ers", url: "https://the5ers.com" },
+                { name: "Topstep", url: "https://topstep.com" },
+              ].map((p) => (
+                <a
+                  key={p.name}
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-3 py-1.5 rounded border border-border/60 bg-card/30 text-xs font-medium text-muted-foreground hover:border-gold/40 hover:text-gold transition"
+                >
+                  {p.name}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Compliance badges */}
+          <div className="mb-6 flex flex-wrap gap-2">
+            {["GDPR", "PCI-DSS", "ISO 27001", "SOC 2", "AML/KYC"].map((badge) => (
+              <span key={badge} className="inline-flex items-center px-2.5 py-1 rounded border border-gold/25 bg-gold/5 text-[10px] font-semibold uppercase tracking-wider text-gold">
+                {badge}
+              </span>
+            ))}
+          </div>
+
+          <div className="hairline mb-6" />
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs text-muted-foreground">
             <span className="font-medium text-foreground/80">© 2026 {company.operator}. All rights reserved.</span>
             <div className="flex flex-wrap items-center gap-4">
+              <Link to="/legal/privacy" className="hover:text-gold transition">Privacy</Link>
+              <Link to="/legal/terms" className="hover:text-gold transition">Terms</Link>
+              <Link to="/legal/disclaimers" className="hover:text-gold transition">Disclaimers</Link>
+              <Link to="/legal/security" className="hover:text-gold transition">Security</Link>
               <span>Not investment advice · Kenya</span>
               <DonateButton footer />
             </div>

@@ -92,7 +92,7 @@ export function CheckoutForm({
         disabled={loading}
         className={`w-full inline-flex items-center justify-center gap-2 rounded-sm px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition disabled:opacity-60 ${btnClass}`}
       >
-        {loading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Redirecting to Paystack…</> : label}
+        {loading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Redirecting…</> : label}
       </button>
     </form>
   );

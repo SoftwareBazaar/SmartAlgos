@@ -26,7 +26,7 @@ export function PremiumGate({ items, tierId = "research-pro" }: { items: string[
           productType="research_subscription"
           productId={tierId}
           amountUsd={PRICING.researchFull}
-          label={`Unlock report — ${formatUsd(PRICING.researchFull)} via Paystack`}
+          label={`Unlock report — ${formatUsd(PRICING.researchFull)}`}
         />
       </div>
       <Link to="/research" className="mt-3 inline-block text-xs text-muted-foreground hover:text-gold">

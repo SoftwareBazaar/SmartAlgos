@@ -110,10 +110,12 @@ export function SidebarMenuButton({
     <div
       title={tooltip}
       className={cn(
-        "flex items-center gap-2 rounded-sm px-2 py-2 text-sm transition-colors",
+        "rounded-sm px-2 py-1.5 text-sm transition-colors",
         isActive
           ? "bg-gold/12 text-gold border-l-2 border-gold -ml-px pl-[calc(0.5rem+1px)] font-medium"
           : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground border-l-2 border-transparent",
+        "[&>a]:flex [&>a]:items-center [&>a]:gap-2.5 [&>a]:w-full [&>a]:whitespace-nowrap",
+        "[&>a>svg]:h-4 [&>a>svg]:w-4 [&>a>svg]:shrink-0",
       )}
     >
       {children}

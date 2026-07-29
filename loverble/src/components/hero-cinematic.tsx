@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
 const ORBS = [
@@ -53,7 +53,6 @@ function EquityCurve() {
 export function HeroCinematic() {
   const reduceMotion = useReducedMotion();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoLoaded, setVideoLoaded] = useState(false);
 
   useEffect(() => {
     if (reduceMotion) return;
@@ -65,7 +64,7 @@ export function HeroCinematic() {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-      {/* Your hero background video — only this, no canvas overlay */}
+      {/* Your hero background video — constrained, not full-screen */}
       {!reduceMotion && (
         <video
           ref={videoRef}
@@ -74,9 +73,8 @@ export function HeroCinematic() {
           loop
           playsInline
           preload="metadata"
-          className="absolute inset-0 h-full w-full object-cover object-center opacity-40 z-[1] motion-reduce:hidden"
-          onLoadedData={() => setVideoLoaded(true)}
-          style={{ objectPosition: "center 30%" }}
+          className="absolute inset-0 h-full w-full object-cover object-center opacity-30 z-[1] motion-reduce:hidden"
+          style={{ objectPosition: "center 25%", transform: "scale(0.85)", transformOrigin: "center top" }}
         >
           <source src="/hero-bg.mp4" type="video/mp4" />
         </video>

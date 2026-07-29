@@ -197,24 +197,36 @@ function Landing() {
 
           {/* Partner Prop Firms */}
           <div className="my-8 pt-6 border-t border-border/50">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3">Compatible with leading prop firms</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-4">Compatible with leading prop firms</p>
+            <div className="flex flex-wrap items-center gap-6">
               {[
-                { name: "Funding Pips", url: "https://fundingpips.com" },
-                { name: "Funded Next", url: "https://fundednext.com" },
-                { name: "FTMO", url: "https://ftmo.com" },
-                { name: "MyForexFunds", url: "https://myforexfunds.com" },
-                { name: "The5ers", url: "https://the5ers.com" },
-                { name: "Topstep", url: "https://topstep.com" },
+                { name: "Funding Pips", url: "https://fundingpips.com", logo: "/fundingpips.png" },
+                { name: "Funded Next", url: "https://fundednext.com", logo: "/fundednext.png" },
+                { name: "FTMO", url: "https://ftmo.com", logo: "/ftmo.png" },
+                { name: "FP Markets", url: "https://fpmarkets.com", logo: "/fpmarkets.png" },
               ].map((p) => (
                 <a
                   key={p.name}
                   href={p.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center px-3 py-1.5 rounded border border-border/60 bg-card/30 text-xs font-medium text-muted-foreground hover:border-gold/40 hover:text-gold transition"
+                  title={p.name}
+                  className="opacity-60 hover:opacity-100 transition-opacity duration-200"
                 >
-                  {p.name}
+                  <img
+                    src={p.logo}
+                    alt={p.name}
+                    className="h-7 w-auto object-contain"
+                    onError={(e) => {
+                      // fallback to text badge if image fails
+                      const el = e.currentTarget;
+                      el.style.display = "none";
+                      const span = document.createElement("span");
+                      span.textContent = p.name;
+                      span.className = "text-xs text-muted-foreground font-medium";
+                      el.parentElement?.appendChild(span);
+                    }}
+                  />
                 </a>
               ))}
             </div>

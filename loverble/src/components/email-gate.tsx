@@ -113,8 +113,7 @@ export function EmailGate({
             </form>
 
             <p className="mt-3 text-[11px] text-muted-foreground">
-              No spam. Unsubscribe anytime. Already paid?{" "}
-              <a href="/auth" className="text-gold hover:underline">Sign in →</a>
+              No spam. Unsubscribe anytime.
             </p>
           </>
         )}

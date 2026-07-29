@@ -6,7 +6,6 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
 } from "@/components/ui/sidebar";
-import { company } from "@/lib/mock-data";
 import { BrandLogo } from "@/components/brand-logo";
 import { useSidebar } from "@/components/ui/sidebar";
 
@@ -63,10 +62,12 @@ export function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border">
-        <p className="text-[10px] text-muted-foreground leading-snug px-1">
-          {company.operator}
-        </p>
+      <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
+        {open && (
+          <p className="text-[10px] text-muted-foreground/60 leading-snug">
+            Smart Algos Investment Solution Ltd (Kenya)
+          </p>
+        )}
       </SidebarFooter>
     </Sidebar>
   );

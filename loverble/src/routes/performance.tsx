@@ -6,6 +6,7 @@ import { equityCurve, fmt } from "@/lib/mock-data";
 import { fetchCapitalPerformance } from "@/lib/performance-api";
 import { ExternalLink, ShieldCheck, Loader2 } from "lucide-react";
 import { IllustrativeChartNote } from "@/components/illustrative-chart-note";
+import { EmailGate } from "@/components/email-gate";
 
 export const Route = createFileRoute("/performance")({
   head: () => ({
@@ -35,8 +36,12 @@ function Performance() {
     <PageShell
       eyebrow="Verified Performance"
       title="Strategy Performance"
-      description="Track records connected from QuantConnect and partner platforms. Set QC_* URLs in Vercel to link live listings."
+      description="Track records connected from QuantConnect and partner platforms."
     >
+      <EmailGate
+        title="Subscribe to view performance data"
+        description="Enter your email to access verified strategy performance, equity curves, monthly returns, and drawdown analysis — free."
+      >
       {isLoading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" /> Loading performance data…
@@ -156,6 +161,7 @@ function Performance() {
           Set <code className="text-gold">QC_GOLD_MOMENTUM_URL</code> and <code className="text-gold">QC_FX_MEAN_REVERSION_URL</code> in Vercel for direct strategy links.
         </p>
       </SectionCard>
+      </EmailGate>
     </PageShell>
   );
 }

@@ -104,7 +104,7 @@ function RootComponent() {
       {isStandalone ? (
         <Outlet />
       ) : (
-        <SidebarProvider defaultOpen={false}>
+        <SidebarProvider defaultOpen={true}>
           <div className="min-h-screen flex w-full bg-background overflow-x-hidden">
             <AppSidebar />
             <div className="flex-1 flex flex-col min-w-0 w-full">

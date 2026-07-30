@@ -104,17 +104,17 @@ function RootComponent() {
       {isStandalone ? (
         <Outlet />
       ) : (
-        <SidebarProvider>
-          <div className="min-h-screen flex w-full bg-background">
+        <SidebarProvider defaultOpen={false}>
+          <div className="min-h-screen flex w-full bg-background overflow-x-hidden">
             <AppSidebar />
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 w-full">
               <header className="h-14 flex items-center gap-3 border-b border-border bg-background/80 backdrop-blur px-4 sticky top-0 z-30">
                 <SidebarTrigger />
                 <div className="ml-auto text-xs text-muted-foreground hidden sm:inline uppercase tracking-[0.18em]">
                   Research First · Building a Track Record
                 </div>
               </header>
-              <main className="flex-1 min-w-0"><Outlet /></main>
+              <main className="flex-1 min-w-0 w-full overflow-x-hidden"><Outlet /></main>
             </div>
           </div>
         </SidebarProvider>

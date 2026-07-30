@@ -1,19 +1,26 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-const SidebarCtx = React.createContext<{ open: boolean; toggle: () => void }>({
-  open: true,
+const SidebarCtx = React.createContext<{ open: boolean; toggle: () => void; close: () => void }>({
+  open: false,
   toggle: () => {},
+  close: () => {},
 });
 
 export function useSidebar() {
   return React.useContext(SidebarCtx);
 }
 
-export function SidebarProvider({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = React.useState(true);
+export function SidebarProvider({
+  children,
+  defaultOpen = false,
+}: {
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = React.useState(defaultOpen);
   return (
-    <SidebarCtx.Provider value={{ open, toggle: () => setOpen((o) => !o) }}>
+    <SidebarCtx.Provider value={{ open, toggle: () => setOpen((o) => !o), close: () => setOpen(false) }}>
       {children}
     </SidebarCtx.Provider>
   );
@@ -44,23 +51,43 @@ export function Sidebar({
   collapsible?: string;
   className?: string;
 }) {
-  const { open } = React.useContext(SidebarCtx);
+  const { open, close } = React.useContext(SidebarCtx);
+
   return (
-    <aside
-      data-collapsible={collapsible}
-      className={cn(
-        "border-r border-sidebar-border bg-sidebar text-sidebar-foreground shrink-0 transition-all",
-        open ? "w-64" : "w-16",
-        className,
+    <>
+      {/* Mobile overlay backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+          onClick={close}
+          aria-hidden
+        />
       )}
-    >
-      {children}
-    </aside>
+
+      {/* Sidebar panel — fixed overlay on mobile, static on desktop */}
+      <aside
+        data-collapsible={collapsible}
+        className={cn(
+          // Mobile: fixed overlay, slides in/out
+          "fixed inset-y-0 left-0 z-50 w-64 flex flex-col",
+          "border-r border-sidebar-border bg-sidebar text-sidebar-foreground",
+          "transition-transform duration-300 ease-in-out",
+          open ? "translate-x-0" : "-translate-x-full",
+          // Desktop: static, always visible, never translates
+          "lg:relative lg:translate-x-0 lg:z-auto",
+          // Desktop collapsed width
+          open ? "lg:w-64" : "lg:w-64",
+          className,
+        )}
+      >
+        {children}
+      </aside>
+    </>
   );
 }
 
 export function SidebarHeader({ className, children }: { className?: string; children: React.ReactNode }) {
-  return <div className={cn("p-2", className)}>{children}</div>;
+  return <div className={cn("p-2 shrink-0", className)}>{children}</div>;
 }
 
 export function SidebarContent({ children }: { children: React.ReactNode }) {
@@ -68,7 +95,7 @@ export function SidebarContent({ children }: { children: React.ReactNode }) {
 }
 
 export function SidebarFooter({ className, children }: { className?: string; children: React.ReactNode }) {
-  return <div className={cn("p-3", className)}>{children}</div>;
+  return <div className={cn("p-3 shrink-0", className)}>{children}</div>;
 }
 
 export function SidebarGroup({ children }: { children: React.ReactNode }) {

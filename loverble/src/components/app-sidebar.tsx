@@ -1,13 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LineChart, FlaskConical, FileText, MessageCircle, Info, Mail, User,
+  LineChart, FlaskConical, FileText, MessageCircle, Info, Mail, User, X,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { BrandLogo } from "@/components/brand-logo";
-import { useSidebar } from "@/components/ui/sidebar";
 
 const groups = [
   {
@@ -31,15 +31,25 @@ const groups = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { open } = useSidebar();
+  const { open, close } = useSidebar();
   const isActive = (url: string) => pathname === url || pathname.startsWith(`${url}/`);
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/" className="flex items-center px-2 py-3">
-          <BrandLogo variant="sidebar" iconOnly={!open} />
-        </Link>
+        <div className="flex items-center justify-between px-2 py-3">
+          <Link to="/" className="flex-1">
+            <BrandLogo variant="sidebar" iconOnly={!open} />
+          </Link>
+          {/* Close button — visible on mobile only */}
+          <button
+            onClick={close}
+            className="lg:hidden p-1.5 rounded-sm hover:bg-sidebar-accent text-muted-foreground"
+            aria-label="Close sidebar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         {groups.map((g) => (
@@ -50,7 +60,7 @@ export function AppSidebar() {
                 {g.items.map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                      <Link to={item.url}>
+                      <Link to={item.url} onClick={close}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>

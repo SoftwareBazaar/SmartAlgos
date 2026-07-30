@@ -57,19 +57,31 @@ function ContactPage() {
         <div className="flex flex-col gap-4">
           <SectionCard title="Direct" subtitle="Research desk">
             <div className="space-y-3 text-sm">
-              <div className="flex items-start gap-3"><Mail className="h-4 w-4 text-gold mt-0.5" /><div><div className="text-muted-foreground text-xs">Email</div><div className="font-mono">research@smartalgos.capital</div></div></div>
-              <div className="flex items-start gap-3"><Phone className="h-4 w-4 text-gold mt-0.5" /><div><div className="text-muted-foreground text-xs">Phone</div><div className="font-mono">+254 700 000 000</div></div></div>
-              <div className="flex items-start gap-3"><MapPin className="h-4 w-4 text-gold mt-0.5" /><div><div className="text-muted-foreground text-xs">HQ</div><div>Nairobi, Kenya</div></div></div>
+              <div className="flex items-start gap-3">
+                <Mail className="h-4 w-4 text-gold mt-0.5 shrink-0" />
+                <div>
+                  <div className="text-muted-foreground text-xs mb-0.5">Email</div>
+                  <a href="mailto:smartalgosts.com" className="font-mono hover:text-gold transition">smartalgosts.com</a>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Phone className="h-4 w-4 text-gold mt-0.5 shrink-0" />
+                <div>
+                  <div className="text-muted-foreground text-xs mb-0.5">WhatsApp</div>
+                  <a href="https://wa.me/254746054224" target="_blank" rel="noopener noreferrer" className="font-mono hover:text-gold transition">+254 746 054 224</a>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <MapPin className="h-4 w-4 text-gold mt-0.5 shrink-0" />
+                <div>
+                  <div className="text-muted-foreground text-xs mb-0.5">Location</div>
+                  <div>Embu, Kenya</div>
+                </div>
+              </div>
             </div>
           </SectionCard>
-          <SectionCard title="Elsewhere">
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              {[{ i: Linkedin, l: "LinkedIn" }, { i: Github, l: "GitHub" }, { i: Globe, l: "Website" }].map(({ i: I, l }) => (
-                <a key={l} href="#" className="flex flex-col items-center gap-1 rounded-sm border border-border bg-card/30 p-3 hover:border-gold/40 transition">
-                  <I className="h-4 w-4 text-gold" /><span className="text-muted-foreground">{l}</span>
-                </a>
-              ))}
-            </div>
+          <SectionCard title="Socials" subtitle="Coming soon">
+            <p className="text-xs text-muted-foreground">Social media links will be added shortly.</p>
           </SectionCard>
         </div>
       </div>

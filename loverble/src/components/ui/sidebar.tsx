@@ -49,12 +49,20 @@ export function SidebarTrigger({ className }: { className?: string }) {
 }
 
 /**
- * Sidebar — desktop: static flex child that takes up space in the layout.
- * Mobile: fixed overlay that slides over content (no layout gap).
- * 
- * On desktop, `open` drives the width via Tailwind classes.
- * On mobile (< lg), sidebar is always position:fixed, so the flex layout
- * isn't affected — the main content area gets full width.
+ * Sidebar layout strategy:
+ *
+ * MOBILE (< lg):
+ *   - Always position:fixed, slides in as overlay
+ *   - Never takes up layout space — content is always full width
+ *   - Backdrop closes it on tap outside
+ *
+ * DESKTOP (>= lg):
+ *   - Always position:relative, normal flex child (shrink-0)
+ *   - Always visible at w-64 — no collapse, no gap
+ *   - Toggle button on desktop hides/shows it via w-0 overflow-hidden
+ *
+ * This eliminates the gap because on desktop the sidebar is a flex child
+ * and flex-1 on main fills the rest automatically.
  */
 export function Sidebar({
   children,
@@ -69,7 +77,7 @@ export function Sidebar({
 
   return (
     <>
-      {/* Mobile backdrop overlay */}
+      {/* Mobile backdrop */}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black/60 lg:hidden"
@@ -79,36 +87,31 @@ export function Sidebar({
       )}
 
       {/*
-        Mobile (< lg):
-          - position: fixed, slides in/out with translateX
-          - Does NOT affect flex layout (content always full width)
-        Desktop (>= lg):
-          - position: relative (normal flex child)
-          - Width transitions from w-64 → w-16 (or stays w-64 when open)
-          - flex-shrink-0 keeps it from collapsing
-          - Content area is flex-1, so it fills the rest automatically
+        Mobile: fixed overlay — no layout impact on content
+        Desktop: static flex child — w-64 always, hidden by collapsing to w-0
       */}
       <aside
         data-collapsible={collapsible}
         className={cn(
-          "flex flex-col",
+          "flex flex-col shrink-0",
           "border-r border-sidebar-border bg-sidebar text-sidebar-foreground",
-          "transition-all duration-300 ease-in-out",
+          "overflow-hidden transition-all duration-300 ease-in-out",
 
-          // Mobile: fixed overlay, no layout impact
-          "fixed inset-y-0 left-0 z-50",
-          "w-64",
+          // MOBILE: fixed position overlay
+          "fixed inset-y-0 left-0 z-50 w-64",
           open ? "translate-x-0" : "-translate-x-full",
 
-          // Desktop: static flex child, layout-aware width
-          "lg:relative lg:z-auto lg:translate-x-0",
-          open ? "lg:w-64" : "lg:w-16",
-          "lg:shrink-0",
+          // DESKTOP: static, always in layout, toggle collapses width to 0
+          "lg:relative lg:translate-x-0 lg:z-auto",
+          open ? "lg:w-64" : "lg:w-0 lg:border-r-0",
 
           className,
         )}
       >
-        {children}
+        {/* Inner wrapper keeps content at 64 even when outer animates to 0 */}
+        <div className="flex flex-col h-full w-64">
+          {children}
+        </div>
       </aside>
     </>
   );
@@ -131,15 +134,8 @@ export function SidebarGroup({ children }: { children: React.ReactNode }) {
 }
 
 export function SidebarGroupLabel({ className, children }: { className?: string; children: React.ReactNode }) {
-  const { open } = React.useContext(SidebarCtx);
   return (
-    <div className={cn(
-      "px-2 mb-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70 transition-opacity duration-200",
-      // Hide label text on desktop collapsed, keep on mobile (always w-64)
-      "lg:block",
-      !open && "lg:opacity-0 lg:pointer-events-none",
-      className,
-    )}>
+    <div className={cn("px-2 mb-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70", className)}>
       {children}
     </div>
   );
@@ -168,20 +164,16 @@ export function SidebarMenuButton({
   tooltip?: string;
   children: React.ReactNode;
 }) {
-  const { open } = React.useContext(SidebarCtx);
   return (
     <div
-      title={!open ? tooltip : undefined}
+      title={tooltip}
       className={cn(
-        "rounded-sm px-2 py-1.5 text-sm transition-colors",
+        "rounded-sm px-2 py-1.5 text-sm transition-colors whitespace-nowrap",
         isActive
           ? "bg-gold/12 text-gold border-l-2 border-gold -ml-px pl-[calc(0.5rem+1px)] font-medium"
           : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground border-l-2 border-transparent",
-        // Icon+text flex layout — span hides on desktop collapsed
-        "[&>a]:flex [&>a]:items-center [&>a]:gap-2.5 [&>a]:w-full [&>a]:whitespace-nowrap [&>a]:overflow-hidden",
+        "[&>a]:flex [&>a]:items-center [&>a]:gap-2.5 [&>a]:w-full",
         "[&>a>svg]:h-4 [&>a>svg]:w-4 [&>a>svg]:shrink-0",
-        "[&>a>span]:transition-all [&>a>span]:duration-200",
-        !open && "lg:[&>a>span]:w-0 lg:[&>a>span]:opacity-0",
       )}
     >
       {children}

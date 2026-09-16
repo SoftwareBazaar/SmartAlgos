@@ -11,7 +11,7 @@ export const MOBILE_NAV = [
   { label: "Research Notes", to: "/research" },
   { label: "Subscriptions", to: "/", hash: "pricing" },
   { label: "Custom Quant", to: "/", hash: "custom-quant" },
-  { label: "Capital Desk", to: "/", hash: "capital" },
+  { label: "Client Portal", to: "/portal" },
 ] as const;
 
 const PUBLIC_EXACT = new Set([
@@ -35,6 +35,10 @@ export function isPublicSitePath(pathname: string): boolean {
   if (PUBLIC_EXACT.has(pathname)) return true;
   if (pathname.startsWith("/strategies")) return true;
   return false;
+}
+
+export function isPortalPath(pathname: string): boolean {
+  return pathname === "/portal" || pathname.startsWith("/portal/");
 }
 
 export function isBarePublicPath(pathname: string): boolean {

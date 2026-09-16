@@ -18,6 +18,7 @@ const groups = [
       { title: "Performance", url: "/performance", icon: LineChart },
       { title: "Consultation", url: "/consultation", icon: MessageCircle },
       { title: "My Account", url: "/account", icon: User },
+      { title: "Client Portal", url: "/portal", icon: LineChart },
     ],
   },
   {

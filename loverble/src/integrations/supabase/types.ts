@@ -77,6 +77,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          role: string | null
           subscription_expires_at: string | null
           subscription_status: string
           updated_at: string
@@ -86,6 +87,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          role?: string | null
           subscription_expires_at?: string | null
           subscription_status?: string
           updated_at?: string
@@ -95,9 +97,124 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          role?: string | null
           subscription_expires_at?: string | null
           subscription_status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      backtests: {
+        Row: {
+          id: string
+          user_id: string | null
+          email: string | null
+          asset_class: string
+          strategy_name: string
+          lookback_period: string
+          metrics: Json
+          pdf_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          email?: string | null
+          asset_class: string
+          strategy_name?: string
+          lookback_period: string
+          metrics: Json
+          pdf_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          email?: string | null
+          asset_class?: string
+          strategy_name?: string
+          lookback_period?: string
+          metrics?: Json
+          pdf_url?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      strategy_purchases: {
+        Row: {
+          id: string
+          user_id: string | null
+          email: string | null
+          strategy_id: string
+          paystack_reference: string
+          amount_paid: number
+          unlocked_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          email?: string | null
+          strategy_id: string
+          paystack_reference: string
+          amount_paid: number
+          unlocked_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          email?: string | null
+          strategy_id?: string
+          paystack_reference?: string
+          amount_paid?: number
+          unlocked_at?: string
+        }
+        Relationships: []
+      }
+      prop_allocations: {
+        Row: {
+          id: string
+          investor_id: string | null
+          prop_firm_name: string
+          account_number: string
+          allocated_strategy: string
+          status: string | null
+          allocated_equity: number | null
+          current_equity: number | null
+          pnl: number | null
+          max_dd_limit: number | null
+          current_dd: number | null
+          notes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          investor_id?: string | null
+          prop_firm_name: string
+          account_number: string
+          allocated_strategy: string
+          status?: string | null
+          allocated_equity?: number | null
+          current_equity?: number | null
+          pnl?: number | null
+          max_dd_limit?: number | null
+          current_dd?: number | null
+          notes?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          investor_id?: string | null
+          prop_firm_name?: string
+          account_number?: string
+          allocated_strategy?: string
+          status?: string | null
+          allocated_equity?: number | null
+          current_equity?: number | null
+          pnl?: number | null
+          max_dd_limit?: number | null
+          current_dd?: number | null
+          notes?: string | null
+          created_at?: string
         }
         Relationships: []
       }

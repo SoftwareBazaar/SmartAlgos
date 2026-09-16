@@ -5,6 +5,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { confirmPaidBookingFromPayment } from "@/lib/advisory-booking-server";
 import { PRICING } from "@/lib/pricing";
+import { fulfillStrategyPurchase } from "@/lib/strategy-unlock-server";
+import { getStrategyFileProduct } from "@/lib/strategy-catalog";
 
 const KES_RATE = 150;
 
@@ -21,9 +23,12 @@ const PRODUCT_IDS: Record<string, string> = {
   "live-institutional": "66666666-6666-6666-6666-666666666666",
   consultation: "33333333-3333-3333-3333-333333333333",
   research_donation: "44444444-4444-4444-4444-444444444444",
+  strategy_file: "77777777-7777-7777-7777-777777777777",
+  eurusd_mean_reversion_v2: "77777777-7777-7777-7777-777777777777",
+  xauusd_fomc_breakout: "88888888-8888-8888-8888-888888888888",
 };
 
-const VALID_PRODUCT_TYPES = ["research_subscription", "research_donation", "consultation"] as const;
+const VALID_PRODUCT_TYPES = ["research_subscription", "research_donation", "consultation", "strategy_file"] as const;
 export type CapitalProductType = (typeof VALID_PRODUCT_TYPES)[number];
 
 function genReference(prefix = "CAP") {
@@ -74,6 +79,9 @@ function resolveAmountUsd({
   }
   if (productType === "consultation") {
     return TIER_AMOUNTS_USD.consultation;
+  }
+  if (productType === "strategy_file") {
+    return PRICING.strategyFile;
   }
   return null;
 }
@@ -139,6 +147,13 @@ export async function initializeCapitalPayment(body: {
   if (!productId && productType !== "research_donation") {
     return { status: 400, body: { success: false, error: "Product ID is required" } };
   }
+  if (
+    productType === "strategy_file" &&
+    !getStrategyFileProduct(productId) &&
+    !getStrategyFileProduct(typeof metadata.strategy_id === "string" ? metadata.strategy_id : "")
+  ) {
+    return { status: 400, body: { success: false, error: "Unknown strategy file" } };
+  }
 
   const resolvedUsd = resolveAmountUsd({ productType, productId, amountUsd });
   if (!resolvedUsd) {
@@ -148,7 +163,9 @@ export async function initializeCapitalPayment(body: {
   const reference = genReference();
   const amountKes = resolvedUsd * KES_RATE;
   const amountKobo = Math.round(amountKes * 100);
-  const dbProductId = PRODUCT_IDS[productId] || PRODUCT_IDS.research_donation;
+  const dbProductId =
+    PRODUCT_IDS[productId] ||
+    (productType === "strategy_file" ? PRODUCT_IDS.strategy_file : PRODUCT_IDS.research_donation);
   const callbackUrl = `${getCallbackBase()}/payment-callback`;
 
   let dbPaymentId: string | null = null;
@@ -188,6 +205,7 @@ export async function initializeCapitalPayment(body: {
       product_id: productId,
       amount_usd: resolvedUsd,
       platform: "smart-algos-capital",
+      ...(productType === "strategy_file" ? { strategy_id: metadata.strategy_id || productId } : {}),
       ...metadata,
     },
   });
@@ -277,6 +295,21 @@ export async function verifyCapitalPayment(reference: string) {
 
     if (productType === "consultation" && metadata.booking_reference) {
       await confirmPaidBookingFromPayment(metadata, reference);
+    }
+
+    if (productType === "strategy_file" || metadata.strategy_id) {
+      try {
+        await fulfillStrategyPurchase({
+          reference,
+          amountPaid: Number(amountUsd) || Number(txData.amount) / 100 / KES_RATE,
+          email,
+          userId: typeof metadata.user_id === "string" ? metadata.user_id : null,
+          strategyId: String(metadata.strategy_id || productId || ""),
+          sendEmail: true,
+        });
+      } catch (err) {
+        console.error("[Capital] Strategy unlock failed:", (err as Error).message);
+      }
     }
   }
 

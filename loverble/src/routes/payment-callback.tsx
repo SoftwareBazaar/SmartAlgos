@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { verifyCapitalPayment } from "@/lib/payments-api";
 import { saveSubscriptionFromPayment } from "@/lib/subscription-access";
@@ -9,7 +9,6 @@ export const Route = createFileRoute("/payment-callback")({
 });
 
 function PaymentCallback() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("Verifying your payment…");
 
@@ -33,15 +32,22 @@ function PaymentCallback() {
           });
         }
         setStatus("success");
-        const dest = data.product_type === "research_subscription" ? "/account" : "/research";
+        const dest =
+          data.product_type === "strategy_file"
+            ? "/portal?tab=downloads"
+            : data.product_type === "research_subscription"
+              ? "/portal"
+              : "/research";
         setMessage(`Payment of $${Number(data.amount_usd).toFixed(2)} confirmed. Reference: ${reference}`);
-        setTimeout(() => navigate({ to: dest }), 3000);
+        setTimeout(() => {
+          window.location.assign(dest);
+        }, 1800);
       })
       .catch((err) => {
         setStatus("error");
         setMessage((err as Error).message || "Verification failed");
       });
-  }, [navigate]);
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">

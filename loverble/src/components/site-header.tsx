@@ -45,6 +45,12 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-3">
           <Link
+            to="/portal"
+            className="hidden sm:inline-flex items-center rounded-sm border border-border px-3 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-gold hover:border-gold/40 transition-colors duration-200"
+          >
+            Portal
+          </Link>
+          <Link
             to="/consultation"
             className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition-colors duration-200 cursor-pointer"
           >

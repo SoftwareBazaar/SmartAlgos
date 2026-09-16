@@ -3,6 +3,7 @@ export const PRICING = {
   researchFull: 10,
   liveRetail: 149.99,
   liveInstitutional: 499.99,
+  strategyFile: 49,
 } as const;
 
 export function formatUsd(amount: number): string {

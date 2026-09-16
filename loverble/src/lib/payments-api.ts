@@ -1,13 +1,15 @@
 function resolveApiBase(): string {
   const configured = import.meta.env.VITE_API_URL?.trim();
-  if (configured) return configured.replace(/\/$/, "");
-  if (import.meta.env.PROD && typeof window !== "undefined") return window.location.origin;
-  return "http://localhost:5000";
+  if (configured && !configured.includes("localhost") && !configured.includes("127.0.0.1")) {
+    return configured.replace(/\/$/, "");
+  }
+  if (typeof window !== "undefined") return window.location.origin;
+  return "http://localhost:8080";
 }
 
 const API_BASE = resolveApiBase();
 
-export type CapitalProductType = "research_subscription" | "research_donation" | "consultation";
+export type CapitalProductType = "research_subscription" | "research_donation" | "consultation" | "strategy_file";
 
 export type InitializePaymentInput = {
   email: string;

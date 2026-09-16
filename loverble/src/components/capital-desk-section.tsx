@@ -41,7 +41,7 @@ export function CapitalDeskSection() {
                 Book allocation review
               </Link>
               <Link
-                to="/account"
+                to="/portal"
                 className="inline-flex items-center justify-center min-h-12 px-5 py-2.5 bg-background border border-border hover:border-gold text-foreground font-semibold text-xs uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
               >
                 Client portal

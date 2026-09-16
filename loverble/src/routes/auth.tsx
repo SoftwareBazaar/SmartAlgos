@@ -32,7 +32,15 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/account", replace: true });
+      if (data.session) {
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get("redirect");
+        if (next && next.startsWith("/") && !next.startsWith("//")) {
+          window.location.replace(next);
+          return;
+        }
+        navigate({ to: "/portal", replace: true });
+      }
     });
   }, [navigate]);
 
@@ -55,17 +63,29 @@ function AuthPage() {
           email: parsed.data.email,
           password: parsed.data.password,
           options: {
-            emailRedirectTo: window.location.origin + "/account",
+            emailRedirectTo: window.location.origin + "/portal",
             data: { full_name: fullName },
           },
         });
         if (error) throw error;
         toast.success("Account created. You're signed in.");
-        navigate({ to: "/account", replace: true });
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get("redirect");
+        if (next && next.startsWith("/") && !next.startsWith("//")) {
+          window.location.replace(next);
+          return;
+        }
+        navigate({ to: "/portal", replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword(parsed.data);
         if (error) throw error;
-        navigate({ to: "/account", replace: true });
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get("redirect");
+        if (next && next.startsWith("/") && !next.startsWith("//")) {
+          window.location.replace(next);
+          return;
+        }
+        navigate({ to: "/portal", replace: true });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Authentication failed";
@@ -131,7 +151,7 @@ function AuthPage() {
           </CardContent>
         </Card>
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          Subscriber portal is in development — sign in to access research previews.
+          Subscriber portal is live — sign in for allocations, sandbox runs, and unlocked files.
         </p>
       </div>
     </div>

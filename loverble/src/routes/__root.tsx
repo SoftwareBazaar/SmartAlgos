@@ -10,7 +10,7 @@ import { Toaster } from "sonner";
 import { AppSidebar } from "@/components/app-sidebar";
 import { PublicSiteLayout } from "@/components/public-site-layout";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { isBarePublicPath, isPublicSitePath } from "@/lib/site-nav";
+import { isBarePublicPath, isPortalPath, isPublicSitePath } from "@/lib/site-nav";
 
 const SITE_ORIGIN = "https://smartalgosts.com";
 
@@ -98,11 +98,14 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isPublic = isPublicSitePath(pathname);
+  const isPortal = isPortalPath(pathname);
 
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster theme="dark" position="top-center" richColors closeButton />
-      {isPublic ? (
+      {isPortal ? (
+        <Outlet />
+      ) : isPublic ? (
         <PublicSiteLayout bare={isBarePublicPath(pathname)}>
           <Outlet />
         </PublicSiteLayout>

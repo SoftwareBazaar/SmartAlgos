@@ -13,6 +13,12 @@ import {
   initializeCapitalPayment,
   verifyCapitalPayment,
 } from "@/lib/capital-payments-server";
+import {
+  getPortalOverview,
+  handlePaystackWebhook,
+  runBacktestJob,
+  serveStrategyDownload,
+} from "@/lib/portal-server";
 
 /** Capital Paystack API — handled in middleware (reliable on Vercel/Nitro). */
 const capitalPaymentsMiddleware = createMiddleware().server(async ({ request, next }) => {
@@ -106,6 +112,67 @@ const advisoryBookingsMiddleware = createMiddleware().server(async ({ request, n
   return next();
 });
 
+/** Paystack webhooks, backtest sandbox, and client portal APIs */
+const portalMiddleware = createMiddleware().server(async ({ request, next }) => {
+  const { pathname, searchParams } = new URL(request.url);
+
+  if (pathname === "/api/webhooks/paystack" && request.method === "POST") {
+    try {
+      const result = await handlePaystackWebhook(request);
+      return Response.json(result.body, { status: result.status });
+    } catch (err) {
+      console.error("[Portal] Webhook error:", err);
+      return Response.json({ error: "Webhook failed" }, { status: 500 });
+    }
+  }
+
+  if (pathname === "/api/backtest/run" && request.method === "POST") {
+    try {
+      const body = await request.json();
+      const result = await runBacktestJob(request, body);
+      return Response.json(result.body, { status: result.status });
+    } catch (err) {
+      console.error("[Portal] Backtest error:", err);
+      return Response.json({ success: false, error: "Backtest failed" }, { status: 500 });
+    }
+  }
+
+  if (pathname === "/api/portal/overview" && request.method === "GET") {
+    try {
+      const result = await getPortalOverview(request);
+      return Response.json(result.body, { status: result.status });
+    } catch (err) {
+      console.error("[Portal] Overview error:", err);
+      return Response.json({ success: false, error: "Failed to load portal" }, { status: 500 });
+    }
+  }
+
+  if (pathname === "/api/portal/downloads" && request.method === "GET") {
+    try {
+      const result = await serveStrategyDownload(searchParams.get("ref") || "");
+      if ("content" in result && result.content) {
+        return new Response(result.content, {
+          status: 200,
+          headers: {
+            "content-type": result.contentType || "text/plain; charset=utf-8",
+            "content-disposition": `attachment; filename="${result.filename}"`,
+            "cache-control": "no-store",
+          },
+        });
+      }
+      if ("body" in result) {
+        return Response.json(result.body, { status: result.status });
+      }
+      return Response.json({ success: false, error: "Download failed" }, { status: 500 });
+    } catch (err) {
+      console.error("[Portal] Download error:", err);
+      return Response.json({ success: false, error: "Download failed" }, { status: 500 });
+    }
+  }
+
+  return next();
+});
+
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
     return await next();
@@ -123,5 +190,5 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
-  requestMiddleware: [capitalPaymentsMiddleware, advisoryBookingsMiddleware, errorMiddleware],
+  requestMiddleware: [capitalPaymentsMiddleware, advisoryBookingsMiddleware, portalMiddleware, errorMiddleware],
 }));

@@ -161,7 +161,7 @@ export function getStrategyBySlug(slug: string): Strategy | undefined {
 export const roadmap = [
   { name: "Collective2 signal publication", phase: "Planned" },
   { name: "Live performance API (QuantConnect)", phase: "Development" },
-  { name: "Subscriber portal & downloads", phase: "Development" },
+  { name: "Client portal & downloads", phase: "Live" },
   { name: "Strategy backtesting sandbox", phase: "Research" },
   { name: "Quant research tools", phase: "Research" },
 ];

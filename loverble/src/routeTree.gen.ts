@@ -18,6 +18,7 @@ import { Route as ResearchRouteImport } from './routes/research'
 import { Route as PropFirmRouteImport } from './routes/prop-firm'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PerformanceRouteImport } from './routes/performance'
 import { Route as PaymentCallbackRouteImport } from './routes/payment-callback'
 import { Route as MarketplaceRouteImport } from './routes/marketplace'
@@ -86,6 +87,11 @@ const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
 const PortfolioRoute = PortfolioRouteImport.update({
   id: '/portfolio',
   path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerformanceRoute = PerformanceRouteImport.update({
@@ -233,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/marketplace': typeof MarketplaceRoute
   '/payment-callback': typeof PaymentCallbackRoute
   '/performance': typeof PerformanceRoute
+  '/portal': typeof PortalRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/prop-firm': typeof PropFirmRoute
@@ -268,6 +275,7 @@ export interface FileRoutesByTo {
   '/marketplace': typeof MarketplaceRoute
   '/payment-callback': typeof PaymentCallbackRoute
   '/performance': typeof PerformanceRoute
+  '/portal': typeof PortalRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/prop-firm': typeof PropFirmRoute
@@ -304,6 +312,7 @@ export interface FileRoutesById {
   '/marketplace': typeof MarketplaceRoute
   '/payment-callback': typeof PaymentCallbackRoute
   '/performance': typeof PerformanceRoute
+  '/portal': typeof PortalRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/prop-firm': typeof PropFirmRoute
@@ -341,6 +350,7 @@ export interface FileRouteTypes {
     | '/marketplace'
     | '/payment-callback'
     | '/performance'
+    | '/portal'
     | '/portfolio'
     | '/privacy-policy'
     | '/prop-firm'
@@ -376,6 +386,7 @@ export interface FileRouteTypes {
     | '/marketplace'
     | '/payment-callback'
     | '/performance'
+    | '/portal'
     | '/portfolio'
     | '/privacy-policy'
     | '/prop-firm'
@@ -411,6 +422,7 @@ export interface FileRouteTypes {
     | '/marketplace'
     | '/payment-callback'
     | '/performance'
+    | '/portal'
     | '/portfolio'
     | '/privacy-policy'
     | '/prop-firm'
@@ -447,6 +459,7 @@ export interface RootRouteChildren {
   MarketplaceRoute: typeof MarketplaceRoute
   PaymentCallbackRoute: typeof PaymentCallbackRoute
   PerformanceRoute: typeof PerformanceRoute
+  PortalRoute: typeof PortalRoute
   PortfolioRoute: typeof PortfolioRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   PropFirmRoute: typeof PropFirmRoute
@@ -521,6 +534,13 @@ declare module '@tanstack/react-router' {
       path: '/portfolio'
       fullPath: '/portfolio'
       preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/performance': {
@@ -730,6 +750,7 @@ const rootRouteChildren: RootRouteChildren = {
   MarketplaceRoute: MarketplaceRoute,
   PaymentCallbackRoute: PaymentCallbackRoute,
   PerformanceRoute: PerformanceRoute,
+  PortalRoute: PortalRoute,
   PortfolioRoute: PortfolioRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   PropFirmRoute: PropFirmRoute,

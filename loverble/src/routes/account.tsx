@@ -112,6 +112,7 @@ function AccountPage() {
 
         <SectionCard title="Quick links">
           <ul className="text-sm space-y-2">
+            <li><Link to="/portal" className="text-gold hover:underline">Client portal</Link></li>
             <li><Link to="/research" className="text-gold hover:underline">Research library</Link></li>
             <li><Link to="/strategies" className="text-gold hover:underline">Strategy catalog</Link></li>
             <li><Link to="/performance" className="text-gold hover:underline">Performance</Link></li>
@@ -172,9 +173,9 @@ function AccountPage() {
       )}
 
       <p className="text-xs text-muted-foreground">
-        PDF and notebook downloads are coming in the subscriber portal roadmap.{" "}
-        <Link to="/about" hash="roadmap" className="text-gold hover:underline">View roadmap</Link>
-        {" · "}
+        Strategy file downloads and prop allocations live in the{" "}
+        <Link to="/portal" className="text-gold hover:underline">client portal</Link>
+        .{" "}
         <a href="mailto:softwarebazaar.ke@gmail.com" className="text-gold hover:underline inline-flex items-center gap-1">
           Contact support <ExternalLink className="h-3 w-3" />
         </a>

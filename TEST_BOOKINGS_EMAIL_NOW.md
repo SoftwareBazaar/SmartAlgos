@@ -72,7 +72,7 @@ After making a booking, check Railway logs for:
 ### Possible Issues:
 
 **1. App Password Not Working**
-- The password `bwtfbygvuxwerpts` might be expired or revoked
+- The Gmail App Password in Railway/Vercel might be expired or revoked
 - Generate a new App Password:
   1. Go to https://myaccount.google.com/security
   2. Enable 2-Factor Authentication (if not already)

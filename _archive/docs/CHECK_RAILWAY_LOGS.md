@@ -51,7 +51,7 @@ Error: Connection timeout
 1. Go to Google Account → Security
 2. Generate NEW App Password
 3. Update EMAIL_PASSWORD in Railway
-4. Use password WITHOUT spaces: `bwtfbygvuxwerpts`
+4. Use the Gmail App Password WITHOUT spaces
 
 ### Error: "Connection timeout" or "ETIMEDOUT"
 **Cause:** Railway can't connect to Gmail SMTP
@@ -104,11 +104,11 @@ If still not working, send me:
 ### Fix 1: Remove Spaces from Password
 Railway Variable should be:
 ```
-EMAIL_PASSWORD=bwtfbygvuxwerpts
+EMAIL_PASSWORD=<gmail-app-password-from-google>
 ```
 NOT:
 ```
-EMAIL_PASSWORD=bwtf bygv uxwe rpts
+EMAIL_PASSWORD=<do-not-include-spaces>
 ```
 
 ### Fix 2: Verify Gmail Settings

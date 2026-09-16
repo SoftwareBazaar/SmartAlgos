@@ -4,7 +4,7 @@
 
 ```
 EMAIL_USER=softwarebazaar.ke@gmail.com
-EMAIL_PASSWORD=bwtfbygvuxwerpts
+EMAIL_PASSWORD=<gmail-app-password-from-google>
 ```
 
 (Note: I removed spaces from the password)
@@ -34,7 +34,7 @@ EMAIL_PASSWORD=bwtfbygvuxwerpts
    - Add second variable:
      ```
      Name: EMAIL_PASSWORD
-     Value: bwtfbygvuxwerpts
+     Value: <gmail-app-password-from-google>
      ```
 
 5. **Save:**
@@ -46,7 +46,7 @@ If you have Railway CLI installed:
 
 ```bash
 railway variables set EMAIL_USER=softwarebazaar.ke@gmail.com
-railway variables set EMAIL_PASSWORD=bwtfbygvuxwerpts
+railway variables set EMAIL_PASSWORD=<gmail-app-password-from-google>
 ```
 
 ## ✅ Verify Setup

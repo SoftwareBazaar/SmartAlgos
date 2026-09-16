@@ -25,7 +25,7 @@ You **MUST** add email variables directly in Railway Dashboard.
 5. Add **SECOND** variable:
    ```
    Variable Name: EMAIL_PASSWORD
-   Value: bwtfbygvuxwerpts
+   Value: <gmail-app-password-from-google>
    ```
    (No spaces in password!)
 

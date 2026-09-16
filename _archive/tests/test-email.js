@@ -19,7 +19,7 @@ async function testEmail() {
     console.error('❌ Email credentials not configured!');
     console.log('\n💡 Add to .env file:');
     console.log('EMAIL_USER=softwarebazaar.ke@gmail.com');
-    console.log('EMAIL_PASSWORD=bwtfbygvuxwerpts');
+    console.log('EMAIL_PASSWORD=<gmail-app-password-from-env>');
     process.exit(1);
   }
 

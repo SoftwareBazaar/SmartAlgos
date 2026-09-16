@@ -50,7 +50,7 @@ https://web-production-fdb58.up.railway.app/api/test-email
 
 **Next action:**
 1. Check Railway logs for email errors
-2. Verify EMAIL_PASSWORD in Railway is correct: `bwtfbygvuxwerpts`
+2. Verify EMAIL_PASSWORD in Railway is set to your current Gmail App Password (never commit it)
 3. Check if Gmail is blocking the app
 
 ## The Real Problem

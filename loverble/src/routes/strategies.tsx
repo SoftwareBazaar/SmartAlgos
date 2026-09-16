@@ -38,12 +38,37 @@ function StrategiesPage() {
       eyebrow="Strategy Library"
       title="Strategies"
       description="Systematic strategies we develop and validate. Live models link to third-party verification — subscribe from $149.99 retail or $499.99 institutional."
+      actions={
+        <Link
+          to="/portal"
+          className="inline-flex items-center justify-center min-h-12 px-5 py-2.5 bg-gold text-primary-foreground font-semibold text-xs uppercase tracking-wider rounded-lg hover:bg-gold-soft transition-colors"
+        >
+          Open client portal
+        </Link>
+      }
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Live Strategies" value={String(strategyOverview.live)} hint="QuantConnect" accent="up" />
         <StatCard label="In Research" value={String(strategyOverview.research)} />
         <StatCard label="Under Development" value={String(strategyOverview.development)} />
         <StatCard label="Platforms" value="4" hint="QC · C2 · MT5 · Internal" />
+      </div>
+
+      <div className="rounded-2xl border border-gold/30 bg-secondary-surface p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-2">Client & investor portal</div>
+          <h2 className="font-display text-2xl font-semibold">Allocations, sandbox, and downloads</h2>
+          <p className="text-sm text-muted-foreground mt-2 max-w-xl">
+            Sign in to monitor client-owned prop accounts, run cloud backtests, and download unlocked strategy files.
+            Non-custodial — capital stays in accounts you control.
+          </p>
+        </div>
+        <Link
+          to="/portal"
+          className="inline-flex items-center justify-center min-h-12 px-5 py-2.5 bg-gold text-primary-foreground font-semibold text-xs uppercase tracking-wider rounded-lg hover:bg-gold-soft transition-colors shrink-0"
+        >
+          Enter portal
+        </Link>
       </div>
 
       <div className="flex flex-wrap gap-1 border-b border-border">

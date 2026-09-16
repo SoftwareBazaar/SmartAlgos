@@ -31,7 +31,7 @@ export function SiteHeader() {
           <BrandLogo variant="nav" />
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium" aria-label="Primary">
+        <nav className="hidden md:flex items-center gap-5 lg:gap-8 text-sm font-medium" aria-label="Primary">
           {PRIMARY_NAV.map((item) => (
             <Link
               key={item.to + item.label}
@@ -43,10 +43,10 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             to="/portal"
-            className="hidden sm:inline-flex items-center rounded-sm border border-border px-3 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-gold hover:border-gold/40 transition-colors duration-200"
+            className="inline-flex items-center rounded-sm border border-gold/50 px-3 py-2 text-xs font-bold uppercase tracking-wider text-gold hover:bg-gold/10 transition-colors duration-200 cursor-pointer"
           >
             Portal
           </Link>
@@ -94,11 +94,18 @@ export function SiteHeader() {
                 </span>
                 QuantConnect feed connected
               </div>
-              <p className="text-xs text-muted-foreground mb-3">Schedule a free 20-min strategy alignment call.</p>
+              <p className="text-xs text-muted-foreground mb-3">Open allocations, sandbox backtests, and unlocked files.</p>
+              <Link
+                to="/portal"
+                onClick={() => setOpen(false)}
+                className="flex w-full min-h-12 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold cursor-pointer hover:bg-gold-soft transition-colors mb-2"
+              >
+                Open Client Portal
+              </Link>
               <Link
                 to="/consultation"
                 onClick={() => setOpen(false)}
-                className="flex w-full min-h-12 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold cursor-pointer hover:bg-gold-soft transition-colors"
+                className="flex w-full min-h-12 items-center justify-center rounded-lg border border-border text-sm font-bold cursor-pointer hover:border-gold transition-colors"
               >
                 Book Advisory Call
               </Link>

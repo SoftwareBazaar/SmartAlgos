@@ -3,6 +3,7 @@ export const PRIMARY_NAV = [
   { label: "Track Record", to: "/performance" },
   { label: "Research", to: "/research" },
   { label: "Strategy Desk", to: "/consultation" },
+  { label: "Portal", to: "/portal" },
 ] as const;
 
 export const MOBILE_NAV = [

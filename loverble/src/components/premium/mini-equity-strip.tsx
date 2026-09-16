@@ -9,7 +9,7 @@ const data = equityCurve.slice(-120);
 
 export function MiniEquityStrip() {
   return (
-    <section className="py-16 border-t border-border bg-dominant">
+    <section id="performance" className="py-16 border-t border-border bg-dominant scroll-mt-24">
       <div className="max-w-[1400px] mx-auto px-6">
         <MotionReveal>
           <MotionItem>
@@ -42,7 +42,7 @@ export function MiniEquityStrip() {
                     Full performance breakdown <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
-                <div className="h-[220px] md:h-[260px] rounded-lg border border-border/50 bg-background/30 p-3">
+                <div className="chart-container h-[220px] md:h-[260px] rounded-lg border border-border/50 bg-background/30 p-3">
                   <EquityAreaChart data={data} gradientId="strip-fill" showGrid />
                 </div>
               </div>

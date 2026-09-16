@@ -5,12 +5,14 @@ import { GlowCard } from "./glow-card";
 export function CountUpStat({
   label,
   value,
+  prefix = "",
   suffix = "",
   hint,
   decimals = 0,
 }: {
   label: string;
   value: number;
+  prefix?: string;
   suffix?: string;
   hint?: string;
   decimals?: number;
@@ -19,9 +21,10 @@ export function CountUpStat({
   const { ref, formatted } = useCountUp(value, { decimals, enabled: !reduceMotion });
 
   return (
-    <GlowCard className="p-5 md:p-6 h-full">
+    <GlowCard className="p-5 md:p-6 h-full cursor-default">
       <div ref={ref} className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
-      <div className="mt-2 font-display text-3xl md:text-4xl font-bold text-foreground tabular-nums">
+      <div className="mt-2 font-display text-3xl md:text-4xl font-bold text-foreground tabular-nums" data-numeric>
+        {prefix}
         {formatted}
         {suffix}
       </div>

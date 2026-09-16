@@ -50,7 +50,7 @@ function About() {
         </div>
       </SectionCard>
 
-      <SectionCard>
+      <SectionCard title="Roadmap">
         <RoadmapSection />
       </SectionCard>
 

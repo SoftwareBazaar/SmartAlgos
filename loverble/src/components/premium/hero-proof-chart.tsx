@@ -27,7 +27,7 @@ export function HeroProofChart() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-[180px]">
+      <div className="chart-container flex-1 min-h-[180px]">
         <EquityAreaChart data={chartData} gradientId="hero-proof-fill" animate={!reduceMotion} />
       </div>
 

@@ -60,6 +60,15 @@ export const performanceMetrics = {
   recoveryDays: 42,
 };
 
+/** Single source of truth for homepage / overview counters — keep in sync with live strategy cards. */
+export const PORTFOLIO_METRICS = {
+  sharpe: performanceMetrics.sharpe,
+  liveStrategies: strategyOverview.live,
+  maxDrawdown: performanceMetrics.maxDrawdown,
+  winRate: performanceMetrics.winRate,
+  profitFactor: performanceMetrics.profitFactor,
+} as const;
+
 export const verificationSources = [
   { name: "QuantConnect", url: "https://www.quantconnect.com", status: "Connected" as const },
   { name: "Collective2", url: "https://www.collective2.com", status: "Planned" as const },
@@ -155,6 +164,15 @@ export const roadmap = [
   { name: "Subscriber portal & downloads", phase: "Development" },
   { name: "Strategy backtesting sandbox", phase: "Research" },
   { name: "Quant research tools", phase: "Research" },
+];
+
+export const futureEcosystem = [
+  { name: "Live Trading Portal", path: "/live-trading" as const, phase: "Development" },
+  { name: "Backtesting Engine", path: "/backtesting" as const, phase: "Development" },
+  { name: "Investor Portal", path: "/investor" as const, phase: "Planning" },
+  { name: "Copy Trading", path: "/copy-trading" as const, phase: "Planning" },
+  { name: "Prop Firm Program", path: "/prop-firm" as const, phase: "Planning" },
+  { name: "Financial Intelligence Division", path: "/institutional" as const, phase: "Research" },
 ];
 
 export const pipelineStages = [

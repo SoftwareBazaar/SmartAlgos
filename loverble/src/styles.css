@@ -235,3 +235,45 @@
   background-position: -1px -1px;
   opacity: 0.4;
 }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+.chart-container,
+.chart-container canvas,
+.chart-container svg,
+.recharts-wrapper,
+.recharts-surface {
+  touch-action: pan-y;
+}
+
+@media (max-width: 768px) {
+  .hero-container {
+    min-height: unset;
+  }
+
+  .hero-cta-group {
+    width: 100%;
+    max-width: none;
+  }
+
+  .hero-cta-group .btn-primary,
+  .hero-cta-group .btn-secondary {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .pricing-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

@@ -1,21 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, FlaskConical, FileText, Brain } from "lucide-react";
-import { strategyOverview, strategies, company, performanceMetrics, getStrategyBySlug, fmt } from "@/lib/mock-data";
-import { DonateButton } from "@/components/donate-button";
+import { strategies, company, PORTFOLIO_METRICS, getStrategyBySlug, fmt } from "@/lib/mock-data";
 import { HeroCinematic } from "@/components/hero-cinematic";
 import { MotionHeroText } from "@/components/motion-reveal";
 import { formatUsd, PRICING } from "@/lib/pricing";
 import { PremiumBento } from "@/components/premium/premium-bento";
 import { PremiumPricingShowcase } from "@/components/premium/premium-pricing";
 import { StrategySpotlight } from "@/components/premium/strategy-spotlight";
-import { MotionReveal, MotionItem } from "@/components/motion-reveal";
 import { HeroProofChart } from "@/components/premium/hero-proof-chart";
 import { CountUpStat } from "@/components/premium/count-up-stat";
 import { ShimmerButton } from "@/components/premium/shimmer-button";
-import { StickyNav } from "@/components/premium/sticky-nav";
 import { MiniEquityStrip } from "@/components/premium/mini-equity-strip";
 import { AdvisoryDeskSection } from "@/components/premium/advisory-desk";
-import { BrandLogo } from "@/components/brand-logo";
+import { ResearchLibrarySection } from "@/components/research-library-section";
+import { CustomQuantSection } from "@/components/custom-quant-section";
+import { CapitalDeskSection } from "@/components/capital-desk-section";
+import { BacktestEngineSection } from "@/components/backtest-engine-section";
 
 const featuredLive = getStrategyBySlug("fx-mean-reversion");
 
@@ -29,14 +29,6 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const nav = [
-  { label: "Research", to: "/research" },
-  { label: "Strategies", to: "/strategies" },
-  { label: "Performance", to: "/performance" },
-  { label: "Consultation", to: "/consultation" },
-  { label: "About", to: "/about" },
-] as const;
-
 function statusColor(s: string) {
   if (s === "Live") return "bg-bull/15 text-bull";
   if (s === "Testing" || s === "Research") return "bg-gold/15 text-gold";
@@ -49,98 +41,92 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <StickyNav>
-        <div className="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-3 md:py-4">
-          <Link to="/" className="flex items-center cursor-pointer shrink-0">
-            <BrandLogo variant="nav" />
-          </Link>
-          <div className="hidden md:flex items-center gap-6 text-sm">
-            {nav.map((item) => (
-              <Link key={item.to} to={item.to} className="text-muted-foreground hover:text-foreground transition duration-200 cursor-pointer">
-                {item.label}
-              </Link>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <Link to="/consultation" className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition duration-200 cursor-pointer">
-              Book Desk <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </div>
-      </StickyNav>
-
-      <section className="relative min-h-[92vh] pt-28 pb-16 md:pb-20 overflow-hidden flex items-center bg-dominant">
+      <section className="hero-container relative pt-28 pb-10 md:pb-16 overflow-hidden bg-dominant">
         <HeroCinematic />
         <div className="relative z-10 max-w-[1400px] mx-auto px-6 w-full">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-14 items-center">
             <MotionHeroText>
-              <div className="inline-flex items-center gap-2 rounded-full border border-gold/25 bg-secondary-surface/80 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-gold mb-6">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-bull opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-bull" />
-                </span>
-                Independently verified · QuantConnect
+              <div className="hero-header-block">
+                <div className="inline-flex items-center gap-2 rounded-full border border-gold/25 bg-secondary-surface/80 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-gold mb-6">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-bull opacity-60" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-bull" />
+                  </span>
+                  Independently verified · QuantConnect
+                </div>
+                <p className="font-mono text-bull text-lg md:text-xl font-semibold tabular-nums">
+                  {featuredLive?.name ?? "FX Mean Reversion"}: +{fmt.pct(featuredLive?.liveReturn ?? 0.314, 1)} since live
+                </p>
+                <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                  Same model shown in chart
+                </p>
+                <h1 className="mt-4 font-display text-hero-display gold-headline-shimmer">
+                  Systematic performance you can independently verify
+                </h1>
+                <p className="mt-5 text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed font-normal">
+                  <span className="text-foreground font-medium">{company.name}</span> publishes quant research and deploys live models with third-party track records — not marketing curves.
+                </p>
+                <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">{company.operator}</p>
               </div>
-              <p className="font-mono text-bull text-lg md:text-xl font-semibold tabular-nums">
-                {featuredLive?.name ?? "FX Mean Reversion"}: +{fmt.pct(featuredLive?.liveReturn ?? 0.314, 1)} since live
-              </p>
-              <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Same model shown in chart →
-              </p>
-              <h1 className="mt-4 font-display text-hero-display gold-headline-shimmer">
-                Systematic performance you can verify
-              </h1>
-              <p className="mt-5 text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed font-normal">
-                <span className="text-foreground font-medium">{company.name}</span> publishes quant research and deploys live models with third-party track records — not marketing curves.
-              </p>
-              <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">{company.operator}</p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <ShimmerButton to="/strategies" variant="primary">
+              <div className="hero-cta-group mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3 max-w-md">
+                <ShimmerButton to="/strategies" variant="primary" className="btn-primary w-full sm:w-auto min-h-12">
                   View live models <ArrowRight className="h-4 w-4" />
                 </ShimmerButton>
-                <ShimmerButton to="/research" variant="outline">
-                  Research library
+                <ShimmerButton to="/research" variant="outline" className="btn-secondary w-full sm:w-auto min-h-12">
+                  Read research notes
                 </ShimmerButton>
               </div>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Independently verified via QuantConnect · No dynamic curve-fitting
+              </p>
             </MotionHeroText>
             <MotionHeroText>
-              <HeroProofChart />
+              <div className="hero-chart chart-container hidden lg:block">
+                <HeroProofChart />
+              </div>
             </MotionHeroText>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-border bg-secondary-surface/80">
+      <section className="hero-metrics-grid border-y border-border bg-secondary-surface/80">
         <div className="max-w-[1400px] mx-auto px-6 py-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
           <CountUpStat
             label="Portfolio Sharpe"
-            value={performanceMetrics.sharpe}
+            value={PORTFOLIO_METRICS.sharpe}
             decimals={2}
             hint="Risk-adjusted return across live book"
           />
           <CountUpStat
             label="Live strategies"
-            value={strategyOverview.live}
+            value={PORTFOLIO_METRICS.liveStrategies}
             hint="Both independently verified on QuantConnect"
           />
           <CountUpStat
             label="Max drawdown"
-            value={Math.abs(performanceMetrics.maxDrawdown * 100)}
+            value={Math.abs(PORTFOLIO_METRICS.maxDrawdown * 100)}
+            prefix="-"
             suffix="%"
             decimals={1}
             hint="Peak-to-trough on deployed models"
           />
           <CountUpStat
             label="Win rate"
-            value={performanceMetrics.winRate * 100}
+            value={PORTFOLIO_METRICS.winRate * 100}
             suffix="%"
             decimals={0}
-            hint={`Profit factor ${performanceMetrics.profitFactor}`}
+            hint={`Profit factor ${PORTFOLIO_METRICS.profitFactor}`}
           />
         </div>
       </section>
 
-      <section className="py-20">
+      <section className="lg:hidden px-6 py-8 bg-dominant">
+        <div className="chart-container">
+          <HeroProofChart />
+        </div>
+      </section>
+
+      <section id="strategies" className="py-20 scroll-mt-24">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
             <div>
@@ -172,89 +158,12 @@ function Landing() {
         </div>
       </section>
 
+      <ResearchLibrarySection />
+      <CustomQuantSection />
       <PremiumPricingShowcase />
-
+      <CapitalDeskSection />
+      <BacktestEngineSection />
       <AdvisoryDeskSection />
-
-      <footer className="border-t-2 border-border bg-dominant mt-auto">
-        <div className="max-w-[1400px] mx-auto px-6 py-12">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10">
-            <div className="max-w-sm">
-              <BrandLogo variant="footer" className="opacity-90" />
-              <p className="text-sm text-muted-foreground mt-2">{company.operator}</p>
-              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
-                Quantitative research and systematic strategies. Performance figures reference third-party verification where noted; past results are not indicative of future returns.
-              </p>
-            </div>
-            <ul className="flex flex-wrap gap-x-8 gap-y-3 text-sm">
-              {nav.map((item) => (
-                <li key={item.to}>
-                  <Link to={item.to} className="text-muted-foreground hover:text-gold transition cursor-pointer">{item.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Partner Prop Firms */}
-          <div className="my-8 pt-6 border-t border-border/50">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-5">Collaborating with prop firms &amp; brokers</p>
-            <div className="flex flex-wrap items-center gap-5">
-              {[
-                { name: "Funding Pips", url: "https://fundingpips.com", logo: "/fundingpips.png" },
-                { name: "Funded Next", url: "https://fundednext.com", logo: "/fundednext.png" },
-                { name: "FTMO", url: "https://ftmo.com", logo: "/ftmo.png" },
-                { name: "FP Markets", url: "https://fpmarkets.com", logo: "/fpmarkets.png" },
-              ].map((p) => (
-                <a
-                  key={p.name}
-                  href={p.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={p.name}
-                  className="flex items-center justify-center bg-white rounded-lg px-3 py-2 hover:scale-105 transition-transform duration-200"
-                  style={{ minWidth: "110px", height: "44px" }}
-                >
-                  <img
-                    src={p.logo}
-                    alt={p.name}
-                    className="h-8 w-auto object-contain max-w-[100px]"
-                    onError={(e) => {
-                      const el = e.currentTarget;
-                      el.style.display = "none";
-                      const span = document.createElement("span");
-                      span.textContent = p.name;
-                      span.className = "text-xs text-gray-800 font-semibold";
-                      el.parentElement?.appendChild(span);
-                    }}
-                  />
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Compliance badges */}
-          <div className="mb-6 flex flex-wrap gap-2">
-            {["GDPR", "PCI-DSS", "ISO 27001", "SOC 2", "AML/KYC"].map((badge) => (
-              <span key={badge} className="inline-flex items-center px-2.5 py-1 rounded border border-gold/25 bg-gold/5 text-[10px] font-semibold uppercase tracking-wider text-gold">
-                {badge}
-              </span>
-            ))}
-          </div>
-
-          <div className="hairline mb-6" />
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground/80">© 2026 {company.operator}. All rights reserved.</span>
-            <div className="flex flex-wrap items-center gap-4">
-              <Link to="/privacy-policy" className="hover:text-gold transition">Privacy</Link>
-              <Link to="/terms" className="hover:text-gold transition">Terms</Link>
-              <Link to="/disclaimers" className="hover:text-gold transition">Disclaimers</Link>
-              <Link to="/security-policy" className="hover:text-gold transition">Security</Link>
-              <span>Not investment advice · Kenya</span>
-              <DonateButton footer />
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

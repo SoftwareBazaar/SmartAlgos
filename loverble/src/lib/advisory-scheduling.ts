@@ -89,11 +89,39 @@ export function serviceToDb(service: string): string {
   return ADVISORY_PRODUCTS.find((p) => p.id === service)?.dbService ?? service;
 }
 
-export function formatSlotLabel(time: string): string {
-  const [h, m] = time.split(":").map(Number);
+export function visitorTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Nairobi";
+  } catch {
+    return "Africa/Nairobi";
+  }
+}
+
+function formatEatClock(time: string): string {
+  const [h, m] = normalizeTimeSlot(time).split(":").map(Number);
   const period = h >= 12 ? "PM" : "AM";
   const hour12 = h % 12 || 12;
   return `${hour12}:${String(m).padStart(2, "0")} ${period} EAT`;
+}
+
+export function eatSlotToLocal(date: string, time: string, timeZone: string): string {
+  const iso = `${date}T${normalizeTimeSlot(time)}:00+03:00`;
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleTimeString("en-US", {
+    timeZone,
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+export function formatSlotLabel(time: string, date?: string, timeZone?: string): string {
+  const eat = formatEatClock(time);
+  const isLastFree = normalizeTimeSlot(time) === "20:40";
+  const lastNote = isLastFree ? " — last 20-min slot" : "";
+  if (!date || !timeZone || timeZone === "Africa/Nairobi") return `${eat}${lastNote}`;
+  const local = eatSlotToLocal(date, time, timeZone);
+  return local ? `${eat} · ${local} local${lastNote}` : `${eat}${lastNote}`;
 }
 
 export function todayInEat(): string {

@@ -95,7 +95,7 @@ export function Sidebar({
         className={cn(
           "flex flex-col shrink-0",
           "border-r border-sidebar-border bg-sidebar text-sidebar-foreground",
-          "overflow-hidden transition-all duration-300 ease-in-out",
+          "overflow-hidden overscroll-contain transition-all duration-300 ease-in-out touch-pan-y",
 
           // MOBILE: fixed position overlay
           "fixed inset-y-0 left-0 z-50 w-64",

@@ -62,7 +62,7 @@ export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
 
         <div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-gold mb-2">Key Chart — {paper.previewChartLabel}</div>
-          <div className="rounded-sm border border-border bg-background/40 p-3">
+          <div className="rounded-sm border border-border bg-background/40 p-3 chart-container">
             <ResponsiveContainer width="100%" height={180}>
               <AreaChart data={chartData}>
                 <defs>

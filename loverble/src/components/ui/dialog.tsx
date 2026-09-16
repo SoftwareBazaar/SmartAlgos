@@ -38,12 +38,13 @@ export function DialogTrigger({
       </button>
     );
   }
-  return React.cloneElement(child, {
+  const trigger = child as React.ReactElement<{ onClick?: (e: React.MouseEvent) => void }>;
+  return React.cloneElement(trigger, {
     onClick: (e: React.MouseEvent) => {
-      child.props.onClick?.(e);
+      trigger.props.onClick?.(e);
       if (!e.defaultPrevented) ctx.setOpen(true);
     },
-  } as React.HTMLAttributes<HTMLElement>);
+  });
 }
 
 export function DialogContent({ className, children }: { className?: string; children: React.ReactNode }) {

@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ConsultationPageContent } from "@/components/consultation-page";
-import { PublicStandaloneLayout } from "@/components/public-standalone-layout";
 
 const SHARE_URL = "https://www.smartalgosts.com/consultation";
 const SHARE_TITLE = "Book a Free 20-Min Advisory Session — Smart Algos Capital";
@@ -27,9 +26,5 @@ export const Route = createFileRoute("/consultation")({
 });
 
 function Consultation() {
-  return (
-    <PublicStandaloneLayout tagline="Book advisory">
-      <ConsultationPageContent />
-    </PublicStandaloneLayout>
-  );
+  return <ConsultationPageContent />;
 }

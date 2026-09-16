@@ -6,6 +6,7 @@ import {
   ADVISORY_PRODUCTS,
   formatSlotLabel,
   todayInEat,
+  visitorTimeZone,
 } from "@/lib/advisory-scheduling";
 import {
   bookFreeConsultation,
@@ -18,13 +19,16 @@ import { formatUsd, PRICING } from "@/lib/pricing";
 type Variant = "free" | "paid";
 
 type Props = {
-  variant: Variant;
+  /** Lock to one session type. Omit to show Free / Paid toggle. */
+  variant?: Variant;
   className?: string;
 };
 
 export function AdvisoryBookingForm({ variant, className = "" }: Props) {
-  const consultationType = variant === "free" ? "free_20" : "paid_90";
-  const [service, setService] = useState(ADVISORY_PRODUCTS[0].id);
+  const [sessionType, setSessionType] = useState<Variant>(variant ?? "free");
+  const consultationType = sessionType === "free" ? "free_20" : "paid_90";
+  const showToggle = !variant;
+  const [service, setService] = useState<string>(ADVISORY_PRODUCTS[0].id);
   const [date, setDate] = useState(todayInEat());
   const [time, setTime] = useState("");
   const [name, setName] = useState("");
@@ -33,6 +37,15 @@ export function AdvisoryBookingForm({ variant, className = "" }: Props) {
   const [slots, setSlots] = useState<{ time: string; available: boolean }[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [userTimezone, setUserTimezone] = useState("");
+
+  useEffect(() => {
+    setUserTimezone(visitorTimeZone());
+  }, []);
+
+  useEffect(() => {
+    if (variant) setSessionType(variant);
+  }, [variant]);
 
   const loadSlots = useCallback(async () => {
     if (!date) return;
@@ -61,84 +74,78 @@ export function AdvisoryBookingForm({ variant, className = "" }: Props) {
     if (!name.trim()) return "Your name is required";
     if (!email.includes("@")) return "Enter a valid email";
     if (!date) return "Pick a date";
-    if (!time) return "Pick an available time (7–9 PM EAT)";
+    if (!time) return "Pick an available time (last 20-min slot starts at 8:40 PM EAT)";
     return null;
   };
 
-  const submitFree = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const err = validate();
-    if (err) return toast.error(err);
-
-    setSubmitting(true);
-    try {
-      const result = await bookFreeConsultation({
-        service,
-        consultation_type: "free_20",
-        date,
-        time,
-        name: name.trim(),
-        email: email.trim(),
-        notes: notes.trim() || undefined,
+  const submitFree = async () => {
+    const result = await bookFreeConsultation({
+      service,
+      consultation_type: "free_20",
+      date,
+      time,
+      name: name.trim(),
+      email: email.trim(),
+      notes: notes.trim() || undefined,
+    });
+    if (result.emailsSent === false) {
+      toast.warning("Booked — email not sent", {
+        description: result.message || `Save your reference: ${result.reference}`,
       });
-      if (result.emailsSent === false) {
-        toast.warning("Booked — email not sent", {
-          description: result.message || `Save your reference: ${result.reference}`,
-        });
-      } else {
-        toast.success("Consultation booked", {
-          description: result.message || "Check your email for the meeting link.",
-        });
-      }
-      setNotes("");
-    } catch (err) {
-      toast.error((err as Error).message || "Booking failed");
-    } finally {
-      setSubmitting(false);
+    } else {
+      toast.success("Consultation booked", {
+        description: result.message || "Check your email for the meeting link.",
+      });
     }
+    setNotes("");
   };
 
-  const submitPaid = async (e: React.FormEvent) => {
+  const submitPaid = async () => {
+    const reserved = await reservePaidConsultation({
+      service,
+      consultation_type: "paid_90",
+      date,
+      time,
+      name: name.trim(),
+      email: email.trim(),
+      notes: notes.trim() || undefined,
+    });
+
+    await checkoutCapitalPayment(
+      {
+        email: email.trim(),
+        product_type: "consultation",
+        product_id: "consultation",
+        amount_usd: PRICING.consultation,
+        metadata: {
+          booking_reference: reserved.reference,
+          service,
+          consultation_type: "paid_90",
+          date,
+          time,
+          name: name.trim(),
+        },
+      },
+      {
+        onSuccess: (ref) => {
+          window.location.href = `/payment-callback?reference=${encodeURIComponent(ref)}`;
+        },
+        onClose: () => toast.message("Payment cancelled — your slot hold may expire"),
+      },
+    );
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const err = validate();
     if (err) return toast.error(err);
 
     setSubmitting(true);
     try {
-      const reserved = await reservePaidConsultation({
-        service,
-        consultation_type: "paid_90",
-        date,
-        time,
-        name: name.trim(),
-        email: email.trim(),
-        notes: notes.trim() || undefined,
-      });
-
-      await checkoutCapitalPayment(
-        {
-          email: email.trim(),
-          product_type: "consultation",
-          product_id: "consultation",
-          amount_usd: PRICING.consultation,
-          metadata: {
-            booking_reference: reserved.reference,
-            service,
-            consultation_type: "paid_90",
-            date,
-            time,
-            name: name.trim(),
-          },
-        },
-        {
-          onSuccess: (ref) => {
-            window.location.href = `/payment-callback?reference=${encodeURIComponent(ref)}`;
-          },
-          onClose: () => toast.message("Payment cancelled — your slot hold may expire"),
-        },
-      );
+      if (sessionType === "free") await submitFree();
+      else await submitPaid();
     } catch (err) {
-      toast.error((err as Error).message || "Could not start payment");
+      toast.error((err as Error).message || (sessionType === "paid" ? "Could not start payment" : "Booking failed"));
     } finally {
       setSubmitting(false);
     }
@@ -149,7 +156,30 @@ export function AdvisoryBookingForm({ variant, className = "" }: Props) {
   const labelClass = "text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-1.5 block";
 
   return (
-    <form onSubmit={variant === "free" ? submitFree : submitPaid} className={`flex flex-col gap-3 ${className}`}>
+    <form onSubmit={onSubmit} className={`flex flex-col gap-3 ${className}`}>
+      {showToggle && (
+        <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-background/60 border border-border">
+          <button
+            type="button"
+            className={`py-2.5 px-3 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
+              sessionType === "free" ? "bg-gold text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => setSessionType("free")}
+          >
+            Free 20-min intro
+          </button>
+          <button
+            type="button"
+            className={`py-2.5 px-3 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
+              sessionType === "paid" ? "bg-gold text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => setSessionType("paid")}
+          >
+            90-min deep-dive ({formatUsd(PRICING.consultation)})
+          </button>
+        </div>
+      )}
+
       <div>
         <label className={labelClass}>What do you want to discuss?</label>
         <select
@@ -184,7 +214,7 @@ export function AdvisoryBookingForm({ variant, className = "" }: Props) {
         <div>
           <label className={labelClass}>
             <Clock className="inline h-3 w-3 mr-1 opacity-70" />
-            Time (7–9 PM EAT)
+            Time slot
           </label>
           {loadingSlots ? (
             <div className={`${inputClass} flex items-center gap-2 text-muted-foreground`}>
@@ -195,7 +225,7 @@ export function AdvisoryBookingForm({ variant, className = "" }: Props) {
               <option value="">Select time</option>
               {slots.map((s) => (
                 <option key={s.time} value={s.time} disabled={!s.available}>
-                  {formatSlotLabel(s.time)}
+                  {formatSlotLabel(s.time, date, userTimezone)}
                   {!s.available ? " — booked" : ""}
                 </option>
               ))}
@@ -203,6 +233,13 @@ export function AdvisoryBookingForm({ variant, className = "" }: Props) {
           )}
         </div>
       </div>
+
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Window: 7:00–9:00 PM East Africa Time. Last 20-min slot starts at 8:40 PM EAT.
+        {userTimezone && userTimezone !== "Africa/Nairobi" && (
+          <> Detected timezone: <span className="text-foreground">{userTimezone}</span>.</>
+        )}
+      </p>
 
       <div className="grid sm:grid-cols-2 gap-3">
         <div>
@@ -234,9 +271,9 @@ export function AdvisoryBookingForm({ variant, className = "" }: Props) {
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          rows={variant === "free" ? 3 : 2}
+          rows={sessionType === "free" ? 3 : 2}
           placeholder={
-            variant === "free"
+            sessionType === "free"
               ? "Brief context — strategy idea, asset class, what you want from the call…"
               : "Follow-up goals after your free intro…"
           }
@@ -247,32 +284,27 @@ export function AdvisoryBookingForm({ variant, className = "" }: Props) {
       <button
         type="submit"
         disabled={submitting || loadingSlots || !time}
-        className={`w-full inline-flex items-center justify-center gap-2 rounded-sm px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition disabled:opacity-60 ${
-          variant === "free"
-            ? "border border-gold/60 text-gold hover:bg-gold/10"
-            : "bg-gold text-primary-foreground hover:bg-gold-soft"
-        }`}
+        className="w-full min-h-12 inline-flex items-center justify-center gap-2 rounded-sm px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors duration-200 disabled:opacity-60 cursor-pointer bg-gold text-primary-foreground hover:bg-gold-soft"
       >
         {submitting ? (
           <>
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            {variant === "paid" ? "Redirecting to Paystack…" : "Booking…"}
+            {sessionType === "paid" ? "Redirecting to Paystack…" : "Booking…"}
           </>
-        ) : variant === "free" ? (
-          "Book free 20-min consultation"
+        ) : sessionType === "free" ? (
+          "Confirm free booking"
         ) : (
-          `Reserve 90-min follow-up — ${formatUsd(PRICING.consultation)}`
+          `Proceed to payment — ${formatUsd(PRICING.consultation)} via Paystack`
         )}
       </button>
 
-      {variant === "paid" ? (
+      {sessionType === "paid" ? (
         <p className="text-[11px] text-muted-foreground leading-relaxed">
-          For clients who completed the free intro and want a deeper session. Payment confirms your slot; we email the
-          meeting link after Paystack verifies.
+          Paystack confirms your 90-minute follow-up. We email the meeting link after payment verifies.
         </p>
       ) : (
         <p className="text-[11px] text-muted-foreground leading-relaxed">
-          Free · we send your meeting link by email. Available daily 7–9 PM East Africa Time.
+          Free 20-minute intro — we send your meeting link by email.
         </p>
       )}
     </form>

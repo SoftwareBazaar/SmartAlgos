@@ -8,7 +8,9 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
 import { Toaster } from "sonner";
 import { AppSidebar } from "@/components/app-sidebar";
+import { PublicSiteLayout } from "@/components/public-site-layout";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { isBarePublicPath, isPublicSitePath } from "@/lib/site-nav";
 
 const SITE_ORIGIN = "https://smartalgosts.com";
 
@@ -95,14 +97,15 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isStandalone =
-    pathname === "/" || pathname === "/consultation" || pathname === "/book";
+  const isPublic = isPublicSitePath(pathname);
 
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster theme="dark" position="top-center" richColors closeButton />
-      {isStandalone ? (
-        <Outlet />
+      {isPublic ? (
+        <PublicSiteLayout bare={isBarePublicPath(pathname)}>
+          <Outlet />
+        </PublicSiteLayout>
       ) : (
         <SidebarProvider defaultOpen={true}>
           <div className="min-h-screen flex w-full bg-background overflow-x-hidden">

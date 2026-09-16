@@ -1,4 +1,4 @@
-import { Calendar, Sparkles } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { AdvisoryBookingForm } from "@/components/advisory-booking-form";
 import { SectionCard } from "@/components/page-shell";
 import { consultationServices, company } from "@/lib/mock-data";
@@ -10,41 +10,29 @@ export function ConsultationPageContent() {
   return (
     <div className="max-w-[1200px] mx-auto px-6 flex flex-col gap-10">
       <header className="max-w-2xl">
-        <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-3">Free intro · 7–9 PM EAT daily</div>
+        <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-3">Strategy desk · 7–9 PM EAT daily</div>
         <h1 className="font-display text-3xl md:text-4xl lg:text-[2.75rem] font-semibold text-foreground leading-tight">
           Book your advisory session
         </h1>
         <p className="mt-4 text-sm md:text-base text-muted-foreground leading-relaxed">
           Start with a <span className="text-foreground font-medium">free 20-minute consultation</span> with{" "}
-          {company.name}. Pick your topic and time — we email your meeting link. Optional{" "}
-          <span className="text-gold font-medium">{followUpPrice} 90-minute follow-up</span> after your intro.
+          {company.name}, or book a <span className="text-gold font-medium">{followUpPrice} 90-minute follow-up</span>.
+          Last 20-min slot starts at 8:40 PM EAT — slots convert to your local time automatically.
         </p>
       </header>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <SectionCard
-          title="Free 20-minute consultation"
-          subtitle="No fee · meeting link by email"
-          action={<Calendar className="h-5 w-5 text-gold" />}
-          className="border-gold/20"
-        >
-          <p className="text-sm text-muted-foreground mb-4">
-            Stocks, futures, forex, commodities, our live models, or a system you want to build.
-          </p>
-          <AdvisoryBookingForm variant="free" />
-        </SectionCard>
-
-        <SectionCard
-          title="90-minute follow-up"
-          subtitle={`${followUpPrice} — after your free intro`}
-          action={<Sparkles className="h-5 w-5 text-gold" />}
-        >
-          <p className="text-sm text-muted-foreground mb-4">
-            Deeper session: strategy rules, risk framework, execution review, and next steps.
-          </p>
-          <AdvisoryBookingForm variant="paid" />
-        </SectionCard>
-      </div>
+      <SectionCard
+        title="Book a session"
+        subtitle={`Free intro or ${followUpPrice} deep-dive — one form`}
+        action={<Calendar className="h-5 w-5 text-gold" />}
+        className="border-gold/20 max-w-xl"
+      >
+        <p className="text-sm text-muted-foreground mb-4">
+          Stocks, futures, forex, commodities, our live models, or a system you want to build. Paystack appears only for
+          the paid session.
+        </p>
+        <AdvisoryBookingForm />
+      </SectionCard>
 
       <div>
         <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-4">What we advise on</div>

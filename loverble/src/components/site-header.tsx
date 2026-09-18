@@ -92,7 +92,7 @@ export function SiteHeader() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-bull opacity-60" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-bull" />
                 </span>
-                QuantConnect feed connected
+                Research first · client portal
               </div>
               <p className="text-xs text-muted-foreground mb-3">Open allocations, sandbox backtests, and unlocked files.</p>
               <Link

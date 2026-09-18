@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PageShell, SectionCard, StatCard } from "@/components/page-shell";
 import { ResearchPreviewCard } from "@/components/research-preview";
 import {
-  researchOverview, researchPapers, caseStudies, whitePapers,
+  researchOverview, researchPapers, caseStudies, whitePapers, FREE_NOTE_SLUG,
 } from "@/lib/mock-data";
 import { BookOpen, TrendingUp } from "lucide-react";
 
@@ -19,14 +19,6 @@ export const Route = createFileRoute("/research")({
 
 const FILTERS = ["All", "Forex", "Commodities", "Equities"] as const;
 
-const SAMPLE_NOTEBOOK = `# Sample QuantConnect algorithm initialization
-def Initialize(self):
-    self.SetStartDate(2023, 1, 1)
-    self.SetCash(100000)
-    self.symbol = self.AddForex("EURUSD", Resolution.Minute, Market.OANDA).Symbol
-    self.bb = self.BB(self.symbol, 20, 2, MovingAverageType.Simple)
-    self.SetWarmUp(20)`;
-
 function Research() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
   const papers = researchPapers.filter((p) => filter === "All" || p.category === filter);
@@ -35,13 +27,13 @@ function Research() {
     <PageShell
       eyebrow="Quant library"
       title="Research & strategy notebooks"
-      description="Methodology notes with Jupyter notebooks, backtest logs, and PDF reports. Preview free — unlock a full note for $10."
+      description="Methodology notes. One free public note is live. Paid notebooks stay listed as in progress until a file is attached."
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Research Notes" value={String(researchOverview.notesPublished)} />
-        <StatCard label="Strategy Studies" value={String(researchOverview.studiesCompleted)} accent="up" />
+        <StatCard label="Published notes" value={String(researchOverview.notesPublished)} />
+        <StatCard label="Notes in progress" value={String(researchOverview.studiesCompleted - researchOverview.notesPublished)} />
         <StatCard label="Markets Covered" value={String(researchOverview.marketsCovered)} />
-        <StatCard label="Unlock" value="$10" hint="per full report" />
+        <StatCard label="Free note" value="Open" hint="no paywall" />
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1">
@@ -61,7 +53,7 @@ function Research() {
         ))}
       </div>
 
-      <SectionCard title="Research library" subtitle="Quantitative notes · .ipynb + PDF">
+      <SectionCard title="Research library" subtitle="Public note live · others in progress">
         <div className="space-y-8">
           {papers.map((paper) => (
             <ResearchPreviewCard key={paper.id} paper={paper} />
@@ -72,18 +64,18 @@ function Research() {
         </div>
       </SectionCard>
 
-      <div className="p-6 bg-dominant border border-border rounded-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-          <span className="text-xs font-mono text-muted-foreground">
-            Sample notebook preview: <span className="text-gold">eurusd_mean_reversion.py</span>
-          </span>
-          <Link to="/" hash="research" className="text-xs text-gold hover:underline cursor-pointer">
-            Back to homepage library
-          </Link>
+      <div className="p-6 bg-dominant border border-gold/30 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-gold">Free public note</div>
+          <p className="text-sm text-muted-foreground mt-1">Building a Quantitative Track Record — text version live, notebook file next.</p>
         </div>
-        <pre className="p-4 bg-secondary-surface rounded-lg text-xs font-mono text-bull overflow-x-auto border border-border">
-          {SAMPLE_NOTEBOOK}
-        </pre>
+        <Link
+          to="/research/$slug"
+          params={{ slug: FREE_NOTE_SLUG }}
+          className="inline-flex items-center justify-center min-h-12 px-5 rounded-lg bg-gold text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft"
+        >
+          Open the free note
+        </Link>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">

@@ -5,7 +5,6 @@ import {
   strategies, pipelineStages, platformDistribution, strategyUpdates, strategyOverview,
 } from "@/lib/mock-data";
 import { Lightbulb, FlaskConical, CheckCircle2, Rocket, Activity, ArrowRight } from "lucide-react";
-import { EmailGate } from "@/components/email-gate";
 
 export const Route = createFileRoute("/strategies")({
   head: () => ({
@@ -37,7 +36,7 @@ function StrategiesPage() {
     <PageShell
       eyebrow="Strategy Library"
       title="Strategies"
-      description="Systematic strategies we develop and validate. Live models link to third-party verification — subscribe from $149.99 retail or $499.99 institutional."
+      description="Systematic strategies we develop and validate. Live models will link to QuantConnect listings once those URLs are published."
       actions={
         <Link
           to="/portal"
@@ -83,11 +82,7 @@ function StrategiesPage() {
         ))}
       </div>
 
-      <EmailGate
-        title="Subscribe to view strategies"
-        description="Enter your email to access live strategy details, the research pipeline, platform distribution, and update logs — free, no account needed."
-      >
-        {tab === "All Strategies" && (
+      {tab === "All Strategies" && (
           <SectionCard title="Strategy catalog" subtitle="Click a strategy for thesis, status, and verification links">
             <div className="space-y-3">
               {strategies.map((s) => (
@@ -161,7 +156,6 @@ function StrategiesPage() {
             </div>
           </SectionCard>
         )}
-      </EmailGate>
     </PageShell>
   );
 }

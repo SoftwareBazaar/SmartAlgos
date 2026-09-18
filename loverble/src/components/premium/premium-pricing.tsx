@@ -1,7 +1,8 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { Check, X, Sparkles } from "lucide-react";
-import { CheckoutForm } from "@/components/checkout-form";
+import { Link } from "@tanstack/react-router";
 import { formatUsd, PRICING } from "@/lib/pricing";
+import { FREE_NOTE_SLUG } from "@/lib/mock-data";
 import { GlowCard } from "./glow-card";
 import { MotionReveal, MotionItem } from "@/components/motion-reveal";
 
@@ -24,9 +25,9 @@ const tiers: {
     kicker: "On-demand",
     name: "Research Unlock",
     price: formatUsd(PRICING.researchFull),
-    period: "/ report",
+    period: "/ report when published",
     amountUsd: PRICING.researchFull,
-    desc: "One-time unlock per full research note",
+    desc: "Not for sale until a notebook or PDF is attached",
     features: [
       { label: "Single PDF methodology report", included: true },
       { label: "Full backtest Jupyter notebook", included: true },
@@ -41,13 +42,13 @@ const tiers: {
     kicker: "Retail live",
     name: "Systematic Trader",
     price: formatUsd(PRICING.liveRetail),
-    period: "/ month",
+    period: "after desk review",
     amountUsd: PRICING.liveRetail,
-    desc: "Live systematic models with verified logs",
+    desc: "Live models after a strategy-desk review — not an automated signal feed yet",
     features: [
-      { label: "Access to all research notebooks", included: true },
-      { label: "Real-time live signal feed", included: true },
-      { label: "QuantConnect verified logs", included: true },
+      { label: "Access to published research notes", included: true },
+      { label: "Real-time live signal feed", included: false },
+      { label: "QuantConnect listing when the URL is published", included: true },
       { label: "Direct API / webhook execution", included: false },
     ],
     highlight: true,
@@ -58,13 +59,13 @@ const tiers: {
     kicker: "Enterprise",
     name: "Institutional",
     price: formatUsd(PRICING.liveInstitutional),
-    period: "/ month",
+    period: "after desk review",
     amountUsd: PRICING.liveInstitutional,
-    desc: "API execution, parameters, and priority desk",
+    desc: "Priority desk after a booked review — API routing is not live yet",
     features: [
       { label: "Everything in Retail", included: true },
-      { label: "Direct API & webhook execution", included: true },
-      { label: "Raw strategy parameter files (.json)", included: true },
+      { label: "Direct API & webhook execution", included: false },
+      { label: "Raw strategy parameter files (.json)", included: false },
       { label: "Priority strategy desk support", included: true },
     ],
     highlight: false,
@@ -88,7 +89,8 @@ export function PremiumPricingShowcase() {
           </motion.div>
           <h2 className="font-display text-4xl font-semibold">Subscribe to depth</h2>
           <p className="mt-3 text-muted-foreground">
-            Static research vs live execution vs API access — pick the tier that matches how you trade.
+            Static research vs live execution vs API access. Live access opens after a desk review — we are not selling
+            files or signal feeds that do not exist yet.
           </p>
         </div>
 
@@ -137,13 +139,26 @@ export function PremiumPricingShowcase() {
                   ))}
                 </ul>
                 <div className="mt-6">
-                  <CheckoutForm
-                    productType="research_subscription"
-                    productId={tier.id}
-                    amountUsd={tier.amountUsd}
-                    label={tier.cta}
-                    variant={tier.highlight ? "primary" : "outline"}
-                  />
+                  {tier.id === "research-pro" ? (
+                    <Link
+                      to="/research/$slug"
+                      params={{ slug: FREE_NOTE_SLUG }}
+                      className="w-full inline-flex items-center justify-center min-h-12 rounded-sm px-5 py-2.5 text-xs font-semibold uppercase tracking-wider border border-gold/60 text-gold hover:bg-gold/10"
+                    >
+                      Read the free note
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/consultation"
+                      className={`w-full inline-flex items-center justify-center min-h-12 rounded-sm px-5 py-2.5 text-xs font-semibold uppercase tracking-wider ${
+                        tier.highlight
+                          ? "bg-gold text-primary-foreground hover:bg-gold-soft"
+                          : "border border-gold/60 text-gold hover:bg-gold/10"
+                      }`}
+                    >
+                      Book a desk review
+                    </Link>
+                  )}
                 </div>
               </GlowCard>
             </MotionItem>

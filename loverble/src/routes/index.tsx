@@ -52,7 +52,7 @@ function Landing() {
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-bull opacity-60" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-bull" />
                   </span>
-                  Independently verified · QuantConnect
+                  Research first · QuantConnect listings in progress
                 </div>
                 <p className="font-mono text-bull text-lg md:text-xl font-semibold tabular-nums">
                   {featuredLive?.name ?? "FX Mean Reversion"}: +{fmt.pct(featuredLive?.liveReturn ?? 0.314, 1)} since live
@@ -69,15 +69,15 @@ function Landing() {
                 <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">{company.operator}</p>
               </div>
               <div className="hero-cta-group mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3 max-w-md">
-                <ShimmerButton to="/strategies" variant="primary" className="btn-primary w-full sm:w-auto min-h-12">
-                  View live models <ArrowRight className="h-4 w-4" />
+                <ShimmerButton href="/research/building-a-quantitative-track-record" variant="primary" className="btn-primary w-full sm:w-auto min-h-12">
+                  Read the free note <ArrowRight className="h-4 w-4" />
                 </ShimmerButton>
-                <ShimmerButton to="/research" variant="outline" className="btn-secondary w-full sm:w-auto min-h-12">
-                  Read research notes
+                <ShimmerButton to="/strategies" variant="outline" className="btn-secondary w-full sm:w-auto min-h-12">
+                  View live models
                 </ShimmerButton>
               </div>
               <p className="mt-4 text-xs text-muted-foreground">
-                Independently verified via QuantConnect · No dynamic curve-fitting
+                QuantConnect listings in progress · No dynamic curve-fitting
               </p>
             </MotionHeroText>
             <MotionHeroText>
@@ -100,7 +100,7 @@ function Landing() {
           <CountUpStat
             label="Live strategies"
             value={PORTFOLIO_METRICS.liveStrategies}
-            hint="Both independently verified on QuantConnect"
+            hint="Two live models on the desk — permalinks pending"
           />
           <CountUpStat
             label="Max drawdown"

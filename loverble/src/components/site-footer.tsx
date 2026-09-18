@@ -34,7 +34,7 @@ export function SiteFooter() {
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-bull" />
             </span>
             <span className="text-sm font-medium text-foreground/80">
-              Track records verified via{" "}
+              Track records via{" "}
               <a
                 href="https://www.quantconnect.com"
                 target="_blank"

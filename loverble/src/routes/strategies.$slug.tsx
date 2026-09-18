@@ -3,8 +3,6 @@ import { PageShell, SectionCard } from "@/components/page-shell";
 import { getStrategyBySlug } from "@/lib/mock-data";
 import { getStrategyVerificationUrl, hasDirectVerificationLink } from "@/lib/strategy-links";
 import { ExternalLink, ArrowLeft, Lock } from "lucide-react";
-import { CheckoutForm } from "@/components/checkout-form";
-import { formatUsd, PRICING } from "@/lib/pricing";
 import { useSubscription } from "@/hooks/use-subscription";
 import { hasLiveAccess } from "@/lib/subscription-access";
 
@@ -90,29 +88,19 @@ function StrategyDetail() {
       )}
 
       {strategy.status === "Live" && !liveUnlocked && (
-        <SectionCard title="Subscribe to live strategy" subtitle="Live models only — retail or institutional">
+        <SectionCard title="Live access" subtitle="Opens after a strategy-desk review">
           <div className="flex items-start gap-3 rounded-sm border border-gold/30 bg-gold/5 p-4">
             <Lock className="h-5 w-5 text-gold shrink-0 mt-0.5" />
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-3">
               <p className="text-sm text-muted-foreground">
-                Full rules summary, backtest report, and live signal access are available with a live strategy subscription.
+                We are not selling a live signal feed yet. Book a desk session if you want allocation or a licensed file after review.
               </p>
-              <div className="grid sm:grid-cols-2 gap-3">
-                <CheckoutForm
-                  productType="research_subscription"
-                  productId="live-retail"
-                  amountUsd={PRICING.liveRetail}
-                  label={`Retail — ${formatUsd(PRICING.liveRetail)} via Paystack`}
-                  variant="primary"
-                />
-                <CheckoutForm
-                  productType="research_subscription"
-                  productId="live-institutional"
-                  amountUsd={PRICING.liveInstitutional}
-                  label={`Institutional — ${formatUsd(PRICING.liveInstitutional)} via Paystack`}
-                  variant="outline"
-                />
-              </div>
+              <Link
+                to="/consultation"
+                className="inline-flex items-center justify-center min-h-12 px-5 rounded-lg bg-gold text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft"
+              >
+                Book a desk review
+              </Link>
             </div>
           </div>
         </SectionCard>

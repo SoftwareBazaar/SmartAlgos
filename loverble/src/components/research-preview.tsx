@@ -1,11 +1,9 @@
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { FileText, Unlock } from "lucide-react";
+import { FileText } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import type { ResearchPaper } from "@/lib/mock-data";
 import { equityCurve } from "@/lib/mock-data";
 import { PremiumGate } from "@/components/premium-gate";
-import { useSubscription } from "@/hooks/use-subscription";
-import { hasResearchAccess } from "@/lib/subscription-access";
-import { formatUsd, PRICING } from "@/lib/pricing";
 
 const PREVIEW_FINDINGS_COUNT = 1;
 
@@ -17,9 +15,8 @@ function previewExcerpt(text: string, maxSentences = 2): string {
 
 export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
   const chartData = equityCurve.slice(-90);
-  const { tier } = useSubscription();
+  const unlocked = paper.published;
   const isFree = paper.tier === "free";
-  const unlocked = isFree || hasResearchAccess(tier);
   const previewFindings = paper.keyFindings.slice(0, PREVIEW_FINDINGS_COUNT);
   const gatedFindings = paper.keyFindings.slice(PREVIEW_FINDINGS_COUNT);
   const gatedItems = [...gatedFindings, ...paper.lockedContent];
@@ -34,12 +31,8 @@ export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
               <span className="font-mono text-gold">{paper.id}</span>
               <span>{paper.category}</span>
               <span>{paper.date}</span>
-              {!isFree && !unlocked && <span className="text-gold">Preview</span>}
-              {!isFree && unlocked && (
-                <span className="text-bull inline-flex items-center gap-1">
-                  <Unlock className="h-3 w-3" /> Full access
-                </span>
-              )}
+              {!unlocked && <span className="text-gold">In progress</span>}
+              {unlocked && isFree && <span className="text-bull">Free note</span>}
             </div>
             <h3 className="font-display text-xl font-semibold">{paper.title}</h3>
           </div>
@@ -49,7 +42,7 @@ export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
       <div className="p-5 space-y-5">
         {!isFree && !unlocked && (
           <div className="rounded-sm border border-gold/25 bg-gold/5 px-3 py-2 text-xs text-muted-foreground">
-            Free preview below — unlock this report for {formatUsd(PRICING.researchFull)} (one-time, per note).
+            Preview only — the full notebook is not published yet, so this note is not for sale.
           </div>
         )}
 
@@ -93,19 +86,14 @@ export function ResearchPreviewCard({ paper }: { paper: ResearchPaper }) {
           </ul>
         </div>
 
-        {unlocked && !isFree && paper.lockedContent.length > 0 && (
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-gold mb-2">Full content (subscriber)</div>
-            <ul className="space-y-2">
-              {paper.lockedContent.map((item) => (
-                <li key={item} className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Unlock className="h-3.5 w-3.5 text-bull shrink-0" />
-                  {item}
-                  <span className="text-[10px] text-muted-foreground">— delivery via account portal soon</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {unlocked && isFree && paper.slug && (
+          <Link
+            to="/research/$slug"
+            params={{ slug: paper.slug }}
+            className="inline-flex items-center justify-center min-h-12 px-5 rounded-lg bg-gold text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft"
+          >
+            Open full note
+          </Link>
         )}
 
         {!unlocked && gatedItems.length > 0 && (

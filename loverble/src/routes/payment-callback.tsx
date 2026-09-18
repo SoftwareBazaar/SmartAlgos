@@ -38,6 +38,8 @@ function PaymentCallback() {
             ? "/portal?tab=downloads"
             : data.product_type === "research_subscription"
               ? "/portal"
+              : data.product_type === "consultation"
+                ? "/consultation"
               : data.product_type === "research_donation"
                 ? "/support"
                 : "/research";

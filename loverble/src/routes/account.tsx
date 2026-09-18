@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PageShell, SectionCard } from "@/components/page-shell";
 import { useSubscription } from "@/hooks/use-subscription";
-import { clearStoredSubscription, getStoredSubscription, hasResearchAccess, hasLiveAccess } from "@/lib/subscription-access";
+import { clearStoredSubscription, getStoredSubscription, hasLiveAccess } from "@/lib/subscription-access";
 import { supabase } from "@/integrations/supabase/client";
 import { researchPapers, strategies } from "@/lib/mock-data";
 import { BookOpen, FlaskConical, LogOut, ShieldCheck, ExternalLink } from "lucide-react";
@@ -45,10 +45,7 @@ function AccountPage() {
     };
   }, [syncAfterLogin]);
 
-  const accessiblePapers = researchPapers.filter((p) => {
-    if (p.tier === "free") return true;
-    return hasResearchAccess(tier);
-  });
+  const accessiblePapers = researchPapers.filter((p) => p.published);
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -129,11 +126,11 @@ function AccountPage() {
                 <div className="text-sm font-medium">{p.title}</div>
                 <div className="text-xs text-muted-foreground">{p.id} · {p.tier === "free" ? "Free" : "Premium"}</div>
               </div>
-              <Link to="/research" className="text-xs text-gold hover:underline">Open</Link>
+              <Link to="/research/$slug" params={{ slug: p.slug }} className="text-xs text-gold hover:underline">Open</Link>
             </div>
           ))}
           {accessiblePapers.length === 0 && (
-            <p className="text-sm text-muted-foreground">Subscribe on the Research page to unlock premium notes and notebooks.</p>
+            <p className="text-sm text-muted-foreground">The first free note is on the Research page. Paid notebooks appear here when files are published.</p>
           )}
         </div>
       </SectionCard>

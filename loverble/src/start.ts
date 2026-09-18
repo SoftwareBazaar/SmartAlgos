@@ -19,6 +19,7 @@ import {
   runBacktestJob,
   serveStrategyDownload,
 } from "@/lib/portal-server";
+import { submitDeskMessage } from "@/lib/desk-message-server";
 
 /** Capital Paystack API — handled in middleware (reliable on Vercel/Nitro). */
 const capitalPaymentsMiddleware = createMiddleware().server(async ({ request, next }) => {
@@ -123,6 +124,17 @@ const portalMiddleware = createMiddleware().server(async ({ request, next }) => 
     } catch (err) {
       console.error("[Portal] Webhook error:", err);
       return Response.json({ error: "Webhook failed" }, { status: 500 });
+    }
+  }
+
+  if (pathname === "/api/desk/message" && request.method === "POST") {
+    try {
+      const body = await request.json();
+      const result = await submitDeskMessage(body);
+      return Response.json(result.body, { status: result.status });
+    } catch (err) {
+      console.error("[Desk] Message error:", err);
+      return Response.json({ success: false, error: "Could not send message" }, { status: 500 });
     }
   }
 

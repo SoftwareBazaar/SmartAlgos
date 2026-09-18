@@ -28,8 +28,8 @@ export type Strategy = {
 };
 
 export const researchOverview = {
-  notesPublished: 12,
-  studiesCompleted: 24,
+  notesPublished: 1,
+  studiesCompleted: 4,
   activeResearchAreas: 5,
   marketsCovered: 3,
   areas: [
@@ -328,23 +328,31 @@ export const subscriptionTiers = [
 
 export type ResearchPaper = {
   id: string;
+  slug: string;
   title: string;
   category: string;
   date: string;
   tier: "free" | "research-pro" | "quant-pro";
+  published: boolean;
   executiveSummary: string;
   keyFindings: string[];
   previewChartLabel: string;
   lockedContent: string[];
+  /** Public path under /research-files/ once the notebook is uploaded. */
+  downloadUrl?: string;
 };
+
+export const FREE_NOTE_SLUG = "building-a-quantitative-track-record";
 
 export const researchPapers: ResearchPaper[] = [
   {
     id: "RN-2026-05",
+    slug: "gold-volatility-regimes",
     title: "Gold Volatility Regimes",
     category: "Commodities",
     date: "May 2026",
     tier: "research-pro",
+    published: false,
     executiveSummary:
       "Gold exhibits three dominant volatility states across major macroeconomic cycles. We map regime transitions using realized vol, term structure, and cross-asset correlations — with implications for momentum and mean-reversion overlays.",
     keyFindings: [
@@ -363,10 +371,12 @@ export const researchPapers: ResearchPaper[] = [
   },
   {
     id: "RN-2026-04",
+    slug: "momentum-effects-in-african-markets",
     title: "Momentum Effects in African Markets",
     category: "Equities",
     date: "Apr 2026",
     tier: "research-pro",
+    published: false,
     executiveSummary:
       "Cross-sectional momentum in frontier African equity markets shows shorter decay horizons than developed markets, with liquidity constraints as the primary capacity limiter.",
     keyFindings: [
@@ -379,10 +389,12 @@ export const researchPapers: ResearchPaper[] = [
   },
   {
     id: "RN-2026-03",
+    slug: "forex-liquidity-during-high-impact-news",
     title: "Forex Liquidity During High-Impact News",
     category: "Forex",
     date: "Mar 2026",
     tier: "quant-pro",
+    published: false,
     executiveSummary:
       "Spread widening and slippage patterns around major macro releases create predictable microstructure opportunities — and risks — for systematic FX strategies.",
     keyFindings: [
@@ -395,10 +407,12 @@ export const researchPapers: ResearchPaper[] = [
   },
   {
     id: "WP-2026-01",
+    slug: FREE_NOTE_SLUG,
     title: "Building a Quantitative Track Record",
     category: "White Paper",
     date: "Jan 2026",
     tier: "free",
+    published: true,
     executiveSummary:
       "A practical framework for researchers and small teams to build verifiable performance history through transparent deployment on third-party platforms.",
     keyFindings: [
@@ -411,10 +425,14 @@ export const researchPapers: ResearchPaper[] = [
   },
 ];
 
+export function getPaperBySlug(slug: string): ResearchPaper | undefined {
+  return researchPapers.find((paper) => paper.slug === slug);
+}
+
 export const caseStudies = [
-  { title: "Gold Volatility Analysis", category: "Commodities", outcome: "Published as RN-2026-05" },
-  { title: "Momentum in African Markets", category: "Equities", outcome: "Published as RN-2026-04" },
-  { title: "FX Liquidity Microstructure", category: "Forex", outcome: "In peer review" },
+  { title: "Gold Volatility Analysis", category: "Commodities", outcome: "In progress — not a published notebook yet" },
+  { title: "Momentum in African Markets", category: "Equities", outcome: "In progress — not a published notebook yet" },
+  { title: "FX Liquidity Microstructure", category: "Forex", outcome: "In progress" },
 ];
 
 export const whitePapers = [

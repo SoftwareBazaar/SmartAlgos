@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Mail, MapPin, Phone, Send, Linkedin, Github, Globe } from "lucide-react";
+import { Mail, MapPin, Phone, Send } from "lucide-react";
 import { PageShell, SectionCard } from "@/components/page-shell";
 import { toast } from "sonner";
+import { sendDeskMessage } from "@/lib/desk-api";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -18,14 +19,27 @@ export const Route = createFileRoute("/contact")({
 
 function ContactPage() {
   const [submitting, setSubmitting] = useState(false);
-  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
+    const data = new FormData(form);
     setSubmitting(true);
-    setTimeout(() => {
-      toast.success("Message received", { description: "We'll reply within 1 business day." });
-      (e.target as HTMLFormElement).reset();
+    try {
+      await sendDeskMessage({
+        name: String(data.get("name") || ""),
+        email: String(data.get("email") || ""),
+        company: String(data.get("company") || ""),
+        topic: String(data.get("topic") || "General enquiry"),
+        message: String(data.get("message") || ""),
+        source: "contact",
+      });
+      toast.success("Message sent", { description: "We'll reply within 1 business day." });
+      form.reset();
+    } catch (err) {
+      toast.error((err as Error).message || "Could not send the message");
+    } finally {
       setSubmitting(false);
-    }, 600);
+    }
   };
 
   return (
@@ -61,7 +75,7 @@ function ContactPage() {
                 <Mail className="h-4 w-4 text-gold mt-0.5 shrink-0" />
                 <div>
                   <div className="text-muted-foreground text-xs mb-0.5">Email</div>
-                  <a href="mailto:smartalgosts.com" className="font-mono hover:text-gold transition">smartalgosts.com</a>
+                  <a href="mailto:support@smartalgos.com" className="font-mono hover:text-gold transition">support@smartalgos.com</a>
                 </div>
               </div>
               <div className="flex items-start gap-3">

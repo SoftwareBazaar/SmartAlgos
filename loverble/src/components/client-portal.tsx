@@ -259,7 +259,7 @@ export function ClientPortal({ initialTab, initialRef }: { initialTab?: string; 
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-bull border border-bull/30 rounded-full px-3 py-1">
-              <Activity className="h-3 w-3" /> QuantConnect feed active
+              <Activity className="h-3 w-3" /> Portal sandbox + downloads
             </span>
             <span className="text-[11px] uppercase tracking-wider text-gold border border-gold/30 rounded-full px-3 py-1">
               {roleLabel(profile?.role || "retail")} tier

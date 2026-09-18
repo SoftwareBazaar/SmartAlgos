@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { sendDeskMessage } from "@/lib/desk-api";
 
 const inputClass =
   "w-full bg-background border border-border rounded-sm px-3 py-2.5 text-sm focus:outline-none focus:border-gold/60";
@@ -9,17 +10,28 @@ const labelClass = "text-[10px] uppercase tracking-[0.15em] text-muted-foregroun
 export function CustomQuantSection() {
   const [submitting, setSubmitting] = useState(false);
 
-  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitting(true);
     const form = e.currentTarget;
-    window.setTimeout(() => {
+    const data = new FormData(form);
+    setSubmitting(true);
+    try {
+      await sendDeskMessage({
+        name: String(data.get("name") || ""),
+        email: String(data.get("email") || ""),
+        topic: "Custom quant specification",
+        message: String(data.get("spec") || ""),
+        source: "custom-quant",
+      });
       toast.success("Specification received", {
         description: "We'll reply with a confidential quote within one business day.",
       });
       form.reset();
+    } catch (err) {
+      toast.error((err as Error).message || "Could not send the specification");
+    } finally {
       setSubmitting(false);
-    }, 600);
+    }
   };
 
   return (

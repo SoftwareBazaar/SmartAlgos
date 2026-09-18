@@ -4,11 +4,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { confirmPaidBookingFromPayment } from "@/lib/advisory-booking-server";
-import { PRICING } from "@/lib/pricing";
+import { PRICING, KES_RATE } from "@/lib/pricing";
 import { fulfillStrategyPurchase } from "@/lib/strategy-unlock-server";
 import { getStrategyFileProduct } from "@/lib/strategy-catalog";
-
-const KES_RATE = 150;
 
 const TIER_AMOUNTS_USD: Record<string, number> = {
   "research-pro": PRICING.researchFull,

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TechnologyRouteImport } from './routes/technology'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as StrategiesRouteImport } from './routes/strategies'
 import { Route as SecurityPolicyRouteImport } from './routes/security-policy'
 import { Route as RiskRouteImport } from './routes/risk'
@@ -52,6 +53,11 @@ const TermsRoute = TermsRouteImport.update({
 const TechnologyRoute = TechnologyRouteImport.update({
   id: '/technology',
   path: '/technology',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StrategiesRoute = StrategiesRouteImport.update({
@@ -247,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/risk': typeof RiskRoute
   '/security-policy': typeof SecurityPolicyRoute
   '/strategies': typeof StrategiesRouteWithChildren
+  '/support': typeof SupportRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
@@ -283,6 +290,7 @@ export interface FileRoutesByTo {
   '/risk': typeof RiskRoute
   '/security-policy': typeof SecurityPolicyRoute
   '/strategies': typeof StrategiesRouteWithChildren
+  '/support': typeof SupportRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/risk': typeof RiskRoute
   '/security-policy': typeof SecurityPolicyRoute
   '/strategies': typeof StrategiesRouteWithChildren
+  '/support': typeof SupportRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
@@ -358,6 +367,7 @@ export interface FileRouteTypes {
     | '/risk'
     | '/security-policy'
     | '/strategies'
+    | '/support'
     | '/technology'
     | '/terms'
     | '/strategies/$slug'
@@ -394,6 +404,7 @@ export interface FileRouteTypes {
     | '/risk'
     | '/security-policy'
     | '/strategies'
+    | '/support'
     | '/technology'
     | '/terms'
     | '/strategies/$slug'
@@ -430,6 +441,7 @@ export interface FileRouteTypes {
     | '/risk'
     | '/security-policy'
     | '/strategies'
+    | '/support'
     | '/technology'
     | '/terms'
     | '/strategies/$slug'
@@ -467,6 +479,7 @@ export interface RootRouteChildren {
   RiskRoute: typeof RiskRoute
   SecurityPolicyRoute: typeof SecurityPolicyRoute
   StrategiesRoute: typeof StrategiesRouteWithChildren
+  SupportRoute: typeof SupportRoute
   TechnologyRoute: typeof TechnologyRoute
   TermsRoute: typeof TermsRoute
 }
@@ -485,6 +498,13 @@ declare module '@tanstack/react-router' {
       path: '/technology'
       fullPath: '/technology'
       preLoaderRoute: typeof TechnologyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/strategies': {
@@ -758,6 +778,7 @@ const rootRouteChildren: RootRouteChildren = {
   RiskRoute: RiskRoute,
   SecurityPolicyRoute: SecurityPolicyRoute,
   StrategiesRoute: StrategiesRouteWithChildren,
+  SupportRoute: SupportRoute,
   TechnologyRoute: TechnologyRoute,
   TermsRoute: TermsRoute,
 }

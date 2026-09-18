@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { verifyCapitalPayment } from "@/lib/payments-api";
 import { saveSubscriptionFromPayment } from "@/lib/subscription-access";
+import { formatUsdWithKes } from "@/lib/pricing";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/payment-callback")({
@@ -37,8 +38,10 @@ function PaymentCallback() {
             ? "/portal?tab=downloads"
             : data.product_type === "research_subscription"
               ? "/portal"
-              : "/research";
-        setMessage(`Payment of $${Number(data.amount_usd).toFixed(2)} confirmed. Reference: ${reference}`);
+              : data.product_type === "research_donation"
+                ? "/support"
+                : "/research";
+        setMessage(`Payment of ${formatUsdWithKes(Number(data.amount_usd))} confirmed. Reference: ${reference}`);
         setTimeout(() => {
           window.location.assign(dest);
         }, 1800);

@@ -74,6 +74,7 @@ export function CheckoutForm({
 
   return (
     <form onSubmit={pay} className={`flex flex-col gap-2 ${className}`}>
+      <label className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Email for receipt</label>
       <input
         type="email"
         value={email}

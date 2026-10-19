@@ -5,7 +5,7 @@
   "main": "railway-full-server.js",
   "scripts": {
     "start": "node railway-full-server.js",
-    "build": "cd loverble && npm install && npm run build && cd .. && node scripts/vercel-merge-output.mjs",
+    "build": "cd loverble && npm install --include=dev --legacy-peer-deps && npm run build && cd .. && node scripts/vercel-merge-output.mjs",
     "build:client-legacy": "cd client && npm install && npm run build"
   },
   "dependencies": {

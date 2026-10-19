@@ -121,8 +121,9 @@ temp/
 *.bak
 *.backup
 
-# Lock files
+# Lock files (keep loverble lock for reproducible Vercel installs)
 package-lock.json
+!loverble/package-lock.json
 yarn.lock
 pnpm-lock.yaml
 

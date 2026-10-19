@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Day01Charts } from "@/components/finance/day-01-charts";
+import { AdSlot } from "@/components/finance/ad-slot";
 
 function Formula({ children }: { children: string }) {
   return (
@@ -133,6 +134,8 @@ export function Day01CreditCardMinimumPaymentDecay() {
         </P>
         <Day01Charts />
       </section>
+
+      <AdSlot id="day01-inline-1" />
 
       <section className="space-y-4">
         <H2>Mathematical framework</H2>

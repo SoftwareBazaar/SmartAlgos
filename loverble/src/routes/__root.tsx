@@ -12,7 +12,7 @@ import { PublicSiteLayout } from "@/components/public-site-layout";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { isBarePublicPath, isPortalPath, isPublicSitePath, isSupportPath } from "@/lib/site-nav";
 
-const SITE_ORIGIN = "https://smartalgosts.com";
+const SITE_ORIGIN = "https://www.smartalgosts.com";
 
 function NotFoundComponent() {
   return (

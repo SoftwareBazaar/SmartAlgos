@@ -38,6 +38,7 @@ export function isPublicSitePath(pathname: string): boolean {
   if (PUBLIC_EXACT.has(pathname)) return true;
   if (pathname.startsWith("/strategies")) return true;
   if (pathname.startsWith("/research")) return true;
+  if (pathname.startsWith("/finance")) return true;
   return false;
 }
 

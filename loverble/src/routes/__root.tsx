@@ -65,6 +65,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "Quantitative research, systematic strategies, and verified performance." },
       { name: "twitter:image", content: `${SITE_ORIGIN}/apple-touch-icon.png` },
       { name: "theme-color", content: "#0a0f1a" },
+      { name: "google-site-verification", content: "K2On3ZptI3wcfRi4yrBrtpDx1H_iUlER57Fwuzd5Yow" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

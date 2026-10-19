@@ -24,11 +24,6 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link to="/finance" className="text-muted-foreground hover:text-gold transition-colors duration-200 cursor-pointer">
-                Finance
-              </Link>
-            </li>
           </ul>
         </div>
 

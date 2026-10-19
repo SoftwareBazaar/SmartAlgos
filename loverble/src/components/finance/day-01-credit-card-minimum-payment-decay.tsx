@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Day01Charts } from "@/components/finance/day-01-charts";
 
 function Formula({ children }: { children: string }) {
   return (
@@ -122,6 +123,15 @@ export function Day01CreditCardMinimumPaymentDecay() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section className="space-y-4">
+        <H2>Visual models</H2>
+        <P>
+          Balance paths, cumulative interest drag, and repayment-rule horizons for the $10,000 /
+          24.99% APR baseline.
+        </P>
+        <Day01Charts />
       </section>
 
       <section className="space-y-4">

@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { PageShell } from "@/components/page-shell";
 import { Day01CreditCardMinimumPaymentDecay } from "@/components/finance/day-01-credit-card-minimum-payment-decay";
+import { FinanceComments } from "@/components/finance/finance-comments";
 import { DAY_01_SLUG, getFinanceNoteBySlug } from "@/lib/finance-notes";
 
 export const Route = createFileRoute("/finance_/$slug")({
@@ -77,6 +78,7 @@ function FinanceNotePage() {
         </h2>
         {note.slug === DAY_01_SLUG ? <Day01CreditCardMinimumPaymentDecay /> : null}
       </article>
+      <FinanceComments slug={note.slug} />
     </PageShell>
   );
 }

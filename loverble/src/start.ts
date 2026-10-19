@@ -20,6 +20,7 @@ import {
   serveStrategyDownload,
 } from "@/lib/portal-server";
 import { submitDeskMessage } from "@/lib/desk-message-server";
+import { listFinanceComments, submitFinanceComment } from "@/lib/finance-comments-server";
 
 /** Capital Paystack API — handled in middleware (reliable on Vercel/Nitro). */
 const capitalPaymentsMiddleware = createMiddleware().server(async ({ request, next }) => {
@@ -135,6 +136,28 @@ const portalMiddleware = createMiddleware().server(async ({ request, next }) => 
     } catch (err) {
       console.error("[Desk] Message error:", err);
       return Response.json({ success: false, error: "Could not send message" }, { status: 500 });
+    }
+  }
+
+  if (pathname === "/api/finance/comments" && request.method === "GET") {
+    try {
+      const slug = new URL(request.url).searchParams.get("slug") || "";
+      const result = await listFinanceComments(slug);
+      return Response.json(result.body, { status: result.status });
+    } catch (err) {
+      console.error("[FinanceComments] List error:", err);
+      return Response.json({ success: false, comments: [], error: "Failed to load comments" }, { status: 500 });
+    }
+  }
+
+  if (pathname === "/api/finance/comments" && request.method === "POST") {
+    try {
+      const body = await request.json();
+      const result = await submitFinanceComment(body);
+      return Response.json(result.body, { status: result.status });
+    } catch (err) {
+      console.error("[FinanceComments] Submit error:", err);
+      return Response.json({ success: false, error: "Could not submit comment" }, { status: 500 });
     }
   }
 

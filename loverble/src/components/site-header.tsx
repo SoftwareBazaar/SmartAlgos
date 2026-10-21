@@ -59,7 +59,7 @@ export function SiteHeader() {
             to="/portal"
             className="inline-flex items-center rounded-sm bg-primary px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition-colors duration-200 cursor-pointer"
           >
-            Portal
+            {pathname.startsWith("/store") ? "My downloads" : "Portal"}
           </Link>
           <button
             type="button"

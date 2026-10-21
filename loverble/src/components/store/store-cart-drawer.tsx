@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ShoppingCart, X } from "lucide-react";
 import { CheckoutForm } from "@/components/checkout-form";
 import { ProductVisual } from "@/components/store/product-visual";
-import { formatUsd, formatUsdWithKes } from "@/lib/pricing";
+import { formatUsd } from "@/lib/pricing";
 import { resolveCartCheckout, useStoreCart } from "@/lib/store-cart";
 
 export function StoreCartButton() {
@@ -40,7 +40,7 @@ export function StoreCartDrawer() {
       />
       <aside className="absolute right-0 top-0 h-full w-full max-w-md border-l border-border bg-dominant shadow-2xl flex flex-col">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <h2 className="font-display text-lg font-semibold">Your cart</h2>
+          <h2 className="font-display text-lg font-semibold">Cart</h2>
           <button
             type="button"
             onClick={() => setOpen(false)}
@@ -68,7 +68,7 @@ export function StoreCartDrawer() {
                 <ProductVisual product={product} className="max-w-[88px] shrink-0" />
                 <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium leading-snug">{product.shortTitle}</p>
-                  <p className="text-xs text-gold">{formatUsd(product.priceUsd)}</p>
+                  <p className="text-base font-semibold text-gold">{formatUsd(product.priceUsd)}</p>
                   <button
                     type="button"
                     onClick={() => removeItem(product.id)}
@@ -85,9 +85,18 @@ export function StoreCartDrawer() {
         {items.length > 0 ? (
           <div className="border-t border-border px-5 py-4 space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-medium">{formatUsdWithKes(subtotalUsd)}</span>
+              <span className="text-muted-foreground">Subtotal (USD)</span>
+              <span className="font-display text-xl font-semibold text-gold">
+                {formatUsd(subtotalUsd)}
+              </span>
             </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Email is collected once below for your receipt and download link. Files also unlock in{" "}
+              <Link to="/portal" className="text-gold hover:underline" onClick={() => setOpen(false)}>
+                My downloads
+              </Link>
+              .
+            </p>
             {checkout ? (
               <CheckoutForm
                 productType="excel_module"
@@ -102,8 +111,8 @@ export function StoreCartDrawer() {
             ) : (
               <div className="space-y-3">
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Checkout one module at a time, or add all four to unlock the Master Bundle price
-                  in a single payment.
+                  Checkout one module at a time, or add all four to unlock the Master Bundle in a
+                  single payment.
                 </p>
                 {items.map(({ product }) => (
                   <CheckoutForm
@@ -111,7 +120,7 @@ export function StoreCartDrawer() {
                     productType="excel_module"
                     productId={product.id}
                     amountUsd={product.priceUsd}
-                    label={`Buy ${product.shortTitle} — ${formatUsd(product.priceUsd)}`}
+                    label={`Pay ${formatUsd(product.priceUsd)} · ${product.shortTitle}`}
                     onSuccessClose={() => removeItem(product.id)}
                   />
                 ))}

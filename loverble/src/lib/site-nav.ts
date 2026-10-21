@@ -2,22 +2,20 @@ export const PRIMARY_NAV = [
   { label: "Strategies", to: "/strategies" },
   { label: "Track Record", to: "/performance" },
   { label: "Research", to: "/research" },
-  { label: "Finance", to: "/finance" },
+  { label: "Decision Math", to: "/finance" },
   { label: "Store", to: "/store" },
   { label: "Strategy Desk", to: "/consultation" },
-  { label: "Portal", to: "/portal" },
 ] as const;
 
 export const MOBILE_NAV = [
   { label: "Live Strategies", to: "/strategies" },
   { label: "Track Record", to: "/performance" },
   { label: "Research Notes", to: "/research" },
-  { label: "Finance Systems", to: "/finance" },
+  { label: "Decision Math", to: "/finance" },
   { label: "Excel Store", to: "/store" },
-  { label: "Subscriptions", to: "/", hash: "pricing" },
-  { label: "Custom Quant", to: "/", hash: "custom-quant" },
+  { label: "Strategy Desk", to: "/consultation" },
   { label: "Client Portal", to: "/portal" },
-  { label: "Support Research", to: "/support" },
+  { label: "Support research", to: "/support" },
 ] as const;
 
 const PUBLIC_EXACT = new Set([

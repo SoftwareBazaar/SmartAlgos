@@ -57,11 +57,11 @@ export function SiteFooter() {
           <span className="font-medium text-foreground/80">© 2026 {company.operator}. All rights reserved.</span>
           <div className="flex flex-wrap items-center gap-4">
             <Link to="/privacy-policy" className="hover:text-gold transition-colors cursor-pointer">Privacy</Link>
-            <Link to="/financial-disclaimer" className="hover:text-gold transition-colors cursor-pointer">Financial Disclaimer</Link>
+            <Link to="/financial-disclaimer" className="hover:text-gold transition-colors cursor-pointer">Financial disclaimer</Link>
             <Link to="/terms" className="hover:text-gold transition-colors cursor-pointer">Terms</Link>
-            <Link to="/disclaimers" className="hover:text-gold transition-colors cursor-pointer">Disclaimers</Link>
             <Link to="/security-policy" className="hover:text-gold transition-colors cursor-pointer">Security</Link>
-            <span>Not investment advice · Kenya</span>
+            <Link to="/support" className="hover:text-gold transition-colors cursor-pointer">Donate / support</Link>
+            <span>Educational research only · not a licensed investment adviser</span>
             <DonateButton footer />
           </div>
         </div>

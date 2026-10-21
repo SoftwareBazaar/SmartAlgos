@@ -10,33 +10,74 @@ import {
   Tooltip,
   CartesianGrid,
   Legend,
+  LabelList,
+  Cell,
 } from "recharts";
 
-const BALANCE_SERIES = [
-  { month: 1, dynamic: 9900, static: 9908 },
-  { month: 6, dynamic: 9415, static: 9438 },
-  { month: 12, dynamic: 8864, static: 8764 },
-  { month: 24, dynamic: 7857, static: 7181 },
-  { month: 36, dynamic: 6964, static: 5147 },
-  { month: 48, dynamic: 6173, static: 2557 },
-  { month: 58, dynamic: 5578, static: 0 },
-  { month: 72, dynamic: 4850, static: 0 },
-  { month: 120, dynamic: 2994, static: 0 },
-  { month: 180, dynamic: 1638, static: 0 },
-  { month: 240, dynamic: 795, static: 0 },
-  { month: 272, dynamic: 0, static: 0 },
-];
+/** Even monthly sampling so the X-axis is linear (no warped kinks). */
+const BALANCE_SERIES = Array.from({ length: 28 }, (_, i) => {
+  const month = i * 10; // 0, 10, …, 270
+  // Piecewise linear interpolation from known scenario points
+  const dynamicPts: [number, number][] = [
+    [0, 10000],
+    [1, 9900],
+    [6, 9415],
+    [12, 8864],
+    [24, 7857],
+    [36, 6964],
+    [48, 6173],
+    [58, 5578],
+    [72, 4850],
+    [120, 2994],
+    [180, 1638],
+    [240, 795],
+    [272, 0],
+  ];
+  const staticPts: [number, number][] = [
+    [0, 10000],
+    [1, 9908],
+    [6, 9438],
+    [12, 8764],
+    [24, 7181],
+    [36, 5147],
+    [48, 2557],
+    [58, 0],
+    [272, 0],
+  ];
+  const lerp = (pts: [number, number][], m: number) => {
+    if (m <= pts[0][0]) return pts[0][1];
+    for (let j = 1; j < pts.length; j++) {
+      const [m0, v0] = pts[j - 1];
+      const [m1, v1] = pts[j];
+      if (m <= m1) {
+        const t = (m - m0) / (m1 - m0 || 1);
+        return v0 + t * (v1 - v0);
+      }
+    }
+    return pts[pts.length - 1][1];
+  };
+  return {
+    month,
+    dynamic: Math.round(lerp(dynamicPts, month)),
+    static: Math.round(lerp(staticPts, month)),
+  };
+});
 
 const INTEREST_SERIES = [
-  { name: "Dynamic decay", interest: 19237 },
-  { name: "Static model", interest: 7245 },
-  { name: "Understated gap", interest: 11992 },
+  { name: "Dynamic decay", interest: 19236, fill: "oklch(0.78 0.13 85)" },
+  { name: "Commercial static", interest: 7245, fill: "oklch(0.65 0.08 240)" },
 ];
 
-const STRATEGY_SERIES = [
-  { name: "Dynamic min", months: 272, interest: 19237 },
-  { name: "Pinned $308", months: 56, interest: 7025 },
-  { name: "Accel. $500", months: 25, interest: 2382 },
+const STRATEGY_MONTHS = [
+  { name: "Dynamic min", months: 272, fill: "oklch(0.78 0.13 85)" },
+  { name: "Fixed $308/mo", months: 56, fill: "oklch(0.70 0.10 145)" },
+  { name: "Fixed $500/mo", months: 25, fill: "oklch(0.65 0.08 240)" },
+];
+
+const STRATEGY_INTEREST = [
+  { name: "Dynamic min", interest: 19236, fill: "oklch(0.78 0.13 85)" },
+  { name: "Fixed $308/mo", interest: 7025, fill: "oklch(0.70 0.10 145)" },
+  { name: "Fixed $500/mo", interest: 2382, fill: "oklch(0.65 0.08 240)" },
 ];
 
 const tooltipStyle = {
@@ -45,6 +86,12 @@ const tooltipStyle = {
   borderRadius: 6,
   fontSize: 11,
 };
+
+function formatUsdAxis(v: number) {
+  if (v === 0) return "$0";
+  if (v >= 1000) return `$${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k`;
+  return `$${v}`;
+}
 
 function ChartCard({
   title,
@@ -58,10 +105,10 @@ function ChartCard({
   return (
     <div className="rounded-lg border border-border/60 bg-card/30 p-4 md:p-5 space-y-3">
       <div>
-        <p className="text-[10px] uppercase tracking-[0.18em] text-gold">{title}</p>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
         <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
       </div>
-      <div className="h-[240px] w-full">{children}</div>
+      <div className="h-[260px] w-full">{children}</div>
     </div>
   );
 }
@@ -74,112 +121,173 @@ export function Day01Charts() {
         subtitle="$10,000 @ 24.99% APR — dynamic minimum vs commercial static $300/mo"
       >
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={BALANCE_SERIES}>
+          <AreaChart data={BALANCE_SERIES} margin={{ top: 28, right: 12, left: 0, bottom: 8 }}>
             <defs>
               <linearGradient id="dynBal" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="oklch(0.78 0.13 85 / 0.35)" />
+                <stop offset="0%" stopColor="oklch(0.78 0.13 85 / 0.22)" />
                 <stop offset="100%" stopColor="oklch(0.78 0.13 85 / 0)" />
-              </linearGradient>
-              <linearGradient id="staticBal" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="oklch(0.65 0.06 240 / 0.28)" />
-                <stop offset="100%" stopColor="oklch(0.65 0.06 240 / 0)" />
               </linearGradient>
             </defs>
             <CartesianGrid stroke="oklch(0.30 0.04 252 / 0.25)" vertical={false} />
             <XAxis
               dataKey="month"
-              tick={{ fill: "oklch(0.70 0.02 90)", fontSize: 10 }}
+              type="number"
+              domain={[0, 280]}
+              ticks={[0, 60, 120, 180, 240, 280]}
+              tick={{ fill: "oklch(0.78 0.02 90)", fontSize: 10 }}
               tickLine={false}
               axisLine={{ stroke: "oklch(0.30 0.04 252)" }}
-              label={{ value: "Month", position: "insideBottom", offset: -2, fill: "oklch(0.60 0.02 90)", fontSize: 10 }}
             />
             <YAxis
-              tick={{ fill: "oklch(0.70 0.02 90)", fontSize: 10 }}
+              domain={[0, 10000]}
+              ticks={[0, 2500, 5000, 7500, 10000]}
+              tick={{ fill: "oklch(0.78 0.02 90)", fontSize: 10 }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+              tickFormatter={formatUsdAxis}
+              width={48}
             />
             <Tooltip
               contentStyle={tooltipStyle}
               formatter={(v: number, key: string) => [
-                `$${v.toLocaleString()}`,
+                `$${Number(v).toLocaleString()}`,
                 key === "dynamic" ? "Dynamic decay" : "Commercial static",
               ]}
               labelFormatter={(m) => `Month ${m}`}
             />
             <Legend
-              wrapperStyle={{ fontSize: 11, color: "oklch(0.70 0.02 90)" }}
-              formatter={(value) => (value === "dynamic" ? "Dynamic decay" : "Commercial static")}
+              verticalAlign="top"
+              height={24}
+              wrapperStyle={{ fontSize: 11, paddingBottom: 4 }}
+              formatter={(value) =>
+                value === "dynamic" ? "Dynamic decay" : "Commercial static"
+              }
             />
             <Area
               type="monotone"
               dataKey="dynamic"
+              name="dynamic"
               stroke="oklch(0.78 0.13 85)"
               strokeWidth={2}
               fill="url(#dynBal)"
+              dot={false}
             />
             <Area
               type="monotone"
               dataKey="static"
+              name="static"
               stroke="oklch(0.68 0.08 240)"
               strokeWidth={2}
               strokeDasharray="5 4"
-              fill="url(#staticBal)"
+              fill="transparent"
+              dot={false}
             />
           </AreaChart>
         </ResponsiveContainer>
       </ChartCard>
 
-      <div className="grid md:grid-cols-2 gap-4">
-        <ChartCard
-          title="Cumulative interest"
-          subtitle="Real-world decay vs commercial understatement"
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={INTEREST_SERIES} layout="vertical" margin={{ left: 8, right: 12 }}>
-              <CartesianGrid stroke="oklch(0.30 0.04 252 / 0.25)" horizontal={false} />
-              <XAxis
-                type="number"
-                tick={{ fill: "oklch(0.70 0.02 90)", fontSize: 10 }}
-                tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+      <ChartCard
+        title="Cumulative interest"
+        subtitle="Dynamic decay vs commercial static — gap annotated, not a third scenario"
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={INTEREST_SERIES} layout="vertical" margin={{ left: 8, right: 48, top: 8 }}>
+            <CartesianGrid stroke="oklch(0.30 0.04 252 / 0.25)" horizontal={false} />
+            <XAxis
+              type="number"
+              domain={[0, 20000]}
+              ticks={[0, 5000, 10000, 15000, 20000]}
+              tick={{ fill: "oklch(0.78 0.02 90)", fontSize: 10 }}
+              tickFormatter={formatUsdAxis}
+            />
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={120}
+              tick={{ fill: "oklch(0.78 0.02 90)", fontSize: 10 }}
+            />
+            <Tooltip
+              contentStyle={tooltipStyle}
+              formatter={(v: number) => [`$${Number(v).toLocaleString()}`, "Interest"]}
+            />
+            <Bar dataKey="interest" radius={[0, 4, 4, 0]}>
+              {INTEREST_SERIES.map((entry) => (
+                <Cell key={entry.name} fill={entry.fill} />
+              ))}
+              <LabelList
+                dataKey="interest"
+                position="right"
+                formatter={(v: number) => `$${Number(v).toLocaleString()}`}
+                style={{ fill: "oklch(0.85 0.02 90)", fontSize: 11 }}
               />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+        <p className="text-xs text-muted-foreground pt-1">
+          Understated gap vs commercial static:{" "}
+          <strong className="text-foreground">$11,991</strong> more interest under dynamic decay.
+        </p>
+      </ChartCard>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <ChartCard title="Payoff horizon" subtitle="Months to clear the balance by repayment rule">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={STRATEGY_MONTHS} margin={{ top: 20, right: 12, left: 0 }}>
+              <CartesianGrid stroke="oklch(0.30 0.04 252 / 0.25)" vertical={false} />
+              <XAxis dataKey="name" tick={{ fill: "oklch(0.78 0.02 90)", fontSize: 10 }} />
               <YAxis
-                type="category"
-                dataKey="name"
-                width={100}
-                tick={{ fill: "oklch(0.70 0.02 90)", fontSize: 10 }}
+                tick={{ fill: "oklch(0.78 0.02 90)", fontSize: 10 }}
+                tickFormatter={(v) => `${v}`}
+                label={{
+                  value: "Months",
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { fill: "oklch(0.70 0.02 90)", fontSize: 10 },
+                }}
               />
               <Tooltip
                 contentStyle={tooltipStyle}
-                formatter={(v: number) => [`$${v.toLocaleString()}`, "Interest"]}
+                formatter={(v: number) => [`${v} months`, "Horizon"]}
               />
-              <Bar dataKey="interest" fill="oklch(0.78 0.13 85)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="months" radius={[4, 4, 0, 0]}>
+                {STRATEGY_MONTHS.map((entry) => (
+                  <Cell key={entry.name} fill={entry.fill} />
+                ))}
+                <LabelList
+                  dataKey="months"
+                  position="top"
+                  formatter={(v: number) => `${v} mo`}
+                  style={{ fill: "oklch(0.85 0.02 90)", fontSize: 10 }}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard
-          title="Strategy matrix"
-          subtitle="Payoff horizon (months) by repayment rule"
-        >
+        <ChartCard title="Total interest by rule" subtitle="Same three strategies — dollars only">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={STRATEGY_SERIES} margin={{ left: 0, right: 8 }}>
+            <BarChart data={STRATEGY_INTEREST} margin={{ top: 20, right: 12, left: 0 }}>
               <CartesianGrid stroke="oklch(0.30 0.04 252 / 0.25)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fill: "oklch(0.70 0.02 90)", fontSize: 10 }} />
+              <XAxis dataKey="name" tick={{ fill: "oklch(0.78 0.02 90)", fontSize: 10 }} />
               <YAxis
-                tick={{ fill: "oklch(0.70 0.02 90)", fontSize: 10 }}
-                tickFormatter={(v) => `${v}m`}
+                tick={{ fill: "oklch(0.78 0.02 90)", fontSize: 10 }}
+                tickFormatter={formatUsdAxis}
               />
               <Tooltip
                 contentStyle={tooltipStyle}
-                formatter={(v: number, key: string) => [
-                  key === "months" ? `${v} months` : `$${v.toLocaleString()}`,
-                  key === "months" ? "Horizon" : "Total interest",
-                ]}
+                formatter={(v: number) => [`$${Number(v).toLocaleString()}`, "Interest"]}
               />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="months" name="Months" fill="oklch(0.78 0.13 85)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="interest" name="Interest $" fill="oklch(0.55 0.06 240)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="interest" radius={[4, 4, 0, 0]}>
+                {STRATEGY_INTEREST.map((entry) => (
+                  <Cell key={entry.name} fill={entry.fill} />
+                ))}
+                <LabelList
+                  dataKey="interest"
+                  position="top"
+                  formatter={(v: number) => `$${(Number(v) / 1000).toFixed(1)}k`}
+                  style={{ fill: "oklch(0.85 0.02 90)", fontSize: 10 }}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>

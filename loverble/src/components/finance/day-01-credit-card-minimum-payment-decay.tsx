@@ -81,25 +81,22 @@ export function Day01CreditCardMinimumPaymentDecay() {
   return (
     <div className="space-y-8 text-foreground">
       <section className="space-y-4">
-        <H2>Executive summary & parameter definitions</H2>
+        <H2>What the model shows</H2>
         <P>
-          Standard credit card agreements calculate mandatory monthly minimum payments using a
-          dynamic decay formula where required payments decrease proportionally as the outstanding
-          principal balance is reduced. Commercial personal finance engines routinely misrepresent
-          unaccelerated debt trajectories by applying static payment assumptions, drastically
-          understating total interest expenditures and payoff timelines.
+          Card minimums usually shrink as your balance shrinks. On a{" "}
+          <strong className="text-foreground">$10,000</strong> balance at{" "}
+          <strong className="text-foreground">24.99% APR</strong> (1% of principal + interest, $35
+          floor), paying only the true minimum can take about{" "}
+          <strong className="text-foreground">22.7 years</strong> and roughly{" "}
+          <strong className="text-foreground">$19,236</strong> in interest. A common static ~$300/mo
+          shortcut understates that path and can look like ~4.8 years instead — about{" "}
+          <strong className="text-foreground">$11,992</strong> less interest than the dynamic path
+          under these assumptions.
         </P>
-        <P>
-          This quantitative study deconstructs the mathematical mechanics of dynamic minimum payment
-          decay for a <strong className="text-foreground">$10,000.00</strong> revolving balance at{" "}
-          <strong className="text-foreground">24.99% APR</strong> under a standard
-          percentage-plus-interest contract structure (p = 1.0%, M_floor = $35.00). We contrast
-          real-world dynamic decay with commercial static payment assumption models, proving that
-          dynamic decay extends the debt elimination timeline from{" "}
-          <strong className="text-foreground">4.8 years to 22.7 years (272 months)</strong> and
-          inflates cumulative interest charges by{" "}
-          <strong className="text-foreground">$11,992.00 (a 165.5% increase)</strong>.
-        </P>
+        <div className="rounded-lg border border-gold/25 bg-gold/5 px-4 py-3 text-sm text-muted-foreground">
+          <strong className="text-foreground">Quick answer:</strong> 22.7 years · $19,236 interest on
+          dynamic minimums · ~4.8 years if you hold a fixed ~$300/mo payment in the static comparison.
+        </div>
 
         <H3>Primary scenario micro-variables</H3>
         <div className="overflow-x-auto rounded-lg border border-border/60">

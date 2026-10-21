@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { StickyNav } from "@/components/premium/sticky-nav";
 import { MOBILE_NAV, PRIMARY_NAV } from "@/lib/site-nav";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
     if (!open) return;
@@ -31,30 +32,34 @@ export function SiteHeader() {
           <BrandLogo variant="nav" />
         </Link>
 
-        <nav className="hidden md:flex items-center gap-5 lg:gap-8 text-sm font-medium" aria-label="Primary">
-          {PRIMARY_NAV.map((item) => (
-            <Link
-              key={item.to + item.label}
-              to={item.to}
-              className="text-muted-foreground hover:text-gold transition-colors duration-200 cursor-pointer"
-            >
-              {item.label}
-            </Link>
-          ))}
+        <nav className="hidden md:flex items-center gap-5 lg:gap-7 text-sm font-medium" aria-label="Primary">
+          {PRIMARY_NAV.map((item) => {
+            const active =
+              pathname === item.to ||
+              (item.to !== "/" && pathname.startsWith(item.to + "/"));
+            return (
+              <Link
+                key={item.to + item.label}
+                to={item.to}
+                className={cn(
+                  "transition-colors duration-200 cursor-pointer border-b-2 border-transparent pb-0.5",
+                  active
+                    ? "text-gold border-gold"
+                    : "text-muted-foreground hover:text-gold",
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <Link
             to="/portal"
-            className="inline-flex items-center rounded-sm border border-gold/50 px-3 py-2 text-xs font-bold uppercase tracking-wider text-gold hover:bg-gold/10 transition-colors duration-200 cursor-pointer"
+            className="inline-flex items-center rounded-sm bg-primary px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition-colors duration-200 cursor-pointer"
           >
             Portal
-          </Link>
-          <Link
-            to="/consultation"
-            className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition-colors duration-200 cursor-pointer"
-          >
-            Book Desk <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <button
             type="button"
@@ -103,11 +108,11 @@ export function SiteHeader() {
                 Open Client Portal
               </Link>
               <Link
-                to="/consultation"
+                to="/finance"
                 onClick={() => setOpen(false)}
                 className="flex w-full min-h-12 items-center justify-center rounded-lg border border-border text-sm font-bold cursor-pointer hover:border-gold transition-colors"
               >
-                Book Advisory Call
+                Decision Math notes
               </Link>
             </div>
           </div>

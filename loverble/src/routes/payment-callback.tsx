@@ -34,7 +34,7 @@ function PaymentCallback() {
         }
         setStatus("success");
         const dest =
-          data.product_type === "strategy_file"
+          data.product_type === "strategy_file" || data.product_type === "excel_module"
             ? "/portal?tab=downloads"
             : data.product_type === "research_subscription"
               ? "/portal"

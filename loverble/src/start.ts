@@ -17,6 +17,7 @@ import {
   getPortalOverview,
   handlePaystackWebhook,
   runBacktestJob,
+  serveExcelDownload,
   serveStrategyDownload,
 } from "@/lib/portal-server";
 import { submitDeskMessage } from "@/lib/desk-message-server";
@@ -184,7 +185,33 @@ const portalMiddleware = createMiddleware().server(async ({ request, next }) => 
 
   if (pathname === "/api/portal/downloads" && request.method === "GET") {
     try {
-      const result = await serveStrategyDownload(searchParams.get("ref") || "");
+      const ref = searchParams.get("ref") || "";
+      const excelResult = await serveExcelDownload(ref);
+      if (excelResult.status === 200 && "content" in excelResult) {
+        const body =
+          typeof excelResult.content === "string"
+            ? excelResult.content
+            : new Uint8Array(excelResult.content);
+        return new Response(body, {
+          status: 200,
+          headers: {
+            "content-type": excelResult.contentType,
+            "content-disposition": `attachment; filename="${excelResult.filename}"`,
+            "cache-control": "no-store",
+          },
+        });
+      }
+      if (
+        excelResult.status !== 404 ||
+        !("body" in excelResult) ||
+        excelResult.body.error !== "not_excel"
+      ) {
+        if ("body" in excelResult) {
+          return Response.json(excelResult.body, { status: excelResult.status });
+        }
+      }
+
+      const result = await serveStrategyDownload(ref);
       if ("content" in result && result.content) {
         return new Response(result.content, {
           status: 200,

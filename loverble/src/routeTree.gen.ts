@@ -25,6 +25,7 @@ import { Route as CopyTradingRouteImport } from './routes/copy-trading'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DisclaimersRouteImport } from './routes/disclaimers'
 import { Route as FinanceRouteImport } from './routes/finance'
+import { Route as FinancialDisclaimerRouteImport } from './routes/financial-disclaimer'
 import { Route as InfrastructureRouteImport } from './routes/infrastructure'
 import { Route as InstitutionalRouteImport } from './routes/institutional'
 import { Route as InvestorRouteImport } from './routes/investor'
@@ -40,12 +41,14 @@ import { Route as PropFirmRouteImport } from './routes/prop-firm'
 import { Route as ResearchRouteImport } from './routes/research'
 import { Route as RiskRouteImport } from './routes/risk'
 import { Route as SecurityPolicyRouteImport } from './routes/security-policy'
+import { Route as StoreRouteImport } from './routes/store'
 import { Route as StrategiesRouteImport } from './routes/strategies'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TechnologyRouteImport } from './routes/technology'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as ResearchSlugRouteImport } from './routes/research_.$slug'
 import { Route as FinanceSlugRouteImport } from './routes/finance_.$slug'
+import { Route as StoreSlugRouteImport } from './routes/store_.$slug'
+import { Route as ResearchSlugRouteImport } from './routes/research_.$slug'
 import { Route as StrategiesSlugRouteImport } from './routes/strategies.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -128,6 +131,11 @@ const FinanceRoute = FinanceRouteImport.update({
   path: '/finance',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinancialDisclaimerRoute = FinancialDisclaimerRouteImport.update({
+  id: '/financial-disclaimer',
+  path: '/financial-disclaimer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InfrastructureRoute = InfrastructureRouteImport.update({
   id: '/infrastructure',
   path: '/infrastructure',
@@ -203,6 +211,11 @@ const SecurityPolicyRoute = SecurityPolicyRouteImport.update({
   path: '/security-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StoreRoute = StoreRouteImport.update({
+  id: '/store',
+  path: '/store',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StrategiesRoute = StrategiesRouteImport.update({
   id: '/strategies',
   path: '/strategies',
@@ -223,14 +236,19 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResearchSlugRoute = ResearchSlugRouteImport.update({
-  id: '/research_/$slug',
-  path: '/research/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const FinanceSlugRoute = FinanceSlugRouteImport.update({
   id: '/finance_/$slug',
   path: '/finance/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreSlugRoute = StoreSlugRouteImport.update({
+  id: '/store_/$slug',
+  path: '/store/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchSlugRoute = ResearchSlugRouteImport.update({
+  id: '/research_/$slug',
+  path: '/research/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StrategiesSlugRoute = StrategiesSlugRouteImport.update({
@@ -256,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/disclaimers': typeof DisclaimersRoute
   '/finance': typeof FinanceRoute
+  '/financial-disclaimer': typeof FinancialDisclaimerRoute
   '/infrastructure': typeof InfrastructureRoute
   '/institutional': typeof InstitutionalRoute
   '/investor': typeof InvestorRoute
@@ -271,12 +290,14 @@ export interface FileRoutesByFullPath {
   '/research': typeof ResearchRoute
   '/risk': typeof RiskRoute
   '/security-policy': typeof SecurityPolicyRoute
+  '/store': typeof StoreRoute
   '/strategies': typeof StrategiesRouteWithChildren
   '/support': typeof SupportRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
-  '/research/$slug': typeof ResearchSlugRoute
   '/finance/$slug': typeof FinanceSlugRoute
+  '/research/$slug': typeof ResearchSlugRoute
+  '/store/$slug': typeof StoreSlugRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
 }
 export interface FileRoutesByTo {
@@ -296,6 +317,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/disclaimers': typeof DisclaimersRoute
   '/finance': typeof FinanceRoute
+  '/financial-disclaimer': typeof FinancialDisclaimerRoute
   '/infrastructure': typeof InfrastructureRoute
   '/institutional': typeof InstitutionalRoute
   '/investor': typeof InvestorRoute
@@ -311,12 +333,14 @@ export interface FileRoutesByTo {
   '/research': typeof ResearchRoute
   '/risk': typeof RiskRoute
   '/security-policy': typeof SecurityPolicyRoute
+  '/store': typeof StoreRoute
   '/strategies': typeof StrategiesRouteWithChildren
   '/support': typeof SupportRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
-  '/research/$slug': typeof ResearchSlugRoute
   '/finance/$slug': typeof FinanceSlugRoute
+  '/research/$slug': typeof ResearchSlugRoute
+  '/store/$slug': typeof StoreSlugRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
 }
 export interface FileRoutesById {
@@ -337,6 +361,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/disclaimers': typeof DisclaimersRoute
   '/finance': typeof FinanceRoute
+  '/financial-disclaimer': typeof FinancialDisclaimerRoute
   '/infrastructure': typeof InfrastructureRoute
   '/institutional': typeof InstitutionalRoute
   '/investor': typeof InvestorRoute
@@ -352,12 +377,14 @@ export interface FileRoutesById {
   '/research': typeof ResearchRoute
   '/risk': typeof RiskRoute
   '/security-policy': typeof SecurityPolicyRoute
+  '/store': typeof StoreRoute
   '/strategies': typeof StrategiesRouteWithChildren
   '/support': typeof SupportRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
-  '/research_/$slug': typeof ResearchSlugRoute
   '/finance_/$slug': typeof FinanceSlugRoute
+  '/research_/$slug': typeof ResearchSlugRoute
+  '/store_/$slug': typeof StoreSlugRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
 }
 export interface FileRouteTypes {
@@ -379,6 +406,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/disclaimers'
     | '/finance'
+    | '/financial-disclaimer'
     | '/infrastructure'
     | '/institutional'
     | '/investor'
@@ -394,12 +422,14 @@ export interface FileRouteTypes {
     | '/research'
     | '/risk'
     | '/security-policy'
+    | '/store'
     | '/strategies'
     | '/support'
     | '/technology'
     | '/terms'
-    | '/research/$slug'
     | '/finance/$slug'
+    | '/research/$slug'
+    | '/store/$slug'
     | '/strategies/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -419,6 +449,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/disclaimers'
     | '/finance'
+    | '/financial-disclaimer'
     | '/infrastructure'
     | '/institutional'
     | '/investor'
@@ -434,12 +465,14 @@ export interface FileRouteTypes {
     | '/research'
     | '/risk'
     | '/security-policy'
+    | '/store'
     | '/strategies'
     | '/support'
     | '/technology'
     | '/terms'
-    | '/research/$slug'
     | '/finance/$slug'
+    | '/research/$slug'
+    | '/store/$slug'
     | '/strategies/$slug'
   id:
     | '__root__'
@@ -459,6 +492,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/disclaimers'
     | '/finance'
+    | '/financial-disclaimer'
     | '/infrastructure'
     | '/institutional'
     | '/investor'
@@ -474,12 +508,14 @@ export interface FileRouteTypes {
     | '/research'
     | '/risk'
     | '/security-policy'
+    | '/store'
     | '/strategies'
     | '/support'
     | '/technology'
     | '/terms'
-    | '/research_/$slug'
     | '/finance_/$slug'
+    | '/research_/$slug'
+    | '/store_/$slug'
     | '/strategies/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -500,7 +536,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   DisclaimersRoute: typeof DisclaimersRoute
   FinanceRoute: typeof FinanceRoute
-  FinanceSlugRoute: typeof FinanceSlugRoute
+  FinancialDisclaimerRoute: typeof FinancialDisclaimerRoute
   InfrastructureRoute: typeof InfrastructureRoute
   InstitutionalRoute: typeof InstitutionalRoute
   InvestorRoute: typeof InvestorRoute
@@ -516,11 +552,14 @@ export interface RootRouteChildren {
   ResearchRoute: typeof ResearchRoute
   RiskRoute: typeof RiskRoute
   SecurityPolicyRoute: typeof SecurityPolicyRoute
+  StoreRoute: typeof StoreRoute
   StrategiesRoute: typeof StrategiesRouteWithChildren
   SupportRoute: typeof SupportRoute
   TechnologyRoute: typeof TechnologyRoute
   TermsRoute: typeof TermsRoute
+  FinanceSlugRoute: typeof FinanceSlugRoute
   ResearchSlugRoute: typeof ResearchSlugRoute
+  StoreSlugRoute: typeof StoreSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -637,6 +676,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/financial-disclaimer': {
+      id: '/financial-disclaimer'
+      path: '/financial-disclaimer'
+      fullPath: '/financial-disclaimer'
+      preLoaderRoute: typeof FinancialDisclaimerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/infrastructure': {
       id: '/infrastructure'
       path: '/infrastructure'
@@ -742,6 +788,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SecurityPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/store': {
+      id: '/store'
+      path: '/store'
+      fullPath: '/store'
+      preLoaderRoute: typeof StoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/strategies': {
       id: '/strategies'
       path: '/strategies'
@@ -770,18 +823,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/research_/$slug': {
-      id: '/research_/$slug'
-      path: '/research/$slug'
-      fullPath: '/research/$slug'
-      preLoaderRoute: typeof ResearchSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/finance_/$slug': {
       id: '/finance_/$slug'
       path: '/finance/$slug'
       fullPath: '/finance/$slug'
       preLoaderRoute: typeof FinanceSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store_/$slug': {
+      id: '/store_/$slug'
+      path: '/store/$slug'
+      fullPath: '/store/$slug'
+      preLoaderRoute: typeof StoreSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research_/$slug': {
+      id: '/research_/$slug'
+      path: '/research/$slug'
+      fullPath: '/research/$slug'
+      preLoaderRoute: typeof ResearchSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/strategies/$slug': {
@@ -823,7 +883,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   DisclaimersRoute: DisclaimersRoute,
   FinanceRoute: FinanceRoute,
-  FinanceSlugRoute: FinanceSlugRoute,
+  FinancialDisclaimerRoute: FinancialDisclaimerRoute,
   InfrastructureRoute: InfrastructureRoute,
   InstitutionalRoute: InstitutionalRoute,
   InvestorRoute: InvestorRoute,
@@ -839,11 +899,14 @@ const rootRouteChildren: RootRouteChildren = {
   ResearchRoute: ResearchRoute,
   RiskRoute: RiskRoute,
   SecurityPolicyRoute: SecurityPolicyRoute,
+  StoreRoute: StoreRoute,
   StrategiesRoute: StrategiesRouteWithChildren,
   SupportRoute: SupportRoute,
   TechnologyRoute: TechnologyRoute,
   TermsRoute: TermsRoute,
+  FinanceSlugRoute: FinanceSlugRoute,
   ResearchSlugRoute: ResearchSlugRoute,
+  StoreSlugRoute: StoreSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

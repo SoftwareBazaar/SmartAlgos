@@ -6,17 +6,47 @@ export const Route = createFileRoute("/legal")({
   head: () => ({
     meta: [
       { title: "Legal — Smart Algos Capital" },
-      { name: "description", content: "Privacy Policy, Terms of Service, Disclaimers, and Security Policy for Smart Algos Capital." },
+      {
+        name: "description",
+        content:
+          "Privacy Policy, Financial Disclaimer, Terms of Service, Disclaimers, and Security Policy for Smart Algo STS.",
+      },
     ],
   }),
   component: Legal,
 });
 
 const sections = [
-  { icon: Shield, href: "/privacy-policy", label: "Privacy Policy", desc: "How we collect, use, and protect your personal data." },
-  { icon: FileText, href: "/terms", label: "Terms of Service", desc: "The rules and conditions governing use of this platform." },
-  { icon: AlertTriangle, href: "/disclaimers", label: "Disclaimers", desc: "Risk warnings and important disclosures about trading." },
-  { icon: Lock, href: "/security-policy", label: "Security Policy", desc: "How we keep your data and payments safe." },
+  {
+    icon: Shield,
+    href: "/privacy-policy",
+    label: "Privacy Policy",
+    desc: "Client-side privacy guarantee, data protocols, and AdSense cookie practices.",
+  },
+  {
+    icon: AlertTriangle,
+    href: "/financial-disclaimer",
+    label: "Financial Disclaimer",
+    desc: "YMYL non-advice scope, educational purpose, and calculation limits.",
+  },
+  {
+    icon: FileText,
+    href: "/terms",
+    label: "Terms of Service",
+    desc: "The rules and conditions governing use of this platform.",
+  },
+  {
+    icon: AlertTriangle,
+    href: "/disclaimers",
+    label: "Disclaimers",
+    desc: "Risk warnings and important disclosures about trading.",
+  },
+  {
+    icon: Lock,
+    href: "/security-policy",
+    label: "Security Policy",
+    desc: "How we keep your data and payments safe.",
+  },
 ];
 
 function Legal() {

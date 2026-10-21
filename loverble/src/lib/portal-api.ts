@@ -31,6 +31,7 @@ export type PortalDownload = {
   reference: string;
   date: string;
   amountPaid: number;
+  kind?: "excel" | "strategy";
 };
 
 export type PortalBacktest = {
@@ -62,6 +63,7 @@ export type PortalOverview = {
   downloads: PortalDownload[];
   backtests: PortalBacktest[];
   catalog: PortalCatalogItem[];
+  excelCatalog?: PortalCatalogItem[];
 };
 
 async function authHeaders(): Promise<HeadersInit> {

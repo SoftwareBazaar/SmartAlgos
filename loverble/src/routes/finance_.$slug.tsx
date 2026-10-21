@@ -3,8 +3,16 @@ import { ArrowLeft, BookOpen } from "lucide-react";
 import { PageShell } from "@/components/page-shell";
 import { Day01CreditCardMinimumPaymentDecay } from "@/components/finance/day-01-credit-card-minimum-payment-decay";
 import { Day02BalanceTransferArbitrage } from "@/components/finance/day-02-balance-transfer-arbitrage";
+import { Day03VelocityBankingRateSpread } from "@/components/finance/day-03-velocity-banking-rate-spread";
+import { Day04StudentLoanIdrRecertification } from "@/components/finance/day-04-student-loan-idr-recertification";
 import { FinanceComments } from "@/components/finance/finance-comments";
-import { DAY_01_SLUG, DAY_02_SLUG, getFinanceNoteBySlug } from "@/lib/finance-notes";
+import {
+  DAY_01_SLUG,
+  DAY_02_SLUG,
+  DAY_03_SLUG,
+  DAY_04_SLUG,
+  getFinanceNoteBySlug,
+} from "@/lib/finance-notes";
 
 export const Route = createFileRoute("/finance_/$slug")({
   loader: ({ params }) => {
@@ -50,6 +58,8 @@ export const Route = createFileRoute("/finance_/$slug")({
 function ArticleBody({ slug }: { slug: string }) {
   if (slug === DAY_01_SLUG) return <Day01CreditCardMinimumPaymentDecay />;
   if (slug === DAY_02_SLUG) return <Day02BalanceTransferArbitrage />;
+  if (slug === DAY_03_SLUG) return <Day03VelocityBankingRateSpread />;
+  if (slug === DAY_04_SLUG) return <Day04StudentLoanIdrRecertification />;
   return null;
 }
 

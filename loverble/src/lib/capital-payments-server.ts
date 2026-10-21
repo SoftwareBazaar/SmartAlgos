@@ -4,6 +4,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { confirmPaidBookingFromPayment } from "@/lib/advisory-booking-server";
+import { getExcelModuleProduct } from "@/lib/excel-module-catalog";
+import { fulfillExcelPurchase } from "@/lib/excel-unlock-server";
 import { PRICING, KES_RATE } from "@/lib/pricing";
 import { fulfillStrategyPurchase } from "@/lib/strategy-unlock-server";
 import { getStrategyFileProduct } from "@/lib/strategy-catalog";
@@ -24,9 +26,20 @@ const PRODUCT_IDS: Record<string, string> = {
   strategy_file: "77777777-7777-7777-7777-777777777777",
   eurusd_mean_reversion_v2: "77777777-7777-7777-7777-777777777777",
   xauusd_fomc_breakout: "88888888-8888-8888-8888-888888888888",
+  "portfolio-monte-carlo-risk-suite": "a1111111-1111-4111-8111-111111111111",
+  "multi-leg-options-greeks-visualizer": "a2222222-2222-4222-8222-222222222222",
+  "fixed-income-yield-curve-duration": "a3333333-3333-4333-8333-333333333333",
+  "multi-factor-quant-stock-selector": "a4444444-4444-4444-8444-444444444444",
+  "quantitative-finance-master-bundle": "a5555555-5555-4555-8555-555555555555",
 };
 
-const VALID_PRODUCT_TYPES = ["research_subscription", "research_donation", "consultation", "strategy_file"] as const;
+const VALID_PRODUCT_TYPES = [
+  "research_subscription",
+  "research_donation",
+  "consultation",
+  "strategy_file",
+  "excel_module",
+] as const;
 export type CapitalProductType = (typeof VALID_PRODUCT_TYPES)[number];
 
 function genReference(prefix = "CAP") {
@@ -80,6 +93,9 @@ function resolveAmountUsd({
   }
   if (productType === "strategy_file") {
     return PRICING.strategyFile;
+  }
+  if (productType === "excel_module") {
+    return getExcelModuleProduct(productId)?.priceUsd ?? null;
   }
   return null;
 }
@@ -152,6 +168,9 @@ export async function initializeCapitalPayment(body: {
   ) {
     return { status: 400, body: { success: false, error: "Unknown strategy file" } };
   }
+  if (productType === "excel_module" && !getExcelModuleProduct(productId)) {
+    return { status: 400, body: { success: false, error: "Unknown Excel module product" } };
+  }
 
   const resolvedUsd = resolveAmountUsd({ productType, productId, amountUsd });
   if (!resolvedUsd) {
@@ -163,7 +182,11 @@ export async function initializeCapitalPayment(body: {
   const amountKobo = Math.round(amountKes * 100);
   const dbProductId =
     PRODUCT_IDS[productId] ||
-    (productType === "strategy_file" ? PRODUCT_IDS.strategy_file : PRODUCT_IDS.research_donation);
+    (productType === "strategy_file"
+      ? PRODUCT_IDS.strategy_file
+      : productType === "excel_module"
+        ? PRODUCT_IDS["quantitative-finance-master-bundle"]
+        : PRODUCT_IDS.research_donation);
   const callbackUrl = `${getCallbackBase()}/payment-callback`;
 
   let dbPaymentId: string | null = null;
@@ -204,6 +227,7 @@ export async function initializeCapitalPayment(body: {
       amount_usd: resolvedUsd,
       platform: "smart-algos-capital",
       ...(productType === "strategy_file" ? { strategy_id: metadata.strategy_id || productId } : {}),
+      ...(productType === "excel_module" ? { excel_product_id: productId } : {}),
       ...metadata,
     },
   });
@@ -307,6 +331,21 @@ export async function verifyCapitalPayment(reference: string) {
         });
       } catch (err) {
         console.error("[Capital] Strategy unlock failed:", (err as Error).message);
+      }
+    }
+
+    if (productType === "excel_module" || metadata.excel_product_id) {
+      try {
+        await fulfillExcelPurchase({
+          reference,
+          amountPaid: Number(amountUsd) || Number(txData.amount) / 100 / KES_RATE,
+          email,
+          userId: typeof metadata.user_id === "string" ? metadata.user_id : null,
+          productId: String(metadata.excel_product_id || productId || ""),
+          sendEmail: true,
+        });
+      } catch (err) {
+        console.error("[Capital] Excel unlock failed:", (err as Error).message);
       }
     }
   }

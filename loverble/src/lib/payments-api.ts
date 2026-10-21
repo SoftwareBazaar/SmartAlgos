@@ -9,7 +9,12 @@ function resolveApiBase(): string {
 
 const API_BASE = resolveApiBase();
 
-export type CapitalProductType = "research_subscription" | "research_donation" | "consultation" | "strategy_file";
+export type CapitalProductType =
+  | "research_subscription"
+  | "research_donation"
+  | "consultation"
+  | "strategy_file"
+  | "excel_module";
 
 export type InitializePaymentInput = {
   email: string;

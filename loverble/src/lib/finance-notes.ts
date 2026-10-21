@@ -13,6 +13,8 @@ const SITE = "https://www.smartalgosts.com";
 
 export const DAY_01_SLUG = "credit-card-minimum-payment-decay";
 export const DAY_02_SLUG = "credit-card-balance-transfer-arbitrage-npv-calculator";
+export const DAY_03_SLUG = "velocity-banking-rate-spread-failure-boundaries";
+export const DAY_04_SLUG = "student-loan-idr-recertification-arbitrage";
 
 function orgGraphExtras(url: string, datePublished: string) {
   return {
@@ -114,6 +116,86 @@ export const financeNotes: FinanceNote[] = [
           annualPercentageRate: 0,
           interestRate: 0,
           feesAndCommissionsSpecification: "4.0% upfront balance transfer fee.",
+        },
+      ],
+    },
+  },
+  {
+    slug: DAY_03_SLUG,
+    day: 3,
+    title:
+      "Velocity Banking Rate Spread Failure Boundaries — Average Daily Balance Accounting, Floating HELOC Spreads, and Mortgage Chunking Friction",
+    shortTitle: "Velocity banking rate spread failure boundaries",
+    description:
+      "A quantitative mathematical analysis evaluating velocity banking, income sweeping, Average Daily Balance (ADB) accounting, and floating HELOC rate spread failure boundaries across primary mortgage debt.",
+    date: "Oct 2026",
+    published: true,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "TechArticle",
+          headline:
+            "Day 3: Velocity Banking Rate Spread Failure Boundaries -- Average Daily Balance Accounting, Floating HELOC Spreads, and Mortgage Chunking Friction",
+          description:
+            "A quantitative mathematical analysis evaluating velocity banking, income sweeping, Average Daily Balance (ADB) accounting, and floating HELOC rate spread failure boundaries across primary mortgage debt.",
+          inLanguage: "en-US",
+          ...orgGraphExtras(`${SITE}/finance/${DAY_03_SLUG}`, "2026-10-21"),
+        },
+        {
+          "@type": "WebApplication",
+          name: "Velocity Banking & HELOC Chunking Arbitrage Simulator",
+          applicationCategory: "FinanceApplication",
+          operatingSystem: "All",
+          offers: { "@type": "Offer", price: "0.00", priceCurrency: "USD" },
+        },
+        {
+          "@type": "FinancialProduct",
+          name: "Home Equity Line of Credit (HELOC) Debt Facility",
+          description:
+            "Revolving second-lien home equity line subject to variable interest rate spreads and average daily balance calculation mechanics.",
+          annualPercentageRate: 9.5,
+          interestRate: 9.5,
+        },
+      ],
+    },
+  },
+  {
+    slug: DAY_04_SLUG,
+    day: 4,
+    title:
+      "Student Loan Income-Driven Repayment (IDR) Recertification Arbitrage — Discretionary Income Formulas, Filing Status Tax Trade-Offs (MFS vs. MFJ), and Interest Subsidy Mechanics",
+    shortTitle: "Student loan IDR recertification arbitrage",
+    description:
+      "A quantitative analysis evaluating student loan IDR recertification, discretionary income formulas, MFS vs. MFJ tax filing trade-offs, and 100% government interest subsidy mechanics.",
+    date: "Oct 2026",
+    published: true,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "TechArticle",
+          headline:
+            "Day 4: Student Loan Income-Driven Repayment (IDR) Recertification Arbitrage -- Discretionary Income Formulas, Filing Status Tax Trade-Offs (MFS vs. MFJ), and Interest Subsidy Mechanics",
+          description:
+            "A quantitative analysis evaluating student loan IDR recertification, discretionary income formulas, MFS vs. MFJ tax filing trade-offs, and 100% government interest subsidy mechanics.",
+          inLanguage: "en-US",
+          ...orgGraphExtras(`${SITE}/finance/${DAY_04_SLUG}`, "2026-10-21"),
+        },
+        {
+          "@type": "WebApplication",
+          name: "Student Loan IDR & MFS Tax Arbitrage Calculator",
+          applicationCategory: "FinanceApplication",
+          operatingSystem: "All",
+          offers: { "@type": "Offer", price: "0.00", priceCurrency: "USD" },
+        },
+        {
+          "@type": "FinancialProduct",
+          name: "Direct Federal Student Loan Facility",
+          description:
+            "Federal student loan obligation eligible for income-driven repayment formulas and federal interest subsidies.",
+          annualPercentageRate: 6.8,
+          interestRate: 6.8,
         },
       ],
     },

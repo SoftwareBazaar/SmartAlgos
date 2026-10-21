@@ -3,6 +3,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { deliverBookingEmail } from "@/lib/booking-email-server";
 import { verifyCapitalPayment } from "@/lib/capital-payments-server";
 import { getPublicSiteUrl, getSupabaseAdmin, getUserFromRequest } from "@/lib/supabase-admin";
+import { getExcelModuleByUnlockId, listExcelStoreProducts } from "@/lib/excel-module-catalog";
+import { serveExcelDownload } from "@/lib/excel-unlock-server";
 import { serveStrategyDownload } from "@/lib/strategy-unlock-server";
 import { STRATEGY_FILE_PRODUCTS, getStrategyFileProduct } from "@/lib/strategy-catalog";
 
@@ -271,15 +273,17 @@ export async function getPortalOverview(request: Request) {
   );
 
   const downloadItems = purchases.map((row) => {
+    const excel = getExcelModuleByUnlockId(row.strategy_id);
     const product = getStrategyFileProduct(row.strategy_id);
     return {
       id: row.id,
       strategyId: row.strategy_id,
-      title: product?.title || row.strategy_id,
-      filename: product?.filename || `${row.strategy_id}.py`,
+      title: excel?.title || product?.title || row.strategy_id,
+      filename: excel?.filename || product?.filename || `${row.strategy_id}.py`,
       reference: row.paystack_reference,
       date: row.unlocked_at,
       amountPaid: Number(row.amount_paid),
+      kind: excel ? ("excel" as const) : ("strategy" as const),
     };
   });
 
@@ -299,8 +303,9 @@ export async function getPortalOverview(request: Request) {
       downloads: downloadItems,
       backtests,
       catalog: STRATEGY_FILE_PRODUCTS.map(({ source: _source, ...rest }) => rest),
+      excelCatalog: listExcelStoreProducts().map(({ unlocks: _u, ...rest }) => rest),
     },
   };
 }
 
-export { serveStrategyDownload };
+export { serveStrategyDownload, serveExcelDownload };

@@ -503,7 +503,8 @@ function DownloadsPanel({
                   href={strategyDownloadUrl(item.reference)}
                   className="w-full py-2 bg-gold text-primary-foreground font-bold text-xs rounded-lg hover:bg-gold-soft transition-colors text-center inline-flex items-center justify-center gap-2"
                 >
-                  <Download className="h-3.5 w-3.5" /> Download code file (.py)
+                  <Download className="h-3.5 w-3.5" />{" "}
+                  {item.kind === "excel" ? "Download Excel workbook" : "Download code file (.py)"}
                 </a>
               </div>
             ))}

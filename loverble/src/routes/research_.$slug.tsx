@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, Download, FileText } from "lucide-react";
 import { PageShell } from "@/components/page-shell";
-import { getPaperBySlug } from "@/lib/mock-data";
+import { getPaperBySlug, type ResearchPaper } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/research_/$slug")({
   loader: ({ params }) => {
@@ -19,14 +19,47 @@ export const Route = createFileRoute("/research_/$slug")({
 });
 
 function ResearchNotePage() {
-  const paper = Route.useLoaderData();
+  const paper = Route.useLoaderData() as ResearchPaper;
   const canDownload = Boolean(paper.downloadUrl);
+
+  if (!paper.published) {
+    return (
+      <PageShell
+        eyebrow="Pipeline"
+        title={paper.title}
+        description={`${paper.type} · ${paper.category} · ${paper.expectedDate ?? paper.date}`}
+        actions={
+          <Link
+            to="/research"
+            className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to research
+          </Link>
+        }
+      >
+        <article className="max-w-[70ch] space-y-4 text-sm text-muted-foreground leading-relaxed">
+          <p>{paper.executiveSummary}</p>
+          <p className="rounded-lg border border-border px-4 py-3">
+            This note is in the pipeline — not published and not for sale. No notebook, PDF, or dataset is attached yet.
+          </p>
+          <ul className="space-y-2">
+            {paper.keyFindings.map((finding) => (
+              <li key={finding} className="flex items-start gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-gold mt-2 shrink-0" />
+                {finding}
+              </li>
+            ))}
+          </ul>
+        </article>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell
-      eyebrow={paper.id}
+      eyebrow={paper.type}
       title={paper.title}
-      description={`${paper.category} · ${paper.date}`}
+      description={`${paper.category} · Published ${paper.date}${paper.readingMinutes ? ` · ${paper.readingMinutes} min read` : ""}`}
       actions={
         <Link
           to="/research"
@@ -36,26 +69,48 @@ function ResearchNotePage() {
         </Link>
       }
     >
-      <article className="rounded-2xl border border-gold/30 bg-secondary-surface p-6 md:p-8 space-y-6">
+      <article className="max-w-[70ch] space-y-8">
         <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           <FileText className="h-3.5 w-3.5 text-gold" />
-          <span>{paper.published ? "Free note" : "In progress"}</span>
-          <span>{paper.category}</span>
+          <span className="text-bull">Free note</span>
+          <span>{paper.id}</span>
         </div>
 
-        <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{paper.executiveSummary}</p>
+        <p className="text-base text-muted-foreground leading-relaxed">{paper.executiveSummary}</p>
 
         <div>
-          <h2 className="text-[10px] uppercase tracking-[0.18em] text-gold mb-3">Key points</h2>
+          <h2 className="text-[10px] uppercase tracking-[0.18em] text-gold mb-3">Headline points</h2>
           <ul className="space-y-2">
             {paper.keyFindings.map((finding) => (
-              <li key={finding} className="flex items-start gap-2 text-sm text-muted-foreground">
+              <li key={finding} className="flex items-start gap-2 text-sm text-foreground/90">
                 <span className="h-1.5 w-1.5 rounded-full bg-gold mt-2 shrink-0" />
                 {finding}
               </li>
             ))}
           </ul>
         </div>
+
+        {paper.sections?.map((section) => (
+          <section key={section.heading} className="space-y-3">
+            <h2 className="font-display text-xl font-semibold text-foreground">{section.heading}</h2>
+            {section.paragraphs.map((p) => (
+              <p key={p.slice(0, 48)} className="text-sm text-muted-foreground leading-relaxed">
+                {p}
+              </p>
+            ))}
+          </section>
+        ))}
+
+        <aside className="rounded-lg border border-border px-4 py-3 text-xs text-muted-foreground space-y-1">
+          <div className="text-[10px] uppercase tracking-wider text-gold">Cite this</div>
+          <p>
+            Smart Algos Capital. “{paper.title}.” {paper.date}.{" "}
+            <span className="break-all">https://www.smartalgosts.com/research/{paper.slug}</span>
+          </p>
+          <p className="pt-2">
+            Educational research only — not investment advice. Past methodology does not guarantee future results.
+          </p>
+        </aside>
 
         {canDownload ? (
           <a
@@ -67,8 +122,7 @@ function ResearchNotePage() {
           </a>
         ) : (
           <p className="text-sm text-muted-foreground rounded-lg border border-border px-4 py-3">
-            This is the public text version. The Jupyter notebook file is not uploaded yet — it will appear as a
-            download on this same URL when published.
+            Public text version is live. Jupyter notebook and data files will appear as downloads on this URL when uploaded.
           </p>
         )}
       </article>

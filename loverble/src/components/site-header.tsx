@@ -42,7 +42,7 @@ export function SiteHeader() {
                 key={item.to + item.label}
                 to={item.to}
                 className={cn(
-                  "transition-colors duration-200 cursor-pointer border-b-2 border-transparent pb-0.5",
+                  "transition-colors duration-200 cursor-pointer border-b-2 border-transparent pb-0.5 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm",
                   active
                     ? "text-gold border-gold"
                     : "text-muted-foreground hover:text-gold",

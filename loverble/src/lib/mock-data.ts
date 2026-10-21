@@ -42,14 +42,6 @@ export const researchOverview = {
   markets: ["Forex", "Commodities", "Equities"],
 };
 
-export const strategyOverview = {
-  live: 2,
-  research: 3,
-  development: 3,
-  reviewsCompleted: 9,
-  platforms: ["QuantConnect", "Collective2", "MT5", "Internal Research"],
-};
-
 export const performanceMetrics = {
   avgMonthlyReturn: 0.024,
   maxDrawdown: -0.068,
@@ -60,17 +52,8 @@ export const performanceMetrics = {
   recoveryDays: 42,
 };
 
-/** Single source of truth for homepage / overview counters — keep in sync with live strategy cards. */
-export const PORTFOLIO_METRICS = {
-  sharpe: performanceMetrics.sharpe,
-  liveStrategies: strategyOverview.live,
-  maxDrawdown: performanceMetrics.maxDrawdown,
-  winRate: performanceMetrics.winRate,
-  profitFactor: performanceMetrics.profitFactor,
-} as const;
-
 export const verificationSources = [
-  { name: "QuantConnect", url: "https://www.quantconnect.com", status: "Connected" as const },
+  { name: "QuantConnect", url: "https://www.quantconnect.com", status: "Listing pending" as const },
   { name: "Collective2", url: "https://www.collective2.com", status: "Planned" as const },
   { name: "Darwinex", url: "https://www.darwinex.com", status: "Future" as const },
 ];
@@ -151,6 +134,24 @@ export const strategies: Strategy[] = [
   },
 ];
 
+/** Derived from `strategies` so catalog counts always match the cards. */
+export const strategyOverview = {
+  live: strategies.filter((s) => s.status === "Live").length,
+  research: strategies.filter((s) => s.status === "Research").length,
+  testing: strategies.filter((s) => s.status === "Testing").length,
+  development: strategies.filter((s) => s.status === "Development").length,
+  platforms: ["QuantConnect", "Collective2", "MT5", "Internal Research"] as const,
+};
+
+/** Single source of truth for homepage / overview counters — keep in sync with live strategy cards. */
+export const PORTFOLIO_METRICS = {
+  sharpe: performanceMetrics.sharpe,
+  liveStrategies: strategyOverview.live,
+  maxDrawdown: performanceMetrics.maxDrawdown,
+  winRate: performanceMetrics.winRate,
+  profitFactor: performanceMetrics.profitFactor,
+} as const;
+
 /** @deprecated Use `strategies` */
 export const activeStrategies = strategies.map(({ slug, summary, thesis, highlights, verificationUrl, tier, ...rest }) => rest);
 
@@ -199,10 +200,10 @@ export const strategyUpdates = [
 ];
 
 export const recentUpdates = [
-  { date: "Jun 2026", text: "New Gold Volatility Study Published", type: "research" as const },
-  { date: "Jun 2026", text: "Strategy Updated — Gold Momentum", type: "strategy" as const },
-  { date: "May 2026", text: "New Research Note Released — Forex Liquidity", type: "research" as const },
-  { date: "May 2026", text: "Strategy Validation Review Completed", type: "strategy" as const },
+  { date: "Jan 2026", text: "Free white paper live — Building a Quantitative Track Record", type: "research" as const },
+  { date: "Jun 2026", text: "Strategy changelog — Gold Momentum vol filter", type: "strategy" as const },
+  { date: "May 2026", text: "FX Mean Reversion — validation review completed", type: "strategy" as const },
+  { date: "Apr 2026", text: "Research pipeline — African equity momentum investigation started", type: "research" as const },
   { date: "Apr 2026", text: "Portfolio Analytics module — development started", type: "tech" as const },
 ];
 
@@ -269,8 +270,8 @@ export const subscriptionTiers = [
     description: "Read research previews before you subscribe",
     features: [
       "Research titles & excerpts",
-      "Key chart previews",
-      "First key finding per paper",
+      "Published notes (free text)",
+      "Pipeline titles (not for sale)",
       "Strategy summaries",
     ],
     cta: "Browse previews",
@@ -331,13 +332,20 @@ export type ResearchPaper = {
   slug: string;
   title: string;
   category: string;
+  type: "Research note" | "White paper";
   date: string;
+  /** Target publish window for pipeline items */
+  expectedDate?: string;
   tier: "free" | "research-pro" | "quant-pro";
   published: boolean;
   executiveSummary: string;
+  /** Published findings or open research questions (never unverified numbers for drafts). */
   keyFindings: string[];
-  previewChartLabel: string;
+  previewChartLabel?: string;
   lockedContent: string[];
+  readingMinutes?: number;
+  /** Expanded article sections for published notes */
+  sections?: { heading: string; paragraphs: string[] }[];
   /** Public path under /research-files/ once the notebook is uploaded. */
   downloadUrl?: string;
 };
@@ -346,27 +354,55 @@ export const FREE_NOTE_SLUG = "building-a-quantitative-track-record";
 
 export const researchPapers: ResearchPaper[] = [
   {
-    id: "RN-2026-05",
-    slug: "gold-volatility-regimes",
-    title: "Gold Volatility Regimes",
-    category: "Commodities",
-    date: "May 2026",
-    tier: "research-pro",
-    published: false,
+    id: "WP-2026-01",
+    slug: FREE_NOTE_SLUG,
+    title: "Building a Quantitative Track Record",
+    category: "Methodology",
+    type: "White paper",
+    date: "Jan 2026",
+    tier: "free",
+    published: true,
+    readingMinutes: 8,
     executiveSummary:
-      "Gold exhibits three dominant volatility states across major macroeconomic cycles. We map regime transitions using realized vol, term structure, and cross-asset correlations — with implications for momentum and mean-reversion overlays.",
+      "A practical framework for researchers and small teams to build verifiable performance history through transparent deployment on third-party platforms — before raising outside capital or selling signals.",
     keyFindings: [
-      "Three distinct volatility regimes identified (low, transitional, crisis)",
-      "Regime shifts precede drawdown clusters by 8–14 trading days on average",
-      "Momentum strategies benefit from vol-filter overlays in transitional regimes",
+      "Third-party verification builds credibility faster than self-reported returns",
+      "Paper-trade at least six months before risking meaningful capital",
+      "Document every strategy change with a dated changelog",
     ],
-    previewChartLabel: "Gold realized volatility — 3-regime classification",
-    lockedContent: [
-      "Full methodology & statistical tests",
-      "Regime transition probability matrix",
-      "Research notebook (Python)",
-      "PDF download",
-      "Historical dataset (CSV)",
+    lockedContent: [],
+    sections: [
+      {
+        heading: "Why verification beats screenshots",
+        paragraphs: [
+          "Allocators and peers discount self-hosted equity curves. A live or paper track on a platform that timestamps trades (for example QuantConnect) lets others reproduce your process without trusting a PNG.",
+          "Start with one strategy, one market, and one clear rule set. Breadth without a verifiable spine looks like marketing.",
+        ],
+      },
+      {
+        heading: "A minimum viable track record",
+        paragraphs: [
+          "1) Freeze the strategy specification (entry, exit, sizing, costs).",
+          "2) Run a paper or sim account for at least six months with realistic spreads and slippage.",
+          "3) Publish a changelog: every parameter change gets a date and a reason.",
+          "4) Separate backtest metrics from live/paper metrics — never blend them in one chart without labels.",
+          "5) Link the public verification URL from your site; do not paste “illustrative” curves next to the word verified.",
+        ],
+      },
+      {
+        heading: "What we publish here",
+        paragraphs: [
+          "Smart Algo STS lists research as published only when a real notebook, PDF, or dataset is attached. Items without files sit in the pipeline — not for sale, and without fabricated charts or numeric claims.",
+          "When a notebook ships, it will include method, data sources, limitations, and downloadable artifacts. Until then, treat pipeline titles as research questions under investigation.",
+        ],
+      },
+      {
+        heading: "Limitations",
+        paragraphs: [
+          "This note is educational methodology, not investment advice and not a promise of returns. Third-party platforms have their own fees, outages, and data quirks — read their terms.",
+          "A short honest record is better than a long illustrative one. If our Track Record page has no live feed yet, we say so plainly rather than decorate the gap.",
+        ],
+      },
     ],
   },
   {
@@ -374,53 +410,56 @@ export const researchPapers: ResearchPaper[] = [
     slug: "momentum-effects-in-african-markets",
     title: "Momentum Effects in African Markets",
     category: "Equities",
+    type: "Research note",
     date: "Apr 2026",
+    expectedDate: "Target H1 2026",
     tier: "research-pro",
     published: false,
     executiveSummary:
-      "Cross-sectional momentum in frontier African equity markets shows shorter decay horizons than developed markets, with liquidity constraints as the primary capacity limiter.",
+      "Open investigation: does cross-sectional momentum in frontier African equities (including NSE listings) show shorter decay and tighter capacity than developed-market peers once liquidity and FX are modeled?",
     keyFindings: [
-      "6-month momentum factor shows positive IC in NSE-listed equities",
-      "Turnover constraints reduce implementable capacity vs. US peers",
-      "Currency risk dominates total return attribution",
+      "Question: how does 6-month momentum IC behave on NSE names after costs?",
+      "Question: how much does turnover and FX attribution cut implementable capacity?",
+      "Deliverables planned: notebook, factor tables, data appendix",
     ],
-    previewChartLabel: "NSE momentum quintile spreads",
-    lockedContent: ["Full methodology", "Factor attribution tables", "PDF download", "Data appendix"],
+    lockedContent: [],
+  },
+  {
+    id: "RN-2026-05",
+    slug: "gold-volatility-regimes",
+    title: "Gold Volatility Regimes",
+    category: "Commodities",
+    type: "Research note",
+    date: "May 2026",
+    expectedDate: "Target mid-2026",
+    tier: "research-pro",
+    published: false,
+    executiveSummary:
+      "Open investigation: can realized-vol and term-structure features classify gold into stable regimes that usefully gate momentum vs mean-reversion overlays?",
+    keyFindings: [
+      "Question: how many regimes are stable out of sample?",
+      "Question: do regime transitions lead drawdown clusters in our gold book?",
+      "Deliverables planned: method note, transition matrix, Python notebook",
+    ],
+    lockedContent: [],
   },
   {
     id: "RN-2026-03",
     slug: "forex-liquidity-during-high-impact-news",
     title: "Forex Liquidity During High-Impact News",
     category: "Forex",
+    type: "Research note",
     date: "Mar 2026",
+    expectedDate: "Target 2026",
     tier: "quant-pro",
     published: false,
     executiveSummary:
-      "Spread widening and slippage patterns around major macro releases create predictable microstructure opportunities — and risks — for systematic FX strategies.",
+      "Open investigation: how do spreads and slippage around scheduled macro releases (e.g. NFP) change short-horizon FX mean-reversion and breakout expectancy?",
     keyFindings: [
-      "EUR/USD spreads widen 3–5× in the 30s before NFP releases",
-      "Mean-reversion edge degrades post-release for ~45 minutes",
-      "Volatility breakout models show positive expectancy with spread filters",
+      "Question: magnitude and duration of EUR/USD spread widening into releases",
+      "Question: which filters keep post-news edges after realistic costs?",
+      "Deliverables planned: execution sim, stats pack, notebook",
     ],
-    previewChartLabel: "EUR/USD spread distribution — news vs. normal",
-    lockedContent: ["Full statistical analysis", "Execution simulation", "Research notebook", "PDF download"],
-  },
-  {
-    id: "WP-2026-01",
-    slug: FREE_NOTE_SLUG,
-    title: "Building a Quantitative Track Record",
-    category: "White Paper",
-    date: "Jan 2026",
-    tier: "free",
-    published: true,
-    executiveSummary:
-      "A practical framework for researchers and small teams to build verifiable performance history through transparent deployment on third-party platforms.",
-    keyFindings: [
-      "Third-party verification builds credibility faster than self-reported returns",
-      "Paper trading periods should be minimum 6 months before live capital",
-      "Document every strategy change with dated changelog entries",
-    ],
-    previewChartLabel: "Track record verification workflow",
     lockedContent: [],
   },
 ];
@@ -429,17 +468,29 @@ export function getPaperBySlug(slug: string): ResearchPaper | undefined {
   return researchPapers.find((paper) => paper.slug === slug);
 }
 
-export const caseStudies = [
-  { title: "Gold Volatility Analysis", category: "Commodities", outcome: "In progress — not a published notebook yet" },
-  { title: "Momentum in African Markets", category: "Equities", outcome: "In progress — not a published notebook yet" },
-  { title: "FX Liquidity Microstructure", category: "Forex", outcome: "In progress" },
-];
+/** Pipeline rows — titles match `researchPapers` (no separate case-study aliases). */
+export const researchPipeline = researchPapers
+  .filter((p) => !p.published)
+  .map((p) => ({
+    id: p.id,
+    title: p.title,
+    category: p.category,
+    type: p.type,
+    expectedDate: p.expectedDate ?? p.date,
+    status: "In progress" as const,
+  }));
 
-export const whitePapers = [
-  { title: "Building a Quantitative Track Record", date: "Jan 2026", tier: "free" as const },
-  { title: "Risk Allocation for Small Quant Teams", date: "Dec 2025", tier: "research-pro" as const },
-  { title: "Financial Systems Architecture for Asset Managers", date: "Nov 2025", tier: "quant-pro" as const },
-];
+/** Published white papers only — no unlinkable stubs. */
+export const whitePapers = researchPapers
+  .filter((p) => p.published && p.type === "White paper")
+  .map((p) => ({ title: p.title, date: p.date, tier: p.tier, slug: p.slug }));
+
+/** @deprecated Prefer researchPipeline — kept for any legacy imports. */
+export const caseStudies = researchPipeline.map((p) => ({
+  title: p.title,
+  category: p.category,
+  outcome: `${p.status} · ${p.expectedDate}`,
+}));
 
 /** FX Mean Reversion — featured live model curve (matches hero + card metrics). */
 export const fxMeanReversionCurve = buildStrategyEquityCurve(0.314, 180);

@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import type { Strategy } from "@/lib/mock-data";
-import { fmt } from "@/lib/mock-data";
 import { GlowCard } from "./glow-card";
 import { LiveBadge } from "./live-badge";
 import { MotionItem, MotionReveal } from "@/components/motion-reveal";
@@ -25,17 +24,9 @@ export function StrategySpotlight({
                   <span className={`text-xs px-2 py-0.5 rounded ${statusColor(s.status)}`}>{s.status}</span>
                 )}
               </div>
-              {s.liveReturn != null && s.liveSharpe != null && (
-                <div className="mt-3 font-mono text-sm text-bull tabular-nums">
-                  +{fmt.pct(s.liveReturn, 1)} since live
-                  <span className="text-muted-foreground mx-2">|</span>
-                  Sharpe {s.liveSharpe}
-                  {s.liveMaxDrawdown != null && (
-                    <>
-                      <span className="text-muted-foreground mx-2">|</span>
-                      <span className="text-bear">DD {fmt.pct(s.liveMaxDrawdown, 1)}</span>
-                    </>
-                  )}
+              {s.status === "Live" && (
+                <div className="mt-3 text-xs text-muted-foreground">
+                  Live model · public listing and verified stats pending
                 </div>
               )}
               <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{s.summary}</p>

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, FlaskConical, FileText, Brain } from "lucide-react";
-import { strategies, company, PORTFOLIO_METRICS, getStrategyBySlug, fmt } from "@/lib/mock-data";
+import { strategies, company, getStrategyBySlug, strategyOverview } from "@/lib/mock-data";
 import { HeroCinematic } from "@/components/hero-cinematic";
 import { MotionHeroText } from "@/components/motion-reveal";
 import { formatUsd, PRICING } from "@/lib/pricing";
@@ -54,17 +54,17 @@ function Landing() {
                   </span>
                   Research first · QuantConnect listings in progress
                 </div>
-                <p className="font-mono text-bull text-lg md:text-xl font-semibold tabular-nums">
-                  {featuredLive?.name ?? "FX Mean Reversion"}: +{fmt.pct(featuredLive?.liveReturn ?? 0.314, 1)} since live
+                <p className="font-mono text-gold text-sm md:text-base font-semibold">
+                  {featuredLive?.name ?? "FX Mean Reversion"} · live model · QuantConnect listing pending
                 </p>
                 <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                  Same model shown in chart
+                  No illustrative returns on this page
                 </p>
                 <h1 className="mt-4 font-display text-hero-display gold-headline-shimmer">
-                  Systematic performance you can independently verify
+                  Research and strategies you can independently verify
                 </h1>
                 <p className="mt-5 text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed font-normal">
-                  <span className="text-foreground font-medium">{company.name}</span> publishes quant research and deploys live models with third-party track records — not marketing curves.
+                  <span className="text-foreground font-medium">{company.name}</span> publishes quant research and deploys systematic models — third-party track records when listings are live, not marketing curves.
                 </p>
                 <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">{company.operator}</p>
               </div>
@@ -92,30 +92,24 @@ function Landing() {
       <section className="hero-metrics-grid border-y border-border bg-secondary-surface/80">
         <div className="max-w-[1400px] mx-auto px-6 py-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
           <CountUpStat
-            label="Portfolio Sharpe"
-            value={PORTFOLIO_METRICS.sharpe}
-            decimals={2}
-            hint="Risk-adjusted return across live book"
-          />
-          <CountUpStat
             label="Live strategies"
-            value={PORTFOLIO_METRICS.liveStrategies}
-            hint="Two live models on the desk — permalinks pending"
+            value={strategyOverview.live}
+            hint="In catalog — QC listings pending"
           />
           <CountUpStat
-            label="Max drawdown"
-            value={Math.abs(PORTFOLIO_METRICS.maxDrawdown * 100)}
-            prefix="-"
-            suffix="%"
-            decimals={1}
-            hint="Peak-to-trough on deployed models"
+            label="In research"
+            value={strategyOverview.research}
+            hint="Active investigations"
           />
           <CountUpStat
-            label="Win rate"
-            value={PORTFOLIO_METRICS.winRate * 100}
-            suffix="%"
-            decimals={0}
-            hint={`Profit factor ${PORTFOLIO_METRICS.profitFactor}`}
+            label="Testing"
+            value={strategyOverview.testing}
+            hint="Out-of-sample / paper"
+          />
+          <CountUpStat
+            label="Development"
+            value={strategyOverview.development}
+            hint="Early build"
           />
         </div>
       </section>
@@ -132,7 +126,7 @@ function Landing() {
             <div>
               <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-2">Strategies</div>
               <h2 className="font-display text-section-title text-3xl md:text-4xl">Live systematic models</h2>
-              <p className="mt-2 text-muted-foreground max-w-lg">Each card shows verified return and risk — click through for thesis and subscription.</p>
+              <p className="mt-2 text-muted-foreground max-w-lg">Click through for thesis and status. Verified returns appear when QuantConnect listings are public.</p>
             </div>
             <Link to="/strategies" className="text-sm text-gold hover:underline cursor-pointer">Full catalog →</Link>
           </div>

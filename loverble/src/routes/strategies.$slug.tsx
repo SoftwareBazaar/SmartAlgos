@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { PageShell, SectionCard } from "@/components/page-shell";
-import { getStrategyBySlug } from "@/lib/mock-data";
+import { getStrategyBySlug, type Strategy } from "@/lib/mock-data";
 import { getStrategyVerificationUrl, hasDirectVerificationLink } from "@/lib/strategy-links";
 import { ExternalLink, ArrowLeft, Lock } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -29,7 +29,7 @@ function statusColor(s: string) {
 }
 
 function StrategyDetail() {
-  const strategy = Route.useLoaderData();
+  const strategy = Route.useLoaderData() as Strategy;
   const { tier } = useSubscription();
   const liveUnlocked = hasLiveAccess(tier);
 
@@ -81,7 +81,7 @@ function StrategyDetail() {
           </a>
           {!hasDirectVerificationLink(strategy.slug) && (
             <p className="text-xs text-muted-foreground mt-3">
-              Set <code className="text-gold">QC_GOLD_MOMENTUM_URL</code> or <code className="text-gold">QC_FX_MEAN_REVERSION_URL</code> in Vercel for a direct listing link.
+              Direct QuantConnect listing links will appear here once the public strategy URLs are published.
             </p>
           )}
         </SectionCard>

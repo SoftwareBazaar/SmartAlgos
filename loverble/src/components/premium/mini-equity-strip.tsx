@@ -1,12 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
-import { equityCurve, performanceMetrics, fmt } from "@/lib/mock-data";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { GlowCard } from "./glow-card";
 import { MotionReveal, MotionItem } from "@/components/motion-reveal";
-import { EquityAreaChart } from "./equity-area-chart";
 
-const data = equityCurve.slice(-120);
-
+/** Honest homepage strip — no illustrative curves labeled as verified. */
 export function MiniEquityStrip() {
   return (
     <section id="performance" className="py-16 border-t border-border bg-dominant scroll-mt-24">
@@ -14,36 +11,27 @@ export function MiniEquityStrip() {
         <MotionReveal>
           <MotionItem>
             <GlowCard accent className="p-6 md:p-8">
-              <div className="grid lg:grid-cols-[1fr_1.4fr] gap-8 items-center">
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.22em] text-gold mb-2">Verified performance</div>
-                  <h2 className="font-display text-section-title text-3xl md:text-4xl font-bold">Live track record</h2>
-                  <p className="mt-3 text-sm text-muted-foreground max-w-md">
-                    Blended portfolio equity from deployed systematic models — scaled to show growth from inception baseline.
-                  </p>
-                  <div className="mt-6 grid grid-cols-3 gap-4">
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sharpe</div>
-                      <div className="font-mono text-xl font-semibold text-foreground mt-1">{performanceMetrics.sharpe}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max DD</div>
-                      <div className="font-mono text-xl font-semibold text-bear mt-1">{fmt.pct(performanceMetrics.maxDrawdown)}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Win rate</div>
-                      <div className="font-mono text-xl font-semibold text-foreground mt-1">{fmt.pct(performanceMetrics.winRate, 0)}</div>
-                    </div>
-                  </div>
+              <div className="max-w-[70ch]">
+                <div className="text-[10px] uppercase tracking-[0.22em] text-gold mb-2">Track record</div>
+                <h2 className="font-display text-section-title text-3xl md:text-4xl font-bold">Live record pending</h2>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  We publish verified third-party performance when QuantConnect listings are live — not illustrative equity curves.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-4">
                   <Link
                     to="/performance"
-                    className="mt-6 inline-flex items-center gap-2 text-sm text-gold hover:underline cursor-pointer"
+                    className="inline-flex items-center gap-2 text-sm text-gold hover:underline cursor-pointer"
                   >
-                    Full performance breakdown <ArrowRight className="h-4 w-4" />
+                    Track record status <ArrowRight className="h-4 w-4" />
                   </Link>
-                </div>
-                <div className="chart-container h-[220px] md:h-[260px] rounded-lg border border-border/50 bg-background/30 p-3">
-                  <EquityAreaChart data={data} gradientId="strip-fill" showGrid />
+                  <a
+                    href="https://www.quantconnect.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-gold"
+                  >
+                    QuantConnect <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
                 </div>
               </div>
             </GlowCard>

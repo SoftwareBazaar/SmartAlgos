@@ -1,112 +1,117 @@
-import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PageShell, SectionCard, StatCard } from "@/components/page-shell";
+import { PageShell, SectionCard } from "@/components/page-shell";
 import { ResearchPreviewCard } from "@/components/research-preview";
-import {
-  researchOverview, researchPapers, caseStudies, whitePapers, FREE_NOTE_SLUG,
-} from "@/lib/mock-data";
-import { BookOpen, TrendingUp } from "lucide-react";
+import { FinanceNotesSignup } from "@/components/finance/finance-notes-signup";
+import { researchPapers, researchPipeline, FREE_NOTE_SLUG } from "@/lib/mock-data";
+import { Bell } from "lucide-react";
 
 export const Route = createFileRoute("/research")({
   head: () => ({
     meta: [
       { title: "Research — Smart Algos Capital" },
-      { name: "description", content: "Quantitative research library — notebooks, PDFs, and methodology notes." },
+      {
+        name: "description",
+        content:
+          "Reproducible research on gold, FX, and African equities — with code and data when published. Pipeline items are questions under investigation, not for sale.",
+      },
     ],
   }),
   component: Research,
 });
 
-const FILTERS = ["All", "Forex", "Commodities", "Equities"] as const;
-
 function Research() {
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
-  const papers = researchPapers.filter((p) => filter === "All" || p.category === filter);
+  const published = researchPapers.filter((p) => p.published);
+  const latestDate = published[0]?.date ?? "—";
 
   return (
     <PageShell
-      eyebrow="Quant library"
+      eyebrow="Research"
       title="Research & strategy notebooks"
-      description="Methodology notes. One free public note is live. Paid notebooks stay listed as in progress until a file is attached."
+      description="Reproducible research on gold, FX, and African equities — with code and data when a file is attached. Unpublished work stays in the pipeline, not the store."
     >
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Published notes" value={String(researchOverview.notesPublished)} />
-        <StatCard label="Notes in progress" value={String(researchOverview.studiesCompleted - researchOverview.notesPublished)} />
-        <StatCard label="Markets Covered" value={String(researchOverview.marketsCovered)} />
-        <StatCard label="Free note" value="Open" hint="no paywall" />
-      </div>
+      <p className="text-xs text-muted-foreground -mt-2">
+        Latest publication · {latestDate}
+      </p>
 
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {FILTERS.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => setFilter(cat)}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors duration-200 ${
-              filter === cat
-                ? "bg-gold text-primary-foreground"
-                : "bg-card/40 text-muted-foreground hover:text-foreground border border-border"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      <SectionCard title="Research library" subtitle="Public note live · others in progress">
+      <SectionCard title="Published" subtitle="Notes with a full text version live">
         <div className="space-y-8">
-          {papers.map((paper) => (
+          {published.map((paper) => (
             <ResearchPreviewCard key={paper.id} paper={paper} />
           ))}
-          {papers.length === 0 && (
-            <p className="text-sm text-muted-foreground">No notes in this asset class yet.</p>
-          )}
         </div>
       </SectionCard>
 
-      <div className="p-6 bg-dominant border border-gold/30 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.22em] text-gold">Free public note</div>
-          <p className="text-sm text-muted-foreground mt-1">Building a Quantitative Track Record — text version live, notebook file next.</p>
+      <div className="rounded-xl border border-gold/30 bg-secondary-surface p-6 md:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 max-w-4xl">
+        <div className="max-w-[70ch]">
+          <div className="text-[11px] uppercase tracking-[0.22em] text-gold">Flagship free note</div>
+          <p className="text-sm text-muted-foreground mt-1">
+            Building a Quantitative Track Record — methodology for verifiable paper and live history. Notebook file still pending.
+          </p>
         </div>
         <Link
           to="/research/$slug"
           params={{ slug: FREE_NOTE_SLUG }}
-          className="inline-flex items-center justify-center min-h-12 px-5 rounded-lg bg-gold text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft"
+          className="inline-flex items-center justify-center min-h-12 px-5 rounded-lg bg-gold text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft shrink-0"
         >
           Open the free note
         </Link>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <SectionCard title="White Papers" subtitle="Long-form publications">
-          <div className="space-y-3">
-            {whitePapers.map((w) => (
-              <div key={w.title} className="flex items-center gap-3 rounded-sm border border-border/60 p-3 hover:border-gold/40 transition-colors">
-                <BookOpen className="h-4 w-4 text-gold shrink-0" />
-                <div className="flex-1">
-                  <div className="text-sm font-medium">{w.title}</div>
-                  <div className="text-xs text-muted-foreground">{w.date}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
+      <SectionCard
+        title="In the pipeline"
+        subtitle="Not for sale until a notebook or PDF is attached — titles are research questions"
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead>
+              <tr className="border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground">
+                <th className="py-2 pr-4 font-medium">Title</th>
+                <th className="py-2 pr-4 font-medium">Market</th>
+                <th className="py-2 pr-4 font-medium">Status</th>
+                <th className="py-2 pr-4 font-medium">Target</th>
+                <th className="py-2 font-medium">Notify</th>
+              </tr>
+            </thead>
+            <tbody>
+              {researchPipeline.map((row) => (
+                <tr key={row.id} className="border-b border-border/50">
+                  <td className="py-3 pr-4">
+                    <div className="font-medium text-foreground">{row.title}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{row.type}</div>
+                  </td>
+                  <td className="py-3 pr-4 text-muted-foreground">{row.category}</td>
+                  <td className="py-3 pr-4">
+                    <span className="rounded-sm border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {row.status}
+                    </span>
+                  </td>
+                  <td className="py-3 pr-4 text-muted-foreground whitespace-nowrap">{row.expectedDate}</td>
+                  <td className="py-3">
+                    <a
+                      href="#research-notify"
+                      className="inline-flex items-center gap-1.5 text-xs text-gold hover:underline"
+                    >
+                      <Bell className="h-3.5 w-3.5" /> Notify me
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
 
-        <SectionCard title="Case Studies" subtitle="Applied research examples">
-          <div className="space-y-3">
-            {caseStudies.map((c) => (
-              <div key={c.title} className="rounded-sm border border-border/60 p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="h-4 w-4 text-gold" />
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{c.category}</span>
-                </div>
-                <div className="font-display text-base font-semibold">{c.title}</div>
-                <div className="text-xs text-muted-foreground mt-1">{c.outcome}</div>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
+      <SectionCard title="Methodology & standards" subtitle="How we publish">
+        <ul className="space-y-2 text-sm text-muted-foreground max-w-[70ch]">
+          <li>Published = real file or full public text attached. No placeholder charts or unverified numbers.</li>
+          <li>Pipeline items are framed as questions under investigation until evidence ships.</li>
+          <li>Backtests and live/paper records are labeled separately; third-party links preferred over self-hosted curves.</li>
+          <li>Educational research only — not investment advice. See the financial disclaimer in the footer.</li>
+        </ul>
+      </SectionCard>
+
+      <div id="research-notify" className="max-w-xl scroll-mt-24">
+        <FinanceNotesSignup />
       </div>
     </PageShell>
   );

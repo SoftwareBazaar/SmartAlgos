@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ConsultationPageContent } from "@/components/consultation-page";
 
 const SHARE_URL = "https://www.smartalgosts.com/consultation";
-const SHARE_TITLE = "Book a Free 20-Min Advisory Session — Smart Algos Capital";
+const SHARE_TITLE = "Book a Strategy Desk Session — Smart Algos Capital";
 const SHARE_DESC =
-  "Pick your topic and a time (7–9 PM EAT). Free intro consultation with our quant desk — meeting link by email.";
+  "Free 20-minute intro or optional 90-minute deep-dive. Daily 7–9 PM EAT. Educational research discussion — not investment advice.";
 
 export const Route = createFileRoute("/consultation")({
   head: () => ({

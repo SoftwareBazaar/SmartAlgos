@@ -20,6 +20,14 @@ export type Strategy = {
   summary: string;
   thesis: string;
   highlights: string[];
+  /** Public-facing scan fields (no proprietary rules). */
+  timeframe?: string;
+  instruments?: string;
+  holdingPeriod?: string;
+  riskControls?: string;
+  /** ISO-ish display date when status is Live */
+  liveSince?: string;
+  changelog?: { date: string; text: string }[];
   verificationUrl?: string;
   tier: "free" | "quant-pro";
   liveReturn?: number;
@@ -65,19 +73,25 @@ export const strategies: Strategy[] = [
     asset: "Commodities",
     platform: "QuantConnect",
     status: "Live",
-    summary: "Trend-following momentum on gold with volatility regime filters.",
+    summary: "Daily gold futures/ETF momentum with a realized-vol regime filter and capped leverage.",
     thesis:
       "Gold momentum persists across macro regimes when filtered by realized volatility. We deploy a rules-based momentum overlay with dynamic position sizing tied to vol states.",
+    timeframe: "Daily bars",
+    instruments: "Gold futures / liquid gold ETF proxies",
+    holdingPeriod: "Multi-day to multi-week",
+    riskControls: "Vol-scaled sizing · max position cap · regime filter off-switch",
+    liveSince: "Apr 2026",
     highlights: [
       "Volatility regime filter reduces drawdown clusters",
-      "Deployed on QuantConnect with ongoing changelog",
-      "Subscribe to live signals — retail or institutional",
+      "Deployed on QuantConnect — public listing URL pending",
+      "Changelog maintained for every rule change",
+    ],
+    changelog: [
+      { date: "Jun 2026", text: "Added volatility filter overlay" },
+      { date: "Apr 2026", text: "Initial live deploy on QuantConnect (listing not public yet)" },
     ],
     verificationUrl: "https://www.quantconnect.com",
     tier: "quant-pro",
-    liveReturn: 0.182,
-    liveSharpe: 1.4,
-    liveMaxDrawdown: -0.068,
   },
   {
     slug: "fx-mean-reversion",
@@ -85,19 +99,25 @@ export const strategies: Strategy[] = [
     asset: "Forex",
     platform: "QuantConnect",
     status: "Live",
-    summary: "Short-horizon mean reversion on major FX pairs with spread-aware execution assumptions.",
+    summary: "Intraday mean reversion on major FX pairs with spread and session filters.",
     thesis:
       "Micro mean-reversion edges in liquid FX pairs decay quickly without spread filters. The model targets session-specific liquidity windows.",
+    timeframe: "Intraday (session windows)",
+    instruments: "Major FX pairs (e.g. EUR/USD, GBP/USD)",
+    holdingPeriod: "Minutes to hours",
+    riskControls: "Spread filter · session gate · per-trade risk limit",
+    liveSince: "May 2026",
     highlights: [
       "Spread and session filters for realistic execution",
       "Validation review completed May 2026",
-      "QuantConnect listing in progress",
+      "QuantConnect listing pending",
+    ],
+    changelog: [
+      { date: "May 2026", text: "Validation review completed" },
+      { date: "Apr 2026", text: "Live deploy started — public listing pending" },
     ],
     verificationUrl: "https://www.quantconnect.com",
     tier: "quant-pro",
-    liveReturn: 0.314,
-    liveSharpe: 1.6,
-    liveMaxDrawdown: -0.052,
   },
   {
     slug: "volatility-breakout",
@@ -105,9 +125,13 @@ export const strategies: Strategy[] = [
     asset: "Multi-Asset",
     platform: "Internal Research",
     status: "Research",
-    summary: "Breakout system triggered by compression-expansion volatility cycles.",
+    summary: "Compression–expansion breakout research across correlated asset baskets.",
     thesis: "Volatility compression phases precede directional breakouts across correlated asset baskets.",
-    highlights: ["Cross-asset signal research", "Notebook in progress", "Available when strategy goes live"],
+    timeframe: "Daily",
+    instruments: "Cross-asset basket (research)",
+    holdingPeriod: "Days to weeks (research)",
+    riskControls: "Under design — not deployed",
+    highlights: ["Cross-asset signal research", "Notebook in progress", "Not for sale until validated"],
     tier: "quant-pro",
   },
   {
@@ -116,8 +140,12 @@ export const strategies: Strategy[] = [
     asset: "Equities",
     platform: "Internal Research",
     status: "Testing",
-    summary: "Equity index trend model with risk parity sizing.",
+    summary: "Equity index trend with volatility-scaled exposure; out-of-sample testing underway.",
     thesis: "Time-series momentum on broad equity indices with volatility-scaled exposure.",
+    timeframe: "Daily / weekly",
+    instruments: "Broad equity indices",
+    holdingPeriod: "Weeks to months",
+    riskControls: "Vol targeting · risk-parity style sizing (testing)",
     highlights: ["Out-of-sample testing underway", "African markets extension planned"],
     tier: "quant-pro",
   },
@@ -127,8 +155,12 @@ export const strategies: Strategy[] = [
     asset: "Multi-Asset",
     platform: "Internal Research",
     status: "Development",
-    summary: "Macro regime classifier to gate strategy allocation across live models.",
+    summary: "Lightweight macro regime classifier to gate allocation across live models.",
     thesis: "A lightweight regime filter improves composite strategy robustness without overfitting.",
+    timeframe: "Weekly / monthly features",
+    instruments: "Macro + cross-asset inputs",
+    holdingPeriod: "Overlay (gates other models)",
+    riskControls: "Designed as an allocation gate, not a standalone book",
     highlights: ["Research initiated Apr 2026", "Will overlay live strategies when validated"],
     tier: "quant-pro",
   },
@@ -176,12 +208,28 @@ export const futureEcosystem = [
   { name: "Financial Intelligence Division", path: "/institutional" as const, phase: "Research" },
 ];
 
+/** Public pipeline — names from the catalog only (no inflated idea counts). */
 export const pipelineStages = [
-  { stage: "Idea", count: 6, desc: "Hypotheses from market observation and literature." },
-  { stage: "Research", count: 4, desc: "Statistical testing, feature engineering, signal exploration." },
-  { stage: "Validation", count: 2, desc: "Out-of-sample testing, robustness, parameter stability." },
-  { stage: "Deployment", count: 2, desc: "Live on QuantConnect with ongoing review." },
-  { stage: "Monitoring", count: 2, desc: "Performance tracking and strategy maintenance." },
+  {
+    stage: "Research",
+    desc: "Statistical testing and signal exploration.",
+    strategySlugs: ["volatility-breakout"] as const,
+  },
+  {
+    stage: "Validation",
+    desc: "Out-of-sample testing and robustness checks.",
+    strategySlugs: ["trend-following-model"] as const,
+  },
+  {
+    stage: "Development",
+    desc: "Early build and architecture.",
+    strategySlugs: ["macro-regime-filter"] as const,
+  },
+  {
+    stage: "Deployed",
+    desc: "Running on QuantConnect — public listing URLs pending.",
+    strategySlugs: ["gold-momentum", "fx-mean-reversion"] as const,
+  },
 ];
 
 export const platformDistribution = [
@@ -232,34 +280,66 @@ export const consultationServices = [
   {
     id: "equities",
     title: "Stocks & Equities",
-    items: ["Portfolio systematic rules", "Equity factor & momentum design", "Risk budgeting", "Execution on live markets"],
+    items: [
+      "A written rule sketch for entries, exits, and position sizing",
+      "How to test a factor or momentum idea without overfitting",
+      "A simple risk budget you can implement in a spreadsheet",
+    ],
   },
   {
     id: "derivatives",
     title: "Futures & Derivatives",
-    items: ["Contract selection & roll logic", "Margin and sizing frameworks", "Trend and breakout systems", "Backtest realism"],
+    items: [
+      "Contract and roll choices that match your capital",
+      "Margin-aware sizing checklist",
+      "Backtest assumptions that survive live costs",
+    ],
   },
   {
     id: "forex",
     title: "Forex",
-    items: ["Pair selection & session filters", "Mean reversion & momentum models", "Spread-aware execution", "Our FX strategy methodology"],
+    items: [
+      "Session and spread filters for a short-horizon idea",
+      "Mean-reversion vs momentum fit for your pairs",
+      "How we think about FX Mean Reversion (high level)",
+    ],
   },
   {
     id: "commodities",
     title: "Commodities",
-    items: ["Gold and energy momentum", "Volatility regime filters", "Commodity trend systems", "Live model subscription fit"],
+    items: [
+      "Vol-regime framing for gold momentum",
+      "Position caps and off-switches you can state clearly",
+      "Whether a commodity book fits your constraints",
+    ],
   },
   {
     id: "our-strategies",
     title: "Our Live Strategies",
-    items: ["Gold Momentum & FX Mean Reversion", "QuantConnect verification walkthrough", "Retail vs institutional access", "Signal and rules review"],
+    items: [
+      "What Gold Momentum and FX Mean Reversion actually do",
+      "How to read a third-party track record when listings go live",
+      "What access looks like after a desk review (not a signal feed yet)",
+    ],
   },
   {
     id: "custom-systems",
     title: "Systems You Want to Build",
-    items: ["Research-to-production workflow", "Python / QuantConnect architecture", "Risk controls & monitoring", "Documentation and handoff"],
+    items: [
+      "A research-to-paper-trade roadmap for your idea",
+      "Python / QuantConnect architecture outline",
+      "Monitoring and changelog habits that keep you honest",
+    ],
   },
 ];
+
+/** Desk hosting — one person until a named team page exists. */
+export const strategyDeskHost = {
+  title: "Research desk host",
+  org: company.operator,
+  blurb:
+    "Sessions are hosted by the Smart Algos Capital research desk — currently one researcher, not a multi-person advisory team. Educational discussion only; we do not manage your money.",
+};
 
 export const subscriptionTiers = [
   {

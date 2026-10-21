@@ -1,5 +1,8 @@
 export const PRICING = {
+  /** Launch rate for the 90-minute deep-dive — not the long-term professional rate. */
   consultation: 7.99,
+  /** Stated regular rate once launch pricing ends (shown as framing only). */
+  consultationRegular: 149,
   researchFull: 10,
   liveRetail: 149.99,
   liveInstitutional: 499.99,

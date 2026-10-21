@@ -122,6 +122,16 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
   }
+  /* Mouse clicks should not leave a persistent focus box on nav links */
+  a:focus:not(:focus-visible),
+  button:focus:not(:focus-visible) {
+    outline: none;
+  }
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
 }
 
 @utility gold-text {

@@ -55,16 +55,17 @@ export function StatCard({
 }
 
 export function SectionCard({
-  title, subtitle, action, children, className = "",
+  title, subtitle, action, children, className = "", id,
 }: {
   title: string;
   subtitle?: string;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  id?: string;
 }) {
   return (
-    <section className={`surface-card rounded-lg ${className}`}>
+    <section id={id} className={`surface-card rounded-lg ${className}`}>
       <header className="flex items-center justify-between border-b border-border px-5 py-4">
         <div>
           <h3 className="font-display text-lg font-semibold">{title}</h3>

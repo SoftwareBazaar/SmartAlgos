@@ -5,7 +5,7 @@ import { AdvisoryBookingForm } from "@/components/advisory-booking-form";
 import { GlowCard } from "./glow-card";
 import { MotionReveal, MotionItem } from "@/components/motion-reveal";
 
-const advisoryCategories = [
+const topics = [
   "Stocks & equities",
   "Futures",
   "Forex",
@@ -16,14 +16,12 @@ const advisoryCategories = [
 
 const sessionIncludes = [
   "Free 20-minute intro — pick topic, date, and time (7–9 PM EAT daily)",
-  "Last 20-min slot starts at 8:40 PM EAT",
+  "Times shown in your local timezone with EAT in parentheses",
   "Meeting link sent by email after you book",
-  "Optional 90-minute follow-up via Paystack when you need a deeper session",
+  `Optional 90-minute deep-dive at launch rate ${formatUsd(PRICING.consultation)} (regular ${formatUsd(PRICING.consultationRegular)})`,
 ];
 
 export function AdvisoryDeskSection() {
-  const followUpPrice = formatUsd(PRICING.consultation);
-
   return (
     <section id="advisory" className="py-20 border-t border-border bg-secondary-surface/30 scroll-mt-24">
       <div className="max-w-[1400px] mx-auto px-6">
@@ -31,19 +29,17 @@ export function AdvisoryDeskSection() {
           <MotionItem>
             <div className="grid lg:grid-cols-2 gap-6 items-stretch">
               <GlowCard accent className="p-8 flex flex-col cursor-default">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-gold mb-2">Strategy desk</div>
-                <h2 className="font-display text-section-title text-2xl md:text-3xl">Book an advisory session</h2>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-gold mb-2">Strategy Desk</div>
+                <h2 className="font-display text-section-title text-2xl md:text-3xl">Book a Strategy Desk session</h2>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                  Start with a{" "}
-                  <span className="text-foreground font-medium">free 20-minute consultation</span>, or go straight to a{" "}
-                  <span className="text-gold font-medium">{followUpPrice} 90-minute deep-dive</span>. Times shown in EAT
-                  with your local clock alongside.
+                  Free 20-minute intro. Optional 90-minute deep-dive. Educational research discussion — not investment
+                  advice and not money management.
                 </p>
 
                 <div className="mt-5">
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-3">We advise on</div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Topics we discuss</div>
                   <div className="flex flex-wrap gap-2">
-                    {advisoryCategories.map((cat) => (
+                    {topics.map((cat) => (
                       <span
                         key={cat}
                         className="rounded-sm border border-gold/25 bg-gold/5 px-2.5 py-1 text-[11px] text-muted-foreground"
@@ -61,7 +57,7 @@ export function AdvisoryDeskSection() {
                   </div>
                   <AdvisoryBookingForm />
                   <Link to="/consultation" className="mt-4 inline-block text-xs text-gold hover:underline cursor-pointer">
-                    Full advisory page →
+                    Full Strategy Desk page →
                   </Link>
                 </div>
               </GlowCard>
@@ -77,8 +73,8 @@ export function AdvisoryDeskSection() {
                   ))}
                 </ul>
                 <div className="mt-6 rounded-lg border border-border/60 bg-background/40 p-4 text-xs text-muted-foreground leading-relaxed">
-                  Investing in stocks, futures, forex, or commodities — or building a systematic model like ours. The
-                  free call maps your idea to a concrete next step; the follow-up goes deep when you are ready.
+                  Sessions are hosted by the research desk (currently one researcher). We discuss systematic ideas and
+                  process — we do not manage your capital or act as a licensed investment adviser.
                 </div>
               </GlowCard>
             </div>

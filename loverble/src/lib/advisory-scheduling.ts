@@ -119,9 +119,11 @@ export function formatSlotLabel(time: string, date?: string, timeZone?: string):
   const eat = formatEatClock(time);
   const isLastFree = normalizeTimeSlot(time) === "20:40";
   const lastNote = isLastFree ? " — last 20-min slot" : "";
-  if (!date || !timeZone || timeZone === "Africa/Nairobi") return `${eat}${lastNote}`;
+  if (!date || !timeZone) return `${eat}${lastNote}`;
+  if (timeZone === "Africa/Nairobi") return `${eat}${lastNote}`;
   const local = eatSlotToLocal(date, time, timeZone);
-  return local ? `${eat} · ${local} local${lastNote}` : `${eat}${lastNote}`;
+  // Local first; EAT in parentheses so visitors aren't primed on Nairobi clock only.
+  return local ? `${local} (${eat})${lastNote}` : `${eat}${lastNote}`;
 }
 
 export function todayInEat(): string {

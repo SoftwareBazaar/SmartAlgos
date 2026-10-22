@@ -6,7 +6,8 @@ import {
   type StrategyStatus,
 } from "@/lib/mock-data";
 import { hasDirectVerificationLink } from "@/lib/strategy-links";
-import { Activity, ExternalLink } from "lucide-react";
+import { SPY_PSAR_SLUG } from "@/lib/spy-psar-strategy";
+import { Activity, Download, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/strategies")({
   head: () => ({
@@ -98,6 +99,38 @@ function StrategiesPage() {
         ))}
       </nav>
 
+      <Link
+        to="/strategies/$slug"
+        params={{ slug: SPY_PSAR_SLUG }}
+        className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-gold/35 bg-secondary-surface/70 p-5 md:p-6 hover:border-gold/55 transition outline-none focus-visible:ring-2 focus-visible:ring-gold"
+      >
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-gold">Free research pack</p>
+          <h2 className="font-display text-xl font-semibold">SPY Parabolic SAR</h2>
+          <p className="text-sm text-muted-foreground max-w-[65ch]">
+            Published backtest metrics with Sharpe, IS/OOS windows, and equity curves. Unlock the Python pack
+            with email registration.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4 shrink-0">
+          <div className="text-center">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sharpe</div>
+            <div className="font-mono text-2xl font-semibold text-gold tabular-nums">1.20</div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">CAGR</div>
+            <div className="font-mono text-2xl font-semibold text-bull tabular-nums">+15.9%</div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max DD</div>
+            <div className="font-mono text-2xl font-semibold text-bear tabular-nums">−6.8%</div>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-sm bg-gold px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-primary-foreground">
+            <Download className="h-3.5 w-3.5" /> View & download
+          </span>
+        </div>
+      </Link>
+
       <section id="catalog" className="scroll-mt-24">
         <SectionCard title="Strategy catalog" subtitle="Open a row for thesis, universe, and verification status">
           <div className="flex flex-wrap gap-2 mb-4">
@@ -138,6 +171,7 @@ function StrategiesPage() {
                   <th className="py-2 pr-3 font-medium">Strategy</th>
                   <th className="py-2 pr-3 font-medium">Market</th>
                   <th className="py-2 pr-3 font-medium">Platform</th>
+                  <th className="py-2 pr-3 font-medium">Sharpe</th>
                   <th className="py-2 pr-3 font-medium">Status</th>
                   <th className="py-2 pr-3 font-medium">Live since</th>
                   <th className="py-2 font-medium">Verification</th>
@@ -149,13 +183,20 @@ function StrategiesPage() {
                   return (
                     <tr key={s.slug} className="border-b border-border/50 hover:bg-card/40">
                       <td className="py-3 pr-3 align-top">
-                        <Link
-                          to="/strategies/$slug"
-                          params={{ slug: s.slug }}
-                          className="font-display font-semibold text-foreground hover:text-gold outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-sm"
-                        >
-                          {s.name}
-                        </Link>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Link
+                            to="/strategies/$slug"
+                            params={{ slug: s.slug }}
+                            className="font-display font-semibold text-foreground hover:text-gold outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-sm"
+                          >
+                            {s.name}
+                          </Link>
+                          {s.tier === "free" && (
+                            <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-gold/40 text-gold">
+                              Free
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground mt-1 max-w-xs">
                           {s.timeframe && `${s.timeframe} · `}
                           {s.holdingPeriod}
@@ -164,6 +205,13 @@ function StrategiesPage() {
                       </td>
                       <td className="py-3 pr-3 align-top text-muted-foreground whitespace-nowrap">{s.asset}</td>
                       <td className="py-3 pr-3 align-top text-muted-foreground whitespace-nowrap">{s.platform}</td>
+                      <td className="py-3 pr-3 align-top font-mono tabular-nums whitespace-nowrap">
+                        {s.liveSharpe != null ? (
+                          <span className="text-gold font-semibold">{s.liveSharpe.toFixed(2)}</span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
                       <td className="py-3 pr-3 align-top">
                         <span className={`inline-block text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border ${statusTone(s.status, verified)}`}>
                           {statusLabel(s.status, verified)}
@@ -204,7 +252,14 @@ function StrategiesPage() {
                   className="block rounded-lg border border-border bg-card/30 p-4 hover:border-gold/40 transition outline-none focus-visible:ring-2 focus-visible:ring-gold"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="font-display font-semibold">{s.name}</div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="font-display font-semibold">{s.name}</div>
+                      {s.tier === "free" && (
+                        <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-gold/40 text-gold">
+                          Free
+                        </span>
+                      )}
+                    </div>
                     <span className={`shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border ${statusTone(s.status, verified)}`}>
                       {statusLabel(s.status, verified)}
                     </span>
@@ -214,8 +269,16 @@ function StrategiesPage() {
                     <span>{s.asset}</span>
                     <span>{s.platform}</span>
                     <span>{s.timeframe ?? "—"}</span>
+                    <span>
+                      Sharpe{" "}
+                      {s.liveSharpe != null ? (
+                        <span className="text-gold font-semibold">{s.liveSharpe.toFixed(2)}</span>
+                      ) : (
+                        "—"
+                      )}
+                    </span>
                     <span>Since {s.liveSince ?? "—"}</span>
-                    <span className="col-span-2">Verification: {verified ? "QC listing" : "Pending"}</span>
+                    <span>Verification: {verified ? "QC listing" : "Pending"}</span>
                   </div>
                 </Link>
               );

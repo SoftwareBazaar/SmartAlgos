@@ -2,6 +2,8 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { PageShell, SectionCard } from "@/components/page-shell";
 import { getStrategyBySlug, type Strategy } from "@/lib/mock-data";
 import { getStrategyVerificationUrl, hasDirectVerificationLink } from "@/lib/strategy-links";
+import { SPY_PSAR_SLUG } from "@/lib/spy-psar-strategy";
+import { SpyPsarResults } from "@/components/strategies/spy-psar-results";
 import { ExternalLink, ArrowLeft, Lock } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
 import { hasLiveAccess } from "@/lib/subscription-access";
@@ -105,13 +107,19 @@ function StrategyDetail() {
         </ul>
       </SectionCard>
 
-      <SectionCard title="Backtest vs live" subtitle="Kept separate on purpose">
-        <p className="text-sm text-muted-foreground max-w-[70ch] leading-relaxed">
-          {strategy.status === "Live"
-            ? "This model is deployed. We will not publish blended backtest/live curves here. When a public QuantConnect listing exists, that link is the source of truth for live or paper performance."
-            : "This model is not live. Any research numbers stay in notebooks until a published note or listing exists — nothing on this page is a verified track record."}
-        </p>
-      </SectionCard>
+      {strategy.slug === SPY_PSAR_SLUG ? (
+        <SectionCard title="Research results" subtitle="Published metrics · free pack after registration">
+          <SpyPsarResults />
+        </SectionCard>
+      ) : (
+        <SectionCard title="Backtest vs live" subtitle="Kept separate on purpose">
+          <p className="text-sm text-muted-foreground max-w-[70ch] leading-relaxed">
+            {strategy.status === "Live"
+              ? "This model is deployed. We will not publish blended backtest/live curves here. When a public QuantConnect listing exists, that link is the source of truth for live or paper performance."
+              : "This model is not live. Any research numbers stay in notebooks until a published note or listing exists — nothing on this page is a verified track record."}
+          </p>
+        </SectionCard>
+      )}
 
       {strategy.status === "Live" && (
         <SectionCard title="Verification" subtitle="Third-party track record">

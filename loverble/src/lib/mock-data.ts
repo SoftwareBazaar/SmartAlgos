@@ -68,6 +68,35 @@ export const verificationSources = [
 
 export const strategies: Strategy[] = [
   {
+    slug: "spy-psar",
+    name: "SPY Parabolic SAR",
+    asset: "Equities",
+    platform: "QuantConnect",
+    status: "Research",
+    summary:
+      "Daily Parabolic SAR trend filter on SPY with T-bill cash when flat. Free research pack — Python script, metrics, and equity curves after email registration.",
+    thesis:
+      "A classic Parabolic SAR regime switch can cut equity drawdowns versus buy-and-hold when parked in short rates while flat. In-sample QC window looks strong; out-of-sample Sharpe is much weaker — published here so you can judge the edge honestly.",
+    timeframe: "Daily bars",
+    instruments: "SPY ETF · cash / T-bill proxy when flat",
+    holdingPeriod: "Multi-day trend legs (SAR flips)",
+    riskControls: "SAR stop · flat → T-bills · no leverage",
+    highlights: [
+      "QC window Sharpe 1.20 · CAGR ~15.9% · max DD ~−6.8%",
+      "QC overview Sharpe 0.807 · net +66.4% on $100k (Jan 2023 – Jul 2026)",
+      "OOS 1993–2022 Sharpe ~0.32 published alongside — not cherry-picked",
+      "Free download pack after email registration",
+    ],
+    changelog: [
+      { date: "Oct 2026", text: "Published free SPY PSAR research pack with IS/OOS windows" },
+    ],
+    verificationUrl: "https://www.quantconnect.com",
+    tier: "free",
+    liveReturn: 0.1589,
+    liveSharpe: 1.2,
+    liveMaxDrawdown: -0.068,
+  },
+  {
     slug: "gold-momentum",
     name: "Gold Momentum",
     asset: "Commodities",
@@ -213,7 +242,7 @@ export const pipelineStages = [
   {
     stage: "Research",
     desc: "Statistical testing and signal exploration.",
-    strategySlugs: ["volatility-breakout"] as const,
+    strategySlugs: ["spy-psar", "volatility-breakout"] as const,
   },
   {
     stage: "Validation",
@@ -233,13 +262,14 @@ export const pipelineStages = [
 ];
 
 export const platformDistribution = [
-  { name: "QuantConnect", count: 2, desc: "Live algorithmic strategies in cloud backtest and paper trading." },
+  { name: "QuantConnect", count: 3, desc: "Live and research strategies in cloud backtest and paper trading." },
   { name: "Collective2", count: 0, desc: "Planned: signal publication for community subscribers." },
   { name: "MT5", count: 0, desc: "Planned: forex execution for retail integration." },
   { name: "Internal Research", count: 3, desc: "Strategies under development and validation in-house." },
 ];
 
 export const strategyUpdates = [
+  { date: "Oct 2026", text: "Published free SPY Parabolic SAR research pack (metrics + download)" },
   { date: "Jun 2026", text: "Added volatility filter to Gold Momentum strategy" },
   { date: "May 2026", text: "Improved position sizing model across active strategies" },
   { date: "May 2026", text: "Completed FX Mean Reversion validation review" },
@@ -248,6 +278,7 @@ export const strategyUpdates = [
 ];
 
 export const recentUpdates = [
+  { date: "Oct 2026", text: "Free SPY PSAR strategy pack — Sharpe, IS/OOS metrics, email download", type: "strategy" as const },
   { date: "Jan 2026", text: "Free white paper live — Building a Quantitative Track Record", type: "research" as const },
   { date: "Jun 2026", text: "Strategy changelog — Gold Momentum vol filter", type: "strategy" as const },
   { date: "May 2026", text: "FX Mean Reversion — validation review completed", type: "strategy" as const },

@@ -1,5 +1,6 @@
 {
-  "version": 2,
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "tanstack-start",
   "installCommand": "npm install && cd loverble && npm install --include=dev --legacy-peer-deps",
   "buildCommand": "cd loverble && NODE_ENV=production npm run build && cd .. && node scripts/vercel-merge-output.mjs"
 }

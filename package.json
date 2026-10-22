@@ -1,12 +1,12 @@
 {
   "name": "smart-algos-trading-platform",
   "version": "1.0.0",
-  "description": "Smart Algos Trading Platform - Corrected for Railway",
-  "main": "railway-full-server.js",
+  "description": "Smart Algos — TanStack Start (loverble) on Vercel",
+  "private": true,
   "scripts": {
-    "start": "node railway-full-server.js",
     "build": "cd loverble && npm install --include=dev --legacy-peer-deps && npm run build && cd .. && node scripts/vercel-merge-output.mjs",
-    "build:client-legacy": "cd client && npm install && npm run build"
+    "build:client-legacy": "cd client && npm install && npm run build",
+    "start:railway-legacy": "node railway-full-server.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0",

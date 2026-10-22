@@ -4,7 +4,8 @@ import { getStrategyBySlug, type Strategy } from "@/lib/mock-data";
 import { getStrategyVerificationUrl, hasDirectVerificationLink } from "@/lib/strategy-links";
 import { SPY_PSAR_SLUG } from "@/lib/spy-psar-strategy";
 import { SpyPsarResults } from "@/components/strategies/spy-psar-results";
-import { ExternalLink, ArrowLeft, Lock } from "lucide-react";
+import { StrategyDownloadGate } from "@/components/strategies/strategy-download-gate";
+import { ExternalLink, ArrowLeft, Download, Lock } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
 import { hasLiveAccess } from "@/lib/subscription-access";
 
@@ -45,6 +46,7 @@ function StrategyDetail() {
   const verified = hasDirectVerificationLink(strategy.slug);
   const statusText =
     strategy.status === "Live" && !verified ? "Deployed · verification link pending" : strategy.status;
+  const isSpyFree = strategy.slug === SPY_PSAR_SLUG;
 
   return (
     <PageShell
@@ -52,24 +54,39 @@ function StrategyDetail() {
       title={strategy.name}
       description={strategy.summary}
       actions={
-        <Link
-          to="/strategies"
-          className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-sm"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> All strategies
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          {isSpyFree && (
+            <a
+              href="#download"
+              className="inline-flex items-center gap-2 rounded-sm bg-gold px-3 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            >
+              <Download className="h-3.5 w-3.5" /> Download pack
+            </a>
+          )}
+          <Link
+            to="/strategies"
+            className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-sm"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> All strategies
+          </Link>
+        </div>
       }
     >
       <div className="flex flex-wrap gap-2">
         <span className="text-xs px-2.5 py-1 rounded border border-border bg-card/40">{strategy.asset}</span>
         <span className="text-xs px-2.5 py-1 rounded border border-border bg-card/40">{strategy.platform}</span>
         <span className={`text-xs px-2.5 py-1 rounded ${statusTone(strategy, verified)}`}>{statusText}</span>
+        {strategy.tier === "free" && (
+          <span className="text-xs px-2.5 py-1 rounded border border-gold/40 text-gold">Free download</span>
+        )}
         {strategy.liveSince && (
           <span className="text-xs px-2.5 py-1 rounded border border-border text-muted-foreground">
             Live since {strategy.liveSince}
           </span>
         )}
       </div>
+
+      {isSpyFree && <StrategyDownloadGate />}
 
       <SectionCard title="Thesis" subtitle="High-level strategy rationale">
         <p className="text-sm text-muted-foreground leading-relaxed max-w-[70ch]">{strategy.thesis}</p>
@@ -107,8 +124,8 @@ function StrategyDetail() {
         </ul>
       </SectionCard>
 
-      {strategy.slug === SPY_PSAR_SLUG ? (
-        <SectionCard title="Research results" subtitle="Published metrics · free pack after registration">
+      {isSpyFree ? (
+        <SectionCard title="Research results" subtitle="Published metrics · IS / OOS / regime windows">
           <SpyPsarResults />
         </SectionCard>
       ) : (

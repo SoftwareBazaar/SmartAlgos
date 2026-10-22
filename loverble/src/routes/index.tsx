@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, FlaskConical, FileText, Brain } from "lucide-react";
+import { ArrowRight, Download, FlaskConical, FileText, Brain } from "lucide-react";
 import { strategies, company, getStrategyBySlug, strategyOverview } from "@/lib/mock-data";
+import { SPY_PSAR_SLUG } from "@/lib/spy-psar-strategy";
 import { HeroCinematic } from "@/components/hero-cinematic";
 import { MotionHeroText } from "@/components/motion-reveal";
 import { formatUsd, PRICING } from "@/lib/pricing";
@@ -17,6 +18,7 @@ import { CustomQuantSection } from "@/components/custom-quant-section";
 import { CapitalDeskSection } from "@/components/capital-desk-section";
 import { BacktestEngineSection } from "@/components/backtest-engine-section";
 
+const featuredFree = getStrategyBySlug(SPY_PSAR_SLUG);
 const featuredLive = getStrategyBySlug("fx-mean-reversion");
 
 export const Route = createFileRoute("/")({
@@ -55,29 +57,37 @@ function Landing() {
                   Research first · QuantConnect listings in progress
                 </div>
                 <p className="font-mono text-gold text-sm md:text-base font-semibold">
-                  {featuredLive?.name ?? "FX Mean Reversion"} · live model · QuantConnect listing pending
+                  Free pack · {featuredFree?.name ?? "SPY Parabolic SAR"} · Sharpe{" "}
+                  {featuredFree?.liveSharpe?.toFixed(2) ?? "1.20"}
                 </p>
                 <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                  No illustrative returns on this page
+                  Plus deployed models · QC listings pending
                 </p>
                 <h1 className="mt-4 font-display text-hero-display gold-headline-shimmer">
                   Research and strategies you can independently verify
                 </h1>
                 <p className="mt-5 text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed font-normal">
-                  <span className="text-foreground font-medium">{company.name}</span> publishes quant research and deploys systematic models — third-party track records when listings are live, not marketing curves.
+                  <span className="text-foreground font-medium">{company.name}</span> publishes a free SPY research pack with real backtest metrics, and deploys live models like{" "}
+                  {featuredLive?.name ?? "FX Mean Reversion"} — track records when listings are public, not marketing curves.
                 </p>
                 <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">{company.operator}</p>
               </div>
-              <div className="hero-cta-group mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3 max-w-md">
-                <ShimmerButton href="/research/building-a-quantitative-track-record" variant="primary" className="btn-primary w-full sm:w-auto min-h-12">
-                  Read the free note <ArrowRight className="h-4 w-4" />
+              <div className="hero-cta-group mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3 max-w-lg">
+                <ShimmerButton
+                  to="/strategies/$slug"
+                  params={{ slug: SPY_PSAR_SLUG }}
+                  hash="download"
+                  variant="primary"
+                  className="btn-primary w-full sm:w-auto min-h-12"
+                >
+                  <Download className="h-4 w-4" /> Free strategy pack
                 </ShimmerButton>
                 <ShimmerButton to="/strategies" variant="outline" className="btn-secondary w-full sm:w-auto min-h-12">
-                  View live models
+                  View all strategies <ArrowRight className="h-4 w-4" />
                 </ShimmerButton>
               </div>
               <p className="mt-4 text-xs text-muted-foreground">
-                QuantConnect listings in progress · No dynamic curve-fitting
+                Email unlock · Python + metrics · No curve-fitting theatre
               </p>
             </MotionHeroText>
             <MotionHeroText>
@@ -125,12 +135,58 @@ function Landing() {
           <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
             <div>
               <div className="text-[11px] uppercase tracking-[0.22em] text-gold mb-2">Strategies</div>
-              <h2 className="font-display text-section-title text-3xl md:text-4xl">Live systematic models</h2>
-              <p className="mt-2 text-muted-foreground max-w-lg">Click through for thesis and status. Verified returns appear when QuantConnect listings are public.</p>
+              <h2 className="font-display text-section-title text-3xl md:text-4xl">Free pack and live models</h2>
+              <p className="mt-2 text-muted-foreground max-w-lg">
+                Download the published SPY research pack, then review deployed FX and gold models. Verified returns appear when QuantConnect listings are public.
+              </p>
             </div>
-            <Link to="/strategies" className="text-sm text-gold hover:underline cursor-pointer">Full catalog →</Link>
+            <Link to="/strategies" className="text-sm text-gold hover:underline cursor-pointer">
+              Full catalog →
+            </Link>
           </div>
-          <StrategySpotlight strategies={liveStrategies} statusColor={statusColor} />
+
+          {featuredFree && (
+            <Link
+              to="/strategies/$slug"
+              params={{ slug: featuredFree.slug }}
+              hash="download"
+              className="mb-6 flex flex-col lg:flex-row lg:items-center gap-5 rounded-xl border border-gold/40 bg-secondary-surface/70 p-5 md:p-7 hover:border-gold/60 transition outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            >
+              <div className="flex-1 min-w-0 space-y-2">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-gold">Free research pack</p>
+                <h3 className="font-display text-2xl font-semibold">{featuredFree.name}</h3>
+                <p className="text-sm text-muted-foreground max-w-[65ch]">{featuredFree.summary}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-5 shrink-0">
+                <div className="text-center">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sharpe</div>
+                  <div className="font-mono text-2xl font-semibold text-gold tabular-nums">
+                    {featuredFree.liveSharpe?.toFixed(2)}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">CAGR</div>
+                  <div className="font-mono text-2xl font-semibold text-bull tabular-nums">
+                    +{((featuredFree.liveReturn ?? 0) * 100).toFixed(1)}%
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Max DD</div>
+                  <div className="font-mono text-2xl font-semibold text-bear tabular-nums">
+                    {((featuredFree.liveMaxDrawdown ?? 0) * 100).toFixed(1)}%
+                  </div>
+                </div>
+                <span className="inline-flex items-center gap-2 rounded-sm bg-gold px-4 py-3 text-xs font-semibold uppercase tracking-wider text-primary-foreground">
+                  <Download className="h-3.5 w-3.5" /> View & download
+                </span>
+              </div>
+            </Link>
+          )}
+
+          <StrategySpotlight
+            strategies={liveStrategies}
+            statusColor={statusColor}
+          />
         </div>
       </section>
 

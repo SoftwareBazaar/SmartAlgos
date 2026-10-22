@@ -54,7 +54,10 @@ export function StrategyDownloadGate() {
   };
 
   return (
-    <div className="rounded-xl border border-gold/30 bg-secondary-surface/60 p-5 md:p-6 space-y-4">
+    <div
+      id="download"
+      className="scroll-mt-28 rounded-xl border border-gold/30 bg-secondary-surface/60 p-5 md:p-6 space-y-4"
+    >
       <div>
         <p className="text-[10px] uppercase tracking-[0.18em] text-gold">Free research pack</p>
         <h3 className="font-display text-xl font-semibold mt-1">Download after registration</h3>

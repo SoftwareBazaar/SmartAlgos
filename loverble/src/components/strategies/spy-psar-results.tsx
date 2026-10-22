@@ -7,8 +7,6 @@ import {
   type BacktestMetrics,
   type WindowRow,
 } from "@/lib/spy-psar-strategy";
-import { StrategyDownloadGate } from "@/components/strategies/strategy-download-gate";
-
 function fmtPct(n: number, digits = 2) {
   const sign = n > 0 ? "+" : "";
   return `${sign}${n.toFixed(digits)}%`;
@@ -200,8 +198,6 @@ export function SpyPsarResults() {
           <div className="font-mono text-lg mt-1">{qc.turnover}%</div>
         </div>
       </section>
-
-      <StrategyDownloadGate />
 
       <p className="text-xs text-muted-foreground max-w-[70ch] leading-relaxed border-t border-border/50 pt-4">
         Educational backtest. The QC window is in-sample; OOS Sharpe (~0.32) and deep historical drawdowns show the

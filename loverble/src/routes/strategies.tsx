@@ -102,6 +102,7 @@ function StrategiesPage() {
       <Link
         to="/strategies/$slug"
         params={{ slug: SPY_PSAR_SLUG }}
+        hash="download"
         className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-gold/35 bg-secondary-surface/70 p-5 md:p-6 hover:border-gold/55 transition outline-none focus-visible:ring-2 focus-visible:ring-gold"
       >
         <div className="flex-1 min-w-0 space-y-1.5">
@@ -174,7 +175,8 @@ function StrategiesPage() {
                   <th className="py-2 pr-3 font-medium">Sharpe</th>
                   <th className="py-2 pr-3 font-medium">Status</th>
                   <th className="py-2 pr-3 font-medium">Live since</th>
-                  <th className="py-2 font-medium">Verification</th>
+                  <th className="py-2 pr-3 font-medium">Verification</th>
+                  <th className="py-2 font-medium">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -220,7 +222,7 @@ function StrategiesPage() {
                       <td className="py-3 pr-3 align-top text-muted-foreground whitespace-nowrap">
                         {s.liveSince ?? "—"}
                       </td>
-                      <td className="py-3 align-top">
+                      <td className="py-3 pr-3 align-top">
                         {verified ? (
                           <a
                             href={s.verificationUrl}
@@ -234,6 +236,27 @@ function StrategiesPage() {
                           <span className="text-xs text-muted-foreground">Pending</span>
                         )}
                       </td>
+                      <td className="py-3 align-top">
+                        <div className="flex flex-wrap gap-1.5">
+                          <Link
+                            to="/strategies/$slug"
+                            params={{ slug: s.slug }}
+                            className="inline-flex items-center rounded-sm border border-border px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider hover:border-gold/50 hover:text-gold transition"
+                          >
+                            View
+                          </Link>
+                          {s.tier === "free" && (
+                            <Link
+                              to="/strategies/$slug"
+                              params={{ slug: s.slug }}
+                              hash="download"
+                              className="inline-flex items-center gap-1 rounded-sm bg-gold px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition"
+                            >
+                              <Download className="h-3 w-3" /> Download
+                            </Link>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
@@ -245,11 +268,9 @@ function StrategiesPage() {
             {filtered.map((s) => {
               const verified = hasDirectVerificationLink(s.slug);
               return (
-                <Link
+                <div
                   key={s.slug}
-                  to="/strategies/$slug"
-                  params={{ slug: s.slug }}
-                  className="block rounded-lg border border-border bg-card/30 p-4 hover:border-gold/40 transition outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                  className="rounded-lg border border-border bg-card/30 p-4 space-y-3"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -264,8 +285,8 @@ function StrategiesPage() {
                       {statusLabel(s.status, verified)}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">{s.summary}</p>
-                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">{s.summary}</p>
+                  <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
                     <span>{s.asset}</span>
                     <span>{s.platform}</span>
                     <span>{s.timeframe ?? "—"}</span>
@@ -280,7 +301,26 @@ function StrategiesPage() {
                     <span>Since {s.liveSince ?? "—"}</span>
                     <span>Verification: {verified ? "QC listing" : "Pending"}</span>
                   </div>
-                </Link>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <Link
+                      to="/strategies/$slug"
+                      params={{ slug: s.slug }}
+                      className="inline-flex items-center rounded-sm border border-border px-3 py-2 text-[11px] font-semibold uppercase tracking-wider hover:border-gold/50 hover:text-gold transition"
+                    >
+                      View
+                    </Link>
+                    {s.tier === "free" && (
+                      <Link
+                        to="/strategies/$slug"
+                        params={{ slug: s.slug }}
+                        hash="download"
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-gold px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition"
+                      >
+                        <Download className="h-3.5 w-3.5" /> Download
+                      </Link>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>

@@ -67,8 +67,9 @@ function Landing() {
                   Research and strategies you can independently verify
                 </h1>
                 <p className="mt-5 text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed font-normal">
-                  <span className="text-foreground font-medium">{company.name}</span> publishes a free SPY research pack with real backtest metrics, and deploys live models like{" "}
-                  {featuredLive?.name ?? "FX Mean Reversion"} — track records when listings are public, not marketing curves.
+                  Grab the SPY pack — real Sharpe, drawdowns, and the Python to rebuild it. Then dig into live books
+                  like {featuredLive?.name ?? "FX Mean Reversion"}. No fake equity curves. No vanity stats. Proof when
+                  the QuantConnect link goes public.
                 </p>
                 <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">{company.operator}</p>
               </div>
@@ -87,7 +88,7 @@ function Landing() {
                 </ShimmerButton>
               </div>
               <p className="mt-4 text-xs text-muted-foreground">
-                Email unlock · Python + metrics · No curve-fitting theatre
+                Email unlock · Python + metrics · Built to be checked, not believed
               </p>
             </MotionHeroText>
             <MotionHeroText>

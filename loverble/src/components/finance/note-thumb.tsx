@@ -5,6 +5,7 @@ const ACCENT: Record<FinanceCategory, string> = {
   Debt: "from-sky-500/25 via-transparent to-transparent",
   Loans: "from-emerald-500/25 via-transparent to-transparent",
   Tax: "from-violet-500/25 via-transparent to-transparent",
+  Kenya: "from-rose-500/25 via-transparent to-transparent",
 };
 
 /** Compact chart-style thumbnail for note cards (no external image asset). */

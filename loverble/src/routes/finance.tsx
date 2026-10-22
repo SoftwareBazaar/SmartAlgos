@@ -5,10 +5,15 @@ import { FinanceNotesSignup } from "@/components/finance/finance-notes-signup";
 import { NoteThumb } from "@/components/finance/note-thumb";
 import {
   FINANCE_CATEGORIES,
+  financeNotePath,
   listPublishedFinanceNotes,
   type FinanceCategory,
   type FinanceNote,
 } from "@/lib/finance-notes";
+
+function noteTo(note: FinanceNote) {
+  return note.region === "ke" ? ("/finance/ke/$slug" as const) : ("/finance/$slug" as const);
+}
 
 export const Route = createFileRoute("/finance")({
   head: () => ({
@@ -17,7 +22,7 @@ export const Route = createFileRoute("/finance")({
       {
         name: "description",
         content:
-          "Clear quantitative models of credit cards, balance transfers, mortgages, and student loans — with calculators and plain-language takeaways for international readers.",
+          "Clear quantitative models of credit, loans, and Kenya payroll/tax — with worked examples and plain-language takeaways.",
       },
       {
         property: "og:title",
@@ -26,7 +31,7 @@ export const Route = createFileRoute("/finance")({
       {
         property: "og:description",
         content:
-          "Payoff timelines, break-evens, and filing-status trade-offs — rigorous models without the jargon wall.",
+          "Payoff timelines, Kenya net salary, Fuliza, HELB, and more — rigorous models without the jargon wall.",
       },
       { property: "og:url", content: "https://www.smartalgosts.com/finance" },
       { property: "og:type", content: "website" },
@@ -84,8 +89,8 @@ function Finance() {
             Everyday finance, modeled clearly
           </h1>
           <p className="text-base text-muted-foreground leading-relaxed max-w-[70ch]">
-            Payoff timelines, break-evens, and filing trade-offs — quantitative education for readers
-            who want the numbers, not the sales pitch.
+            Payoff timelines, Kenya payroll and tax, and filing trade-offs — quantitative education
+            for readers who want the numbers, not the sales pitch.
           </p>
         </div>
         <div className="rounded-xl border border-gold/25 bg-secondary-surface/80 p-5 md:p-6 space-y-3">
@@ -116,7 +121,7 @@ function Finance() {
 
       {featured ? (
         <Link
-          to="/finance/$slug"
+          to={featured.region === "ke" ? "/finance/ke/$slug" : "/finance/$slug"}
           params={{ slug: featured.slug }}
           className="group grid md:grid-cols-[1.1fr_1fr] gap-6 md:gap-8 rounded-xl border border-gold/30 bg-secondary-surface/60 p-5 md:p-7 hover:border-gold/50 transition-colors"
         >
@@ -172,9 +177,10 @@ function Finance() {
 function NoteCard({ note }: { note: FinanceNote }) {
   return (
     <Link
-      to="/finance/$slug"
+      to={note.region === "ke" ? "/finance/ke/$slug" : "/finance/$slug"}
       params={{ slug: note.slug }}
       className="group flex flex-col rounded-xl border border-border/60 bg-card/20 overflow-hidden hover:border-gold/40 transition-colors"
+      data-path={financeNotePath(note)}
     >
       <NoteThumb category={note.category as FinanceCategory} stats={note.stats} />
       <div className="flex flex-col flex-1 gap-2.5 p-4 md:p-5">

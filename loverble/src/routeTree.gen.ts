@@ -47,6 +47,7 @@ import { Route as SupportRouteImport } from './routes/support'
 import { Route as TechnologyRouteImport } from './routes/technology'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as FinanceSlugRouteImport } from './routes/finance_.$slug'
+import { Route as FinanceKeSlugRouteImport } from './routes/finance_.ke.$slug'
 import { Route as StoreSlugRouteImport } from './routes/store_.$slug'
 import { Route as ResearchSlugRouteImport } from './routes/research_.$slug'
 import { Route as StrategiesSlugRouteImport } from './routes/strategies.$slug'
@@ -241,6 +242,11 @@ const FinanceSlugRoute = FinanceSlugRouteImport.update({
   path: '/finance/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanceKeSlugRoute = FinanceKeSlugRouteImport.update({
+  id: '/finance_/ke/$slug',
+  path: '/finance/ke/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StoreSlugRoute = StoreSlugRouteImport.update({
   id: '/store_/$slug',
   path: '/store/$slug',
@@ -296,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/finance/$slug': typeof FinanceSlugRoute
+  '/finance/ke/$slug': typeof FinanceKeSlugRoute
   '/research/$slug': typeof ResearchSlugRoute
   '/store/$slug': typeof StoreSlugRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByTo {
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/finance/$slug': typeof FinanceSlugRoute
+  '/finance/ke/$slug': typeof FinanceKeSlugRoute
   '/research/$slug': typeof ResearchSlugRoute
   '/store/$slug': typeof StoreSlugRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
@@ -383,6 +391,7 @@ export interface FileRoutesById {
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/finance_/$slug': typeof FinanceSlugRoute
+  '/finance_/ke/$slug': typeof FinanceKeSlugRoute
   '/research_/$slug': typeof ResearchSlugRoute
   '/store_/$slug': typeof StoreSlugRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
@@ -428,6 +437,7 @@ export interface FileRouteTypes {
     | '/technology'
     | '/terms'
     | '/finance/$slug'
+    | '/finance/ke/$slug'
     | '/research/$slug'
     | '/store/$slug'
     | '/strategies/$slug'
@@ -471,6 +481,7 @@ export interface FileRouteTypes {
     | '/technology'
     | '/terms'
     | '/finance/$slug'
+    | '/finance/ke/$slug'
     | '/research/$slug'
     | '/store/$slug'
     | '/strategies/$slug'
@@ -514,6 +525,7 @@ export interface FileRouteTypes {
     | '/technology'
     | '/terms'
     | '/finance_/$slug'
+    | '/finance_/ke/$slug'
     | '/research_/$slug'
     | '/store_/$slug'
     | '/strategies/$slug'
@@ -558,6 +570,7 @@ export interface RootRouteChildren {
   TechnologyRoute: typeof TechnologyRoute
   TermsRoute: typeof TermsRoute
   FinanceSlugRoute: typeof FinanceSlugRoute
+  FinanceKeSlugRoute: typeof FinanceKeSlugRoute
   ResearchSlugRoute: typeof ResearchSlugRoute
   StoreSlugRoute: typeof StoreSlugRoute
 }
@@ -830,6 +843,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/finance_/ke/$slug': {
+      id: '/finance_/ke/$slug'
+      path: '/finance/ke/$slug'
+      fullPath: '/finance/ke/$slug'
+      preLoaderRoute: typeof FinanceKeSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/store_/$slug': {
       id: '/store_/$slug'
       path: '/store/$slug'
@@ -905,6 +925,7 @@ const rootRouteChildren: RootRouteChildren = {
   TechnologyRoute: TechnologyRoute,
   TermsRoute: TermsRoute,
   FinanceSlugRoute: FinanceSlugRoute,
+  FinanceKeSlugRoute: FinanceKeSlugRoute,
   ResearchSlugRoute: ResearchSlugRoute,
   StoreSlugRoute: StoreSlugRoute,
 }

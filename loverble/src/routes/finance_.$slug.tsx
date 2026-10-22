@@ -13,6 +13,7 @@ import {
   DAY_04_SLUG,
   getFinanceNoteBySlug,
   listRelatedFinanceNotes,
+  type FinanceNote,
 } from "@/lib/finance-notes";
 
 export const Route = createFileRoute("/finance_/$slug")({
@@ -97,7 +98,7 @@ function ArticleBody({ slug }: { slug: string }) {
 }
 
 function FinanceNotePage() {
-  const note = Route.useLoaderData();
+  const note = Route.useLoaderData() as FinanceNote;
   const related = listRelatedFinanceNotes(note.slug, 3);
 
   return (
@@ -194,7 +195,7 @@ function FinanceNotePage() {
                 {related.map((r) => (
                   <Link
                     key={r.slug}
-                    to="/finance/$slug"
+                    to={r.region === "ke" ? "/finance/ke/$slug" : "/finance/$slug"}
                     params={{ slug: r.slug }}
                     className="rounded-lg border border-border/60 bg-card/20 p-4 hover:border-gold/40 transition-colors"
                   >

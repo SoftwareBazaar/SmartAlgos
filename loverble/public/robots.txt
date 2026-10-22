@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+Allow: /finance/
+Allow: /finance/ke/
 Disallow: /admin/
 Disallow: /api/
 Disallow: /portal/

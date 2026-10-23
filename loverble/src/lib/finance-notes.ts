@@ -43,6 +43,8 @@ export const KE_FULIZA_SLUG = "fuliza-charges-mobile-loan-apr-calculator";
 export const KE_MMF_TBILL_SLUG = "money-market-fund-vs-treasury-bills-kenya-net-returns";
 export const KE_FOREX_HOURS_SLUG = "forex-trading-hours-kenya-eat-cma-tax-guide";
 export const KE_HELB_SLUG = "helb-loan-repayment-penalty-waiver-strategy";
+export const KE_QUICKMART_IPO_SLUG = "quickmart-ipo-valuation-and-investor-guide";
+export const KE_SACCO_MMF_SLUG = "sacco-vs-money-market-fund-kenya-yield-leverage-calculator";
 
 function orgGraphExtras(url: string, datePublished: string) {
   return {
@@ -453,6 +455,77 @@ export const financeNotes: FinanceNote[] = [
             "HELB interest, ledger fees, monthly default penalties, and 80% penalty waiver savings on a KES 120,000 loan.",
           inLanguage: "en-KE",
           ...orgGraphExtras(`${SITE}/finance/ke/${KE_HELB_SLUG}`, "2026-10-22"),
+        },
+      ],
+    },
+  },
+  {
+    slug: KE_QUICKMART_IPO_SLUG,
+    day: 10,
+    category: "Kenya",
+    region: "ke",
+    title: "Quickmart IPO Kenya: Offer Price, Valuation Multiples and Investor Checklist (October 2026)",
+    seoTitle: "Quickmart IPO Kenya: Offer Price, Valuation Multiples and Investor Checklist (October 2026)",
+    shortTitle: "Quickmart IPO valuation checklist",
+    cardBlurb:
+      "KES 7.50 offer, KES 30B implied equity, company raises KES 0 — secondary sale math, ~13× forward P/E, and a retail checklist before 30 Oct close.",
+    description:
+      "Quick Mart PLC NSE offer for sale — KES 7.50 price, KES 15B offer size, trailing vs forward P/E, dividend yield caveats, and retail application checklist (IM Oct 2026).",
+    date: "23 Oct 2026",
+    dateISO: "2026-10-23",
+    readingMinutes: 12,
+    stats: [
+      { label: "Offer price", value: "KES 7.50" },
+      { label: "Fwd P/E", value: "~12.9×" },
+    ],
+    hasCalculator: false,
+    published: true,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "TechArticle",
+          headline:
+            "Quickmart IPO Kenya: Offer Price, Valuation Multiples and Investor Checklist (October 2026)",
+          description:
+            "Secondary offer for sale of Quick Mart PLC shares — valuation multiples, dividend yield caveats, and retail checklist from the October 2026 IM.",
+          inLanguage: "en-KE",
+          ...orgGraphExtras(`${SITE}/finance/ke/${KE_QUICKMART_IPO_SLUG}`, "2026-10-23"),
+        },
+      ],
+    },
+  },
+  {
+    slug: KE_SACCO_MMF_SLUG,
+    day: 11,
+    category: "Kenya",
+    region: "ke",
+    title: "SACCO vs Money Market Fund in Kenya: Yield, Tax and Borrowing Leverage (2026)",
+    seoTitle: "SACCO vs Money Market Fund in Kenya: Yield, Tax and Borrowing Leverage (2026)",
+    shortTitle: "SACCO vs MMF — yield & leverage",
+    cardBlurb:
+      "MMF ~8.9% net vs unleveraged SACCO ~9.4% with correct 5%/15% tax split — and why ‘flat-rate’ loan arbitrage math misleads.",
+    description:
+      "Kenya DT-SACCO vs money market fund comparison — after-tax yields, liquidity, and a like-for-like test for 3× borrowing leverage (2026).",
+    date: "23 Oct 2026",
+    dateISO: "2026-10-23",
+    readingMinutes: 11,
+    stats: [
+      { label: "MMF net", value: "~8.9%" },
+      { label: "SACCO net*", value: "~9.4%" },
+    ],
+    hasCalculator: false,
+    published: true,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "TechArticle",
+          headline: "SACCO vs Money Market Fund in Kenya: Yield, Tax and Borrowing Leverage (2026)",
+          description:
+            "Compare Kenyan MMF and DT-SACCO after-tax yields, liquidity, and borrowing leverage with correct withholding-tax treatment.",
+          inLanguage: "en-KE",
+          ...orgGraphExtras(`${SITE}/finance/ke/${KE_SACCO_MMF_SLUG}`, "2026-10-23"),
         },
       ],
     },

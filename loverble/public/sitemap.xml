@@ -8,7 +8,7 @@
   </url>
   <url>
     <loc>https://www.smartalgosts.com/finance</loc>
-    <lastmod>2026-10-22</lastmod>
+    <lastmod>2026-10-23</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
@@ -63,6 +63,18 @@
   <url>
     <loc>https://www.smartalgosts.com/finance/ke/helb-loan-repayment-penalty-waiver-strategy</loc>
     <lastmod>2026-10-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.smartalgosts.com/finance/ke/quickmart-ipo-valuation-and-investor-guide</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.smartalgosts.com/finance/ke/sacco-vs-money-market-fund-kenya-yield-leverage-calculator</loc>
+    <lastmod>2026-10-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>

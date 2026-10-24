@@ -11,8 +11,10 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { PublicSiteLayout } from "@/components/public-site-layout";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { isBarePublicPath, isPortalPath, isPublicSitePath, isSupportPath } from "@/lib/site-nav";
+import { getSiteJsonLd } from "@/lib/site-schema";
 
 const SITE_ORIGIN = "https://www.smartalgosts.com";
+const SITE_JSON_LD = JSON.stringify(getSiteJsonLd());
 
 function NotFoundComponent() {
   return (
@@ -81,6 +83,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap",
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: SITE_JSON_LD,
       },
     ],
   }),

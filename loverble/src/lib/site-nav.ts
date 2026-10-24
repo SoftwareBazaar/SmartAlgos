@@ -16,7 +16,6 @@ export const MOBILE_NAV = [
   { label: "About", to: "/about" },
   { label: "Book a desk", to: "/consultation" },
   { label: "Client Portal", to: "/portal" },
-  { label: "Support research", to: "/support" },
 ] as const;
 
 const PUBLIC_EXACT = new Set([

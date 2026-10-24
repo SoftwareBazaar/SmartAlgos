@@ -41,12 +41,16 @@ function PaymentCallback() {
               : data.product_type === "consultation"
                 ? "/consultation"
               : data.product_type === "research_donation"
-                ? "/support"
+                ? "/support?thanks=1"
                 : "/research";
-        setMessage(`Payment of ${formatUsdWithKes(Number(data.amount_usd))} confirmed. Reference: ${reference}`);
+        setMessage(
+          data.product_type === "research_donation"
+            ? `Thank you — ${formatUsdWithKes(Number(data.amount_usd))} confirmed. Taking you back…`
+            : `Payment of ${formatUsdWithKes(Number(data.amount_usd))} confirmed. Reference: ${reference}`,
+        );
         setTimeout(() => {
           window.location.assign(dest);
-        }, 1800);
+        }, data.product_type === "research_donation" ? 1200 : 1800);
       })
       .catch((err) => {
         setStatus("error");

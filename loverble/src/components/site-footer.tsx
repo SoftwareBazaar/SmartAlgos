@@ -22,7 +22,6 @@ const legalLinks = [
   { label: "Financial disclaimer", to: "/financial-disclaimer" as const },
   { label: "Terms", to: "/terms" as const },
   { label: "Security", to: "/security-policy" as const },
-  { label: "Support research", to: "/support" as const },
 ];
 
 export function SiteFooter() {

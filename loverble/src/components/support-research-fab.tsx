@@ -100,9 +100,15 @@ export function SupportResearchFab() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Support research"
-        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-rose-500/40 bg-[#0d121c]/95 text-rose-500 shadow-[0_12px_40px_rgb(0_0_0_/_0.45)] backdrop-blur-md transition hover:border-rose-400 hover:bg-rose-500/10 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50"
+        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full border-2 border-red-500 bg-red-600 text-white shadow-[0_12px_40px_rgb(220_38_38_/_0.55)] transition hover:bg-red-500 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
       >
-        <Heart className="h-6 w-6 fill-rose-500 text-rose-500" />
+        {/* Solid red love icon — unmistakable vs previous candle FAB */}
+        <svg viewBox="0 0 24 24" className="h-7 w-7" aria-hidden>
+          <path
+            fill="currentColor"
+            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+          />
+        </svg>
       </button>
 
       {open && (

@@ -15,13 +15,10 @@ export function SiteFooter() {
               Financial systems and quantitative research. Educational research only — not a licensed investment
               adviser. Past results are not indicative of future returns.
             </p>
-            <p className="text-xs text-muted-foreground mt-3">
-              Track records: public QuantConnect listings pending. Until then we do not claim third-party verification.
-            </p>
           </div>
 
           <div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Product</div>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Doors</div>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/systems" className="text-muted-foreground hover:text-gold transition-colors">
@@ -30,12 +27,7 @@ export function SiteFooter() {
               </li>
               <li>
                 <Link to="/strategies" className="text-muted-foreground hover:text-gold transition-colors">
-                  Strategies
-                </Link>
-              </li>
-              <li>
-                <Link to="/performance" className="text-muted-foreground hover:text-gold transition-colors">
-                  Track Record
+                  Quant strategies
                 </Link>
               </li>
               <li>
@@ -55,18 +47,13 @@ export function SiteFooter() {
             <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Research</div>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/insights" className="text-muted-foreground hover:text-gold transition-colors">
-                  Insights
+                <Link to="/finance" className="text-muted-foreground hover:text-gold transition-colors">
+                  Decision Math
                 </Link>
               </li>
               <li>
                 <Link to="/research" className="text-muted-foreground hover:text-gold transition-colors">
                   Research
-                </Link>
-              </li>
-              <li>
-                <Link to="/finance" className="text-muted-foreground hover:text-gold transition-colors">
-                  Decision Math
                 </Link>
               </li>
               <li>
@@ -115,9 +102,7 @@ export function SiteFooter() {
         </div>
 
         <div className="my-8 pt-6 border-t border-border/50 flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-xs text-muted-foreground">
-          <span>
-            Checkout pages use Paystack (PCI-DSS Level 1) · Site served over HTTPS
-          </span>
+          <span>Checkout pages use Paystack (PCI-DSS Level 1) · Site served over HTTPS</span>
           <DonateButton footer />
         </div>
 

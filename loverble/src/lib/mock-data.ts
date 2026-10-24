@@ -4,7 +4,7 @@ import { PRICING, formatUsd } from "@/lib/pricing";
 import { buildStrategyEquityCurve } from "@/lib/chart-domain";
 
 export const company = {
-  name: "Smart Algos Capital",
+  name: "Smart Algos & Financial Systems",
   tagline: "Financial Systems & Quantitative Research",
   operator: "Smart Algos Investment Solution Ltd (Kenya)",
 };

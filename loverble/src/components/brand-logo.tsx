@@ -12,11 +12,11 @@ const markSize = {
 function BrandWordmark() {
   return (
     <div className="flex flex-col leading-none min-w-0">
-      <span className="font-display text-[13px] sm:text-sm font-semibold tracking-[0.16em] text-foreground whitespace-nowrap">
+      <span className="font-display text-[12px] sm:text-[13px] font-semibold tracking-[0.12em] text-foreground whitespace-nowrap">
         SMART ALGOS
       </span>
-      <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-muted-foreground mt-1">
-        Capital
+      <span className="text-[8px] sm:text-[9px] uppercase tracking-[0.14em] text-muted-foreground mt-1 whitespace-nowrap">
+        & Financial Systems
       </span>
     </div>
   );

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PageShell, SectionCard } from "@/components/page-shell";
 import {
+  company,
   strategies, pipelineStages, platformDistribution, strategyUpdates, getStrategyBySlug,
   type StrategyStatus,
 } from "@/lib/mock-data";
@@ -12,11 +13,11 @@ import { Activity, Download, ExternalLink } from "lucide-react";
 export const Route = createFileRoute("/strategies")({
   head: () => ({
     meta: [
-      { title: "Strategies — Smart Algos Capital" },
+      { title: `Quant Strategies — ${company.name}` },
       {
         name: "description",
         content:
-          "Systematic strategies we research, validate, and deploy. Verification links appear when QuantConnect listings are public.",
+          "Quantitative strategies lab: live models, research packs, metrics, and subscriptions. Verification links appear when QuantConnect listings are public.",
       },
     ],
   }),
@@ -68,8 +69,8 @@ function StrategiesPage() {
 
   return (
     <PageShell
-      eyebrow="Strategy library"
-      title="Strategies"
+      eyebrow="Quant lab"
+      title="Quant strategies"
       description="Systematic models we research and deploy. Public QuantConnect verification links appear in the catalog when listings are published — until then, Deployed does not mean independently verified."
     >
       <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground border-b border-border pb-4">

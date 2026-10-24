@@ -126,13 +126,13 @@ function Security() {
 
       <Block title="9. Responsible Disclosure">
         <p>If you discover a security vulnerability in Smart Algos Capital, we encourage responsible disclosure — please report it to us privately before disclosing it publicly so we can address it promptly.</p>
-        <p><strong className="text-foreground">How to report:</strong> Email <a href="mailto:security@smartalgos.com" className="text-gold hover:underline">security@smartalgos.com</a> with a description of the vulnerability, steps to reproduce, and the potential impact. We will acknowledge your report within 48 business hours.</p>
+        <p><strong className="text-foreground">How to report:</strong> Email <a href="mailto:support@smartalgosts.com" className="text-gold hover:underline">support@smartalgosts.com</a> with a description of the vulnerability, steps to reproduce, and the potential impact. We will acknowledge your report within 48 business hours.</p>
         <p>We will not take legal action against researchers who report vulnerabilities in good faith and follow responsible disclosure practices.</p>
       </Block>
 
       <Block title="10. Contact">
-        <p><strong className="text-foreground">Security reports:</strong> <a href="mailto:security@smartalgos.com" className="text-gold hover:underline">security@smartalgos.com</a></p>
-        <p><strong className="text-foreground">General support:</strong> <a href="mailto:support@smartalgos.com" className="text-gold hover:underline">support@smartalgos.com</a></p>
+        <p><strong className="text-foreground">Security reports:</strong> <a href="mailto:support@smartalgosts.com" className="text-gold hover:underline">support@smartalgosts.com</a></p>
+        <p><strong className="text-foreground">General support:</strong> <a href="mailto:info@smartalgosts.com" className="text-gold hover:underline">info@smartalgosts.com</a></p>
         <p><strong className="text-foreground">Company:</strong> Smart Algos Investment Solution Ltd · Embu, Kenya</p>
       </Block>
     </div>

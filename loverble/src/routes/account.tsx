@@ -173,7 +173,7 @@ function AccountPage() {
         Strategy file downloads and prop allocations live in the{" "}
         <Link to="/portal" className="text-gold hover:underline">client portal</Link>
         .{" "}
-        <a href="mailto:softwarebazaar.ke@gmail.com" className="text-gold hover:underline inline-flex items-center gap-1">
+        <a href="mailto:support@smartalgosts.com" className="text-gold hover:underline inline-flex items-center gap-1">
           Contact support <ExternalLink className="h-3 w-3" />
         </a>
       </p>

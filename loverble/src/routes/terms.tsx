@@ -76,7 +76,7 @@ function Terms() {
           <li>If a session is cancelled by us, a full refund will be issued within 5–10 business days</li>
           <li>If you experience a technical issue preventing access to content you have paid for, contact us within 7 days and we will resolve it or issue a refund</li>
         </ul>
-        <p>To request a refund or report an issue, email <a href="mailto:support@smartalgos.com" className="text-gold hover:underline">support@smartalgos.com</a>.</p>
+        <p>To request a refund or report an issue, email <a href="mailto:support@smartalgosts.com" className="text-gold hover:underline">support@smartalgosts.com</a>.</p>
       </Block>
 
       <Block title="6. Intellectual Property">
@@ -127,7 +127,7 @@ function Terms() {
       </Block>
 
       <Block title="13. Contact">
-        <p><strong className="text-foreground">Email:</strong> <a href="mailto:legal@smartalgos.com" className="text-gold hover:underline">legal@smartalgos.com</a></p>
+        <p><strong className="text-foreground">Email:</strong> <a href="mailto:info@smartalgosts.com" className="text-gold hover:underline">info@smartalgosts.com</a></p>
         <p><strong className="text-foreground">Company:</strong> Smart Algos Investment Solution Ltd</p>
         <p><strong className="text-foreground">Location:</strong> Embu, Kenya</p>
       </Block>

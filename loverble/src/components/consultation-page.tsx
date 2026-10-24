@@ -171,10 +171,15 @@ export function ConsultationPageContent({
             ))}
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
-            Prefer email first?{" "}
+            Prefer email first? Write{" "}
+            <a href={`mailto:${company.emails.desk}`} className="text-gold hover:underline">
+              {company.emails.desk}
+            </a>{" "}
+            or use{" "}
             <Link to="/contact" className="text-gold hover:underline">
               Contact
             </Link>
+            .
           </p>
         </section>
       </div>

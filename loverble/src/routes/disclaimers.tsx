@@ -114,7 +114,7 @@ function Disclaimers() {
 
       <Block title="9. Contact">
         <p>For questions about these disclaimers:</p>
-        <p><strong className="text-foreground">Email:</strong> <a href="mailto:legal@smartalgos.com" className="text-gold hover:underline">legal@smartalgos.com</a></p>
+        <p><strong className="text-foreground">Email:</strong> <a href="mailto:info@smartalgosts.com" className="text-gold hover:underline">info@smartalgosts.com</a></p>
         <p><strong className="text-foreground">Company:</strong> Smart Algos Investment Solution Ltd · Embu, Kenya</p>
       </Block>
     </div>

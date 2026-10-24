@@ -7,7 +7,7 @@ export function getFromEmail() {
   return (
     process.env.EMAIL_FROM ||
     process.env.EMAIL_USER ||
-    "softwarebazaar.ke@gmail.com"
+    "info@smartalgosts.com"
   ).trim();
 }
 

@@ -37,7 +37,7 @@ export async function submitDeskMessage(body: {
       status: 503,
       body: {
         success: false,
-        error: "Desk email is not configured yet. Write to support@smartalgos.com instead.",
+        error: "Desk email is not configured yet. Write to support@smartalgosts.com instead.",
       },
     };
   }

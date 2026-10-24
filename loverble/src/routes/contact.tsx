@@ -4,6 +4,7 @@ import { Mail, MapPin, Phone, Send } from "lucide-react";
 import { PageShell, SectionCard } from "@/components/page-shell";
 import { toast } from "sonner";
 import { sendDeskMessage } from "@/lib/desk-api";
+import { company } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -69,13 +70,21 @@ function ContactPage() {
         </SectionCard>
 
         <div className="flex flex-col gap-4">
-          <SectionCard title="Direct" subtitle="Research desk">
+          <SectionCard title="Direct" subtitle="Business email">
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-3">
                 <Mail className="h-4 w-4 text-gold mt-0.5 shrink-0" />
-                <div>
-                  <div className="text-muted-foreground text-xs mb-0.5">Email</div>
-                  <a href="mailto:support@smartalgos.com" className="font-mono hover:text-gold transition">support@smartalgos.com</a>
+                <div className="space-y-1.5 min-w-0">
+                  <div className="text-muted-foreground text-xs">Email</div>
+                  <a href={`mailto:${company.emails.info}`} className="block font-mono text-[12px] hover:text-gold transition break-all">
+                    {company.emails.info}
+                  </a>
+                  <a href={`mailto:${company.emails.support}`} className="block font-mono text-[12px] hover:text-gold transition break-all">
+                    {company.emails.support}
+                  </a>
+                  <a href={`mailto:${company.emails.desk}`} className="block font-mono text-[12px] hover:text-gold transition break-all">
+                    {company.emails.desk}
+                  </a>
                 </div>
               </div>
               <div className="flex items-start gap-3">

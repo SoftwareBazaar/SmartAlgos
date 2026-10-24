@@ -7,6 +7,14 @@ export const company = {
   name: "Smart Algos & Financial Systems",
   tagline: "Financial Systems & Quantitative Research",
   operator: "Smart Algos Investment Solution Ltd (Kenya)",
+  domain: "smartalgosts.com",
+  emails: {
+    info: "info@smartalgosts.com",
+    support: "support@smartalgosts.com",
+    desk: "desk@smartalgosts.com",
+    founder: "johnwanyaga@smartalgosts.com",
+    operations: "software.bazaar@smartalgosts.com",
+  },
 };
 
 export type StrategyStatus = "Live" | "Testing" | "Research" | "Development";

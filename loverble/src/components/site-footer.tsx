@@ -37,6 +37,17 @@ export function SiteFooter() {
               Financial systems and quantitative research. Educational research only — not a licensed investment
               adviser. Past results are not indicative of future returns.
             </p>
+            <div className="mt-4 space-y-1 text-[12px]">
+              <a href={`mailto:${company.emails.info}`} className="block text-muted-foreground hover:text-gold transition">
+                {company.emails.info}
+              </a>
+              <a href={`mailto:${company.emails.support}`} className="block text-muted-foreground hover:text-gold transition">
+                {company.emails.support}
+              </a>
+              <a href={`mailto:${company.emails.desk}`} className="block text-muted-foreground hover:text-gold transition">
+                {company.emails.desk}
+              </a>
+            </div>
           </div>
 
           <div>

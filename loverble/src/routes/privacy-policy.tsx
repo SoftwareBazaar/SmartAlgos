@@ -150,6 +150,12 @@ function Privacy() {
       <Block title="5. Contact Information">
         <p>For privacy inquiries or technical questions regarding data handling:</p>
         <p>
+          <strong className="text-foreground">Email:</strong>{" "}
+          <a href="mailto:info@smartalgosts.com" className="text-gold hover:underline">
+            info@smartalgosts.com
+          </a>
+        </p>
+        <p>
           <strong className="text-foreground">Website:</strong>{" "}
           <a href="https://www.smartalgosts.com" className="text-gold hover:underline">
             www.smartalgosts.com

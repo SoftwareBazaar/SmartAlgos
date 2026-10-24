@@ -114,8 +114,11 @@ function SystemsPage() {
                     </span>
                   ))}
                 </div>
-                <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold">
-                  View &amp; download <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                <p className="mt-3 text-[11px] text-muted-foreground">
+                  {engine.files.length} downloadable file{engine.files.length === 1 ? "" : "s"} · problem, flow, I/O
+                </p>
+                <span className="mt-4 inline-flex items-center justify-center gap-2 min-h-10 rounded-lg border border-gold/40 bg-gold/10 px-3 text-xs font-semibold uppercase tracking-wider text-gold group-hover:bg-gold group-hover:text-primary-foreground transition">
+                  Open details &amp; download <ArrowRight className="h-3.5 w-3.5" />
                 </span>
               </Link>
             ))}

@@ -48,7 +48,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SystemsSlugRouteImport } from './routes/systems.$slug'
+import { Route as SystemsSlugRouteImport } from './routes/systems_.$slug'
 import { Route as StrategiesSlugRouteImport } from './routes/strategies.$slug'
 import { Route as StoreSlugRouteImport } from './routes/store_.$slug'
 import { Route as ResearchSlugRouteImport } from './routes/research_.$slug'
@@ -251,9 +251,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const SystemsSlugRoute = SystemsSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => SystemsRoute,
+  id: '/systems_/$slug',
+  path: '/systems/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const StrategiesSlugRoute = StrategiesSlugRouteImport.update({
   id: '/$slug',
@@ -318,7 +318,7 @@ export interface FileRoutesByFullPath {
   '/store': typeof StoreRoute
   '/strategies': typeof StrategiesRouteWithChildren
   '/support': typeof SupportRoute
-  '/systems': typeof SystemsRouteWithChildren
+  '/systems': typeof SystemsRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/finance/$slug': typeof FinanceSlugRoute
@@ -365,7 +365,7 @@ export interface FileRoutesByTo {
   '/store': typeof StoreRoute
   '/strategies': typeof StrategiesRouteWithChildren
   '/support': typeof SupportRoute
-  '/systems': typeof SystemsRouteWithChildren
+  '/systems': typeof SystemsRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/finance/$slug': typeof FinanceSlugRoute
@@ -413,14 +413,14 @@ export interface FileRoutesById {
   '/store': typeof StoreRoute
   '/strategies': typeof StrategiesRouteWithChildren
   '/support': typeof SupportRoute
-  '/systems': typeof SystemsRouteWithChildren
+  '/systems': typeof SystemsRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/finance_/$slug': typeof FinanceSlugRoute
   '/research_/$slug': typeof ResearchSlugRoute
   '/store_/$slug': typeof StoreSlugRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
-  '/systems/$slug': typeof SystemsSlugRoute
+  '/systems_/$slug': typeof SystemsSlugRoute
   '/finance_/ke/$slug': typeof FinanceKeSlugRoute
 }
 export interface FileRouteTypes {
@@ -563,7 +563,7 @@ export interface FileRouteTypes {
     | '/research_/$slug'
     | '/store_/$slug'
     | '/strategies/$slug'
-    | '/systems/$slug'
+    | '/systems_/$slug'
     | '/finance_/ke/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -604,12 +604,13 @@ export interface RootRouteChildren {
   StoreRoute: typeof StoreRoute
   StrategiesRoute: typeof StrategiesRouteWithChildren
   SupportRoute: typeof SupportRoute
-  SystemsRoute: typeof SystemsRouteWithChildren
+  SystemsRoute: typeof SystemsRoute
   TechnologyRoute: typeof TechnologyRoute
   TermsRoute: typeof TermsRoute
   FinanceSlugRoute: typeof FinanceSlugRoute
   ResearchSlugRoute: typeof ResearchSlugRoute
   StoreSlugRoute: typeof StoreSlugRoute
+  SystemsSlugRoute: typeof SystemsSlugRoute
   FinanceKeSlugRoute: typeof FinanceKeSlugRoute
 }
 
@@ -888,12 +889,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/systems/$slug': {
-      id: '/systems/$slug'
-      path: '/$slug'
+    '/systems_/$slug': {
+      id: '/systems_/$slug'
+      path: '/systems/$slug'
       fullPath: '/systems/$slug'
       preLoaderRoute: typeof SystemsSlugRouteImport
-      parentRoute: typeof SystemsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/strategies/$slug': {
       id: '/strategies/$slug'
@@ -945,17 +946,6 @@ const StrategiesRouteWithChildren = StrategiesRoute._addFileChildren(
   StrategiesRouteChildren,
 )
 
-interface SystemsRouteChildren {
-  SystemsSlugRoute: typeof SystemsSlugRoute
-}
-
-const SystemsRouteChildren: SystemsRouteChildren = {
-  SystemsSlugRoute: SystemsSlugRoute,
-}
-
-const SystemsRouteWithChildren =
-  SystemsRoute._addFileChildren(SystemsRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -993,12 +983,13 @@ const rootRouteChildren: RootRouteChildren = {
   StoreRoute: StoreRoute,
   StrategiesRoute: StrategiesRouteWithChildren,
   SupportRoute: SupportRoute,
-  SystemsRoute: SystemsRouteWithChildren,
+  SystemsRoute: SystemsRoute,
   TechnologyRoute: TechnologyRoute,
   TermsRoute: TermsRoute,
   FinanceSlugRoute: FinanceSlugRoute,
   ResearchSlugRoute: ResearchSlugRoute,
   StoreSlugRoute: StoreSlugRoute,
+  SystemsSlugRoute: SystemsSlugRoute,
   FinanceKeSlugRoute: FinanceKeSlugRoute,
 }
 export const routeTree = rootRouteImport

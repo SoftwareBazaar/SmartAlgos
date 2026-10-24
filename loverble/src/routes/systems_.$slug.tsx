@@ -109,7 +109,7 @@ function SystemsEnginePage() {
           <aside className="rounded-2xl border border-border/80 bg-[#0d121c] p-5 md:p-6">
             <p className="font-mono text-[9px] tracking-[0.14em] text-gold">PACK CONTENTS</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              {engine.files.length} file{engine.files.length === 1 ? "" : "s"} · email unlock below
+              {engine.files.length} file{engine.files.length === 1 ? "" : "s"} · work email unlock below
             </p>
             <ul className="mt-4 space-y-2">
               {engine.files.map((f) => (

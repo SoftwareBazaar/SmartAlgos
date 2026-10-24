@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BookOpen, Globe2, Shield, Wallet } from "lucide-react";
 import { company } from "@/lib/mock-data";
 import { SYSTEMS_ENGINES } from "@/lib/systems-engines";
+import { CinematicSpotlight } from "@/components/premium/cinematic-spotlight";
 
 export const Route = createFileRoute("/systems")({
   head: () => ({
@@ -59,16 +60,75 @@ const deployments = [
 function SystemsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="mx-auto max-w-[720px] px-6 pt-20 pb-4">
-        <p className="font-mono text-[10px] tracking-[0.14em] text-gold">FINANCIAL SYSTEMS</p>
-        <h1 className="mt-3 font-display text-[1.85rem] md:text-[2.35rem] font-semibold tracking-tight leading-snug text-foreground">
-          Cloud-native core banking &amp; SACCO software.
-        </h1>
-        <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-[54ch]">
-          Modular financial technology for banks, SACCOs, microfinance institutions, and digital finance teams — with
-          reference engines you can inspect before scoping a production build.
-        </p>
-      </header>
+      <section className="relative overflow-hidden border-b border-border/40">
+        <CinematicSpotlight intensity="strong" />
+        <div className="relative z-10 mx-auto max-w-[1160px] px-6 pt-20 pb-14 md:pt-24 md:pb-16">
+          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-gold/25 bg-gold/5 px-3 py-1 font-mono text-[10px] tracking-[0.14em] text-gold mb-5">
+                <span className="h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_12px_rgb(245_158_11_/_0.8)]" />
+                FINANCIAL SYSTEMS · B2B
+              </div>
+              <h1 className="font-display text-[1.85rem] md:text-[2.45rem] font-semibold tracking-tight leading-[1.15] text-foreground max-w-[16ch]">
+                Core banking &amp;{" "}
+                <span className="hero-title-accent">SACCO software</span>{" "}
+                built to inspect.
+              </h1>
+              <p className="mt-4 text-sm md:text-[15px] text-muted-foreground leading-relaxed max-w-[48ch]">
+                Modular technology for banks, SACCOs, and digital finance teams — ledgers, payments, and risk — with
+                reference engines you can review before a production scope.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <a
+                  href="#engines"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-gold px-5 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition"
+                >
+                  Browse reference engines <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+                <Link
+                  to="/consultation"
+                  search={{ track: "systems" }}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-5 text-xs font-semibold hover:border-gold/50 hover:text-gold transition"
+                >
+                  Book architecture review
+                </Link>
+              </div>
+              <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-[0.16em]">
+                {company.operator}
+              </p>
+            </div>
+
+            <aside className="rounded-2xl border border-gold/25 bg-[#0d121c]/90 p-5 md:p-6 shadow-[0_24px_80px_rgb(0_0_0_/_0.35)] backdrop-blur-sm">
+              <div className="flex items-center justify-between gap-3 pb-4 border-b border-border/60">
+                <div className="flex items-center gap-2 font-mono text-[10px] tracking-wide text-foreground">
+                  <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" />
+                  SYSTEMS STACK
+                </div>
+                <span className="font-mono text-[9px] text-gold">PREVIEW</span>
+              </div>
+              <div className="mt-4 space-y-0">
+                {[
+                  { n: "01", t: "Member & account services" },
+                  { n: "02", t: "Ledger & loan operations" },
+                  { n: "03", t: "Payments & open banking" },
+                  { n: "04", t: "Risk · AML · guarantees" },
+                ].map((row, i) => (
+                  <div key={row.n}>
+                    <div className="flex items-center gap-3 rounded-lg border border-border/70 bg-black/30 px-3.5 py-3">
+                      <span className="font-mono text-[10px] text-gold">{row.n}</span>
+                      <span className="text-xs font-medium text-foreground/90">{row.t}</span>
+                    </div>
+                    {i < 3 && <i className="ml-5 block h-2.5 w-px bg-gradient-to-b from-gold/40 to-transparent" />}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 font-mono text-[9px] text-muted-foreground">
+                Illustrative architecture · engines below are reference packs
+              </p>
+            </aside>
+          </div>
+        </div>
+      </section>
 
       {/* Integrated financial models */}
       <section id="engines" className="py-14 scroll-mt-24">

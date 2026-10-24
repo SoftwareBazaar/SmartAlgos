@@ -23,7 +23,7 @@ export function ConsultationPageContent({
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <CinematicSpotlight />
+      <CinematicSpotlight intensity="strong" />
 
       <div className="relative z-10 mx-auto max-w-[1160px] px-6 pt-20 pb-16 space-y-12">
         <header className="max-w-2xl">

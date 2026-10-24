@@ -253,6 +253,11 @@
   100% { background-position: -200% 0; }
 }
 
+@keyframes cinematic-beam {
+  0%, 100% { transform: translateX(-18%); }
+  50% { transform: translateX(18%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .premium-shimmer { animation: none; }
 }

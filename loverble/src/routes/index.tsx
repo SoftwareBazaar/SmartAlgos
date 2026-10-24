@@ -24,7 +24,7 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <section className="hero-container relative pt-24 pb-12 md:pb-16 overflow-hidden bg-dominant">
-        <CinematicSpotlight />
+        <CinematicSpotlight intensity="strong" />
         <div className="relative z-10 max-w-[1160px] mx-auto px-6 w-full">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
             <MotionHeroText>

@@ -3,52 +3,27 @@
   "framework": "tanstack-start",
   "installCommand": "npm install && cd loverble && npm install --include=dev --legacy-peer-deps",
   "buildCommand": "cd loverble && NODE_ENV=production npm run build && cd .. && node scripts/vercel-merge-output.mjs",
-  "regions": ["cpt1", "fra1"],
+  "regions": ["fra1"],
   "headers": [
     {
-      "source": "/(.*)\\.(js|css|mjs|map|woff2|woff|ttf|png|jpg|jpeg|gif|svg|ico|webp|avif)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
+      "source": "/(.*).js",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/(.*).css",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/(.*).woff2",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }]
     },
     {
       "source": "/downloads/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400, stale-while-revalidate=604800"
-        }
-      ]
-    },
-    {
-      "source": "/(favicon.ico|robots.txt|sitemap.xml|manifest.json|apple-touch-icon.png)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400, stale-while-revalidate=604800"
-        }
-      ]
-    },
-    {
-      "source": "/",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, s-maxage=30, stale-while-revalidate=120"
-        }
-      ]
-    },
-    {
-      "source": "/(systems|strategies|finance|store|about|contact|research|consultation|support|privacy-policy|terms|disclaimers|security-policy|financial-disclaimer|legal)(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, s-maxage=30, stale-while-revalidate=120"
-        }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }]
     }
   ]
 }

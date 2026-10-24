@@ -5,7 +5,7 @@ import { buildStrategyEquityCurve } from "@/lib/chart-domain";
 
 export const company = {
   name: "Smart Algos Capital",
-  tagline: "Quantitative Research & Systematic Strategies",
+  tagline: "Financial Systems & Quantitative Research",
   operator: "Smart Algos Investment Solution Ltd (Kenya)",
 };
 
@@ -308,6 +308,24 @@ export const techProjects = {
 };
 
 export const consultationServices = [
+  {
+    id: "systems",
+    title: "Financial systems architecture",
+    items: [
+      "Core ledger and member/loan workflow design questions",
+      "Payment rails, M-Pesa, and open-banking integration planning",
+      "Risk, compliance, and operational control frameworks",
+    ],
+  },
+  {
+    id: "quant",
+    title: "Quantitative strategy engineering",
+    items: [
+      "Hypothesis design, costs, and out-of-sample discipline",
+      "How to read a track record when verification is pending",
+      "Research-to-paper roadmap for a multi-asset idea",
+    ],
+  },
   {
     id: "equities",
     title: "Stocks & Equities",

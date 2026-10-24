@@ -6,7 +6,16 @@ const SHARE_TITLE = "Book a Strategy Desk Session — Smart Algos Capital";
 const SHARE_DESC =
   "Free 20-minute intro or optional 90-minute deep-dive. Daily 7–9 PM EAT. Educational research discussion — not investment advice.";
 
+type ConsultationSearch = {
+  track?: "systems" | "quant";
+};
+
 export const Route = createFileRoute("/consultation")({
+  validateSearch: (search: Record<string, unknown>): ConsultationSearch => {
+    const track = search.track;
+    if (track === "systems" || track === "quant") return { track };
+    return {};
+  },
   head: () => ({
     meta: [
       { title: SHARE_TITLE },
@@ -26,5 +35,6 @@ export const Route = createFileRoute("/consultation")({
 });
 
 function Consultation() {
-  return <ConsultationPageContent />;
+  const { track } = Route.useSearch();
+  return <ConsultationPageContent initialTrack={track} />;
 }

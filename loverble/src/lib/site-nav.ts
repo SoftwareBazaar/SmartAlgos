@@ -1,15 +1,20 @@
 export const PRIMARY_NAV = [
+  { label: "Systems", to: "/systems" },
   { label: "Strategies", to: "/strategies" },
   { label: "Track Record", to: "/performance" },
-  { label: "Research", to: "/research" },
+  { label: "About", to: "/about" },
+  { label: "Insights", to: "/insights" },
   { label: "Decision Math", to: "/finance" },
   { label: "Store", to: "/store" },
   { label: "Strategy Desk", to: "/consultation" },
 ] as const;
 
 export const MOBILE_NAV = [
+  { label: "Financial systems", to: "/systems" },
   { label: "Live Strategies", to: "/strategies" },
   { label: "Track Record", to: "/performance" },
+  { label: "About", to: "/about" },
+  { label: "Insights", to: "/insights" },
   { label: "Research Notes", to: "/research" },
   { label: "Decision Math", to: "/finance" },
   { label: "Excel Store", to: "/store" },
@@ -20,6 +25,8 @@ export const MOBILE_NAV = [
 
 const PUBLIC_EXACT = new Set([
   "/",
+  "/systems",
+  "/insights",
   "/research",
   "/performance",
   "/consultation",
@@ -45,6 +52,8 @@ export function isPublicSitePath(pathname: string): boolean {
   if (pathname.startsWith("/research")) return true;
   if (pathname.startsWith("/finance")) return true;
   if (pathname.startsWith("/store")) return true;
+  if (pathname.startsWith("/insights")) return true;
+  if (pathname.startsWith("/systems")) return true;
   return false;
 }
 

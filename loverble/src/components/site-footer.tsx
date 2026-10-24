@@ -12,7 +12,7 @@ export function SiteFooter() {
             <BrandLogo variant="footer" className="opacity-90" />
             <p className="text-sm text-muted-foreground mt-3">{company.operator}</p>
             <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
-              Quantitative research and systematic strategies. Educational research only — not a licensed investment
+              Financial systems and quantitative research. Educational research only — not a licensed investment
               adviser. Past results are not indicative of future returns.
             </p>
             <p className="text-xs text-muted-foreground mt-3">
@@ -23,6 +23,11 @@ export function SiteFooter() {
           <div>
             <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Product</div>
             <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/systems" className="text-muted-foreground hover:text-gold transition-colors">
+                  Financial systems
+                </Link>
+              </li>
               <li>
                 <Link to="/strategies" className="text-muted-foreground hover:text-gold transition-colors">
                   Strategies
@@ -50,6 +55,11 @@ export function SiteFooter() {
             <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Research</div>
             <ul className="space-y-2 text-sm">
               <li>
+                <Link to="/insights" className="text-muted-foreground hover:text-gold transition-colors">
+                  Insights
+                </Link>
+              </li>
+              <li>
                 <Link to="/research" className="text-muted-foreground hover:text-gold transition-colors">
                   Research
                 </Link>
@@ -57,6 +67,11 @@ export function SiteFooter() {
               <li>
                 <Link to="/finance" className="text-muted-foreground hover:text-gold transition-colors">
                   Decision Math
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-muted-foreground hover:text-gold transition-colors">
+                  About
                 </Link>
               </li>
               <li>

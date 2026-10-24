@@ -9,222 +9,54 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as AcademyRouteImport } from './routes/academy'
-import { Route as AccountRouteImport } from './routes/account'
-import { Route as AiCenterRouteImport } from './routes/ai-center'
-import { Route as AlphaFactoryRouteImport } from './routes/alpha-factory'
-import { Route as AlphaPortfolioRouteImport } from './routes/alpha-portfolio'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as BacktestingRouteImport } from './routes/backtesting'
-import { Route as BookRouteImport } from './routes/book'
-import { Route as ConsultationRouteImport } from './routes/consultation'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as CopyTradingRouteImport } from './routes/copy-trading'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as DisclaimersRouteImport } from './routes/disclaimers'
-import { Route as FinanceRouteImport } from './routes/finance'
-import { Route as FinancialDisclaimerRouteImport } from './routes/financial-disclaimer'
-import { Route as InfrastructureRouteImport } from './routes/infrastructure'
-import { Route as InstitutionalRouteImport } from './routes/institutional'
-import { Route as InvestorRouteImport } from './routes/investor'
-import { Route as LegalRouteImport } from './routes/legal'
-import { Route as LiveTradingRouteImport } from './routes/live-trading'
-import { Route as MarketplaceRouteImport } from './routes/marketplace'
-import { Route as PaymentCallbackRouteImport } from './routes/payment-callback'
-import { Route as PerformanceRouteImport } from './routes/performance'
-import { Route as PortalRouteImport } from './routes/portal'
-import { Route as PortfolioRouteImport } from './routes/portfolio'
-import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
-import { Route as PropFirmRouteImport } from './routes/prop-firm'
-import { Route as ResearchRouteImport } from './routes/research'
-import { Route as RiskRouteImport } from './routes/risk'
-import { Route as SecurityPolicyRouteImport } from './routes/security-policy'
-import { Route as StoreRouteImport } from './routes/store'
-import { Route as StrategiesRouteImport } from './routes/strategies'
-import { Route as SupportRouteImport } from './routes/support'
-import { Route as TechnologyRouteImport } from './routes/technology'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as FinanceSlugRouteImport } from './routes/finance_.$slug'
-import { Route as FinanceKeSlugRouteImport } from './routes/finance_.ke.$slug'
+import { Route as TechnologyRouteImport } from './routes/technology'
+import { Route as SystemsRouteImport } from './routes/systems'
+import { Route as SupportRouteImport } from './routes/support'
+import { Route as StrategiesRouteImport } from './routes/strategies'
+import { Route as StoreRouteImport } from './routes/store'
+import { Route as SecurityPolicyRouteImport } from './routes/security-policy'
+import { Route as RiskRouteImport } from './routes/risk'
+import { Route as ResearchRouteImport } from './routes/research'
+import { Route as PropFirmRouteImport } from './routes/prop-firm'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as PortalRouteImport } from './routes/portal'
+import { Route as PerformanceRouteImport } from './routes/performance'
+import { Route as PaymentCallbackRouteImport } from './routes/payment-callback'
+import { Route as MarketplaceRouteImport } from './routes/marketplace'
+import { Route as LiveTradingRouteImport } from './routes/live-trading'
+import { Route as LegalRouteImport } from './routes/legal'
+import { Route as InvestorRouteImport } from './routes/investor'
+import { Route as InstitutionalRouteImport } from './routes/institutional'
+import { Route as InsightsRouteImport } from './routes/insights'
+import { Route as InfrastructureRouteImport } from './routes/infrastructure'
+import { Route as FinancialDisclaimerRouteImport } from './routes/financial-disclaimer'
+import { Route as FinanceRouteImport } from './routes/finance'
+import { Route as DisclaimersRouteImport } from './routes/disclaimers'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CopyTradingRouteImport } from './routes/copy-trading'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ConsultationRouteImport } from './routes/consultation'
+import { Route as BookRouteImport } from './routes/book'
+import { Route as BacktestingRouteImport } from './routes/backtesting'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AlphaPortfolioRouteImport } from './routes/alpha-portfolio'
+import { Route as AlphaFactoryRouteImport } from './routes/alpha-factory'
+import { Route as AiCenterRouteImport } from './routes/ai-center'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as AcademyRouteImport } from './routes/academy'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as StrategiesSlugRouteImport } from './routes/strategies.$slug'
 import { Route as StoreSlugRouteImport } from './routes/store_.$slug'
 import { Route as ResearchSlugRouteImport } from './routes/research_.$slug'
-import { Route as StrategiesSlugRouteImport } from './routes/strategies.$slug'
+import { Route as FinanceSlugRouteImport } from './routes/finance_.$slug'
+import { Route as FinanceKeSlugRouteImport } from './routes/finance_.ke.$slug'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AcademyRoute = AcademyRouteImport.update({
-  id: '/academy',
-  path: '/academy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AccountRoute = AccountRouteImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AiCenterRoute = AiCenterRouteImport.update({
-  id: '/ai-center',
-  path: '/ai-center',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AlphaFactoryRoute = AlphaFactoryRouteImport.update({
-  id: '/alpha-factory',
-  path: '/alpha-factory',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AlphaPortfolioRoute = AlphaPortfolioRouteImport.update({
-  id: '/alpha-portfolio',
-  path: '/alpha-portfolio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BacktestingRoute = BacktestingRouteImport.update({
-  id: '/backtesting',
-  path: '/backtesting',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BookRoute = BookRouteImport.update({
-  id: '/book',
-  path: '/book',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConsultationRoute = ConsultationRouteImport.update({
-  id: '/consultation',
-  path: '/consultation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CopyTradingRoute = CopyTradingRouteImport.update({
-  id: '/copy-trading',
-  path: '/copy-trading',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DisclaimersRoute = DisclaimersRouteImport.update({
-  id: '/disclaimers',
-  path: '/disclaimers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinanceRoute = FinanceRouteImport.update({
-  id: '/finance',
-  path: '/finance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinancialDisclaimerRoute = FinancialDisclaimerRouteImport.update({
-  id: '/financial-disclaimer',
-  path: '/financial-disclaimer',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InfrastructureRoute = InfrastructureRouteImport.update({
-  id: '/infrastructure',
-  path: '/infrastructure',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InstitutionalRoute = InstitutionalRouteImport.update({
-  id: '/institutional',
-  path: '/institutional',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InvestorRoute = InvestorRouteImport.update({
-  id: '/investor',
-  path: '/investor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LegalRoute = LegalRouteImport.update({
-  id: '/legal',
-  path: '/legal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LiveTradingRoute = LiveTradingRouteImport.update({
-  id: '/live-trading',
-  path: '/live-trading',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MarketplaceRoute = MarketplaceRouteImport.update({
-  id: '/marketplace',
-  path: '/marketplace',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PaymentCallbackRoute = PaymentCallbackRouteImport.update({
-  id: '/payment-callback',
-  path: '/payment-callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PerformanceRoute = PerformanceRouteImport.update({
-  id: '/performance',
-  path: '/performance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PortalRoute = PortalRouteImport.update({
-  id: '/portal',
-  path: '/portal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PortfolioRoute = PortfolioRouteImport.update({
-  id: '/portfolio',
-  path: '/portfolio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
-  id: '/privacy-policy',
-  path: '/privacy-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PropFirmRoute = PropFirmRouteImport.update({
-  id: '/prop-firm',
-  path: '/prop-firm',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResearchRoute = ResearchRouteImport.update({
-  id: '/research',
-  path: '/research',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RiskRoute = RiskRouteImport.update({
-  id: '/risk',
-  path: '/risk',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SecurityPolicyRoute = SecurityPolicyRouteImport.update({
-  id: '/security-policy',
-  path: '/security-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StoreRoute = StoreRouteImport.update({
-  id: '/store',
-  path: '/store',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StrategiesRoute = StrategiesRouteImport.update({
-  id: '/strategies',
-  path: '/strategies',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SupportRoute = SupportRouteImport.update({
-  id: '/support',
-  path: '/support',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TechnologyRoute = TechnologyRouteImport.update({
@@ -232,20 +64,195 @@ const TechnologyRoute = TechnologyRouteImport.update({
   path: '/technology',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const SystemsRoute = SystemsRouteImport.update({
+  id: '/systems',
+  path: '/systems',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FinanceSlugRoute = FinanceSlugRouteImport.update({
-  id: '/finance_/$slug',
-  path: '/finance/$slug',
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FinanceKeSlugRoute = FinanceKeSlugRouteImport.update({
-  id: '/finance_/ke/$slug',
-  path: '/finance/ke/$slug',
+const StrategiesRoute = StrategiesRouteImport.update({
+  id: '/strategies',
+  path: '/strategies',
   getParentRoute: () => rootRouteImport,
+} as any)
+const StoreRoute = StoreRouteImport.update({
+  id: '/store',
+  path: '/store',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityPolicyRoute = SecurityPolicyRouteImport.update({
+  id: '/security-policy',
+  path: '/security-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RiskRoute = RiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchRoute = ResearchRouteImport.update({
+  id: '/research',
+  path: '/research',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PropFirmRoute = PropFirmRouteImport.update({
+  id: '/prop-firm',
+  path: '/prop-firm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerformanceRoute = PerformanceRouteImport.update({
+  id: '/performance',
+  path: '/performance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentCallbackRoute = PaymentCallbackRouteImport.update({
+  id: '/payment-callback',
+  path: '/payment-callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketplaceRoute = MarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveTradingRoute = LiveTradingRouteImport.update({
+  id: '/live-trading',
+  path: '/live-trading',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvestorRoute = InvestorRouteImport.update({
+  id: '/investor',
+  path: '/investor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstitutionalRoute = InstitutionalRouteImport.update({
+  id: '/institutional',
+  path: '/institutional',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfrastructureRoute = InfrastructureRouteImport.update({
+  id: '/infrastructure',
+  path: '/infrastructure',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinancialDisclaimerRoute = FinancialDisclaimerRouteImport.update({
+  id: '/financial-disclaimer',
+  path: '/financial-disclaimer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceRoute = FinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DisclaimersRoute = DisclaimersRouteImport.update({
+  id: '/disclaimers',
+  path: '/disclaimers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CopyTradingRoute = CopyTradingRouteImport.update({
+  id: '/copy-trading',
+  path: '/copy-trading',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsultationRoute = ConsultationRouteImport.update({
+  id: '/consultation',
+  path: '/consultation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookRoute = BookRouteImport.update({
+  id: '/book',
+  path: '/book',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BacktestingRoute = BacktestingRouteImport.update({
+  id: '/backtesting',
+  path: '/backtesting',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlphaPortfolioRoute = AlphaPortfolioRouteImport.update({
+  id: '/alpha-portfolio',
+  path: '/alpha-portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlphaFactoryRoute = AlphaFactoryRouteImport.update({
+  id: '/alpha-factory',
+  path: '/alpha-factory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiCenterRoute = AiCenterRouteImport.update({
+  id: '/ai-center',
+  path: '/ai-center',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcademyRoute = AcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StrategiesSlugRoute = StrategiesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => StrategiesRoute,
 } as any)
 const StoreSlugRoute = StoreSlugRouteImport.update({
   id: '/store_/$slug',
@@ -257,10 +264,15 @@ const ResearchSlugRoute = ResearchSlugRouteImport.update({
   path: '/research/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StrategiesSlugRoute = StrategiesSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => StrategiesRoute,
+const FinanceSlugRoute = FinanceSlugRouteImport.update({
+  id: '/finance_/$slug',
+  path: '/finance/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceKeSlugRoute = FinanceKeSlugRouteImport.update({
+  id: '/finance_/ke/$slug',
+  path: '/finance/ke/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -282,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/finance': typeof FinanceRoute
   '/financial-disclaimer': typeof FinancialDisclaimerRoute
   '/infrastructure': typeof InfrastructureRoute
+  '/insights': typeof InsightsRoute
   '/institutional': typeof InstitutionalRoute
   '/investor': typeof InvestorRoute
   '/legal': typeof LegalRoute
@@ -299,13 +312,14 @@ export interface FileRoutesByFullPath {
   '/store': typeof StoreRoute
   '/strategies': typeof StrategiesRouteWithChildren
   '/support': typeof SupportRoute
+  '/systems': typeof SystemsRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/finance/$slug': typeof FinanceSlugRoute
-  '/finance/ke/$slug': typeof FinanceKeSlugRoute
   '/research/$slug': typeof ResearchSlugRoute
   '/store/$slug': typeof StoreSlugRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
+  '/finance/ke/$slug': typeof FinanceKeSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -326,6 +340,7 @@ export interface FileRoutesByTo {
   '/finance': typeof FinanceRoute
   '/financial-disclaimer': typeof FinancialDisclaimerRoute
   '/infrastructure': typeof InfrastructureRoute
+  '/insights': typeof InsightsRoute
   '/institutional': typeof InstitutionalRoute
   '/investor': typeof InvestorRoute
   '/legal': typeof LegalRoute
@@ -343,13 +358,14 @@ export interface FileRoutesByTo {
   '/store': typeof StoreRoute
   '/strategies': typeof StrategiesRouteWithChildren
   '/support': typeof SupportRoute
+  '/systems': typeof SystemsRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/finance/$slug': typeof FinanceSlugRoute
-  '/finance/ke/$slug': typeof FinanceKeSlugRoute
   '/research/$slug': typeof ResearchSlugRoute
   '/store/$slug': typeof StoreSlugRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
+  '/finance/ke/$slug': typeof FinanceKeSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -371,6 +387,7 @@ export interface FileRoutesById {
   '/finance': typeof FinanceRoute
   '/financial-disclaimer': typeof FinancialDisclaimerRoute
   '/infrastructure': typeof InfrastructureRoute
+  '/insights': typeof InsightsRoute
   '/institutional': typeof InstitutionalRoute
   '/investor': typeof InvestorRoute
   '/legal': typeof LegalRoute
@@ -388,13 +405,14 @@ export interface FileRoutesById {
   '/store': typeof StoreRoute
   '/strategies': typeof StrategiesRouteWithChildren
   '/support': typeof SupportRoute
+  '/systems': typeof SystemsRoute
   '/technology': typeof TechnologyRoute
   '/terms': typeof TermsRoute
   '/finance_/$slug': typeof FinanceSlugRoute
-  '/finance_/ke/$slug': typeof FinanceKeSlugRoute
   '/research_/$slug': typeof ResearchSlugRoute
   '/store_/$slug': typeof StoreSlugRoute
   '/strategies/$slug': typeof StrategiesSlugRoute
+  '/finance_/ke/$slug': typeof FinanceKeSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -417,6 +435,7 @@ export interface FileRouteTypes {
     | '/finance'
     | '/financial-disclaimer'
     | '/infrastructure'
+    | '/insights'
     | '/institutional'
     | '/investor'
     | '/legal'
@@ -434,13 +453,14 @@ export interface FileRouteTypes {
     | '/store'
     | '/strategies'
     | '/support'
+    | '/systems'
     | '/technology'
     | '/terms'
     | '/finance/$slug'
-    | '/finance/ke/$slug'
     | '/research/$slug'
     | '/store/$slug'
     | '/strategies/$slug'
+    | '/finance/ke/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -461,6 +481,7 @@ export interface FileRouteTypes {
     | '/finance'
     | '/financial-disclaimer'
     | '/infrastructure'
+    | '/insights'
     | '/institutional'
     | '/investor'
     | '/legal'
@@ -478,13 +499,14 @@ export interface FileRouteTypes {
     | '/store'
     | '/strategies'
     | '/support'
+    | '/systems'
     | '/technology'
     | '/terms'
     | '/finance/$slug'
-    | '/finance/ke/$slug'
     | '/research/$slug'
     | '/store/$slug'
     | '/strategies/$slug'
+    | '/finance/ke/$slug'
   id:
     | '__root__'
     | '/'
@@ -505,6 +527,7 @@ export interface FileRouteTypes {
     | '/finance'
     | '/financial-disclaimer'
     | '/infrastructure'
+    | '/insights'
     | '/institutional'
     | '/investor'
     | '/legal'
@@ -522,13 +545,14 @@ export interface FileRouteTypes {
     | '/store'
     | '/strategies'
     | '/support'
+    | '/systems'
     | '/technology'
     | '/terms'
     | '/finance_/$slug'
-    | '/finance_/ke/$slug'
     | '/research_/$slug'
     | '/store_/$slug'
     | '/strategies/$slug'
+    | '/finance_/ke/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -550,6 +574,7 @@ export interface RootRouteChildren {
   FinanceRoute: typeof FinanceRoute
   FinancialDisclaimerRoute: typeof FinancialDisclaimerRoute
   InfrastructureRoute: typeof InfrastructureRoute
+  InsightsRoute: typeof InsightsRoute
   InstitutionalRoute: typeof InstitutionalRoute
   InvestorRoute: typeof InvestorRoute
   LegalRoute: typeof LegalRoute
@@ -567,259 +592,22 @@ export interface RootRouteChildren {
   StoreRoute: typeof StoreRoute
   StrategiesRoute: typeof StrategiesRouteWithChildren
   SupportRoute: typeof SupportRoute
+  SystemsRoute: typeof SystemsRoute
   TechnologyRoute: typeof TechnologyRoute
   TermsRoute: typeof TermsRoute
   FinanceSlugRoute: typeof FinanceSlugRoute
-  FinanceKeSlugRoute: typeof FinanceKeSlugRoute
   ResearchSlugRoute: typeof ResearchSlugRoute
   StoreSlugRoute: typeof StoreSlugRoute
+  FinanceKeSlugRoute: typeof FinanceKeSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/academy': {
-      id: '/academy'
-      path: '/academy'
-      fullPath: '/academy'
-      preLoaderRoute: typeof AcademyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/account': {
-      id: '/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ai-center': {
-      id: '/ai-center'
-      path: '/ai-center'
-      fullPath: '/ai-center'
-      preLoaderRoute: typeof AiCenterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/alpha-factory': {
-      id: '/alpha-factory'
-      path: '/alpha-factory'
-      fullPath: '/alpha-factory'
-      preLoaderRoute: typeof AlphaFactoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/alpha-portfolio': {
-      id: '/alpha-portfolio'
-      path: '/alpha-portfolio'
-      fullPath: '/alpha-portfolio'
-      preLoaderRoute: typeof AlphaPortfolioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/backtesting': {
-      id: '/backtesting'
-      path: '/backtesting'
-      fullPath: '/backtesting'
-      preLoaderRoute: typeof BacktestingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/book': {
-      id: '/book'
-      path: '/book'
-      fullPath: '/book'
-      preLoaderRoute: typeof BookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/consultation': {
-      id: '/consultation'
-      path: '/consultation'
-      fullPath: '/consultation'
-      preLoaderRoute: typeof ConsultationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/copy-trading': {
-      id: '/copy-trading'
-      path: '/copy-trading'
-      fullPath: '/copy-trading'
-      preLoaderRoute: typeof CopyTradingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/disclaimers': {
-      id: '/disclaimers'
-      path: '/disclaimers'
-      fullPath: '/disclaimers'
-      preLoaderRoute: typeof DisclaimersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/finance': {
-      id: '/finance'
-      path: '/finance'
-      fullPath: '/finance'
-      preLoaderRoute: typeof FinanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financial-disclaimer': {
-      id: '/financial-disclaimer'
-      path: '/financial-disclaimer'
-      fullPath: '/financial-disclaimer'
-      preLoaderRoute: typeof FinancialDisclaimerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/infrastructure': {
-      id: '/infrastructure'
-      path: '/infrastructure'
-      fullPath: '/infrastructure'
-      preLoaderRoute: typeof InfrastructureRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/institutional': {
-      id: '/institutional'
-      path: '/institutional'
-      fullPath: '/institutional'
-      preLoaderRoute: typeof InstitutionalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/investor': {
-      id: '/investor'
-      path: '/investor'
-      fullPath: '/investor'
-      preLoaderRoute: typeof InvestorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/legal': {
-      id: '/legal'
-      path: '/legal'
-      fullPath: '/legal'
-      preLoaderRoute: typeof LegalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/live-trading': {
-      id: '/live-trading'
-      path: '/live-trading'
-      fullPath: '/live-trading'
-      preLoaderRoute: typeof LiveTradingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/marketplace': {
-      id: '/marketplace'
-      path: '/marketplace'
-      fullPath: '/marketplace'
-      preLoaderRoute: typeof MarketplaceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/payment-callback': {
-      id: '/payment-callback'
-      path: '/payment-callback'
-      fullPath: '/payment-callback'
-      preLoaderRoute: typeof PaymentCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/performance': {
-      id: '/performance'
-      path: '/performance'
-      fullPath: '/performance'
-      preLoaderRoute: typeof PerformanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/portal': {
-      id: '/portal'
-      path: '/portal'
-      fullPath: '/portal'
-      preLoaderRoute: typeof PortalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/portfolio': {
-      id: '/portfolio'
-      path: '/portfolio'
-      fullPath: '/portfolio'
-      preLoaderRoute: typeof PortfolioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy-policy': {
-      id: '/privacy-policy'
-      path: '/privacy-policy'
-      fullPath: '/privacy-policy'
-      preLoaderRoute: typeof PrivacyPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prop-firm': {
-      id: '/prop-firm'
-      path: '/prop-firm'
-      fullPath: '/prop-firm'
-      preLoaderRoute: typeof PropFirmRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/research': {
-      id: '/research'
-      path: '/research'
-      fullPath: '/research'
-      preLoaderRoute: typeof ResearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/risk': {
-      id: '/risk'
-      path: '/risk'
-      fullPath: '/risk'
-      preLoaderRoute: typeof RiskRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/security-policy': {
-      id: '/security-policy'
-      path: '/security-policy'
-      fullPath: '/security-policy'
-      preLoaderRoute: typeof SecurityPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/store': {
-      id: '/store'
-      path: '/store'
-      fullPath: '/store'
-      preLoaderRoute: typeof StoreRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/strategies': {
-      id: '/strategies'
-      path: '/strategies'
-      fullPath: '/strategies'
-      preLoaderRoute: typeof StrategiesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/support': {
-      id: '/support'
-      path: '/support'
-      fullPath: '/support'
-      preLoaderRoute: typeof SupportRouteImport
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/technology': {
@@ -829,26 +617,271 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TechnologyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
+    '/systems': {
+      id: '/systems'
+      path: '/systems'
+      fullPath: '/systems'
+      preLoaderRoute: typeof SystemsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/finance_/$slug': {
-      id: '/finance_/$slug'
-      path: '/finance/$slug'
-      fullPath: '/finance/$slug'
-      preLoaderRoute: typeof FinanceSlugRouteImport
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/finance_/ke/$slug': {
-      id: '/finance_/ke/$slug'
-      path: '/finance/ke/$slug'
-      fullPath: '/finance/ke/$slug'
-      preLoaderRoute: typeof FinanceKeSlugRouteImport
+    '/strategies': {
+      id: '/strategies'
+      path: '/strategies'
+      fullPath: '/strategies'
+      preLoaderRoute: typeof StrategiesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/store': {
+      id: '/store'
+      path: '/store'
+      fullPath: '/store'
+      preLoaderRoute: typeof StoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security-policy': {
+      id: '/security-policy'
+      path: '/security-policy'
+      fullPath: '/security-policy'
+      preLoaderRoute: typeof SecurityPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/risk': {
+      id: '/risk'
+      path: '/risk'
+      fullPath: '/risk'
+      preLoaderRoute: typeof RiskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research': {
+      id: '/research'
+      path: '/research'
+      fullPath: '/research'
+      preLoaderRoute: typeof ResearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prop-firm': {
+      id: '/prop-firm'
+      path: '/prop-firm'
+      fullPath: '/prop-firm'
+      preLoaderRoute: typeof PropFirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/performance': {
+      id: '/performance'
+      path: '/performance'
+      fullPath: '/performance'
+      preLoaderRoute: typeof PerformanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-callback': {
+      id: '/payment-callback'
+      path: '/payment-callback'
+      fullPath: '/payment-callback'
+      preLoaderRoute: typeof PaymentCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketplace': {
+      id: '/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live-trading': {
+      id: '/live-trading'
+      path: '/live-trading'
+      fullPath: '/live-trading'
+      preLoaderRoute: typeof LiveTradingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/investor': {
+      id: '/investor'
+      path: '/investor'
+      fullPath: '/investor'
+      preLoaderRoute: typeof InvestorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/institutional': {
+      id: '/institutional'
+      path: '/institutional'
+      fullPath: '/institutional'
+      preLoaderRoute: typeof InstitutionalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/infrastructure': {
+      id: '/infrastructure'
+      path: '/infrastructure'
+      fullPath: '/infrastructure'
+      preLoaderRoute: typeof InfrastructureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financial-disclaimer': {
+      id: '/financial-disclaimer'
+      path: '/financial-disclaimer'
+      fullPath: '/financial-disclaimer'
+      preLoaderRoute: typeof FinancialDisclaimerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance': {
+      id: '/finance'
+      path: '/finance'
+      fullPath: '/finance'
+      preLoaderRoute: typeof FinanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/disclaimers': {
+      id: '/disclaimers'
+      path: '/disclaimers'
+      fullPath: '/disclaimers'
+      preLoaderRoute: typeof DisclaimersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/copy-trading': {
+      id: '/copy-trading'
+      path: '/copy-trading'
+      fullPath: '/copy-trading'
+      preLoaderRoute: typeof CopyTradingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consultation': {
+      id: '/consultation'
+      path: '/consultation'
+      fullPath: '/consultation'
+      preLoaderRoute: typeof ConsultationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/book': {
+      id: '/book'
+      path: '/book'
+      fullPath: '/book'
+      preLoaderRoute: typeof BookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/backtesting': {
+      id: '/backtesting'
+      path: '/backtesting'
+      fullPath: '/backtesting'
+      preLoaderRoute: typeof BacktestingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alpha-portfolio': {
+      id: '/alpha-portfolio'
+      path: '/alpha-portfolio'
+      fullPath: '/alpha-portfolio'
+      preLoaderRoute: typeof AlphaPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alpha-factory': {
+      id: '/alpha-factory'
+      path: '/alpha-factory'
+      fullPath: '/alpha-factory'
+      preLoaderRoute: typeof AlphaFactoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-center': {
+      id: '/ai-center'
+      path: '/ai-center'
+      fullPath: '/ai-center'
+      preLoaderRoute: typeof AiCenterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/academy': {
+      id: '/academy'
+      path: '/academy'
+      fullPath: '/academy'
+      preLoaderRoute: typeof AcademyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/strategies/$slug': {
+      id: '/strategies/$slug'
+      path: '/$slug'
+      fullPath: '/strategies/$slug'
+      preLoaderRoute: typeof StrategiesSlugRouteImport
+      parentRoute: typeof StrategiesRoute
     }
     '/store_/$slug': {
       id: '/store_/$slug'
@@ -864,12 +897,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResearchSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/strategies/$slug': {
-      id: '/strategies/$slug'
-      path: '/$slug'
-      fullPath: '/strategies/$slug'
-      preLoaderRoute: typeof StrategiesSlugRouteImport
-      parentRoute: typeof StrategiesRoute
+    '/finance_/$slug': {
+      id: '/finance_/$slug'
+      path: '/finance/$slug'
+      fullPath: '/finance/$slug'
+      preLoaderRoute: typeof FinanceSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance_/ke/$slug': {
+      id: '/finance_/ke/$slug'
+      path: '/finance/ke/$slug'
+      fullPath: '/finance/ke/$slug'
+      preLoaderRoute: typeof FinanceKeSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -905,6 +945,7 @@ const rootRouteChildren: RootRouteChildren = {
   FinanceRoute: FinanceRoute,
   FinancialDisclaimerRoute: FinancialDisclaimerRoute,
   InfrastructureRoute: InfrastructureRoute,
+  InsightsRoute: InsightsRoute,
   InstitutionalRoute: InstitutionalRoute,
   InvestorRoute: InvestorRoute,
   LegalRoute: LegalRoute,
@@ -922,13 +963,24 @@ const rootRouteChildren: RootRouteChildren = {
   StoreRoute: StoreRoute,
   StrategiesRoute: StrategiesRouteWithChildren,
   SupportRoute: SupportRoute,
+  SystemsRoute: SystemsRoute,
   TechnologyRoute: TechnologyRoute,
   TermsRoute: TermsRoute,
   FinanceSlugRoute: FinanceSlugRoute,
-  FinanceKeSlugRoute: FinanceKeSlugRoute,
   ResearchSlugRoute: ResearchSlugRoute,
   StoreSlugRoute: StoreSlugRoute,
+  FinanceKeSlugRoute: FinanceKeSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

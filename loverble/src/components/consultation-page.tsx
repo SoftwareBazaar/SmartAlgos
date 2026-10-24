@@ -6,8 +6,12 @@ import { SectionCard } from "@/components/page-shell";
 import { consultationServices, company, strategyDeskHost } from "@/lib/mock-data";
 import { formatUsd, PRICING } from "@/lib/pricing";
 
-export function ConsultationPageContent() {
-  const [topic, setTopic] = useState("");
+export function ConsultationPageContent({
+  initialTrack,
+}: {
+  initialTrack?: "systems" | "quant";
+}) {
+  const [topic, setTopic] = useState(initialTrack ?? "");
   const launchPrice = formatUsd(PRICING.consultation);
   const regularPrice = formatUsd(PRICING.consultationRegular);
 

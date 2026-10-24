@@ -12,7 +12,7 @@ export function DonateButton({ compact = false, footer = false }: { compact?: bo
       }
     >
       {!footer && <Heart className="h-3.5 w-3.5" />}
-      {footer ? "Support research" : compact ? "Donate" : "Support Research"}
+      {footer ? "Support research" : compact ? "Support" : "Support research"}
     </Link>
   );
 }

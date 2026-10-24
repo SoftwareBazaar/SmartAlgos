@@ -107,7 +107,7 @@ export function DonationForm({ initialUsd }: { initialUsd?: number }) {
         productType="research_donation"
         productId="research_donation"
         amountUsd={resolvedUsd}
-        label={`Support with ${formatKes(resolvedKes)}`}
+        label={`Support research · ${formatKes(resolvedKes)}`}
       />
     </div>
   );

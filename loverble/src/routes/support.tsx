@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, Copy, Heart } from "lucide-react";
+import { Check, Copy, Flame } from "lucide-react";
 import { toast } from "sonner";
 import { DonationForm } from "@/components/donation-form";
 import { BrandLogo } from "@/components/brand-logo";
@@ -14,13 +14,16 @@ export const Route = createFileRoute("/support")({
   },
   head: () => ({
     meta: [
-      { title: "Support Research — Smart Algos Capital" },
+      { title: "Support Research — Smart Algos & Financial Systems" },
       {
         name: "description",
         content:
-          "Support independent quantitative research. Choose an amount in Kenyan Shillings or US Dollars. Paystack checkout in KES.",
+          "Support independent quantitative research. Choose an amount in Kenyan Shillings or US Dollars. Secure Paystack checkout in KES.",
       },
+      { property: "og:title", content: "Support Research — Smart Algos" },
+      { property: "og:url", content: "https://www.smartalgosts.com/support" },
     ],
+    links: [{ rel: "canonical", href: "https://www.smartalgosts.com/support" }],
   }),
   component: SupportPage,
 });
@@ -53,12 +56,12 @@ function SupportPage() {
 
         <div className="rounded-2xl border border-gold/30 bg-secondary-surface p-6 md:p-8">
           <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-gold mb-3">
-            <Heart className="h-3.5 w-3.5" /> Support research
+            <Flame className="h-3.5 w-3.5" /> Support research
           </div>
-          <h1 className="font-display text-3xl md:text-4xl font-semibold">Fund the next notebook</h1>
+          <h1 className="font-display text-3xl md:text-4xl font-semibold">Keep the candle lit</h1>
           <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-            Share this page with anyone. They choose the amount in Kenyan Shillings or US Dollars. Checkout is charged
-            in KSh via Paystack.
+            Independent notebooks, systems references, and Decision Math notes stay public when people chip in. Choose
+            an amount in Kenyan Shillings or US Dollars — checkout is charged in KSh via Paystack.
           </p>
 
           <div className="mt-8">
@@ -77,7 +80,7 @@ function SupportPage() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          This is a voluntary contribution, not an investment.{" "}
+          This is a voluntary contribution to support research — not an investment.{" "}
           <Link to="/disclaimers" className="text-gold hover:underline">
             Disclaimers
           </Link>

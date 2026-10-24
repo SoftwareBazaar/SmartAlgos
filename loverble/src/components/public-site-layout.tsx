@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { SupportResearchFab } from "@/components/support-research-fab";
 import { cn } from "@/lib/utils";
 
 export function PublicSiteLayout({
@@ -28,6 +29,7 @@ export function PublicSiteLayout({
       <SiteHeader />
       <main className={cn("flex-1", !bare && "pt-20 pb-16")}>{children}</main>
       <SiteFooter />
+      <SupportResearchFab />
     </div>
   );
 }

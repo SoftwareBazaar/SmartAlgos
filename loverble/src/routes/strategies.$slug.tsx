@@ -182,18 +182,18 @@ function StrategyDetail() {
       )}
 
       {strategy.status === "Live" && !liveUnlocked && (
-        <SectionCard title="Access" subtitle="After a Strategy Desk review">
+        <SectionCard title="Access" subtitle="After a desk review">
           <div className="flex items-start gap-3 rounded-sm border border-gold/30 bg-gold/5 p-4">
             <Lock className="h-5 w-5 text-gold shrink-0 mt-0.5" />
             <div className="flex-1 space-y-3">
               <p className="text-sm text-muted-foreground">
-                We are not selling a live signal feed yet. Book a Strategy Desk session if you want a review or licensed file.
+                We are not selling a live signal feed yet. Book a desk session if you want a review or licensed file.
               </p>
               <Link
                 to="/consultation"
                 className="inline-flex items-center justify-center min-h-12 px-5 rounded-lg bg-gold text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft"
               >
-                Book a Strategy Desk session
+                Book a desk session
               </Link>
             </div>
           </div>
@@ -219,7 +219,7 @@ function StrategyDetail() {
           to="/consultation"
           className="rounded-sm bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition"
         >
-          Book Strategy Desk
+          Book a desk
         </Link>
       </div>
     </PageShell>

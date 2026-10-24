@@ -4,7 +4,7 @@ export const PRIMARY_NAV = [
   { label: "Decision Math", to: "/finance" },
   { label: "Store", to: "/store" },
   { label: "About", to: "/about" },
-  { label: "Strategy Desk", to: "/consultation" },
+  { label: "Book a desk", to: "/consultation" },
 ] as const;
 
 export const MOBILE_NAV = [
@@ -14,7 +14,7 @@ export const MOBILE_NAV = [
   { label: "Research Notes", to: "/research" },
   { label: "Excel Store", to: "/store" },
   { label: "About", to: "/about" },
-  { label: "Strategy Desk", to: "/consultation" },
+  { label: "Book a desk", to: "/consultation" },
   { label: "Client Portal", to: "/portal" },
   { label: "Support research", to: "/support" },
 ] as const;

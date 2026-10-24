@@ -29,8 +29,8 @@ export function AdvisoryDeskSection() {
           <MotionItem>
             <div className="grid lg:grid-cols-2 gap-6 items-stretch">
               <GlowCard accent className="p-8 flex flex-col cursor-default">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-gold mb-2">Strategy Desk</div>
-                <h2 className="font-display text-section-title text-2xl md:text-3xl">Book a Strategy Desk session</h2>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-gold mb-2">Book a desk</div>
+                <h2 className="font-display text-section-title text-2xl md:text-3xl">Book a desk session</h2>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
                   Free 20-minute intro. Optional 90-minute deep-dive. Educational research discussion — not investment
                   advice and not money management.
@@ -57,7 +57,7 @@ export function AdvisoryDeskSection() {
                   </div>
                   <AdvisoryBookingForm />
                   <Link to="/consultation" className="mt-4 inline-block text-xs text-gold hover:underline cursor-pointer">
-                    Full Strategy Desk page →
+                    Full Book a desk page →
                   </Link>
                 </div>
               </GlowCard>

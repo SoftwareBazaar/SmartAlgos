@@ -87,7 +87,7 @@ export function PremiumPricingShowcase() {
           >
             <Sparkles className="h-3 w-3" /> Premium access
           </motion.div>
-          <h2 className="font-display text-4xl font-semibold">Subscribe to depth</h2>
+          <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">Subscribe to depth</h2>
           <p className="mt-3 text-muted-foreground">
             Static research vs live execution vs API access. Live access opens after a desk review — we are not selling
             files or signal feeds that do not exist yet.

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ConsultationPageContent } from "@/components/consultation-page";
 
 const SHARE_URL = "https://www.smartalgosts.com/consultation";
-const SHARE_TITLE = "Book a Strategy Desk Session — Smart Algos Capital";
+const SHARE_TITLE = "Book a desk — Smart Algos & Financial Systems";
 const SHARE_DESC =
   "Free 20-minute intro or optional 90-minute deep-dive. Daily 7–9 PM EAT. Educational research discussion — not investment advice.";
 

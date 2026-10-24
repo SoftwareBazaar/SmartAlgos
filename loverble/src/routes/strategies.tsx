@@ -9,6 +9,11 @@ import {
 import { hasDirectVerificationLink } from "@/lib/strategy-links";
 import { SPY_PSAR_SLUG } from "@/lib/spy-psar-strategy";
 import { Activity, Download, ExternalLink } from "lucide-react";
+import { PremiumPricingShowcase } from "@/components/premium/premium-pricing";
+import { BacktestEngineSection } from "@/components/backtest-engine-section";
+import { CustomQuantSection } from "@/components/custom-quant-section";
+import { CapitalDeskSection } from "@/components/capital-desk-section";
+import { AdvisoryDeskSection } from "@/components/premium/advisory-desk";
 
 export const Route = createFileRoute("/strategies")({
   head: () => ({
@@ -27,7 +32,9 @@ export const Route = createFileRoute("/strategies")({
 const sections = [
   { id: "catalog", label: "Catalog" },
   { id: "pipeline", label: "Pipeline" },
-  { id: "platforms", label: "Platforms" },
+  { id: "pricing", label: "Subscriptions" },
+  { id: "sandbox", label: "Backtest sandbox" },
+  { id: "custom-quant", label: "Hire a quant" },
   { id: "updates", label: "Changelog" },
 ] as const;
 
@@ -68,10 +75,11 @@ function StrategiesPage() {
   const lastUpdated = strategyUpdates[0]?.date ?? "—";
 
   return (
+    <>
     <PageShell
       eyebrow="Quant lab"
       title="Quant strategies"
-      description="Systematic models we research and deploy. Public QuantConnect verification links appear in the catalog when listings are published — until then, Deployed does not mean independently verified."
+      description="Systematic models we research and deploy — plus subscriptions, the backtest sandbox, and custom quant engineering. Public QuantConnect verification links appear when listings are published."
     >
       <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground border-b border-border pb-4">
         <span>
@@ -417,5 +425,14 @@ function StrategiesPage() {
         </Link>
       </div>
     </PageShell>
+
+      <div id="sandbox" className="scroll-mt-24">
+        <BacktestEngineSection />
+      </div>
+      <PremiumPricingShowcase />
+      <CustomQuantSection />
+      <CapitalDeskSection />
+      <AdvisoryDeskSection />
+    </>
   );
 }

@@ -86,15 +86,15 @@ function StorePage() {
   const { addItem } = useStoreCart();
 
   return (
-    <div className="mx-auto w-full max-w-[1200px] px-6 pt-20 md:pt-24 pb-16 space-y-16">
+    <div className="mx-auto w-full max-w-[1100px] px-6 pt-20 md:pt-24 pb-16 space-y-14">
       {/* Hero */}
       <header className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center">
-        <div className="space-y-5">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-gold">Smart Algo STS · Store</p>
-          <h1 className="font-display text-4xl md:text-5xl font-semibold leading-[1.1] max-w-[18ch]">
+        <div className="space-y-4">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-gold">Smart Algo STS · Store</p>
+          <h1 className="font-display text-[1.75rem] md:text-[2.15rem] font-semibold leading-[1.2] tracking-tight max-w-[20ch]">
             Transparent Excel models you can audit cell by cell
           </h1>
-          <p className="text-base text-foreground/85 leading-relaxed max-w-[58ch]">
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-[52ch]">
             Portfolio risk, options Greeks, yield curves, and multi-factor selection — no VBA
             macros, so files open cleanly on Windows and Mac. Built for analysts, CFA candidates,
             and serious retail quants.
@@ -154,7 +154,7 @@ function StorePage() {
           <div className="space-y-4">
             <div>
               <p className="text-[10px] uppercase tracking-[0.18em] text-gold">Best value</p>
-              <h2 className="font-display text-2xl md:text-3xl font-semibold mt-1">
+              <h2 className="font-display text-xl md:text-2xl font-semibold mt-1 tracking-tight">
                 What’s in the Master Bundle
               </h2>
               <p className="text-sm text-muted-foreground mt-2 max-w-[60ch] leading-relaxed">
@@ -171,7 +171,7 @@ function StorePage() {
             </ul>
             <div className="flex flex-wrap items-end gap-4 pt-2">
               <div>
-                <p className="font-display text-4xl font-semibold text-gold leading-none">
+                <p className="font-display text-2xl md:text-3xl font-semibold text-gold leading-none tabular-nums">
                   {formatUsd(bundle.priceUsd)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -207,7 +207,7 @@ function StorePage() {
 
       {/* Modules */}
       <section className="space-y-5">
-        <h2 className="font-display text-2xl font-semibold">Individual modules</h2>
+        <h2 className="font-display text-xl md:text-2xl font-semibold tracking-tight">Individual modules</h2>
         <div className="grid sm:grid-cols-2 gap-5">
           {modules.map((mod) => {
             const upgrade = bundle.priceUsd - mod.priceUsd;
@@ -228,7 +228,7 @@ function StorePage() {
                       {mod.sheetCount} sheets · {mod.chartCount} charts · {mod.approxSizeMb}
                     </span>
                   </div>
-                  <h3 className="font-display text-lg font-semibold leading-snug">
+                  <h3 className="font-display text-base font-semibold leading-snug">
                     <Link
                       to="/store/$slug"
                       params={{ slug: mod.slug }}
@@ -247,7 +247,7 @@ function StorePage() {
                     ))}
                   </ul>
                   <div className="mt-auto flex flex-wrap items-center gap-3 pt-3">
-                    <p className="font-display text-2xl font-semibold text-gold">
+                    <p className="font-display text-xl font-semibold text-gold tabular-nums">
                       {formatUsd(mod.priceUsd)}
                     </p>
                     <button
@@ -278,7 +278,7 @@ function StorePage() {
 
       {/* How it works */}
       <section className="space-y-4">
-        <h2 className="font-display text-2xl font-semibold">How delivery works</h2>
+        <h2 className="font-display text-xl md:text-2xl font-semibold tracking-tight">How delivery works</h2>
         <ol className="grid md:grid-cols-3 gap-4">
           {[
             {
@@ -301,7 +301,7 @@ function StorePage() {
               key={s.n}
               className="rounded-lg border border-border/60 bg-card/20 p-4 space-y-2"
             >
-              <p className="text-gold font-display text-2xl font-semibold">{s.n}</p>
+              <p className="text-gold font-mono text-sm font-semibold tracking-wider">{s.n}</p>
               <p className="font-semibold text-foreground">{s.t}</p>
               <p className="text-sm text-muted-foreground leading-relaxed">{s.d}</p>
             </li>
@@ -317,7 +317,7 @@ function StorePage() {
       {/* Built by */}
       <section className="rounded-xl border border-border/60 bg-card/20 p-5 md:p-6 space-y-2 max-w-3xl">
         <p className="text-[10px] uppercase tracking-[0.18em] text-gold">Built by</p>
-        <h2 className="font-display text-xl font-semibold">Smart Algo STS quant desk</h2>
+        <h2 className="font-display text-lg font-semibold tracking-tight">Smart Algo STS quant desk</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Models are maintained by Smart Algos Investment Solution Ltd (Kenya) — the same team
           behind our Decision Math notes and systematic research. See live strategy verification
@@ -331,7 +331,7 @@ function StorePage() {
 
       {/* FAQ */}
       <section className="space-y-4">
-        <h2 className="font-display text-2xl font-semibold">FAQ</h2>
+        <h2 className="font-display text-xl md:text-2xl font-semibold tracking-tight">FAQ</h2>
         <div className="space-y-2">
           {STORE_FAQ.map((item) => (
             <details

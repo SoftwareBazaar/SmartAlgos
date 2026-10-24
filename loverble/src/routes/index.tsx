@@ -120,9 +120,9 @@ function Landing() {
 
                 <div className="mt-6 grid gap-2.5">
                   {[
-                    { icon: BookOpen, label: "Core banking & SACCO ledgers" },
-                    { icon: Wallet, label: "Payments, M-Pesa & open banking" },
-                    { icon: Shield, label: "AML/KYC risk & compliance modules" },
+                    { icon: BookOpen, label: "SpreadShield · deposit retention" },
+                    { icon: Wallet, label: "ReconGuard · payment switch recon" },
+                    { icon: Shield, label: "GuarantorGraph · SACCO credit risk" },
                   ].map((row) => (
                     <div
                       key={row.label}

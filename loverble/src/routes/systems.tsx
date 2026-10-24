@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BookOpen, Globe2, Shield, Wallet } from "lucide-react";
 import { company } from "@/lib/mock-data";
+import { SYSTEMS_ENGINES } from "@/lib/systems-engines";
 
 export const Route = createFileRoute("/systems")({
   head: () => ({
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/systems")({
       {
         name: "description",
         content:
-          "Cloud-native core banking and SACCO software concepts: ledgers, payments, open banking, and compliance frameworks. Operated by Smart Algos Investment Solution Ltd (Kenya).",
+          "Core banking and SACCO software concepts plus reference engines: SpreadShield, ReconGuard, and GuarantorGraph. Operated by Smart Algos Investment Solution Ltd (Kenya).",
       },
     ],
   }),
@@ -58,25 +59,78 @@ const deployments = [
 function SystemsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="mx-auto max-w-[780px] px-6 pt-20 pb-4 text-center">
-        <p className="font-mono text-[10px] tracking-[0.12em] text-gold">FINANCIAL SYSTEMS</p>
-        <h1 className="mt-3 font-display text-3xl md:text-5xl font-semibold text-gold-deep leading-tight">
+      <header className="mx-auto max-w-[720px] px-6 pt-20 pb-4">
+        <p className="font-mono text-[10px] tracking-[0.14em] text-gold">FINANCIAL SYSTEMS</p>
+        <h1 className="mt-3 font-display text-[1.85rem] md:text-[2.35rem] font-semibold tracking-tight leading-snug text-foreground">
           Cloud-native core banking &amp; SACCO software.
         </h1>
-        <p className="mt-4 text-sm md:text-base text-muted-foreground leading-relaxed">
-          Modular financial technology for banks, SACCOs, microfinance institutions, and digital finance teams—with
-          regional integrations scoped to each deployment.
+        <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-[54ch]">
+          Modular financial technology for banks, SACCOs, microfinance institutions, and digital finance teams — with
+          reference engines you can inspect before scoping a production build.
         </p>
       </header>
 
-      <section className="py-16">
+      {/* Integrated financial models */}
+      <section id="engines" className="py-14 scroll-mt-24">
+        <div className="mx-auto max-w-[1160px] px-6">
+          <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <p className="font-mono text-[10px] tracking-[0.14em] text-gold">REFERENCE ENGINES</p>
+              <h2 className="mt-2 font-display text-xl md:text-2xl font-semibold tracking-tight">
+                Financial models in the lab.
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground max-w-xl leading-relaxed">
+                SpreadShield, ReconGuard, and GuarantorGraph — Python reference packs for deposit retention, payment
+                switch reconciliation, and guarantor risk. Educational architecture previews, not production licences.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {SYSTEMS_ENGINES.map((engine, i) => (
+              <Link
+                key={engine.slug}
+                to="/systems/$slug"
+                params={{ slug: engine.slug }}
+                className="group flex flex-col rounded-2xl border border-border/80 bg-[#0d121c] p-6 hover:border-gold/45 transition outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-[9px] tracking-[0.14em] text-gold">{engine.category}</span>
+                  <span className="font-mono text-[9px] text-muted-foreground">0{i + 1}</span>
+                </div>
+                <h3 className="mt-4 font-display text-lg font-semibold tracking-tight group-hover:text-gold transition-colors">
+                  {engine.name}{" "}
+                  <span className="text-muted-foreground font-normal text-sm">{engine.version}</span>
+                </h3>
+                <p className="mt-1 text-xs text-gold/80">{engine.codename}</p>
+                <p className="mt-3 flex-1 text-sm text-muted-foreground leading-relaxed">{engine.summary}</p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {engine.stack.slice(0, 3).map((s) => (
+                    <span
+                      key={s}
+                      className="rounded border border-border/60 px-2 py-0.5 text-[10px] text-muted-foreground"
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+                <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold">
+                  View &amp; download <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 border-t border-border/40">
         <div className="mx-auto max-w-[1160px] px-6 grid md:grid-cols-3 gap-4">
           {features.map((f) => (
-            <article key={f.title} className="surface-card rounded-[var(--radius)] p-6">
-              <span className="inline-grid h-10 w-10 place-items-center rounded-[var(--radius)] border border-border bg-card text-gold">
+            <article key={f.title} className="rounded-xl border border-border/70 bg-card/25 p-6">
+              <span className="inline-grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-gold">
                 <f.icon className="h-5 w-5" />
               </span>
-              <h3 className="mt-5 font-display text-lg font-semibold">{f.title}</h3>
+              <h3 className="mt-5 text-base font-semibold tracking-tight">{f.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.description}</p>
               <span className="mt-5 inline-block font-mono text-[9px] tracking-wider text-muted-foreground">
                 {f.meta}
@@ -86,39 +140,38 @@ function SystemsPage() {
         </div>
       </section>
 
-      <section className="section-muted py-16">
+      <section className="section-muted py-14">
         <div className="mx-auto max-w-[1160px] px-6">
           <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <p className="font-mono text-[10px] tracking-[0.12em] text-gold">ILLUSTRATIVE DEPLOYMENT PATTERNS</p>
-              <h2 className="mt-2 font-display text-2xl md:text-3xl font-semibold">Designed around the institution.</h2>
+              <p className="font-mono text-[10px] tracking-[0.14em] text-gold">ILLUSTRATIVE DEPLOYMENT PATTERNS</p>
+              <h2 className="mt-2 font-display text-xl md:text-2xl font-semibold tracking-tight">
+                Designed around the institution.
+              </h2>
             </div>
             <p className="max-w-sm text-xs text-muted-foreground leading-relaxed">
-              These are example architecture paths, not customer case studies or claims of deployed production systems.
+              Example architecture paths — not customer case studies or claims of deployed production systems.
             </p>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             {deployments.map((d) => (
-              <article key={d.title} className="surface-card rounded-[var(--radius)] p-6">
-                <span className="inline-grid h-10 w-10 place-items-center rounded-[var(--radius)] border border-border bg-card text-gold">
+              <article key={d.title} className="rounded-xl border border-border/70 bg-card/25 p-6">
+                <span className="inline-grid h-10 w-10 place-items-center rounded-lg border border-border bg-card text-gold">
                   <d.icon className="h-5 w-5" />
                 </span>
-                <h3 className="mt-5 font-display text-lg font-semibold">{d.title}</h3>
+                <h3 className="mt-5 text-base font-semibold tracking-tight">{d.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{d.description}</p>
-                <span className="mt-5 inline-block font-mono text-[9px] tracking-wider text-muted-foreground">
-                  EXAMPLE ARCHITECTURE
-                </span>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="section-muted py-16">
+      <section className="section-muted py-14">
         <div className="mx-auto max-w-[1160px] px-6 grid lg:grid-cols-2 gap-10 items-center">
           <div>
-            <p className="font-mono text-[10px] tracking-[0.12em] text-gold">DESIGNED TO SCALE</p>
-            <h2 className="mt-2 font-display text-2xl md:text-3xl font-semibold">
+            <p className="font-mono text-[10px] tracking-[0.14em] text-gold">DESIGNED TO SCALE</p>
+            <h2 className="mt-2 font-display text-xl md:text-2xl font-semibold tracking-tight">
               Start with the institution, not the stack.
             </h2>
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-md">
@@ -128,18 +181,15 @@ function SystemsPage() {
             <Link
               to="/consultation"
               search={{ track: "systems" }}
-              className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-[var(--radius)] bg-gold px-5 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition"
+              className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg bg-gold px-5 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition"
             >
               Discuss your architecture <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div
-            className="rounded-[var(--radius)] border border-border bg-black/45 p-5 space-y-0"
-            aria-label="Illustrative modular systems diagram"
-          >
+          <div className="rounded-xl border border-border bg-black/45 p-5" aria-label="Illustrative modular systems diagram">
             {["Member & account services", "Ledger & operations", "Payments & reporting"].map((label, i) => (
               <div key={label}>
-                <div className="flex items-center gap-4 rounded-[var(--radius)] border border-border bg-card px-4 py-3.5">
+                <div className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3.5">
                   <span className="font-mono text-[10px] text-gold">0{i + 1}</span>
                   <b className="text-xs font-semibold">{label}</b>
                 </div>
@@ -153,20 +203,22 @@ function SystemsPage() {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-14">
         <div className="mx-auto max-w-[1160px] px-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-[var(--radius)] border border-border surface-card p-7">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-2xl border border-border/80 bg-[#111827]/50 p-7">
             <div>
-              <p className="font-mono text-[10px] tracking-[0.12em] text-gold">B2B ARCHITECTURE REVIEW</p>
-              <h2 className="mt-2 font-display text-xl md:text-2xl font-semibold">Bring your requirements to the table.</h2>
+              <p className="font-mono text-[10px] tracking-[0.14em] text-gold">B2B ARCHITECTURE REVIEW</p>
+              <h2 className="mt-2 text-lg md:text-xl font-semibold tracking-tight">
+                Bring your requirements to the table.
+              </h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Use a desk session to discuss systems, integrations, and a practical path forward.
+                Use a desk session to discuss engines, integrations, and a practical path forward.
               </p>
             </div>
             <Link
               to="/consultation"
               search={{ track: "systems" }}
-              className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-[var(--radius)] bg-gold px-5 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition"
+              className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg bg-gold px-5 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition"
             >
               Book a desk review <ArrowRight className="h-4 w-4" />
             </Link>

@@ -11,7 +11,7 @@ export const Route = createFileRoute("/systems")({
       {
         name: "description",
         content:
-          "Core banking and SACCO software concepts plus reference engines: SpreadShield, ReconGuard, and GuarantorGraph. Operated by Smart Algos Investment Solution Ltd (Kenya).",
+          "Core banking and SACCO software concepts plus architecture previews: SpreadShield, ReconGuard, and GuarantorGraph. Operated by Smart Algos Investment Solution Ltd (Kenya).",
       },
     ],
   }),
@@ -76,14 +76,14 @@ function SystemsPage() {
               </h1>
               <p className="mt-4 text-sm md:text-[15px] text-muted-foreground leading-relaxed max-w-[48ch]">
                 Modular technology for banks, SACCOs, and digital finance teams — ledgers, payments, and risk — with
-                reference engines you can review before a production scope.
+                architecture previews you can review before a production scope.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <a
                   href="#engines"
                   className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-gold px-5 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition"
                 >
-                  Browse reference engines <ArrowRight className="h-3.5 w-3.5" />
+                  Browse architecture previews <ArrowRight className="h-3.5 w-3.5" />
                 </a>
                 <Link
                   to="/consultation"
@@ -140,8 +140,9 @@ function SystemsPage() {
                 Financial models in the lab.
               </h2>
               <p className="mt-2 text-sm text-muted-foreground max-w-xl leading-relaxed">
-                SpreadShield, ReconGuard, and GuarantorGraph — Python reference packs for deposit retention, payment
-                switch reconciliation, and guarantor risk. Educational architecture previews, not production licences.
+                SpreadShield, ReconGuard, and GuarantorGraph — architecture previews for deposit retention, payment
+                switch reconciliation, and guarantor risk. Watch demos and request a scoped discussion — packs are not
+                public downloads.
               </p>
             </div>
           </div>
@@ -175,10 +176,10 @@ function SystemsPage() {
                   ))}
                 </div>
                 <p className="mt-3 text-[11px] text-muted-foreground">
-                  {engine.files.length} downloadable file{engine.files.length === 1 ? "" : "s"} · problem, flow, I/O
+                  Preview · problem, flow, I/O · request details
                 </p>
                 <span className="mt-4 inline-flex items-center justify-center gap-2 min-h-10 rounded-lg border border-gold/40 bg-gold/10 px-3 text-xs font-semibold uppercase tracking-wider text-gold group-hover:bg-gold group-hover:text-primary-foreground transition">
-                  Open details &amp; download <ArrowRight className="h-3.5 w-3.5" />
+                  Open preview <ArrowRight className="h-3.5 w-3.5" />
                 </span>
               </Link>
             ))}

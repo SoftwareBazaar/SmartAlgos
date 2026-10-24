@@ -1,7 +1,6 @@
 export type SystemsEngineFile = {
   filename: string;
   label: string;
-  href: string;
 };
 
 export type SystemsEngine = {
@@ -19,8 +18,11 @@ export type SystemsEngine = {
   outputs: string[];
   capabilities: string[];
   limitations: string[];
-  status: "Reference pack" | "Architecture preview";
+  status: "Architecture preview";
   stack: string[];
+  /** YouTube/Vimeo embed URL when ready — leave empty for placeholder. */
+  demoVideoUrl?: string;
+  /** Deliverables shown as preview labels only (not downloadable). */
   files: SystemsEngineFile[];
 };
 
@@ -68,19 +70,12 @@ export const SYSTEMS_ENGINES: SystemsEngine[] = [
       "Reference pack only — not a production-certified deployment.",
       "Does not connect to your core banking system out of the box.",
     ],
-    status: "Reference pack",
+    status: "Architecture preview",
     stack: ["Python", "NumPy"],
+    demoVideoUrl: undefined,
     files: [
-      {
-        filename: "README.txt",
-        label: "Pack notes",
-        href: "/downloads/systems/spreadshield/README.txt",
-      },
-      {
-        filename: "spreadshield_engine_v2.py",
-        label: "Engine source (Python)",
-        href: "/downloads/systems/spreadshield/spreadshield_engine_v2.py",
-      },
+      { filename: "README.txt", label: "Pack notes" },
+      { filename: "spreadshield_engine_v2.py", label: "Engine source (Python)" },
     ],
   },
   {
@@ -125,19 +120,12 @@ export const SYSTEMS_ENGINES: SystemsEngine[] = [
       "Reference pack only — wire to your actual M-Pesa / card switch adapters.",
       "Security failures alert; they do not lock customer accounts (DoS risk).",
     ],
-    status: "Reference pack",
+    status: "Architecture preview",
     stack: ["Python", "Decimal money"],
+    demoVideoUrl: undefined,
     files: [
-      {
-        filename: "README.txt",
-        label: "Pack notes",
-        href: "/downloads/systems/reconguard/README.txt",
-      },
-      {
-        filename: "reconguard_engine_v2.py",
-        label: "Engine source (Python)",
-        href: "/downloads/systems/reconguard/reconguard_engine_v2.py",
-      },
+      { filename: "README.txt", label: "Pack notes" },
+      { filename: "reconguard_engine_v2.py", label: "Engine source (Python)" },
     ],
   },
   {
@@ -182,34 +170,15 @@ export const SYSTEMS_ENGINES: SystemsEngine[] = [
       "Demo API uses in-memory tenants — hydrate from Postgres in production.",
       "Reference pack only — calibrate Policy() per SACCO, do not treat defaults as universal.",
     ],
-    status: "Reference pack",
+    status: "Architecture preview",
     stack: ["Python", "NetworkX", "FastAPI", "SQL"],
+    demoVideoUrl: undefined,
     files: [
-      {
-        filename: "README.txt",
-        label: "Pack notes",
-        href: "/downloads/systems/guarantorgraph/README.txt",
-      },
-      {
-        filename: "guarantor_engine.py",
-        label: "Engine source (Python)",
-        href: "/downloads/systems/guarantorgraph/guarantor_engine.py",
-      },
-      {
-        filename: "api.py",
-        label: "FastAPI sidecar",
-        href: "/downloads/systems/guarantorgraph/api.py",
-      },
-      {
-        filename: "schema_v2.sql",
-        label: "SQL schema",
-        href: "/downloads/systems/guarantorgraph/schema_v2.sql",
-      },
-      {
-        filename: "test_guarantor_engine.py",
-        label: "Unit tests",
-        href: "/downloads/systems/guarantorgraph/test_guarantor_engine.py",
-      },
+      { filename: "README.txt", label: "Pack notes" },
+      { filename: "guarantor_engine.py", label: "Engine source (Python)" },
+      { filename: "api.py", label: "FastAPI sidecar" },
+      { filename: "schema_v2.sql", label: "SQL schema" },
+      { filename: "test_guarantor_engine.py", label: "Unit tests" },
     ],
   },
 ];

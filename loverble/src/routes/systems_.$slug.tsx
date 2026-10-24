@@ -2,16 +2,16 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
   ArrowLeft,
   ArrowRight,
-  Download,
   FileCode2,
   Layers,
   ListChecks,
+  Play,
   ShieldAlert,
   Workflow,
 } from "lucide-react";
 import { company } from "@/lib/mock-data";
 import { getSystemsEngine, SYSTEMS_ENGINES } from "@/lib/systems-engines";
-import { SystemsDownloadGate } from "@/components/systems/systems-download-gate";
+import { SystemsPreviewCta } from "@/components/systems/systems-preview-cta";
 
 export const Route = createFileRoute("/systems_/$slug")({
   loader: ({ params }) => {
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/systems_/$slug")({
       },
       {
         name: "description",
-        content: loaderData?.engine.summary ?? "Financial systems reference engine.",
+        content: loaderData?.engine.summary ?? "Financial systems architecture preview.",
       },
       {
         property: "og:title",
@@ -59,7 +59,6 @@ function SystemsEnginePage() {
           <ArrowLeft className="h-3.5 w-3.5" /> All financial systems engines
         </Link>
 
-        {/* Hero */}
         <header className="mt-6 grid lg:grid-cols-[1.2fr_0.8fr] gap-8 items-start">
           <div>
             <p className="font-mono text-[10px] tracking-[0.14em] text-gold">{engine.category}</p>
@@ -91,25 +90,26 @@ function SystemsEnginePage() {
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
               <a
-                href="#download"
+                href="#preview"
                 className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-gold px-5 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft transition"
               >
-                <Download className="h-3.5 w-3.5" /> Download reference pack
+                <Play className="h-3.5 w-3.5" /> Watch preview
               </a>
               <Link
                 to="/consultation"
                 search={{ track: "systems" }}
                 className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-5 text-xs font-semibold hover:border-gold/50 hover:text-gold transition"
               >
-                Book architecture review
+                Arrange a meeting
               </Link>
             </div>
           </div>
 
           <aside className="rounded-2xl border border-border/80 bg-[#0d121c] p-5 md:p-6">
-            <p className="font-mono text-[9px] tracking-[0.14em] text-gold">PACK CONTENTS</p>
+            <p className="font-mono text-[9px] tracking-[0.14em] text-gold">SCOPED DELIVERY</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              {engine.files.length} file{engine.files.length === 1 ? "" : "s"} · work email unlock below
+              {engine.files.length} component{engine.files.length === 1 ? "" : "s"} in a licensed build — not for
+              public download
             </p>
             <ul className="mt-4 space-y-2">
               {engine.files.map((f) => (
@@ -128,15 +128,14 @@ function SystemsEnginePage() {
               ))}
             </ul>
             <a
-              href="#download"
+              href="#preview"
               className="mt-4 inline-flex w-full min-h-10 items-center justify-center gap-2 rounded-lg border border-gold/40 text-xs font-semibold uppercase tracking-wider text-gold hover:bg-gold/10 transition"
             >
-              Unlock downloads <ArrowRight className="h-3.5 w-3.5" />
+              Request details <ArrowRight className="h-3.5 w-3.5" />
             </a>
           </aside>
         </header>
 
-        {/* Problem */}
         <section className="mt-12 rounded-2xl border border-border/70 bg-card/20 p-6 md:p-7">
           <div className="flex items-center gap-2 text-gold">
             <ShieldAlert className="h-4 w-4" />
@@ -147,7 +146,6 @@ function SystemsEnginePage() {
           </p>
         </section>
 
-        {/* How it works */}
         <section className="mt-8">
           <div className="flex items-center gap-2 mb-4">
             <Workflow className="h-4 w-4 text-gold" />
@@ -166,7 +164,6 @@ function SystemsEnginePage() {
           </ol>
         </section>
 
-        {/* I/O */}
         <section className="mt-8 grid md:grid-cols-2 gap-4">
           <div className="rounded-2xl border border-border/70 bg-card/20 p-5 md:p-6">
             <div className="flex items-center gap-2 mb-3">
@@ -198,10 +195,9 @@ function SystemsEnginePage() {
           </div>
         </section>
 
-        {/* Capabilities */}
         <section className="mt-8">
           <h2 className="font-display text-lg md:text-xl font-semibold tracking-tight mb-4">
-            Capabilities in this pack
+            Capabilities in a scoped build
           </h2>
           <div className="grid sm:grid-cols-2 gap-3">
             {engine.capabilities.map((c) => (
@@ -216,9 +212,8 @@ function SystemsEnginePage() {
           </div>
         </section>
 
-        {/* Limitations */}
         <section className="mt-8 rounded-2xl border border-border/60 bg-secondary-surface/30 p-5 md:p-6">
-          <p className="font-mono text-[9px] tracking-[0.14em] text-muted-foreground">LIMITATIONS · READ BEFORE USE</p>
+          <p className="font-mono text-[9px] tracking-[0.14em] text-muted-foreground">LIMITATIONS · READ BEFORE ENGAGING</p>
           <ul className="mt-3 space-y-2">
             {engine.limitations.map((l) => (
               <li key={l} className="flex gap-2 text-sm text-muted-foreground leading-relaxed">
@@ -229,9 +224,8 @@ function SystemsEnginePage() {
           </ul>
         </section>
 
-        {/* Download */}
         <section className="mt-10">
-          <SystemsDownloadGate engine={engine} />
+          <SystemsPreviewCta engine={engine} />
         </section>
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -253,7 +247,7 @@ function SystemsEnginePage() {
         {others.length > 0 && (
           <section className="mt-14 border-t border-border/60 pt-8">
             <p className="font-mono text-[9px] tracking-[0.14em] text-muted-foreground mb-4">
-              OTHER REFERENCE ENGINES
+              OTHER ARCHITECTURE PREVIEWS
             </p>
             <div className="grid sm:grid-cols-2 gap-3">
               {others.map((e) => (

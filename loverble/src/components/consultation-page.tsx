@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Building2, Calendar, FlaskConical, ArrowRight } from "lucide-react";
 import { AdvisoryBookingForm } from "@/components/advisory-booking-form";
+import { CinematicSpotlight } from "@/components/premium/cinematic-spotlight";
 import { consultationServices, company, strategyDeskHost } from "@/lib/mock-data";
 import { formatUsd, PRICING } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
@@ -21,16 +22,10 @@ export function ConsultationPageContent({
   };
 
   return (
-    <div className="relative min-h-screen">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        style={{
-          backgroundImage:
-            "radial-gradient(ellipse at 50% 0%, rgb(245 158 11 / 0.1), transparent 50%), radial-gradient(ellipse at 80% 40%, rgb(245 158 11 / 0.04), transparent 40%)",
-        }}
-      />
+    <div className="relative min-h-screen overflow-hidden">
+      <CinematicSpotlight />
 
-      <div className="relative mx-auto max-w-[1160px] px-6 pt-20 pb-16 space-y-12">
+      <div className="relative z-10 mx-auto max-w-[1160px] px-6 pt-20 pb-16 space-y-12">
         <header className="max-w-2xl">
           <p className="font-mono text-[10px] tracking-[0.16em] text-gold">BOOK A DESK</p>
           <h1 className="mt-3 font-display text-[1.85rem] md:text-[2.35rem] font-semibold tracking-tight leading-[1.2]">

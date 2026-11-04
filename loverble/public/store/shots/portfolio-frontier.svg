@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" role="img" aria-label="Portfolio workbook  efficient frontier sheet">
+  <rect width="960" height="600" fill="#0c1220"/>
+  <rect width="960" height="36" fill="#161e2e"/>
+  <circle cx="18" cy="18" r="5" fill="#e57373"/><circle cx="36" cy="18" r="5" fill="#ffd54f"/><circle cx="54" cy="18" r="5" fill="#81c784"/>
+  <text x="74" y="22" fill="#9aa4b2" font-size="13" font-family="Segoe UI, system-ui">Portfolio_Optimization_Monte_Carlo_Risk_Suite.xlsx  Frontier</text>
+  <rect x="0" y="36" width="160" height="564" fill="#0a101a"/>
+  <text x="16" y="64" fill="#c9a227" font-size="11" font-family="Segoe UI, system-ui">SHEETS</text>
+  <text x="16" y="92" fill="#e8edf5" font-size="12" font-family="Segoe UI, system-ui">Inputs</text>
+  <text x="16" y="118" fill="#c9a227" font-size="12" font-family="Segoe UI, system-ui">Frontier</text>
+  <text x="16" y="144" fill="#9aa4b2" font-size="12" font-family="Segoe UI, system-ui">MonteCarlo</text>
+  <text x="16" y="170" fill="#9aa4b2" font-size="12" font-family="Segoe UI, system-ui">CAPM</text>
+  <rect x="176" y="52" width="760" height="40" fill="#121a2b" rx="4"/>
+  <text x="192" y="78" fill="#6ec6ff" font-size="14" font-family="Segoe UI, system-ui">Mean-variance frontier · Max Sharpe marked</text>
+  <rect x="176" y="108" width="520" height="360" fill="#0a101a" stroke="#2a3548"/>
+  <line x1="220" y1="430" x2="660" y2="430" stroke="#2a3548"/>
+  <line x1="220" y1="140" x2="220" y2="430" stroke="#2a3548"/>
+  <polyline fill="none" stroke="#c9a227" stroke-width="2.5" points="240,390 300,320 360,270 420,230 500,200 580,185 640,178"/>
+  <circle cx="500" cy="200" r="7" fill="#6ec6ff"/>
+  <text x="512" y="196" fill="#6ec6ff" font-size="12" font-family="Segoe UI, system-ui">Max Sharpe</text>
+  <text x="400" y="456" fill="#9aa4b2" font-size="11" font-family="Segoe UI, system-ui">Ã (risk) ’</text>
+  <text x="188" y="280" fill="#9aa4b2" font-size="11" font-family="Segoe UI, system-ui" transform="rotate(-90 188 280)">Return</text>
+  <rect x="716" y="108" width="220" height="360" fill="#121a2b" stroke="#2a3548"/>
+  <text x="732" y="136" fill="#c9a227" font-size="12" font-family="Segoe UI, system-ui">Illustrative VaR</text>
+  <rect x="740" y="160" width="40" height="120" fill="#c9a227" opacity="0.75"/>
+  <rect x="792" y="200" width="40" height="80" fill="#3d6ea8" opacity="0.85"/>
+  <rect x="844" y="230" width="40" height="50" fill="#2a3548"/>
+  <text x="732" y="320" fill="#9aa4b2" font-size="11" font-family="Segoe UI, system-ui">95% VaR panel</text>
+  <text x="732" y="344" fill="#e8edf5" font-size="13" font-family="Segoe UI, system-ui">CVaR · NORM.INV</text>
+  <rect x="176" y="492" width="760" height="72" fill="#121a2b" rx="4"/>
+  <text x="192" y="522" fill="#9aa4b2" font-size="12" font-family="Segoe UI, system-ui">Blue inputs · black formulas · green cross-sheet links · no macros</text>
+  <text x="192" y="548" fill="#e8edf5" font-size="13" font-family="Segoe UI, system-ui">Weights · covariance · Sharpe-max portfolio</text>
+</svg>

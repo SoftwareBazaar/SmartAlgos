@@ -10,11 +10,11 @@ function CoinFace({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "grid h-12 w-12 place-items-center rounded-full border-2 border-rose-400/90 bg-gradient-to-br from-rose-300 via-rose-500 to-rose-700 text-white shadow-[0_4px_16px_rgb(244_63_94_/_0.45)]",
+        "grid h-12 w-12 place-items-center rounded-full border-2 border-gold/80 bg-gradient-to-br from-gold via-amber-500 to-amber-700 text-primary-foreground shadow-[0_4px_16px_rgb(245_158_11_/_0.35)]",
         className,
       )}
     >
-      <Heart className="h-5 w-5 fill-white" />
+      <Heart className="h-5 w-5 fill-current" />
     </div>
   );
 }
@@ -100,15 +100,12 @@ export function SupportResearchFab() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Support research"
-        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full border-2 border-red-500 bg-red-600 text-white shadow-[0_12px_40px_rgb(220_38_38_/_0.55)] transition hover:bg-red-500 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+        className="fixed bottom-20 right-4 z-40 md:bottom-5 md:right-5 flex items-center gap-2 rounded-full border border-gold/45 bg-[#0d121c] pl-3 pr-4 py-2.5 text-gold shadow-[0_12px_40px_rgb(0_0_0_/_0.45)] transition hover:border-gold/70 hover:bg-[#121a2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       >
-        {/* Solid red love icon — unmistakable vs previous candle FAB */}
-        <svg viewBox="0 0 24 24" className="h-7 w-7" aria-hidden>
-          <path
-            fill="currentColor"
-            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-          />
-        </svg>
+        <span className="grid h-9 w-9 place-items-center rounded-full bg-gold/15 text-gold">
+          <Heart className="h-4 w-4 fill-gold" />
+        </span>
+        <span className="text-xs font-semibold uppercase tracking-wider">Support</span>
       </button>
 
       {open && (
@@ -123,7 +120,7 @@ export function SupportResearchFab() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="support-research-title"
-            className="relative z-10 w-full max-w-md rounded-2xl border border-rose-500/25 bg-[#0d121c] p-5 md:p-6 shadow-[0_24px_80px_rgb(0_0_0_/_0.5)]"
+            className="relative z-10 w-full max-w-md rounded-2xl border border-gold/30 bg-[#0d121c] p-5 md:p-6 shadow-[0_24px_80px_rgb(0_0_0_/_0.5)]"
           >
             {!unlocked && (
               <button
@@ -138,8 +135,8 @@ export function SupportResearchFab() {
 
             {unlocked ? (
               <div className="py-8 text-center animate-in fade-in zoom-in-95 duration-300">
-                <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-rose-500/15 ring-2 ring-rose-500/40">
-                  <Heart className="h-8 w-8 fill-rose-500 text-rose-500 animate-pulse" />
+                <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-gold/15 ring-2 ring-gold/40">
+                  <Heart className="h-8 w-8 fill-gold text-gold animate-pulse" />
                 </div>
                 <h2 className="font-display text-xl font-semibold tracking-tight">Thank you</h2>
                 <p className="mt-2 text-sm text-muted-foreground">Opening Paystack so you can choose an amount…</p>
@@ -147,15 +144,16 @@ export function SupportResearchFab() {
             ) : (
               <>
                 <div className="flex items-start gap-3 pr-8">
-                  <span className="inline-grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-500">
-                    <Heart className="h-6 w-6 fill-rose-500" />
+                  <span className="inline-grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-gold/30 bg-gold/10 text-gold">
+                    <Heart className="h-6 w-6 fill-gold" />
                   </span>
                   <div>
                     <h2 id="support-research-title" className="font-display text-xl font-semibold tracking-tight">
-                      Back independent research
+                      Support research
                     </h2>
                     <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                      Swipe the heart coin to open a secure Paystack checkout and pick what you can give.
+                      Swipe to open a secure Paystack checkout and pick what you can give. Keeps Decision Math
+                      and public models free to read.
                     </p>
                   </div>
                 </div>
@@ -167,7 +165,7 @@ export function SupportResearchFab() {
                     className="relative h-14 rounded-full border border-border bg-black/40 overflow-hidden select-none touch-none"
                   >
                     <div
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-rose-500/30 to-rose-500/5 transition-[width] duration-75"
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-gold/30 to-gold/5 transition-[width] duration-75"
                       style={{ width: `${Math.max(progress * 100, 8)}%` }}
                     />
                     <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] font-medium text-muted-foreground/80">
@@ -205,7 +203,7 @@ export function SupportResearchFab() {
                     setProgress(1);
                     finishAndGo();
                   }}
-                  className="mt-4 w-full min-h-11 rounded-lg border border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:border-rose-400/40 hover:text-rose-400 transition"
+                  className="mt-4 w-full min-h-11 rounded-lg border border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:border-gold/40 hover:text-gold transition"
                 >
                   Continue to checkout
                 </button>

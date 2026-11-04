@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" role="img" aria-label="Multi-factor workbook  radar and quintile table">
+  <rect width="960" height="600" fill="#0c1220"/>
+  <rect width="960" height="36" fill="#161e2e"/>
+  <circle cx="18" cy="18" r="5" fill="#e57373"/><circle cx="36" cy="18" r="5" fill="#ffd54f"/><circle cx="54" cy="18" r="5" fill="#81c784"/>
+  <text x="74" y="22" fill="#9aa4b2" font-size="13" font-family="Segoe UI, system-ui">Multi_Factor_Quant_Stock_Selector.xlsx  Radar</text>
+  <rect x="24" y="56" width="460" height="400" fill="#0a101a" stroke="#2a3548"/>
+  <text x="40" y="84" fill="#c9a227" font-size="13" font-family="Segoe UI, system-ui">Style tilt radar</text>
+  <circle cx="250" cy="270" r="120" fill="none" stroke="#2a3548"/>
+  <circle cx="250" cy="270" r="80" fill="none" stroke="#2a3548"/>
+  <circle cx="250" cy="270" r="40" fill="none" stroke="#2a3548"/>
+  <line x1="250" y1="150" x2="250" y2="390" stroke="#2a3548"/>
+  <line x1="130" y1="270" x2="370" y2="270" stroke="#2a3548"/>
+  <polygon points="250,170 330,250 290,350 190,330 180,220" fill="#c9a22733" stroke="#c9a227" stroke-width="2"/>
+  <text x="236" y="142" fill="#9aa4b2" font-size="11" font-family="Segoe UI, system-ui">Value</text>
+  <text x="348" y="256" fill="#9aa4b2" font-size="11" font-family="Segoe UI, system-ui">Mom</text>
+  <text x="300" y="380" fill="#9aa4b2" font-size="11" font-family="Segoe UI, system-ui">Quality</text>
+  <text x="120" y="360" fill="#9aa4b2" font-size="11" font-family="Segoe UI, system-ui">Low Vol</text>
+  <rect x="508" y="56" width="428" height="400" fill="#121a2b" stroke="#2a3548"/>
+  <text x="524" y="84" fill="#c9a227" font-size="13" font-family="Segoe UI, system-ui">Top quintile conviction</text>
+  <g font-family="Segoe UI, system-ui" font-size="13">
+    <rect x="524" y="110" width="396" height="40" fill="#0a101a" stroke="#2a3548"/><text x="540" y="136" fill="#e8edf5">Q1 · z 1.42 · high conviction</text>
+    <rect x="524" y="158" width="396" height="40" fill="#0a101a" stroke="#2a3548"/><text x="540" y="184" fill="#e8edf5">Q2 · z 0.81</text>
+    <rect x="524" y="206" width="396" height="40" fill="#0a101a" stroke="#2a3548"/><text x="540" y="232" fill="#9aa4b2">Q3 · z 0.12</text>
+    <rect x="524" y="254" width="396" height="40" fill="#0a101a" stroke="#2a3548"/><text x="540" y="280" fill="#9aa4b2">Q4 · z 0.55</text>
+    <rect x="524" y="302" width="396" height="40" fill="#0a101a" stroke="#2a3548"/><text x="540" y="328" fill="#9aa4b2">Q5 · z 1.18</text>
+  </g>
+  <text x="524" y="380" fill="#6ec6ff" font-size="12" font-family="Segoe UI, system-ui">Style sliders ’ re-rank universe</text>
+  <rect x="24" y="480" width="912" height="88" fill="#121a2b" rx="4"/>
+  <text x="40" y="514" fill="#e8edf5" font-size="14" font-family="Segoe UI, system-ui">Cross-sectional z-scores · Value / Momentum / Quality / Low Vol</text>
+  <text x="40" y="542" fill="#9aa4b2" font-size="12" font-family="Segoe UI, system-ui">12-month walk-through is illustrative  not a powered backtest</text>
+</svg>

@@ -52,6 +52,7 @@ export function FreeSampleGate() {
       {unlocked ? (
         <a
           href={`/samples/${FREE_SAMPLE.filename}`}
+          download={FREE_SAMPLE.filename}
           className="inline-flex items-center gap-2 rounded-sm bg-primary px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft"
         >
           <Download className="h-3.5 w-3.5" /> Download sample (.xlsx)
@@ -80,8 +81,8 @@ export function FreeSampleGate() {
         </form>
       )}
       <p className="text-[11px] text-muted-foreground">
-        Sample file ships as {FREE_SAMPLE.filename}. If the download 404s until the file is uploaded
-        to <code className="text-foreground/80">public/samples/</code>, you’ll still be on the list.
+        One-sheet European call/put with Greeks — no macros. We’ll only use your email for the sample
+        and occasional Decision Math notes.
       </p>
     </div>
   );

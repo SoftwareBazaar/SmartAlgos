@@ -1,5 +1,10 @@
 export type ExcelLevel = "Intermediate" | "Advanced";
 
+export type ExcelShot = {
+  src: string;
+  caption: string;
+};
+
 export type ExcelModuleProduct = {
   id: string;
   slug: string;
@@ -8,6 +13,8 @@ export type ExcelModuleProduct = {
   filename: string;
   priceUsd: number;
   listValueUsd: number;
+  /** One-line card promise */
+  promise: string;
   summary: string;
   description: string;
   features: string[];
@@ -16,6 +23,10 @@ export type ExcelModuleProduct = {
   chartCount: number;
   approxSizeMb: string;
   previewLabel: string;
+  /** AI atmosphere cover (no text) */
+  coverImage: string;
+  /** Real sheet-style product shots (captions shown below images) */
+  shots: ExcelShot[];
   /** Module IDs unlocked on purchase (self for singles; all four for bundle). */
   unlocks: string[];
   isBundle?: boolean;
@@ -38,6 +49,7 @@ export const EXCEL_MODULE_PRODUCTS: ExcelModuleProduct[] = [
     filename: "Portfolio_Optimization_Monte_Carlo_Risk_Suite.xlsx",
     priceUsd: 49,
     listValueUsd: 49,
+    promise: "Frontier, VaR, and CAPM — transparent cells you can audit.",
     summary:
       "Markowitz mean-variance weights, covariance, Sharpe frontier, plus an illustrative NORM.INV simulation for VaR/CVaR and a CAPM performance sheet.",
     description:
@@ -52,6 +64,11 @@ export const EXCEL_MODULE_PRODUCTS: ExcelModuleProduct[] = [
     chartCount: 6,
     approxSizeMb: "~1.2 MB",
     previewLabel: "Efficient frontier + VaR panel",
+    coverImage: "/store/covers/portfolio.jpg",
+    shots: [
+      { src: "/store/shots/portfolio-frontier.svg", caption: "Efficient frontier + VaR panel" },
+      { src: "/store/shots/portfolio-frontier.svg", caption: "Mean-variance weights sheet layout" },
+    ],
     unlocks: [MODULE_IDS.portfolio],
   },
   {
@@ -62,6 +79,7 @@ export const EXCEL_MODULE_PRODUCTS: ExcelModuleProduct[] = [
     filename: "Multi_Leg_Options_Strategy_Greeks_Visualizer.xlsx",
     priceUsd: 29,
     listValueUsd: 29,
+    promise: "Multi-leg BSM pricing with Greeks and a DTE/vol heatmap.",
     summary:
       "Black-Scholes-Merton pricing with dividend yield, up to four legs, aggregate Greeks, payoff curves, and a DTE/vol heatmap.",
     description:
@@ -76,6 +94,11 @@ export const EXCEL_MODULE_PRODUCTS: ExcelModuleProduct[] = [
     chartCount: 5,
     approxSizeMb: "~900 KB",
     previewLabel: "Payoff curve + vol heatmap",
+    coverImage: "/store/covers/options.jpg",
+    shots: [
+      { src: "/store/shots/options-heatmap.svg", caption: "Payoff curve + vol heatmap" },
+      { src: "/store/shots/options-heatmap.svg", caption: "Iron condor T+0 vs expiry" },
+    ],
     unlocks: [MODULE_IDS.options],
   },
   {
@@ -86,6 +109,7 @@ export const EXCEL_MODULE_PRODUCTS: ExcelModuleProduct[] = [
     filename: "Fixed_Income_Yield_Curve_Duration_Dashboard.xlsx",
     priceUsd: 39,
     listValueUsd: 39,
+    promise: "Build the curve, shock rates, and match liability cash flows.",
     summary:
       "11-tenor Treasury-style curve (manual inputs), duration/convexity, rate-shock matrix, and LDI cash-flow matching.",
     description:
@@ -100,6 +124,11 @@ export const EXCEL_MODULE_PRODUCTS: ExcelModuleProduct[] = [
     chartCount: 5,
     approxSizeMb: "~1.0 MB",
     previewLabel: "Yield curve + shock matrix",
+    coverImage: "/store/covers/fixed-income.jpg",
+    shots: [
+      { src: "/store/shots/yield-curve.svg", caption: "Yield curve + shock matrix" },
+      { src: "/store/shots/yield-curve.svg", caption: "Duration and LDI matching layout" },
+    ],
     unlocks: [MODULE_IDS.fixedIncome],
   },
   {
@@ -110,6 +139,7 @@ export const EXCEL_MODULE_PRODUCTS: ExcelModuleProduct[] = [
     filename: "Multi_Factor_Quant_Stock_Selector.xlsx",
     priceUsd: 49,
     listValueUsd: 49,
+    promise: "Rank a universe with Value, Momentum, Quality, and Low Vol.",
     summary:
       "Cross-sectional z-scores for Value, Momentum, Quality, and Low Vol with style sliders, top-quintile picks, and a 12-month illustrative walk-through.",
     description:
@@ -124,6 +154,11 @@ export const EXCEL_MODULE_PRODUCTS: ExcelModuleProduct[] = [
     chartCount: 4,
     approxSizeMb: "~1.1 MB",
     previewLabel: "Factor radar + quintile table",
+    coverImage: "/store/covers/multifactor.jpg",
+    shots: [
+      { src: "/store/shots/factor-radar.svg", caption: "Factor radar + quintile table" },
+      { src: "/store/shots/factor-radar.svg", caption: "Style sliders and conviction list" },
+    ],
     unlocks: [MODULE_IDS.multifactor],
   },
   {
@@ -134,6 +169,7 @@ export const EXCEL_MODULE_PRODUCTS: ExcelModuleProduct[] = [
     filename: "Quantitative_Finance_Master_Bundle.zip",
     priceUsd: 129,
     listValueUsd: 166,
+    promise: "All four workbooks + Quick-Start PDFs in one purchase.",
     summary:
       "All four Excel workbooks — portfolio risk, options Greeks, fixed income, and multi-factor selection — plus four Quick-Start PDFs.",
     description:
@@ -149,6 +185,13 @@ export const EXCEL_MODULE_PRODUCTS: ExcelModuleProduct[] = [
     chartCount: 20,
     approxSizeMb: "~4.5 MB",
     previewLabel: "Full suite dashboard collage",
+    coverImage: "/store/covers/bundle.jpg",
+    shots: [
+      { src: "/store/shots/portfolio-frontier.svg", caption: "Portfolio & Monte Carlo" },
+      { src: "/store/shots/options-heatmap.svg", caption: "Options & Greeks" },
+      { src: "/store/shots/yield-curve.svg", caption: "Fixed Income & Yield Curve" },
+      { src: "/store/shots/factor-radar.svg", caption: "Multi-Factor Selector" },
+    ],
     unlocks: [
       MODULE_IDS.portfolio,
       MODULE_IDS.options,
@@ -158,6 +201,10 @@ export const EXCEL_MODULE_PRODUCTS: ExcelModuleProduct[] = [
     isBundle: true,
   },
 ];
+
+/** Extra FAQ entries for the redesigned store trust block */
+export const STORE_GUARANTEE =
+  "If a purchased file won’t open in Excel 365, 2021, or 2019 on Windows or Mac, email us within 14 days with your Paystack reference and we’ll refund or replace it. Open the file once to confirm — we can’t refund after you redistribute the workbook.";
 
 export const STORE_FAQ: { q: string; a: string }[] = [
   {
@@ -177,8 +224,16 @@ export const STORE_FAQ: { q: string; a: string }[] = [
     a: "Single-user license for personal or internal business use. You may not resell, redistribute, or publish the workbooks as a product. Educational and research use is fine; they are not regulated advice tools.",
   },
   {
-    q: "Refunds and support?",
-    a: "If a file won’t open in a supported Excel version, contact us within 14 days with your Paystack reference and we’ll refund or replace. Formula questions for setup issues are answered by email; we don’t provide custom consulting inside the purchase price.",
+    q: "Refunds and the 14-day guarantee?",
+    a: "If a file won’t open in Excel 365 / 2021 / 2019 on Windows or Mac, contact us within 14 days with your Paystack reference and we’ll refund or replace. This is an open-file guarantee — not a change-of-mind refund after you’ve copied the model elsewhere. Setup questions are answered by email; custom consulting is not included.",
+  },
+  {
+    q: "Do I need Excel 365?",
+    a: "Excel 365 is ideal, but Excel 2021 and 2019 on Windows and Mac are supported. We use standard formulas (MMULT, NORM.INV, SUMPRODUCT, RANK, IFERROR). Dynamic arrays help; LET/LAMBDA are not required. Not guaranteed in Google Sheets or LibreOffice.",
+  },
+  {
+    q: "Can I pay with M-Pesa?",
+    a: "Checkout runs on Paystack in Kenya. If M-Pesa (or card) is enabled on our Paystack account for your payment method, those options appear at checkout. Amounts are priced in USD and may settle in KES at Paystack’s rate.",
   },
   {
     q: "Do I get updates?",

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, Check, ShoppingBag } from "lucide-react";
-import { ProductVisual } from "@/components/store/product-visual";
+import { ProductShotCarousel, ProductVisual } from "@/components/store/product-visual";
+import { StickyMobileCart } from "@/components/store/sticky-mobile-cart";
 import { StoreCartButton, StoreCartDrawer } from "@/components/store/store-cart-drawer";
 import {
   STORE_FAQ,
@@ -11,7 +12,7 @@ import {
   listExcelStoreProducts,
 } from "@/lib/excel-module-catalog";
 import { StoreCartProvider, useStoreCart } from "@/lib/store-cart";
-import { formatUsd } from "@/lib/pricing";
+import { formatUsd, formatKes, usdToKes } from "@/lib/pricing";
 
 export const Route = createFileRoute("/store_/$slug")({
   loader: ({ params }) => {
@@ -35,13 +36,12 @@ export const Route = createFileRoute("/store_/$slug")({
         { property: "og:type", content: "product" },
         {
           property: "og:image",
-          content: "https://www.smartalgosts.com/og/store-excel-suite.png",
+          content: `https://www.smartalgosts.com${product.coverImage}`,
         },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "627" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:image", content: "https://www.smartalgosts.com/og/store-excel-suite.png" },
-        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: `https://www.smartalgosts.com${product.coverImage}` },
         { name: "twitter:title", content: product.title },
         { name: "twitter:description", content: product.summary },
       ],
@@ -67,6 +67,7 @@ function StoreProductRoute() {
     <StoreCartProvider>
       <StoreProductPage />
       <StoreCartDrawer />
+      <StickyMobileCart />
     </StoreCartProvider>
   );
 }
@@ -79,7 +80,7 @@ function StoreProductPage() {
   const modulesLeft = listExcelModulesOnly().filter((m) => m.id !== product.id).length;
 
   return (
-    <div className="mx-auto w-full max-w-[1100px] px-6 pt-16 md:pt-20 pb-16 space-y-12">
+    <div className="mx-auto w-full max-w-[1100px] px-6 pt-16 md:pt-20 pb-28 md:pb-16 space-y-12">
       <div className="flex items-center justify-between gap-4">
         <Link
           to="/store"
@@ -92,11 +93,11 @@ function StoreProductPage() {
 
       <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-10 items-start">
         <div className="space-y-4">
-          <ProductVisual product={product} variant="hero" />
-          <div className="grid grid-cols-2 gap-3">
-            <ProductVisual product={product} variant="gallery" />
-            <ProductVisual product={bundle} variant="gallery" />
-          </div>
+          {product.isBundle ? (
+            <ProductVisual product={product} variant="hero" showCaption={false} />
+          ) : (
+            <ProductShotCarousel product={product} />
+          )}
         </div>
 
         <div className="space-y-5">
@@ -129,6 +130,7 @@ function StoreProductPage() {
               <p className="font-display text-4xl font-semibold text-gold leading-none">
                 {formatUsd(product.priceUsd)}
               </p>
+              <p className="text-xs text-muted-foreground">≈ {formatKes(usdToKes(product.priceUsd))}</p>
               {product.isBundle ? (
                 <p className="text-sm text-muted-foreground">
                   <span className="line-through">{formatUsd(product.listValueUsd)}</span>

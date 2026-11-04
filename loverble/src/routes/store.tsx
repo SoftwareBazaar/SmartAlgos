@@ -1,82 +1,72 @@
+import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { Check, ShoppingBag } from "lucide-react";
+import { Filter, Search, ShoppingBag, SlidersHorizontal, X } from "lucide-react";
 import { FreeSampleGate } from "@/components/store/free-sample-gate";
-import { ProductShotCarousel, ProductVisual } from "@/components/store/product-visual";
+import { ProductImage } from "@/components/store/product-image";
 import { StickyMobileCart } from "@/components/store/sticky-mobile-cart";
 import { StoreCartButton, StoreCartDrawer } from "@/components/store/store-cart-drawer";
 import {
-  EXCEL_MODULE_PRODUCTS,
   STORE_FAQ,
   STORE_GUARANTEE,
   bundleSavingsUsd,
-  listExcelModulesOnly,
-  type ExcelModuleProduct,
 } from "@/lib/excel-module-catalog";
+import {
+  CATEGORY_TABS,
+  FORMAT_OPTIONS,
+  LEVEL_OPTIONS,
+  PLATFORM_OPTIONS,
+  PRICE_BUCKETS,
+  countActiveFilters,
+  filterCatalogProducts,
+  getMasterBundle,
+  listCatalogProducts,
+  parseStoreSearch,
+  searchToFilters,
+  storeSearchToParams,
+  type CatalogProduct,
+  type PriceBucketId,
+  type StoreFilters,
+  type StoreFormat,
+  type StoreLevel,
+  type StorePlatform,
+  type StoreSearchParams,
+  type StoreSort,
+} from "@/lib/store-catalog";
 import { StoreCartProvider, useStoreCart } from "@/lib/store-cart";
-import { formatUsd, formatUsdWithKes, usdToKes, formatKes } from "@/lib/pricing";
+import { formatKes, formatUsd, usdToKes } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
-const bundle = EXCEL_MODULE_PRODUCTS.find((p) => p.isBundle)!;
-const modules = listExcelModulesOnly();
+const bundle = getMasterBundle();
 const save = bundleSavingsUsd(bundle);
 const savePct = Math.round((save / bundle.listValueUsd) * 100);
 
 export const Route = createFileRoute("/store")({
+  validateSearch: (search: Record<string, unknown>): StoreSearchParams => parseStoreSearch(search),
   head: () => ({
     meta: [
-      { title: "Excel Quant Models — Smart Algos Store" },
+      { title: "Store — Smart Algos" },
       {
         name: "description",
         content:
-          "Buy transparent Excel models for portfolio risk, options Greeks, yield curves, and multi-factor stock selection. No macros. Instant download after Paystack.",
+          "Excel quant models, trading tools, and free samples. Transparent workbooks with instant Paystack delivery.",
       },
-      { property: "og:title", content: "Excel Quant Models — Smart Algos Store" },
+      { property: "og:title", content: "Store — Smart Algos" },
       {
         property: "og:description",
-        content:
-          "Four audit-friendly Excel workbooks or the $129 Master Bundle. Free Black-Scholes sample. Instant portal delivery.",
+        content: "Browse Excel models and more. Master Bundle $129. Free Black-Scholes sample.",
       },
       { property: "og:url", content: "https://www.smartalgosts.com/store" },
       { property: "og:type", content: "website" },
       {
         property: "og:image",
-        content: "https://www.smartalgosts.com/store/covers/bundle.jpg",
+        content: "https://www.smartalgosts.com/media/store/covers/bundle.jpg",
       },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "627" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Excel Quant Models — Smart Algos Store" },
-      {
-        name: "twitter:description",
-        content: "Transparent Excel quant workbooks. Master Bundle $129. Free sample available.",
-      },
-      { name: "twitter:image", content: "https://www.smartalgosts.com/store/covers/bundle.jpg" },
+      { name: "twitter:image", content: "https://www.smartalgosts.com/media/store/covers/bundle.jpg" },
     ],
     links: [{ rel: "canonical", href: "https://www.smartalgosts.com/store" }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "CollectionPage",
-          name: "Excel Quant Models",
-          url: "https://www.smartalgosts.com/store",
-          provider: { "@type": "Organization", name: "Smart Algos" },
-          mainEntity: EXCEL_MODULE_PRODUCTS.map((p) => ({
-            "@type": "Product",
-            name: p.title,
-            sku: p.id,
-            offers: {
-              "@type": "Offer",
-              price: p.priceUsd.toFixed(2),
-              priceCurrency: "USD",
-              availability: "https://schema.org/InStock",
-            },
-          })),
-        }),
-      },
-    ],
   }),
   component: StoreRoute,
 });
@@ -91,380 +81,445 @@ function StoreRoute() {
   );
 }
 
-function LevelBadge({ level }: { level: ExcelModuleProduct["level"] }) {
-  return (
-    <span
-      className={cn(
-        "rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
-        level === "Advanced"
-          ? "border border-gold/50 bg-gold/10 text-gold"
-          : "border border-sky-500/40 bg-sky-500/10 text-sky-300",
-      )}
-    >
-      {level}
-    </span>
-  );
+function toggleIn<T extends string>(list: T[], id: T): T[] {
+  return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
 }
 
 function StorePage() {
+  const search = Route.useSearch();
+  const filters = useMemo(() => searchToFilters(search), [search]);
+  const navigate = Route.useNavigate();
   const { addItem } = useStoreCart();
+  const [mobileFilters, setMobileFilters] = useState(false);
+  const all = useMemo(() => listCatalogProducts(), []);
+
+  const setFilters = (next: Partial<StoreFilters>) => {
+    const merged = { ...filters, ...next };
+    void navigate({
+      to: "/store",
+      search: storeSearchToParams(merged),
+      replace: true,
+    });
+  };
+
+  const clearAll = () => {
+    void navigate({ to: "/store", search: {}, replace: true });
+  };
+
+  const results = useMemo(() => filterCatalogProducts(all, filters), [all, filters]);
+  const activeCount = countActiveFilters(filters);
 
   return (
-    <div className="mx-auto w-full max-w-[1100px] px-6 pt-20 md:pt-24 pb-28 md:pb-16 space-y-14">
-      {/* Hero */}
-      <header className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center">
-        <div className="space-y-4">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-gold">Smart Algos · Store</p>
-          <h1 className="font-display text-[1.75rem] md:text-[2.15rem] font-semibold leading-[1.2] tracking-tight max-w-[20ch]">
-            Transparent Excel models you can audit cell by cell
+    <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 pt-16 md:pt-20 pb-28 md:pb-16 text-[15px] leading-relaxed">
+      {/* Slim header */}
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.16em] text-gold">Store</p>
+          <h1
+            className="font-display font-semibold text-foreground tracking-tight"
+            style={{ fontSize: "clamp(28px, 3vw, 40px)" }}
+          >
+            Product catalog
           </h1>
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-[52ch]">
-            Portfolio risk, options Greeks, yield curves, and multi-factor selection — no VBA
-            macros, so files open cleanly on Windows and Mac. Built for analysts, CFA candidates,
-            and serious retail quants.
-          </p>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => addItem(bundle.id)}
-              className="inline-flex items-center justify-center gap-2 rounded-sm bg-primary px-5 py-3 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft"
-            >
-              <ShoppingBag className="h-3.5 w-3.5" /> Get Master Bundle · {formatUsd(bundle.priceUsd)}
-            </button>
-            <a
-              href="#free-sample"
-              className="text-sm text-gold hover:underline underline-offset-4"
-            >
-              Try a free sample
-            </a>
-            <StoreCartButton />
-          </div>
-          <p className="text-xs text-muted-foreground max-w-[50ch]">
-            {formatUsdWithKes(bundle.priceUsd)} desk rate · Paystack (card / M-Pesa when available) ·
-            unlock in{" "}
-            <Link to="/portal" className="text-gold hover:underline">
-              My downloads
-            </Link>
-            . Educational models — not personalized advice.
+          <p className="mt-1 text-[15px] text-muted-foreground max-w-[52ch]">
+            Transparent Excel models and tools — audit every cell. Instant delivery after Paystack.
           </p>
         </div>
-        <ProductVisual product={bundle} variant="hero" showCaption={false} />
+        <StoreCartButton />
       </header>
 
-      {/* Proof strip */}
-      <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          "Excel 365 / 2021 / 2019 · Win & Mac",
-          "No macros · no security prompts",
-          "Email + portal download after pay",
-          "14-day open-file guarantee",
-        ].map((t) => (
-          <div
-            key={t}
-            className="flex items-start gap-2 rounded-lg border border-border/60 bg-card/20 px-3 py-3 text-sm text-foreground/90"
+      {/* Search + sort */}
+      <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <label className="relative flex-1 min-w-0">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={filters.q}
+            onChange={(e) => setFilters({ q: e.target.value })}
+            placeholder="Search products…"
+            className="w-full rounded-md border border-border/70 bg-card/30 py-2 pl-8 pr-3 text-[13px] focus:outline-none focus:border-gold/50"
+          />
+        </label>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border/70 px-3 py-2 text-[12px] text-muted-foreground lg:hidden"
+            onClick={() => setMobileFilters(true)}
           >
-            <Check className="h-4 w-4 text-gold shrink-0 mt-0.5" />
-            {t}
-          </div>
-        ))}
-      </section>
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            Filters
+            {activeCount > 0 ? (
+              <span className="rounded-full bg-gold px-1.5 text-[10px] font-bold text-primary-foreground">
+                {activeCount}
+              </span>
+            ) : null}
+          </button>
+          <label className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-card/30 px-2.5 py-2 text-[12px] text-muted-foreground">
+            Sort
+            <select
+              value={filters.sort}
+              onChange={(e) => setFilters({ sort: e.target.value as StoreSort })}
+              className="bg-transparent text-foreground focus:outline-none"
+            >
+              <option value="featured">Featured</option>
+              <option value="price-asc">Price: low → high</option>
+              <option value="price-desc">Price: high → low</option>
+              <option value="newest">Newest</option>
+            </select>
+          </label>
+        </div>
+      </div>
 
-      {/* Bundle card */}
-      <motion.section
-        id="bundle"
-        initial={{ opacity: 0, y: 12 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="rounded-xl border border-gold/40 bg-secondary-surface/80 overflow-hidden"
-      >
-        <div className="grid md:grid-cols-[minmax(0,280px)_1fr] gap-0">
-          <div className="relative min-h-[200px] md:min-h-full">
+      {/* Category tabs */}
+      <div className="mt-4 flex gap-1 overflow-x-auto border-b border-border/50 pb-px">
+        {CATEGORY_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setFilters({ category: tab.id })}
+            className={cn(
+              "shrink-0 px-3 py-2 text-[12px] font-medium border-b-2 -mb-px transition-colors",
+              filters.category === tab.id
+                ? "border-gold text-gold"
+                : "border-transparent text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Bundle banner */}
+      <section className="mt-5 overflow-hidden rounded-xl border border-gold/35 bg-[#0d121c]">
+        <div className="grid md:grid-cols-[200px_1fr] gap-0">
+          <div className="relative hidden md:block min-h-[140px]">
             <img
-              src={bundle.coverImage}
+              src="/media/store/covers/bundle.jpg"
               alt=""
               className="absolute inset-0 h-full w-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0d121c] via-transparent to-transparent md:bg-gradient-to-r" />
           </div>
-          <div className="p-6 md:p-8 space-y-5">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-gold">Best value</p>
-              <h2 className="font-display text-xl md:text-2xl font-semibold mt-1 tracking-tight">
-                What’s in the Master Bundle
-              </h2>
-              <p className="text-sm text-muted-foreground mt-2 max-w-[60ch] leading-relaxed">
-                {bundle.description}
+          <div className="flex flex-col gap-3 p-4 md:p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 space-y-1.5">
+              <p className="text-[10px] uppercase tracking-[0.16em] text-gold">Best value · Bundle</p>
+              <h2 className="font-display text-[18px] font-semibold leading-snug">Master Bundle — all 4 Excel workbooks</h2>
+              <p className="text-[13px] text-muted-foreground">
+                <span className="line-through">{formatUsd(bundle.listValueUsd)}</span>
+                {" → "}
+                <span className="text-gold font-semibold">{formatUsd(bundle.priceUsd)}</span>
+                {" · "}
+                Save {formatUsd(save)} ({savePct}%) · ≈ {formatKes(usdToKes(bundle.priceUsd))}
               </p>
             </div>
+            <button
+              type="button"
+              onClick={() => addItem(bundle.id)}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" /> Add bundle
+            </button>
+          </div>
+        </div>
+      </section>
 
-            <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-gold/35 bg-gold/10 px-3 py-2 text-sm">
-              <span className="text-muted-foreground line-through">{formatUsd(bundle.listValueUsd)}</span>
-              <span className="text-muted-foreground">→</span>
-              <span className="font-semibold text-gold">{formatUsd(bundle.priceUsd)}</span>
-              <span className="text-muted-foreground">
-                · Save {formatUsd(save)} ({savePct}%)
-              </span>
-              <span className="text-[11px] text-muted-foreground w-full sm:w-auto">
-                Buy 4 separately {formatUsd(bundle.listValueUsd)} → Bundle {formatUsd(bundle.priceUsd)}
-              </span>
-            </div>
+      <div className="mt-6 grid lg:grid-cols-[220px_1fr] gap-6 items-start">
+        {/* Desktop filters */}
+        <aside className="hidden lg:block sticky top-20 space-y-5 rounded-xl border border-border/60 bg-card/15 p-4">
+          <FilterPanel filters={filters} setFilters={setFilters} />
+          {activeCount > 0 ? (
+            <button type="button" onClick={clearAll} className="text-[12px] text-gold hover:underline">
+              Clear all
+            </button>
+          ) : null}
+        </aside>
 
-            <ul className="grid sm:grid-cols-2 gap-2">
-              {bundle.features.map((f) => (
-                <li key={f} className="flex gap-2 text-sm text-foreground/85">
-                  <Check className="h-4 w-4 text-gold shrink-0 mt-0.5" />
-                  {f}
-                </li>
-              ))}
-            </ul>
+        <div className="min-w-0 space-y-4">
+          {/* Chips + count */}
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-[12px] text-muted-foreground mr-1">
+              {results.length} product{results.length === 1 ? "" : "s"}
+            </p>
+            {filters.levels.map((id) => (
+              <Chip
+                key={id}
+                label={LEVEL_OPTIONS.find((o) => o.id === id)?.label ?? id}
+                onRemove={() => setFilters({ levels: filters.levels.filter((x) => x !== id) })}
+              />
+            ))}
+            {filters.platforms.map((id) => (
+              <Chip
+                key={id}
+                label={PLATFORM_OPTIONS.find((o) => o.id === id)?.label ?? id}
+                onRemove={() => setFilters({ platforms: filters.platforms.filter((x) => x !== id) })}
+              />
+            ))}
+            {filters.formats.map((id) => (
+              <Chip
+                key={id}
+                label={FORMAT_OPTIONS.find((o) => o.id === id)?.label ?? id}
+                onRemove={() => setFilters({ formats: filters.formats.filter((x) => x !== id) })}
+              />
+            ))}
+            {filters.prices.map((id) => (
+              <Chip
+                key={id}
+                label={PRICE_BUCKETS.find((o) => o.id === id)?.label ?? id}
+                onRemove={() => setFilters({ prices: filters.prices.filter((x) => x !== id) })}
+              />
+            ))}
+            {filters.q ? (
+              <Chip label={`“${filters.q}”`} onRemove={() => setFilters({ q: "" })} />
+            ) : null}
+            {activeCount > 0 ? (
+              <button type="button" onClick={clearAll} className="text-[11px] text-gold hover:underline">
+                Clear all
+              </button>
+            ) : null}
+          </div>
 
-            <div className="flex flex-wrap items-end gap-4 pt-1">
-              <div>
-                <p className="font-display text-2xl md:text-3xl font-semibold text-gold leading-none tabular-nums">
-                  {formatUsd(bundle.priceUsd)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  ≈ {formatKes(usdToKes(bundle.priceUsd))} desk rate
-                </p>
-              </div>
+          {results.length === 0 ? (
+            <div className="rounded-xl border border-border/60 bg-card/20 px-6 py-12 text-center space-y-3">
+              <Filter className="mx-auto h-6 w-6 text-muted-foreground" />
+              <p className="text-[15px] text-foreground">No products match</p>
+              <p className="text-[13px] text-muted-foreground">Try clearing filters or searching something else.</p>
               <button
                 type="button"
-                onClick={() => addItem(bundle.id)}
-                className="inline-flex items-center justify-center gap-2 rounded-sm bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-gold-soft"
+                onClick={clearAll}
+                className="inline-flex rounded-md border border-gold/50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-gold"
               >
-                <ShoppingBag className="h-3.5 w-3.5" /> Add bundle to cart
+                Clear filters
               </button>
-              <Link
-                to="/store/$slug"
-                params={{ slug: bundle.slug }}
-                className="text-sm text-gold hover:underline self-center"
-              >
-                Full bundle details
-              </Link>
             </div>
-            <p className="text-xs text-muted-foreground">
-              After payment you’ll get a receipt email and files unlock under My downloads. No
-              account needed before checkout. M-Pesa appears at Paystack checkout when enabled.
-            </p>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Modules 2×2 */}
-      <section className="space-y-5">
-        <h2 className="font-display text-xl md:text-2xl font-semibold tracking-tight">Individual modules</h2>
-        <div className="grid sm:grid-cols-2 gap-5">
-          {modules.map((mod, i) => (
-            <motion.article
-              key={mod.id}
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ delay: Math.min(i * 0.05, 0.2) }}
-              className="flex h-full flex-col overflow-hidden rounded-xl border border-border/60 bg-card/20 hover:border-gold/35 transition-colors"
-            >
-              <Link to="/store/$slug" params={{ slug: mod.slug }} className="block p-4 pb-0">
-                <ProductVisual product={mod} variant="card" className="max-w-none" />
-              </Link>
-              <div className="flex flex-1 flex-col gap-2.5 p-4 md:p-5 pt-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <LevelBadge level={mod.level} />
-                  <span className="text-[11px] text-muted-foreground">
-                    {mod.sheetCount} sheets · {mod.chartCount} charts · {mod.approxSizeMb}
-                  </span>
-                </div>
-                <h3 className="font-display text-lg font-semibold leading-snug">
-                  <Link
-                    to="/store/$slug"
-                    params={{ slug: mod.slug }}
-                    className="hover:text-gold transition-colors"
-                  >
-                    {mod.shortTitle}
-                  </Link>
-                </h3>
-                <p className="text-sm text-foreground/85 leading-relaxed">{mod.promise}</p>
-                <ul className="space-y-1">
-                  {mod.features.slice(0, 3).map((f) => (
-                    <li key={f} className="flex gap-2 text-sm text-muted-foreground">
-                      <Check className="h-3.5 w-3.5 text-gold shrink-0 mt-0.5" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-auto flex flex-wrap items-center gap-3 pt-3">
-                  <div>
-                    <p className="font-display text-xl font-semibold text-gold tabular-nums">
-                      {formatUsd(mod.priceUsd)}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">≈ {formatKes(usdToKes(mod.priceUsd))}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => addItem(mod.id)}
-                    className="inline-flex items-center justify-center gap-2 rounded-sm border border-gold/55 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gold hover:bg-gold/10"
-                  >
-                    <ShoppingBag className="h-3.5 w-3.5" /> Add to cart
-                  </button>
-                  <Link
-                    to="/store/$slug"
-                    params={{ slug: mod.slug }}
-                    className="text-xs text-muted-foreground hover:text-gold underline-offset-2 hover:underline"
-                  >
-                    Details
-                  </Link>
-                </div>
-              </div>
-            </motion.article>
-          ))}
-        </div>
-      </section>
-
-      {/* Screenshot galleries */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="font-display text-xl md:text-2xl font-semibold tracking-tight">Inspect the sheets</h2>
-          <p className="text-sm text-muted-foreground mt-1 max-w-[60ch]">
-            Sheet-layout previews for each module — click to zoom. Captions sit under the image.
-          </p>
-        </div>
-        <div className="grid lg:grid-cols-2 gap-8">
-          {modules.map((mod) => (
-            <div key={mod.id} className="space-y-2">
-              <h3 className="font-display text-base font-semibold">{mod.shortTitle}</h3>
-              <ProductShotCarousel product={mod} />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* What’s inside */}
-      <section className="space-y-4">
-        <h2 className="font-display text-xl md:text-2xl font-semibold tracking-tight">What’s inside</h2>
-        <div className="overflow-x-auto rounded-xl border border-border/60">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-card/40 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium">Module</th>
-                <th className="px-4 py-3 font-medium">Level</th>
-                <th className="px-4 py-3 font-medium">Sheets</th>
-                <th className="px-4 py-3 font-medium">Charts</th>
-                <th className="px-4 py-3 font-medium">Size</th>
-                <th className="px-4 py-3 font-medium">Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {modules.map((m) => (
-                <tr key={m.id} className="border-t border-border/50">
-                  <td className="px-4 py-3 text-foreground">{m.shortTitle}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{m.level}</td>
-                  <td className="px-4 py-3 tabular-nums">{m.sheetCount}</td>
-                  <td className="px-4 py-3 tabular-nums">{m.chartCount}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{m.approxSizeMb}</td>
-                  <td className="px-4 py-3 text-gold font-semibold tabular-nums">{formatUsd(m.priceUsd)}</td>
-                </tr>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+              {results.map((p) => (
+                <ProductCard key={p.id} product={p} onAdd={() => p.cartProductId && addItem(p.cartProductId)} />
               ))}
-              <tr className="border-t border-gold/30 bg-gold/5">
-                <td className="px-4 py-3 font-semibold">Master Bundle</td>
-                <td className="px-4 py-3 text-muted-foreground">All</td>
-                <td className="px-4 py-3 tabular-nums">{bundle.sheetCount}</td>
-                <td className="px-4 py-3 tabular-nums">{bundle.chartCount}</td>
-                <td className="px-4 py-3 text-muted-foreground">{bundle.approxSizeMb}</td>
-                <td className="px-4 py-3 text-gold font-semibold tabular-nums">{formatUsd(bundle.priceUsd)}</td>
-              </tr>
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
-        <p className="text-xs text-muted-foreground">
-          Excel versions: Microsoft 365, Excel 2021, Excel 2019 — Windows and Mac. No VBA macros.
-        </p>
-      </section>
+      </div>
 
-      {/* How it works */}
-      <section className="space-y-4">
-        <h2 className="font-display text-xl md:text-2xl font-semibold tracking-tight">How delivery works</h2>
-        <ol className="grid md:grid-cols-3 gap-4">
-          {[
-            {
-              n: "1",
-              t: "Pay with Paystack",
-              d: "Checkout collects your email and card (or M-Pesa when available). Amounts are shown in USD; Paystack may settle in KES.",
-            },
-            {
-              n: "2",
-              t: "Get the link",
-              d: "We email a download link and unlock the files in My downloads (portal) for the same email.",
-            },
-            {
-              n: "3",
-              t: "Open in Excel",
-              d: "No macros to enable. Blue cells are inputs; black are formulas; green links pull from other sheets.",
-            },
-          ].map((s) => (
-            <li
-              key={s.n}
-              className="rounded-lg border border-border/60 bg-card/20 p-4 space-y-2"
-            >
-              <p className="text-gold font-mono text-sm font-semibold tracking-wider">{s.n}</p>
-              <p className="font-semibold text-foreground">{s.t}</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">{s.d}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* Guarantee */}
-      <section className="rounded-xl border border-gold/30 bg-gold/5 p-5 md:p-6 space-y-2 max-w-3xl">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-gold">14-day open-file guarantee</p>
-        <h2 className="font-display text-lg font-semibold tracking-tight">What you can expect</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">{STORE_GUARANTEE}</p>
-      </section>
-
-      {/* Sample */}
-      <section id="free-sample">
-        <FreeSampleGate />
-      </section>
-
-      {/* Built by */}
-      <section className="rounded-xl border border-border/60 bg-card/20 p-5 md:p-6 space-y-2 max-w-3xl">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-gold">Built by</p>
-        <h2 className="font-display text-lg font-semibold tracking-tight">Smart Algos quant desk</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Models are maintained by Smart Algos Investment Solution Ltd (Kenya) — the same team
-          behind our Decision Math notes and systematic research. These Excel files are educational /
-          research tools, not a regulated product.
-        </p>
-        <Link to="/finance" className="text-sm text-gold hover:underline inline-block pt-1">
-          Browse Decision Math notes →
-        </Link>
-      </section>
-
-      {/* FAQ */}
-      <section className="space-y-4">
-        <h2 className="font-display text-xl md:text-2xl font-semibold tracking-tight">FAQ</h2>
+      {/* Trust / FAQ compact */}
+      <section className="mt-12 grid md:grid-cols-2 gap-6">
+        <div className="rounded-xl border border-gold/25 bg-gold/5 p-4 space-y-2">
+          <p className="text-[10px] uppercase tracking-[0.16em] text-gold">14-day guarantee</p>
+          <p className="text-[13px] text-muted-foreground leading-relaxed">{STORE_GUARANTEE}</p>
+        </div>
         <div className="space-y-2">
-          {STORE_FAQ.map((item) => (
-            <details
-              key={item.q}
-              className="rounded-lg border border-border/60 bg-card/20 px-4 py-3"
-            >
-              <summary className="cursor-pointer text-sm font-semibold text-foreground">
-                {item.q}
-              </summary>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-[70ch]">
-                {item.a}
-              </p>
+          <h2 className="font-display text-[18px] font-semibold">FAQ</h2>
+          {STORE_FAQ.slice(0, 4).map((item) => (
+            <details key={item.q} className="rounded-lg border border-border/60 bg-card/20 px-3 py-2">
+              <summary className="cursor-pointer text-[13px] font-semibold">{item.q}</summary>
+              <p className="mt-1.5 text-[13px] text-muted-foreground leading-relaxed">{item.a}</p>
             </details>
           ))}
         </div>
       </section>
 
-      <p className="text-xs text-muted-foreground border-t border-border/50 pt-6 max-w-[70ch]">
-        Educational modeling tools only — not personalized financial advice.{" "}
-        <Link to="/financial-disclaimer" className="text-gold hover:underline">
-          Financial disclaimer
+      <section id="free-sample" className="mt-10">
+        <FreeSampleGate />
+      </section>
+
+      {/* Mobile filter sheet */}
+      {mobileFilters ? (
+        <div className="fixed inset-0 z-[70] lg:hidden">
+          <button type="button" className="absolute inset-0 bg-black/60" aria-label="Close" onClick={() => setMobileFilters(false)} />
+          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border border-border bg-[#0b0e14] p-4 pb-8">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-display text-[16px] font-semibold">Filters</p>
+              <button type="button" onClick={() => setMobileFilters(false)} aria-label="Close filters">
+                <X className="h-5 w-5 text-muted-foreground" />
+              </button>
+            </div>
+            <FilterPanel filters={filters} setFilters={setFilters} />
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={clearAll}
+                className="flex-1 rounded-md border border-border py-2.5 text-[12px] text-muted-foreground"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileFilters(false)}
+                className="flex-1 rounded-md bg-primary py-2.5 text-[12px] font-semibold uppercase tracking-wider text-primary-foreground"
+              >
+                Show {results.length}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onRemove}
+      className="inline-flex items-center gap-1 rounded-full border border-gold/35 bg-gold/10 px-2.5 py-0.5 text-[11px] text-gold"
+    >
+      {label}
+      <X className="h-3 w-3" />
+    </button>
+  );
+}
+
+function FilterPanel({
+  filters,
+  setFilters,
+}: {
+  filters: StoreFilters;
+  setFilters: (next: Partial<StoreFilters>) => void;
+}) {
+  return (
+    <div className="space-y-5 text-[13px]">
+      <FilterGroup title="Level">
+        {LEVEL_OPTIONS.map((o) => (
+          <CheckRow
+            key={o.id}
+            label={o.label}
+            checked={filters.levels.includes(o.id)}
+            onChange={() => setFilters({ levels: toggleIn<StoreLevel>(filters.levels, o.id) })}
+          />
+        ))}
+      </FilterGroup>
+      <FilterGroup title="Platform">
+        {PLATFORM_OPTIONS.map((o) => (
+          <CheckRow
+            key={o.id}
+            label={o.label}
+            checked={filters.platforms.includes(o.id)}
+            onChange={() => setFilters({ platforms: toggleIn<StorePlatform>(filters.platforms, o.id) })}
+          />
+        ))}
+      </FilterGroup>
+      <FilterGroup title="Format">
+        {FORMAT_OPTIONS.map((o) => (
+          <CheckRow
+            key={o.id}
+            label={o.label}
+            checked={filters.formats.includes(o.id)}
+            onChange={() => setFilters({ formats: toggleIn<StoreFormat>(filters.formats, o.id) })}
+          />
+        ))}
+      </FilterGroup>
+      <FilterGroup title="Price">
+        {PRICE_BUCKETS.map((o) => (
+          <CheckRow
+            key={o.id}
+            label={o.label}
+            checked={filters.prices.includes(o.id)}
+            onChange={() => setFilters({ prices: toggleIn<PriceBucketId>(filters.prices, o.id) })}
+          />
+        ))}
+      </FilterGroup>
+    </div>
+  );
+}
+
+function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{title}</p>
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
+}
+
+function CheckRow({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2 text-[13px] text-foreground/90">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        className="h-3.5 w-3.5 rounded border-border accent-[var(--gold,#f59e0b)]"
+      />
+      {label}
+    </label>
+  );
+}
+
+function ProductCard({ product, onAdd }: { product: CatalogProduct; onAdd: () => void }) {
+  const detail = product.isFree ? (
+    <a href="#free-sample" className="hover:text-gold transition-colors">
+      {product.title}
+    </a>
+  ) : (
+    <Link to="/store/$slug" params={{ slug: product.slug }} className="hover:text-gold transition-colors">
+      {product.title}
+    </Link>
+  );
+
+  return (
+    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border/60 bg-card/20 hover:border-gold/40 transition-colors">
+      {product.isFree ? (
+        <a href="#free-sample" className="block p-2 pb-0">
+          <CardThumb product={product} />
+        </a>
+      ) : (
+        <Link to="/store/$slug" params={{ slug: product.slug }} className="block p-2 pb-0">
+          <CardThumb product={product} />
         </Link>
-        .
-      </p>
+      )}
+      <div className="flex flex-1 flex-col gap-1 p-2.5 pt-2">
+        <h3 className="font-display text-[16px] font-semibold leading-snug line-clamp-2">{detail}</h3>
+        <p className="text-[12px] text-muted-foreground line-clamp-1">{product.summary}</p>
+        <p className="text-[11px] text-muted-foreground/80">{product.meta}</p>
+        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+          <p className="font-display text-[16px] font-semibold text-gold tabular-nums">
+            {product.isFree ? "Free" : formatUsd(product.price)}
+          </p>
+          {product.isFree ? (
+            <a
+              href="#free-sample"
+              className="rounded-md border border-gold/50 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-gold opacity-90 group-hover:opacity-100 group-hover:bg-gold/10 transition"
+            >
+              Get
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={onAdd}
+              className="rounded-md border border-gold/50 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-gold opacity-80 group-hover:opacity-100 group-hover:bg-gold/10 transition"
+            >
+              Add
+            </button>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function CardThumb({ product }: { product: CatalogProduct }) {
+  return (
+    <div className="relative">
+      <ProductImage src={product.image} alt={product.title} aspect="4/3" />
+      <span
+        className={cn(
+          "absolute left-2 top-2 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider",
+          product.isFree
+            ? "bg-emerald-500/90 text-white"
+            : product.level === "advanced"
+              ? "bg-gold text-primary-foreground"
+              : "bg-sky-500/90 text-white",
+        )}
+      >
+        {product.badge}
+      </span>
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import type { ExcelModuleProduct } from "@/lib/excel-module-catalog";
+import { ProductImage } from "@/components/store/product-image";
 import { cn } from "@/lib/utils";
 
-type Variant = "card" | "hero" | "gallery" | "cover";
+type Variant = "card" | "hero" | "gallery" | "cover" | "thumb";
 
-/** Product shot or AI cover — captions always sit below the image, never overlaid. */
+/** Uses JPG covers/products — captions sit below the image, never overlaid. */
 export function ProductVisual({
   product,
   variant = "card",
@@ -18,8 +19,11 @@ export function ProductVisual({
   shotIndex?: number;
   showCaption?: boolean;
 }) {
-  const shot = product.shots[Math.min(shotIndex, product.shots.length - 1)];
-  const src = variant === "cover" ? product.coverImage : shot?.src ?? product.coverImage;
+  const shot = product.shots[Math.min(shotIndex, Math.max(0, product.shots.length - 1))];
+  const src =
+    variant === "cover" || variant === "card" || variant === "thumb"
+      ? product.coverImage
+      : shot?.src ?? product.coverImage;
   const caption = shot?.caption ?? product.previewLabel;
 
   if (variant === "hero" && product.isBundle) {
@@ -28,24 +32,15 @@ export function ProductVisual({
 
   return (
     <figure className={cn("w-full", className)}>
-      <div
-        className={cn(
-          "relative overflow-hidden rounded-xl border border-border/60 bg-[#0a0f1a] group",
-          variant === "gallery" || variant === "card" || variant === "hero"
-            ? "aspect-[16/10]"
-            : "aspect-[16/9]",
-        )}
-      >
-        <img
-          src={src}
-          alt={caption}
-          loading={variant === "hero" ? "eager" : "lazy"}
-          decoding="async"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-        />
-      </div>
-      {showCaption && variant !== "cover" ? (
-        <figcaption className="mt-2 text-[11px] text-muted-foreground leading-snug">{caption}</figcaption>
+      <ProductImage
+        src={src}
+        alt={caption}
+        aspect={variant === "thumb" ? "4/3" : "16/10"}
+        priority={variant === "hero"}
+        className="group"
+      />
+      {showCaption && variant !== "cover" && variant !== "thumb" && variant !== "card" ? (
+        <figcaption className="mt-1.5 text-[11px] text-muted-foreground leading-snug">{caption}</figcaption>
       ) : null}
     </figure>
   );
@@ -53,75 +48,70 @@ export function ProductVisual({
 
 function HeroMockupStack({ className = "" }: { className?: string }) {
   const layers = [
-    { src: "/store/shots/portfolio-frontier.svg", rotate: "-rotate-2", z: "z-10", offset: "translate-y-2" },
-    { src: "/store/shots/options-heatmap.svg", rotate: "rotate-1", z: "z-20", offset: "translate-x-4 -translate-y-1" },
-    { src: "/store/shots/yield-curve.svg", rotate: "rotate-2", z: "z-30", offset: "translate-x-8 translate-y-3" },
+    { src: "/media/store/products/portfolio.jpg", rotate: "-rotate-2", z: "z-10", offset: "translate-y-1" },
+    { src: "/media/store/products/options.jpg", rotate: "rotate-1", z: "z-20", offset: "translate-x-3 -translate-y-0.5" },
+    { src: "/media/store/products/fixed-income.jpg", rotate: "rotate-2", z: "z-30", offset: "translate-x-6 translate-y-2" },
   ];
   return (
-    <div className={cn("relative aspect-[16/10] w-full", className)}>
-      {layers.map((l, i) => (
+    <div className={cn("relative aspect-[4/3] w-full max-w-md ml-auto", className)}>
+      {layers.map((l) => (
         <div
           key={l.src}
           className={cn(
-            "absolute inset-[6%] overflow-hidden rounded-xl border border-gold/25 bg-[#0a0f1a] shadow-[0_20px_50px_rgb(0_0_0_/_0.45)]",
+            "absolute inset-[8%] overflow-hidden rounded-lg border border-gold/25 bg-[#0a0f1a] shadow-[0_16px_40px_rgb(0_0_0_/_0.4)]",
             l.rotate,
             l.z,
             l.offset,
           )}
-          style={{ width: "88%", maxWidth: "100%" }}
         >
-          <img
-            src={l.src}
-            alt=""
-            loading={i === 0 ? "eager" : "lazy"}
-            decoding="async"
-            className="h-full w-full object-cover object-top"
-          />
+          <img src={l.src} alt="" loading="eager" decoding="async" className="h-full w-full object-cover" />
         </div>
       ))}
-      <p className="absolute bottom-0 left-0 right-0 text-[11px] text-muted-foreground">
-        Real sheet layouts from the four workbooks (illustrative window frames)
-      </p>
     </div>
   );
 }
 
-/** Embla-style carousel with click-to-zoom lightbox. */
-export function ProductShotCarousel({ product }: { product: ExcelModuleProduct }) {
+export function ProductShotCarousel({
+  images,
+  captions,
+}: {
+  images: string[];
+  captions?: string[];
+}) {
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const shots = product.shots.length ? product.shots : [{ src: product.coverImage, caption: product.previewLabel }];
+  const shots = images.length ? images : [];
+
+  if (!shots.length) return null;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <button
         type="button"
-        onClick={() => setLightbox(shots[active]?.src ?? null)}
-        className="group relative block w-full overflow-hidden rounded-xl border border-border/60 bg-[#0a0f1a] aspect-[16/10] text-left"
+        onClick={() => setLightbox(shots[active] ?? null)}
+        className="group relative block w-full text-left"
       >
-        <img
-          src={shots[active]?.src}
-          alt={shots[active]?.caption ?? ""}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-        />
-        <span className="absolute bottom-3 right-3 rounded-md border border-gold/40 bg-black/60 px-2 py-1 text-[10px] uppercase tracking-wider text-gold">
-          Click to zoom
+        <ProductImage src={shots[active]!} alt={captions?.[active] ?? ""} aspect="16/10" priority />
+        <span className="absolute bottom-2 right-2 rounded border border-gold/40 bg-black/65 px-2 py-0.5 text-[10px] uppercase tracking-wider text-gold">
+          Zoom
         </span>
       </button>
-      <p className="text-[11px] text-muted-foreground">{shots[active]?.caption}</p>
+      {captions?.[active] ? (
+        <p className="text-[11px] text-muted-foreground">{captions[active]}</p>
+      ) : null}
       {shots.length > 1 ? (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5">
           {shots.map((s, i) => (
             <button
-              key={`${s.src}-${i}`}
+              key={`${s}-${i}`}
               type="button"
               onClick={() => setActive(i)}
               className={cn(
-                "h-14 w-24 shrink-0 overflow-hidden rounded-md border",
+                "h-12 w-16 shrink-0 overflow-hidden rounded border",
                 i === active ? "border-gold/60" : "border-border/50 opacity-70 hover:opacity-100",
               )}
             >
-              <img src={s.src} alt="" className="h-full w-full object-cover" />
+              <img src={s} alt="" className="h-full w-full object-cover" />
             </button>
           ))}
         </div>
@@ -129,17 +119,8 @@ export function ProductShotCarousel({ product }: { product: ExcelModuleProduct }
 
       {lightbox ? (
         <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/80"
-            aria-label="Close zoom"
-            onClick={() => setLightbox(null)}
-          />
-          <img
-            src={lightbox}
-            alt=""
-            className="relative z-10 max-h-[90vh] max-w-[95vw] rounded-lg border border-border/60 object-contain"
-          />
+          <button type="button" className="absolute inset-0 bg-black/80" aria-label="Close" onClick={() => setLightbox(null)} />
+          <img src={lightbox} alt="" className="relative z-10 max-h-[90vh] max-w-[95vw] rounded-lg border border-border/60 object-contain" />
         </div>
       ) : null}
     </div>

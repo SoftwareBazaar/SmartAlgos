@@ -100,12 +100,12 @@ export function SupportResearchFab() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Support research"
-        className="fixed bottom-20 right-4 z-40 md:bottom-5 md:right-5 flex items-center gap-2 rounded-full border border-gold/45 bg-[#0d121c] pl-3 pr-4 py-2.5 text-gold shadow-[0_12px_40px_rgb(0_0_0_/_0.45)] transition hover:border-gold/70 hover:bg-[#121a2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        className="fixed bottom-[4.5rem] right-3 z-30 md:bottom-4 md:right-4 flex items-center gap-1.5 rounded-full border border-gold/40 bg-[#0d121c]/95 pl-2 pr-2.5 py-1.5 text-gold shadow-[0_8px_24px_rgb(0_0_0_/_0.4)] transition hover:border-gold/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       >
-        <span className="grid h-9 w-9 place-items-center rounded-full bg-gold/15 text-gold">
-          <Heart className="h-4 w-4 fill-gold" />
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-gold/15 text-gold">
+          <Heart className="h-3.5 w-3.5 fill-gold" />
         </span>
-        <span className="text-xs font-semibold uppercase tracking-wider">Support</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider pr-0.5">Support</span>
       </button>
 
       {open && (

@@ -65,7 +65,7 @@ export function StoreCartDrawer() {
                 key={product.id}
                 className="flex gap-3 rounded-lg border border-border/60 bg-card/20 p-3"
               >
-                <ProductVisual product={product} showCaption={false} className="max-w-[88px] shrink-0 [&_div]:aspect-square" />
+                <ProductVisual product={product} variant="thumb" showCaption={false} className="max-w-[72px] shrink-0" />
                 <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-sm font-medium leading-snug">{product.shortTitle}</p>
                   <p className="text-base font-semibold text-gold">{formatUsd(product.priceUsd)}</p>

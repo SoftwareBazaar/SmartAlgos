@@ -4,6 +4,33 @@
   "installCommand": "npm install && cd loverble && npm install --include=dev --legacy-peer-deps",
   "buildCommand": "cd loverble && NODE_ENV=production npm run build && cd .. && node scripts/vercel-merge-output.mjs",
   "regions": ["fra1"],
+  "redirects": [
+    {
+      "source": "/privacy",
+      "destination": "/privacy-policy",
+      "permanent": true
+    },
+    {
+      "source": "/finance_/:path*",
+      "destination": "/finance/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/store_/:path*",
+      "destination": "/store/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/research_/:path*",
+      "destination": "/research/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/systems_/:path*",
+      "destination": "/systems/:path*",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/(.*).js",

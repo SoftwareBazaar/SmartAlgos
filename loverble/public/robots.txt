@@ -5,6 +5,11 @@ Allow: /finance/ke/
 Disallow: /admin/
 Disallow: /api/
 Disallow: /portal/
+Disallow: /*$slug*
+Disallow: /finance_/
+Disallow: /store_/
+Disallow: /research_/
+Disallow: /systems_/
 
 # Explicitly allow AI search engines & LLM indexing
 User-agent: GPTBot

@@ -28,6 +28,7 @@ const PUBLIC_EXACT = new Set([
   "/book",
   "/about",
   "/contact",
+  "/privacy",
   "/privacy-policy",
   "/financial-disclaimer",
   "/terms",

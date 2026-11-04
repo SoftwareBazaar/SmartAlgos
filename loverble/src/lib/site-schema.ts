@@ -37,7 +37,7 @@ export function getSiteJsonLd() {
         "@type": "LocalBusiness",
         "@id": `${SITE}/#localbusiness`,
         name: company.operator,
-        image: `${SITE}/apple-touch-icon.png`,
+        image: `${SITE}/og-image.jpg`,
         url: SITE,
         email: company.emails.info,
         address: {

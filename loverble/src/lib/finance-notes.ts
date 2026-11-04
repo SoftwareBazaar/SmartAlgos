@@ -15,12 +15,20 @@ export type FinanceNote = {
   dateISO: string;
   readingMinutes: number;
   stats: { label: string; value: string }[];
+  /** Single headline figure shown on index cards (HTML overlay, not in image). */
+  headlineFigure: string;
+  /** Static cover at /notes/{slug}.jpg */
+  coverImage: string;
   hasCalculator: boolean;
   published: boolean;
   jsonLd: Record<string, unknown>;
   /** When set, article lives at /finance/ke/$slug */
   region?: "ke";
 };
+
+export function noteCoverPath(slug: string): string {
+  return `/notes/${slug}.jpg`;
+}
 
 const SITE = "https://www.smartalgosts.com";
 
@@ -85,6 +93,8 @@ export const financeNotes: FinanceNote[] = [
       { label: "Payoff", value: "22.7 yrs" },
       { label: "Interest", value: "$19,236" },
     ],
+    headlineFigure: "$19,236 interest",
+    coverImage: noteCoverPath(DAY_01_SLUG),
     hasCalculator: true,
     published: true,
     jsonLd: {
@@ -137,6 +147,8 @@ export const financeNotes: FinanceNote[] = [
       { label: "Fee on $15k", value: "$600" },
       { label: "Clearance", value: "$867/mo" },
     ],
+    headlineFigure: "$600 transfer fee",
+    coverImage: noteCoverPath(DAY_02_SLUG),
     hasCalculator: true,
     published: true,
     jsonLd: {
@@ -189,6 +201,8 @@ export const financeNotes: FinanceNote[] = [
       { label: "Spread loss", value: "−$8.43/mo" },
       { label: "5-yr edge", value: "+$1,079" },
     ],
+    headlineFigure: "−$8.43/mo spread",
+    coverImage: noteCoverPath(DAY_03_SLUG),
     hasCalculator: false,
     published: true,
     jsonLd: {
@@ -241,6 +255,8 @@ export const financeNotes: FinanceNote[] = [
       { label: "Net gain", value: "+$4,435/yr" },
       { label: "Subsidy", value: "$2,544/yr" },
     ],
+    headlineFigure: "+$4,435/yr net",
+    coverImage: noteCoverPath(DAY_04_SLUG),
     hasCalculator: true,
     published: true,
     jsonLd: {
@@ -294,6 +310,8 @@ export const financeNotes: FinanceNote[] = [
       { label: "KES 80k net", value: "57,877" },
       { label: "SHA rate", value: "2.75%" },
     ],
+    headlineFigure: "KES 57,877 take-home",
+    coverImage: noteCoverPath(KE_NET_SALARY_SLUG),
     hasCalculator: true,
     published: true,
     jsonLd: {
@@ -330,6 +348,8 @@ export const financeNotes: FinanceNote[] = [
       { label: "7-day cost", value: "KES 260" },
       { label: "Approx APR", value: "~271%" },
     ],
+    headlineFigure: "~271% APR",
+    coverImage: noteCoverPath(KE_FULIZA_SLUG),
     hasCalculator: true,
     published: true,
     jsonLd: {
@@ -366,6 +386,8 @@ export const financeNotes: FinanceNote[] = [
       { label: "MMF net", value: "~8.86%" },
       { label: "364d T-bill net", value: "~7.68%" },
     ],
+    headlineFigure: "MMF net ~8.86%",
+    coverImage: noteCoverPath(KE_MMF_TBILL_SLUG),
     hasCalculator: false,
     published: true,
     jsonLd: {
@@ -404,6 +426,8 @@ export const financeNotes: FinanceNote[] = [
       { label: "Winter overlap", value: "16:00–20:00" },
       { label: "Summer overlap", value: "15:00–19:00" },
     ],
+    headlineFigure: "16:00–20:00 EAT",
+    coverImage: noteCoverPath(KE_FOREX_HOURS_SLUG),
     hasCalculator: false,
     published: true,
     jsonLd: {
@@ -442,6 +466,8 @@ export const financeNotes: FinanceNote[] = [
       { label: "24-mo stack", value: "~KES 258k" },
       { label: "80% waiver save", value: "~KES 96k" },
     ],
+    headlineFigure: "KES 96k saved",
+    coverImage: noteCoverPath(KE_HELB_SLUG),
     hasCalculator: false,
     published: true,
     jsonLd: {
@@ -478,6 +504,8 @@ export const financeNotes: FinanceNote[] = [
       { label: "Offer price", value: "KES 7.50" },
       { label: "Fwd P/E", value: "~12.9×" },
     ],
+    headlineFigure: "KES 7.50 offer",
+    coverImage: noteCoverPath(KE_QUICKMART_IPO_SLUG),
     hasCalculator: false,
     published: true,
     jsonLd: {
@@ -514,6 +542,8 @@ export const financeNotes: FinanceNote[] = [
       { label: "MMF net", value: "~8.9%" },
       { label: "SACCO net*", value: "~9.4%" },
     ],
+    headlineFigure: "SACCO net* ~9.4%",
+    coverImage: noteCoverPath(KE_SACCO_MMF_SLUG),
     hasCalculator: false,
     published: true,
     jsonLd: {

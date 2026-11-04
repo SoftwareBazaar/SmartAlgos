@@ -1,52 +1,39 @@
-import type { FinanceCategory } from "@/lib/finance-notes";
+import { cn } from "@/lib/utils";
 
-const ACCENT: Record<FinanceCategory, string> = {
-  Credit: "from-amber-500/30 via-transparent to-transparent",
-  Debt: "from-sky-500/25 via-transparent to-transparent",
-  Loans: "from-emerald-500/25 via-transparent to-transparent",
-  Tax: "from-violet-500/25 via-transparent to-transparent",
-  Kenya: "from-rose-500/25 via-transparent to-transparent",
-};
-
-/** Compact chart-style thumbnail for note cards (no external image asset). */
+/** Editorial cover — unique static image per note, no text baked in. */
 export function NoteThumb({
-  category,
-  stats,
+  src,
+  alt,
+  className,
+  priority = false,
+  /** Stretch to parent height (featured 2-col); keep 16:9 on small screens. */
+  fill = false,
 }: {
-  category: FinanceCategory;
-  stats: { label: string; value: string }[];
+  src: string;
+  alt: string;
+  className?: string;
+  priority?: boolean;
+  fill?: boolean;
 }) {
   return (
     <div
-      className={`relative h-[120px] w-full overflow-hidden rounded-md border border-border/50 bg-dominant bg-gradient-to-br ${ACCENT[category]}`}
-      aria-hidden
+      className={cn(
+        "relative w-full overflow-hidden bg-dominant",
+        fill ? "aspect-[16/9] md:aspect-auto md:h-full md:min-h-[280px]" : "aspect-[16/9]",
+        className,
+      )}
     >
-      <svg viewBox="0 0 240 120" className="absolute inset-0 h-full w-full opacity-80">
-        <polyline
-          fill="none"
-          stroke="oklch(0.78 0.13 85)"
-          strokeWidth="2"
-          points="12,88 48,72 84,78 120,52 156,58 192,34 228,40"
-        />
-        <polyline
-          fill="none"
-          stroke="oklch(0.65 0.08 240)"
-          strokeWidth="1.5"
-          strokeDasharray="4 3"
-          points="12,70 48,66 84,58 120,48 156,30 192,22 228,18"
-        />
-      </svg>
-      <div className="absolute bottom-2 left-2 right-2 flex gap-2">
-        {stats.slice(0, 2).map((s) => (
-          <div
-            key={s.label}
-            className="rounded bg-background/80 backdrop-blur-sm px-2 py-1 border border-border/40"
-          >
-            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
-            <p className="text-xs font-semibold text-gold leading-tight">{s.value}</p>
-          </div>
-        ))}
-      </div>
+      <img
+        src={src}
+        alt={alt}
+        loading={priority ? "eager" : "lazy"}
+        decoding="async"
+        className={cn(
+          "object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]",
+          fill ? "absolute inset-0 h-full w-full" : "h-full w-full",
+        )}
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-dominant/50 via-transparent to-transparent opacity-80" />
     </div>
   );
 }

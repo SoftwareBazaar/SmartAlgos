@@ -40,13 +40,15 @@ export const Route = createFileRoute("/finance_/$slug")({
       { property: "og:type", content: "article" },
       {
         property: "og:image",
-        content: "https://www.smartalgosts.com/og/finance-decision-math.png",
+        content: `https://www.smartalgosts.com${loaderData?.coverImage ?? "/og/finance-decision-math.png"}`,
       },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "627" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://www.smartalgosts.com/og/finance-decision-math.png" },
-      { name: "twitter:card", content: "summary_large_image" },
+      {
+        name: "twitter:image",
+        content: `https://www.smartalgosts.com${loaderData?.coverImage ?? "/og/finance-decision-math.png"}`,
+      },
     ],
     links: [
       {

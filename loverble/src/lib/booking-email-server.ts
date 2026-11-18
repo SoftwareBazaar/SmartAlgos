@@ -1,18 +1,21 @@
 /**
- * Booking emails — SendGrid first, Gmail/SMTP fallback (matches legacy Express setup).
+ * Booking emails — SendGrid first, Zoho SMTP fallback.
+ * Public From/Reply/Admin: desk@smartalgosts.com
+ * SMTP login mailbox: software.bazaar@smartalgosts.com (Zoho primary account)
  */
 import nodemailer from "nodemailer";
+import { company } from "@/lib/mock-data";
+
+const DESK = company.emails.desk;
+const MAILBOX = company.emails.operations;
 
 export function getFromEmail() {
-  return (
-    process.env.EMAIL_FROM ||
-    process.env.EMAIL_USER ||
-    "info@smartalgosts.com"
-  ).trim();
+  // Prefer desk@ — do not fall back to EMAIL_USER (may still be an old Gmail login).
+  return (process.env.EMAIL_FROM || DESK).trim();
 }
 
 function getReplyTo() {
-  return (process.env.ADMIN_EMAIL || process.env.EMAIL_USER || getFromEmail()).trim();
+  return (process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || DESK).trim();
 }
 
 function stripHtml(html: string): string {
@@ -39,8 +42,8 @@ async function trySendGrid(to: string, subject: string, html: string, text: stri
     },
     body: JSON.stringify({
       personalizations: [{ to: [{ email: to }] }],
-      from: { email: from, name: "Smart Algos Capital" },
-      reply_to: { email: getReplyTo(), name: "Smart Algos Capital" },
+      from: { email: from, name: "Smart Algos Desk" },
+      reply_to: { email: getReplyTo(), name: "Smart Algos Desk" },
       subject,
       content: [
         { type: "text/plain", value: text },
@@ -60,14 +63,15 @@ async function trySendGrid(to: string, subject: string, html: string, text: stri
 }
 
 async function trySmtp(to: string, subject: string, html: string, text: string) {
-  const user = process.env.EMAIL_USER?.trim();
+  const user = (process.env.EMAIL_USER || MAILBOX).trim();
   const pass = process.env.EMAIL_PASSWORD?.trim();
   if (!user || !pass) {
     return { success: false as const, reason: "smtp_not_configured" };
   }
 
-  const host = process.env.EMAIL_HOST || "smtp.gmail.com";
-  const port = Number(process.env.EMAIL_PORT || 587);
+  // Zoho Mail SMTP (US). Override with EMAIL_HOST / EMAIL_PORT if your org is on .eu / .in.
+  const host = process.env.EMAIL_HOST || "smtp.zoho.com";
+  const port = Number(process.env.EMAIL_PORT || 465);
 
   try {
     const transporter = nodemailer.createTransport({
@@ -81,7 +85,7 @@ async function trySmtp(to: string, subject: string, html: string, text: string) 
     });
 
     await transporter.sendMail({
-      from: `"Smart Algos Capital" <${getFromEmail()}>`,
+      from: `"Smart Algos Desk" <${getFromEmail()}>`,
       to,
       replyTo: getReplyTo(),
       subject,
@@ -89,7 +93,7 @@ async function trySmtp(to: string, subject: string, html: string, text: string) 
       html,
     });
 
-    console.log(`[Bookings] Email sent via SMTP → ${to}`);
+    console.log(`[Bookings] Email sent via Zoho SMTP → ${to} (from ${getFromEmail()})`);
     return { success: true as const, channel: "smtp" as const };
   } catch (err) {
     const message = (err as Error).message || "smtp_error";
@@ -119,7 +123,7 @@ export async function deliverBookingEmail(opts: {
 
   const configured = {
     sendgrid: !!process.env.SENDGRID_API_KEY,
-    smtp: !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD),
+    smtp: !!(process.env.EMAIL_USER || MAILBOX) && !!process.env.EMAIL_PASSWORD,
   };
   console.error("[Bookings] All email channels failed", { to, configured, sg: sg.reason, smtp: smtp.reason });
 
@@ -127,18 +131,19 @@ export async function deliverBookingEmail(opts: {
     success: false,
     reason:
       !configured.sendgrid && !configured.smtp
-        ? "Set SENDGRID_API_KEY or EMAIL_USER+EMAIL_PASSWORD on Vercel"
+        ? "Set SENDGRID_API_KEY or EMAIL_USER+EMAIL_PASSWORD (Zoho) on Vercel"
         : sg.reason || smtp.reason || "email_delivery_failed",
   };
 }
 
+/** New booking alerts land in the desk inbox (alias of the Zoho mailbox). */
 export function getAdminEmail() {
-  return (process.env.ADMIN_EMAIL || process.env.EMAIL_USER || getFromEmail()).trim();
+  return (process.env.ADMIN_EMAIL || DESK).trim();
 }
 
 export function isEmailConfigured() {
   return !!(
     process.env.SENDGRID_API_KEY ||
-    (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD)
+    process.env.EMAIL_PASSWORD
   );
 }

@@ -15,6 +15,17 @@ export const Route = createFileRoute("/")({
         content:
           "Enterprise financial technology and transparent quantitative research. Operated by Smart Algos Investment Solution Ltd (Kenya).",
       },
+      { property: "og:title", content: `${company.name} — Financial Systems & Quantitative Research` },
+      {
+        property: "og:description",
+        content:
+          "Enterprise financial technology and transparent quantitative research. Operated by Smart Algos Investment Solution Ltd (Kenya).",
+      },
+      { property: "og:url", content: "https://www.smartalgosts.com/" },
+      { property: "og:image", content: "https://www.smartalgosts.com/og-image.jpg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "627" },
+      { name: "twitter:image", content: "https://www.smartalgosts.com/og-image.jpg" },
     ],
   }),
   component: Landing,

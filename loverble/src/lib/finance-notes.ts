@@ -604,7 +604,7 @@ export const financeNotes: FinanceNote[] = [
           description:
             "Verified deal terms, governance, S-1 financials and compute commitments for the Anthropic IPO, with a transparent scenario model.",
           inLanguage: "en-US",
-          image: `${SITE}/og/anthropic-ipo-ant.jpg`,
+          image: `${SITE}/og/anthropic-ipo-ant-nasdaq.jpg`,
           about: {
             "@type": "Corporation",
             name: "Anthropic, PBC",

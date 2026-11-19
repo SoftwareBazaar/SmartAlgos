@@ -21,18 +21,20 @@ export const Route = createFileRoute("/finance_/us/$slug")({
   head: ({ loaderData }) => {
     const note = loaderData;
     const url = note ? financeNoteAbsoluteUrl(note) : "https://www.smartalgosts.com/finance";
+    // New filename (not a query rewrite) so LinkedIn/CDN cannot reuse the prior cached asset.
     const ogImage =
       note?.slug === US_ANTHROPIC_IPO_SLUG
-        ? "https://www.smartalgosts.com/og/anthropic-ipo-ant.jpg"
+        ? "https://www.smartalgosts.com/og/anthropic-ipo-ant-nasdaq.jpg"
         : note?.coverImage
           ? `https://www.smartalgosts.com${note.coverImage}`
-          : "https://www.smartalgosts.com/og/anthropic-ipo-ant.jpg";
+          : "https://www.smartalgosts.com/og/anthropic-ipo-ant-nasdaq.jpg";
     return {
       meta: [
         {
           title: `${note?.seoTitle ?? note?.shortTitle ?? "Finance"} — Smart Algo STS`,
         },
         { name: "description", content: note?.description ?? "" },
+        // Override root defaults so LinkedIn does not keep the site-wide og-image.jpg.
         { property: "og:site_name", content: "Smart Algos Decision Math" },
         { property: "og:title", content: note?.seoTitle ?? note?.title ?? "Decision Math" },
         { property: "og:description", content: note?.cardBlurb ?? note?.description ?? "" },

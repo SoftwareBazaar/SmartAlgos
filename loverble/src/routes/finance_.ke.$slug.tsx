@@ -5,6 +5,7 @@ import { FinanceNotesSignup } from "@/components/finance/finance-notes-signup";
 import { MarkdownNoteBody } from "@/components/finance/markdown-note-body";
 import {
   financeNoteAbsoluteUrl,
+  financeNoteLinkTo,
   financeNotePath,
   getFinanceNoteBySlug,
   listRelatedFinanceNotes,
@@ -175,7 +176,7 @@ function KenyaFinanceNotePage() {
                 {related.map((r) => (
                   <Link
                     key={r.slug}
-                    to={r.region === "ke" ? "/finance/ke/$slug" : "/finance/$slug"}
+                    to={financeNoteLinkTo(r)}
                     params={{ slug: r.slug }}
                     className="rounded-lg border border-border/60 bg-card/20 p-4 hover:border-gold/40 transition-colors"
                   >

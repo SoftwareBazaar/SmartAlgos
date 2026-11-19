@@ -1,4 +1,4 @@
-export type FinanceCategory = "Credit" | "Debt" | "Loans" | "Tax" | "Kenya";
+export type FinanceCategory = "Credit" | "Debt" | "Loans" | "Tax" | "Kenya" | "Markets";
 
 export type FinanceNote = {
   slug: string;
@@ -22,8 +22,8 @@ export type FinanceNote = {
   hasCalculator: boolean;
   published: boolean;
   jsonLd: Record<string, unknown>;
-  /** When set, article lives at /finance/ke/$slug */
-  region?: "ke";
+  /** Nested path: ke → /finance/ke/$slug, us → /finance/us/$slug */
+  region?: "ke" | "us";
 };
 
 export function noteCoverPath(slug: string): string {
@@ -32,9 +32,19 @@ export function noteCoverPath(slug: string): string {
 
 const SITE = "https://www.smartalgosts.com";
 
-/** Public path for a note (Kenya notes nest under /finance/ke/). */
+/** Public path for a note (Kenya/US notes nest under region folders). */
 export function financeNotePath(note: Pick<FinanceNote, "slug" | "region">): string {
-  return note.region === "ke" ? `/finance/ke/${note.slug}` : `/finance/${note.slug}`;
+  if (note.region === "ke") return `/finance/ke/${note.slug}`;
+  if (note.region === "us") return `/finance/us/${note.slug}`;
+  return `/finance/${note.slug}`;
+}
+
+export function financeNoteLinkTo(
+  note: Pick<FinanceNote, "region">,
+): "/finance/$slug" | "/finance/ke/$slug" | "/finance/us/$slug" {
+  if (note.region === "ke") return "/finance/ke/$slug";
+  if (note.region === "us") return "/finance/us/$slug";
+  return "/finance/$slug";
 }
 
 export function financeNoteAbsoluteUrl(note: Pick<FinanceNote, "slug" | "region">): string {
@@ -53,6 +63,7 @@ export const KE_FOREX_HOURS_SLUG = "forex-trading-hours-kenya-eat-cma-tax-guide"
 export const KE_HELB_SLUG = "helb-loan-repayment-penalty-waiver-strategy";
 export const KE_QUICKMART_IPO_SLUG = "quickmart-ipo-valuation-and-investor-guide";
 export const KE_SACCO_MMF_SLUG = "sacco-vs-money-market-fund-kenya-yield-leverage-calculator";
+export const US_ANTHROPIC_IPO_SLUG = "anthropic-ipo-ant-valuation-and-scenario-math";
 
 function orgGraphExtras(url: string, datePublished: string) {
   return {
@@ -560,6 +571,50 @@ export const financeNotes: FinanceNote[] = [
       ],
     },
   },
+  {
+    slug: US_ANTHROPIC_IPO_SLUG,
+    day: 12,
+    category: "Markets",
+    region: "us",
+    title: "Anthropic’s IPO at $83: what the filings confirm, and what the price implies",
+    seoTitle: "Anthropic IPO (ANT) at $83: Verified Terms & Valuation Math",
+    shortTitle: "Anthropic IPO at $83 — valuation math",
+    cardBlurb:
+      "Verified deal terms, S-1 financials, compute commitments, and a transparent scenario model — every figure sourced, our math labelled.",
+    description:
+      "Anthropic priced its IPO at $83. Verified deal terms, governance, S-1 financials and compute commitments, plus a transparent expected-value scenario model.",
+    date: "19 Nov 2026",
+    dateISO: "2026-11-19",
+    readingMinutes: 9,
+    stats: [
+      { label: "IPO price", value: "$83.00" },
+      { label: "Base raise", value: "$81.34B" },
+      { label: "Implied value", value: "~$1.5T" },
+    ],
+    headlineFigure: "$83 IPO · ~$1.5T",
+    coverImage: noteCoverPath(US_ANTHROPIC_IPO_SLUG),
+    hasCalculator: false,
+    published: true,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Article",
+          headline: "Anthropic IPO (ANT) at $83: Verified Terms & Valuation Math",
+          description:
+            "Verified deal terms, governance, S-1 financials and compute commitments for the Anthropic IPO, with a transparent scenario model.",
+          inLanguage: "en-US",
+          image: `${SITE}/og/anthropic-ipo-ant.jpg`,
+          about: {
+            "@type": "Corporation",
+            name: "Anthropic, PBC",
+            tickerSymbol: "ANT",
+          },
+          ...orgGraphExtras(`${SITE}/finance/us/${US_ANTHROPIC_IPO_SLUG}`, "2026-11-19"),
+        },
+      ],
+    },
+  },
 ];
 
 export const FINANCE_CATEGORIES: Array<FinanceCategory | "All"> = [
@@ -568,6 +623,7 @@ export const FINANCE_CATEGORIES: Array<FinanceCategory | "All"> = [
   "Debt",
   "Loans",
   "Tax",
+  "Markets",
   "Kenya",
 ];
 

@@ -11,6 +11,7 @@ import {
   DAY_02_SLUG,
   DAY_03_SLUG,
   DAY_04_SLUG,
+  financeNoteLinkTo,
   getFinanceNoteBySlug,
   listRelatedFinanceNotes,
   type FinanceNote,
@@ -201,7 +202,7 @@ function FinanceNotePage() {
                 {related.map((r) => (
                   <Link
                     key={r.slug}
-                    to={r.region === "ke" ? "/finance/ke/$slug" : "/finance/$slug"}
+                    to={financeNoteLinkTo(r)}
                     params={{ slug: r.slug }}
                     className="rounded-lg border border-border/60 bg-card/20 p-4 hover:border-gold/40 transition-colors"
                   >

@@ -7,6 +7,7 @@ import { FinanceNotesSignup } from "@/components/finance/finance-notes-signup";
 import { NoteThumb } from "@/components/finance/note-thumb";
 import {
   FINANCE_CATEGORIES,
+  financeNoteLinkTo,
   financeNotePath,
   listPublishedFinanceNotes,
   type FinanceNote,
@@ -69,7 +70,7 @@ function Finance() {
   const filtered = useMemo(() => {
     let list = notes;
     if (region === "ke") list = list.filter((n) => n.region === "ke");
-    if (region === "us") list = list.filter((n) => n.region !== "ke");
+    if (region === "us") list = list.filter((n) => n.region === "us");
     if (filter !== "All") list = list.filter((n) => n.category === filter);
     if (query.trim()) {
       list = fuse.search(query.trim()).map((r) => r.item).filter((n) => list.some((x) => x.slug === n.slug));
@@ -105,7 +106,7 @@ function Finance() {
           className="mt-10"
         >
           <Link
-            to={featured.region === "ke" ? "/finance/ke/$slug" : "/finance/$slug"}
+            to={financeNoteLinkTo(featured)}
             params={{ slug: featured.slug }}
             className="group grid md:grid-cols-2 md:items-stretch gap-0 overflow-hidden rounded-2xl border border-gold/30 bg-[#0d121c] hover:border-gold/50 transition-colors"
           >
@@ -255,9 +256,11 @@ function Finance() {
 }
 
 function MetaLine({ note }: { note: FinanceNote }) {
+  const place =
+    note.region === "ke" ? "Kenya" : note.region === "us" ? `US · ${note.category}` : note.category;
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-      <span className="text-gold font-medium">{note.region === "ke" ? "Kenya" : note.category}</span>
+      <span className="text-gold font-medium">{place}</span>
       <span aria-hidden>·</span>
       <span className="inline-flex items-center gap-1">
         <Clock className="h-3 w-3" />
@@ -272,7 +275,7 @@ function MetaLine({ note }: { note: FinanceNote }) {
 function NoteCard({ note }: { note: FinanceNote }) {
   return (
     <Link
-      to={note.region === "ke" ? "/finance/ke/$slug" : "/finance/$slug"}
+      to={financeNoteLinkTo(note)}
       params={{ slug: note.slug }}
       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/20 hover:border-gold/45 hover:shadow-[0_0_0_1px_rgb(245_158_11_/_0.15)] transition-all"
       data-path={financeNotePath(note)}

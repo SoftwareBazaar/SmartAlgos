@@ -1,16 +1,47 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, Clock } from "lucide-react";
 import { AnthropicIpoAntValuation } from "@/components/finance/anthropic-ipo-ant-valuation";
+import { BuyUsStocksFromKenya } from "@/components/finance/buy-us-stocks-from-kenya";
 import { FinanceComments } from "@/components/finance/finance-comments";
 import { FinanceNotesSignup } from "@/components/finance/finance-notes-signup";
 import {
   US_ANTHROPIC_IPO_SLUG,
+  US_BUY_STOCKS_KE_SLUG,
   financeNoteAbsoluteUrl,
   financeNoteLinkTo,
   getFinanceNoteBySlug,
   listRelatedFinanceNotes,
   type FinanceNote,
 } from "@/lib/finance-notes";
+
+const OG_BY_SLUG: Record<string, string> = {
+  [US_ANTHROPIC_IPO_SLUG]: "https://www.smartalgosts.com/og/anthropic-ipo-ant-nasdaq.jpg",
+  [US_BUY_STOCKS_KE_SLUG]: "https://www.smartalgosts.com/og/buy-us-stocks-from-kenya.jpg",
+};
+
+const TOC_BY_SLUG: Record<string, Array<{ href: string; label: string }>> = {
+  [US_ANTHROPIC_IPO_SLUG]: [
+    { href: "#terms", label: "Deal terms" },
+    { href: "#control", label: "Control structure" },
+    { href: "#financials", label: "S-1 financials" },
+    { href: "#compute", label: "Compute bill" },
+    { href: "#valuation", label: "Valuation math" },
+    { href: "#scenarios", label: "Scenario model" },
+    { href: "#how-to-buy", label: "How to buy (Kenya)" },
+    { href: "#calendar", label: "Lock-up calendar" },
+    { href: "#sources", label: "Sources" },
+  ],
+  [US_BUY_STOCKS_KE_SLUG]: [
+    { href: "#compare", label: "Hisa vs IBKR" },
+    { href: "#steps", label: "Step by step" },
+    { href: "#hours", label: "Trading hours (EAT)" },
+    { href: "#brokers", label: "Other brokers" },
+    { href: "#tradingview", label: "TradingView" },
+    { href: "#cost", label: "Total cost" },
+    { href: "#faq", label: "FAQ" },
+    { href: "#sources", label: "Sources" },
+  ],
+};
 
 export const Route = createFileRoute("/finance_/us/$slug")({
   loader: ({ params }) => {
@@ -21,20 +52,15 @@ export const Route = createFileRoute("/finance_/us/$slug")({
   head: ({ loaderData }) => {
     const note = loaderData;
     const url = note ? financeNoteAbsoluteUrl(note) : "https://www.smartalgosts.com/finance";
-    // New filename (not a query rewrite) so LinkedIn/CDN cannot reuse the prior cached asset.
     const ogImage =
-      note?.slug === US_ANTHROPIC_IPO_SLUG
-        ? "https://www.smartalgosts.com/og/anthropic-ipo-ant-nasdaq.jpg"
-        : note?.coverImage
-          ? `https://www.smartalgosts.com${note.coverImage}`
-          : "https://www.smartalgosts.com/og/anthropic-ipo-ant-nasdaq.jpg";
+      (note?.slug && OG_BY_SLUG[note.slug]) ||
+      (note?.coverImage ? `https://www.smartalgosts.com${note.coverImage}` : "https://www.smartalgosts.com/og-image.jpg");
     return {
       meta: [
         {
           title: `${note?.seoTitle ?? note?.shortTitle ?? "Finance"} — Smart Algo STS`,
         },
         { name: "description", content: note?.description ?? "" },
-        // Override root defaults so LinkedIn does not keep the site-wide og-image.jpg.
         { property: "og:site_name", content: "Smart Algos Decision Math" },
         { property: "og:title", content: note?.seoTitle ?? note?.title ?? "Decision Math" },
         { property: "og:description", content: note?.cardBlurb ?? note?.description ?? "" },
@@ -47,9 +73,9 @@ export const Route = createFileRoute("/finance_/us/$slug")({
         { property: "og:image:height", content: "627" },
         {
           property: "og:image:alt",
-          content: "Nasdaq welcomes Anthropic PBC IPO, ticker ANT — Smart Algos Decision Math",
+          content: note?.seoTitle ?? "Smart Algos Decision Math",
         },
-        { property: "article:published_time", content: note?.dateISO ? `${note.dateISO}T08:00:00+03:00` : undefined },
+        { property: "article:published_time", content: note?.dateISO ? `${note.dateISO}T12:00:00+03:00` : undefined },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:image", content: ogImage },
         { name: "twitter:title", content: note?.seoTitle ?? note?.title ?? "" },
@@ -98,12 +124,14 @@ export const Route = createFileRoute("/finance_/us/$slug")({
 
 function ArticleBody({ slug }: { slug: string }) {
   if (slug === US_ANTHROPIC_IPO_SLUG) return <AnthropicIpoAntValuation />;
+  if (slug === US_BUY_STOCKS_KE_SLUG) return <BuyUsStocksFromKenya />;
   return null;
 }
 
 function UsFinanceNotePage() {
   const note = Route.useLoaderData() as FinanceNote;
   const related = listRelatedFinanceNotes(note.slug, 3);
+  const toc = TOC_BY_SLUG[note.slug] ?? [];
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-6 pt-16 md:pt-20 pb-16">
@@ -200,51 +228,20 @@ function UsFinanceNotePage() {
               </div>
             ))}
           </div>
-          <nav className="rounded-lg border border-border/60 bg-card/30 p-4 space-y-2">
-            <p className="text-xs font-medium text-foreground">On this page</p>
-            <ul className="text-xs text-muted-foreground space-y-1.5">
-              <li>
-                <a href="#terms" className="hover:text-gold">
-                  Deal terms
-                </a>
-              </li>
-              <li>
-                <a href="#control" className="hover:text-gold">
-                  Control structure
-                </a>
-              </li>
-              <li>
-                <a href="#financials" className="hover:text-gold">
-                  S-1 financials
-                </a>
-              </li>
-              <li>
-                <a href="#compute" className="hover:text-gold">
-                  Compute bill
-                </a>
-              </li>
-              <li>
-                <a href="#valuation" className="hover:text-gold">
-                  Valuation math
-                </a>
-              </li>
-              <li>
-                <a href="#scenarios" className="hover:text-gold">
-                  Scenario model
-                </a>
-              </li>
-              <li>
-                <a href="#calendar" className="hover:text-gold">
-                  Lock-up calendar
-                </a>
-              </li>
-              <li>
-                <a href="#sources" className="hover:text-gold">
-                  Sources
-                </a>
-              </li>
-            </ul>
-          </nav>
+          {toc.length > 0 ? (
+            <nav className="rounded-lg border border-border/60 bg-card/30 p-4 space-y-2">
+              <p className="text-xs font-medium text-foreground">On this page</p>
+              <ul className="text-xs text-muted-foreground space-y-1.5">
+                {toc.map((item) => (
+                  <li key={item.href}>
+                    <a href={item.href} className="hover:text-gold">
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
         </aside>
       </div>
     </div>

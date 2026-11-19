@@ -64,6 +64,7 @@ export const KE_HELB_SLUG = "helb-loan-repayment-penalty-waiver-strategy";
 export const KE_QUICKMART_IPO_SLUG = "quickmart-ipo-valuation-and-investor-guide";
 export const KE_SACCO_MMF_SLUG = "sacco-vs-money-market-fund-kenya-yield-leverage-calculator";
 export const US_ANTHROPIC_IPO_SLUG = "anthropic-ipo-ant-valuation-and-scenario-math";
+export const US_BUY_STOCKS_KE_SLUG = "buy-us-stocks-from-kenya-hisa-interactive-brokers";
 
 function orgGraphExtras(url: string, datePublished: string) {
   return {
@@ -611,6 +612,44 @@ export const financeNotes: FinanceNote[] = [
             tickerSymbol: "ANT",
           },
           ...orgGraphExtras(`${SITE}/finance/us/${US_ANTHROPIC_IPO_SLUG}`, "2026-11-19"),
+        },
+      ],
+    },
+  },
+  {
+    slug: US_BUY_STOCKS_KE_SLUG,
+    day: 13,
+    category: "Markets",
+    region: "us",
+    title: "How to buy and trade US stocks from Kenya",
+    seoTitle: "Buy & Trade US Stocks from Kenya: Brokers & TradingView",
+    shortTitle: "Buy US stocks from Kenya — Hisa & IBKR",
+    cardBlurb:
+      "Hisa vs Interactive Brokers, CMA checks, TradingView, EAT hours and the total cost Kenyan investors actually pay.",
+    description:
+      "How Kenyan investors buy and trade US stocks: Hisa, Interactive Brokers, other brokers, CMA checks, TradingView charts and the costs to expect.",
+    date: "19 Nov 2026",
+    dateISO: "2026-11-19",
+    readingMinutes: 10,
+    stats: [
+      { label: "Routes", value: "Hisa · IBKR" },
+      { label: "Hours (EAT)", value: "16:30–00:00" },
+    ],
+    headlineFigure: "Hisa · IBKR · TradingView",
+    coverImage: noteCoverPath(US_BUY_STOCKS_KE_SLUG),
+    hasCalculator: false,
+    published: true,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Article",
+          headline: "Buy & Trade US Stocks from Kenya: Brokers & TradingView",
+          description:
+            "How Kenyan investors buy and trade US-listed stocks: Hisa, Interactive Brokers, other brokers, CMA checks and TradingView.",
+          inLanguage: "en-KE",
+          image: `${SITE}/og/buy-us-stocks-from-kenya.jpg`,
+          ...orgGraphExtras(`${SITE}/finance/us/${US_BUY_STOCKS_KE_SLUG}`, "2026-11-19"),
         },
       ],
     },

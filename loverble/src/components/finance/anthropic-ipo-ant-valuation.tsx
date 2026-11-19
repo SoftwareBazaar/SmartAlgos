@@ -608,6 +608,48 @@ export function AnthropicIpoAntValuation() {
       </section>
 
       <section className="space-y-4">
+        <H2 id="how-to-buy">How to buy ANT from Kenya</H2>
+        <P>
+          Kenyan residents can access US-listed stocks such as ANT through a Kenyan-facing app or a global broker. Two
+          common routes:
+        </P>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
+          <li>
+            <strong className="text-foreground">Hisa</strong> — mobile app with US stocks/ETFs and KES funding via{" "}
+            <a href="https://hisa.co" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">
+              hisa.co
+            </a>
+            .
+          </li>
+          <li>
+            <strong className="text-foreground">Interactive Brokers (IBKR)</strong> — global broker accepting Kenyan
+            residents, typically funded by bank wire via{" "}
+            <a
+              href="https://www.interactivebrokers.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gold hover:underline"
+            >
+              interactivebrokers.com
+            </a>
+            .
+          </li>
+        </ul>
+        <P>
+          Check the CMA register before depositing with any Kenya-based provider, complete a W-8BEN for US tax
+          withholding, and prefer limit orders on a new listing. Full steps, costs and TradingView notes:{" "}
+          <Link
+            to="/finance/us/$slug"
+            params={{ slug: "buy-us-stocks-from-kenya-hisa-interactive-brokers" }}
+            className="text-gold hover:underline"
+          >
+            Buy &amp; trade US stocks from Kenya
+          </Link>
+          .
+        </P>
+      </section>
+
+      <section className="space-y-4">
         <H2 id="calendar">Lock-up and index calendar</H2>
         <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
           <li>

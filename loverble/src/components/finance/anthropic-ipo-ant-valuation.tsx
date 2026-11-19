@@ -49,13 +49,44 @@ function Th({ children, right }: { children: ReactNode; right?: boolean }) {
   );
 }
 
-function Td({ children, right, strong }: { children: ReactNode; right?: boolean; strong?: boolean }) {
+type CellTone = "up" | "down" | "flat" | "pivot" | "ratioGood" | "ratioOk" | "ratioThin" | "ratioBad";
+
+const TONE: Record<CellTone, string> = {
+  up: "text-emerald-400 font-semibold",
+  down: "text-rose-400 font-semibold",
+  flat: "text-amber-200/90 font-medium",
+  pivot: "text-gold font-semibold",
+  ratioGood: "text-emerald-400 font-semibold",
+  ratioOk: "text-teal-300 font-semibold",
+  ratioThin: "text-amber-300 font-semibold",
+  ratioBad: "text-rose-400 font-semibold",
+};
+
+function Td({
+  children,
+  right,
+  strong,
+  tone,
+}: {
+  children: ReactNode;
+  right?: boolean;
+  strong?: boolean;
+  tone?: CellTone;
+}) {
   return (
     <td
-      className={`px-4 py-2.5 border-b border-border/40 ${right ? "text-right" : "text-left"} ${strong ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+      className={`px-4 py-2.5 border-b border-border/40 ${right ? "text-right" : "text-left"} ${
+        tone ? TONE[tone] : strong ? "font-semibold text-foreground" : "text-muted-foreground"
+      }`}
     >
       {children}
     </td>
+  );
+}
+
+function TrDecision({ children, active }: { children: ReactNode; active?: boolean }) {
+  return (
+    <tr className={active ? "bg-gold/10 border-l-2 border-l-gold" : undefined}>{children}</tr>
   );
 }
 
@@ -408,39 +439,56 @@ export function AnthropicIpoAntValuation() {
           </thead>
           <tbody>
             <tr>
-              <Td>Bull: enterprise agent adoption sustains hypergrowth</Td>
+              <Td>
+                <span className="text-emerald-400/90">Bull</span>
+                <span className="text-muted-foreground">: enterprise agent adoption sustains hypergrowth</span>
+              </Td>
               <Td right>$140</Td>
-              <Td right>+68.7%</Td>
+              <Td right tone="up">
+                +68.7%
+              </Td>
               <Td right>30%</Td>
-              <Td right>$42.00</Td>
+              <Td right tone="up">
+                $42.00
+              </Td>
             </tr>
             <tr>
-              <Td>Base: growth moderates, margins hold</Td>
+              <Td>
+                <span className="text-amber-200/90">Base</span>
+                <span className="text-muted-foreground">: growth moderates, margins hold</span>
+              </Td>
               <Td right>$82</Td>
-              <Td right>−1.2%</Td>
+              <Td right tone="flat">
+                −1.2%
+              </Td>
               <Td right>45%</Td>
               <Td right>$36.90</Td>
             </tr>
             <tr>
-              <Td>Bear: fixed compute costs squeeze margins</Td>
+              <Td>
+                <span className="text-rose-400/90">Bear</span>
+                <span className="text-muted-foreground">: fixed compute costs squeeze margins</span>
+              </Td>
               <Td right>$38</Td>
-              <Td right>−54.2%</Td>
+              <Td right tone="down">
+                −54.2%
+              </Td>
               <Td right>25%</Td>
               <Td right>$9.50</Td>
             </tr>
-            <tr>
+            <TrDecision active>
               <Td>
-                <strong className="text-foreground">Expected value</strong>
+                <strong className="text-gold">Expected value</strong>
               </Td>
               <Td right />
-              <Td right strong>
+              <Td right tone="pivot">
                 +6.5%
               </Td>
               <Td right />
-              <Td right strong>
+              <Td right tone="pivot">
                 $88.40
               </Td>
-            </tr>
+            </TrDecision>
           </tbody>
         </TableWrap>
         <TableWrap caption="Sensitivity to entry price, same assumptions">
@@ -455,44 +503,97 @@ export function AnthropicIpoAntValuation() {
           <tbody>
             <tr>
               <Td>$68</Td>
-              <Td right>+30.0%</Td>
-              <Td right>−44.1%</Td>
-              <Td right>2.40</Td>
+              <Td right tone="up">
+                +30.0%
+              </Td>
+              <Td right tone="down">
+                −44.1%
+              </Td>
+              <Td right tone="ratioGood">
+                2.40
+              </Td>
             </tr>
             <tr>
               <Td>$70</Td>
-              <Td right>+26.3%</Td>
-              <Td right>−45.7%</Td>
-              <Td right>2.19</Td>
+              <Td right tone="up">
+                +26.3%
+              </Td>
+              <Td right tone="down">
+                −45.7%
+              </Td>
+              <Td right tone="ratioGood">
+                2.19
+              </Td>
             </tr>
             <tr>
               <Td>$74 (old midpoint)</Td>
-              <Td right>+19.5%</Td>
-              <Td right>−48.6%</Td>
-              <Td right>1.83</Td>
+              <Td right tone="up">
+                +19.5%
+              </Td>
+              <Td right tone="down">
+                −48.6%
+              </Td>
+              <Td right tone="ratioOk">
+                1.83
+              </Td>
             </tr>
             <tr>
               <Td>$75</Td>
-              <Td right>+17.9%</Td>
-              <Td right>−49.3%</Td>
-              <Td right>1.76</Td>
+              <Td right tone="up">
+                +17.9%
+              </Td>
+              <Td right tone="down">
+                −49.3%
+              </Td>
+              <Td right tone="ratioOk">
+                1.76
+              </Td>
             </tr>
-            <tr>
-              <Td>$83 (IPO price)</Td>
-              <Td right strong>
+            <TrDecision active>
+              <Td>
+                <strong className="text-gold">$83 (IPO price)</strong>
+              </Td>
+              <Td right tone="pivot">
                 +6.5%
               </Td>
-              <Td right>−54.2%</Td>
-              <Td right>1.27</Td>
-            </tr>
+              <Td right tone="down">
+                −54.2%
+              </Td>
+              <Td right tone="ratioThin">
+                1.27
+              </Td>
+            </TrDecision>
             <tr>
               <Td>$90</Td>
-              <Td right>−1.8%</Td>
-              <Td right>−57.8%</Td>
-              <Td right>0.96</Td>
+              <Td right tone="down">
+                −1.8%
+              </Td>
+              <Td right tone="down">
+                −57.8%
+              </Td>
+              <Td right tone="ratioBad">
+                0.96
+              </Td>
             </tr>
           </tbody>
         </TableWrap>
+        <p className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground font-mono tracking-wide">
+          <span>
+            <span className="text-emerald-400">■</span> upside / ratio ≥ 2.0
+          </span>
+          <span>
+            <span className="text-teal-300">■</span> ratio 1.5–2.0
+          </span>
+          <span>
+            <span className="text-amber-300">■</span> thin edge (&lt; 1.5)
+          </span>
+          <span>
+            <span className="text-rose-400">■</span> downside / ratio &lt; 1
+          </span>
+          <span>
+            <span className="text-gold">■</span> decision pivot
+          </span>
+        </p>
         <P>
           The point of the table is the shape, not the numbers: the upsized $83 price cut expected return from +19.5% at
           the old midpoint to +6.5% while widening the bear-case loss, and under these assumptions expected value turns

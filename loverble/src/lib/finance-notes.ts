@@ -65,6 +65,7 @@ export const KE_QUICKMART_IPO_SLUG = "quickmart-ipo-valuation-and-investor-guide
 export const KE_SACCO_MMF_SLUG = "sacco-vs-money-market-fund-kenya-yield-leverage-calculator";
 export const US_ANTHROPIC_IPO_SLUG = "anthropic-ipo-ant-valuation-and-scenario-math";
 export const US_BUY_STOCKS_KE_SLUG = "buy-us-stocks-from-kenya-hisa-interactive-brokers";
+export const US_NOV20_SELL_OFF_SLUG = "nov-20-2026-sell-off-duration-volatility-analysis";
 
 function orgGraphExtras(url: string, datePublished: string) {
   return {
@@ -650,6 +651,45 @@ export const financeNotes: FinanceNote[] = [
           inLanguage: "en-KE",
           image: `${SITE}/og/buy-us-stocks-from-kenya.jpg`,
           ...orgGraphExtras(`${SITE}/finance/us/${US_BUY_STOCKS_KE_SLUG}`, "2026-11-19"),
+        },
+      ],
+    },
+  },
+  {
+    slug: US_NOV20_SELL_OFF_SLUG,
+    day: 14,
+    category: "Markets",
+    region: "us",
+    title: "The Nov 20 sell-off: what the data shows, and what it does not prove",
+    seoTitle: "Nov 20 Sell-Off: What the Data Shows (and Doesn’t)",
+    shortTitle: "Nov 20 sell-off — duration & volatility",
+    cardBlurb:
+      "S&P and Dow closed in correction. Verified closes, four explanations tested, and corrected equity-duration plus vol-targeting math.",
+    description:
+      "The S&P 500 and Dow closed in correction on Nov 20, 2026. Verified data, what drove it, corrected duration math and the limits of the volatility story.",
+    date: "21 Nov 2026",
+    dateISO: "2026-11-21",
+    readingMinutes: 9,
+    stats: [
+      { label: "S&P Friday", value: "−3.70%" },
+      { label: "VIX", value: "35.89" },
+      { label: "10Y yield", value: "4.92% (−12 bp)" },
+    ],
+    headlineFigure: "S&P −3.7% · VIX 35.89",
+    coverImage: noteCoverPath(US_NOV20_SELL_OFF_SLUG),
+    hasCalculator: false,
+    published: true,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Article",
+          headline: "Nov 20 Sell-Off: What the Data Shows (and Doesn’t)",
+          description:
+            "Verified Nov 20, 2026 closing data, evidence for and against each explanation, and corrected equity-duration and volatility-targeting math.",
+          inLanguage: "en",
+          image: `${SITE}/og/nov-20-sell-off.jpg`,
+          ...orgGraphExtras(`${SITE}/finance/us/${US_NOV20_SELL_OFF_SLUG}`, "2026-11-21"),
         },
       ],
     },

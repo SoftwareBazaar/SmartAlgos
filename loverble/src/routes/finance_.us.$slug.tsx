@@ -2,11 +2,13 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, Clock } from "lucide-react";
 import { AnthropicIpoAntValuation } from "@/components/finance/anthropic-ipo-ant-valuation";
 import { BuyUsStocksFromKenya } from "@/components/finance/buy-us-stocks-from-kenya";
+import { Nov20SellOffAnalysis } from "@/components/finance/nov-20-sell-off-analysis";
 import { FinanceComments } from "@/components/finance/finance-comments";
 import { FinanceNotesSignup } from "@/components/finance/finance-notes-signup";
 import {
   US_ANTHROPIC_IPO_SLUG,
   US_BUY_STOCKS_KE_SLUG,
+  US_NOV20_SELL_OFF_SLUG,
   financeNoteAbsoluteUrl,
   financeNoteLinkTo,
   getFinanceNoteBySlug,
@@ -17,6 +19,7 @@ import {
 const OG_BY_SLUG: Record<string, string> = {
   [US_ANTHROPIC_IPO_SLUG]: "https://www.smartalgosts.com/og/anthropic-ipo-ant-nasdaq.jpg",
   [US_BUY_STOCKS_KE_SLUG]: "https://www.smartalgosts.com/og/buy-us-stocks-from-kenya.jpg",
+  [US_NOV20_SELL_OFF_SLUG]: "https://www.smartalgosts.com/og/nov-20-sell-off.jpg",
 };
 
 const TOC_BY_SLUG: Record<string, Array<{ href: string; label: string }>> = {
@@ -39,6 +42,16 @@ const TOC_BY_SLUG: Record<string, Array<{ href: string; label: string }>> = {
     { href: "#tradingview", label: "TradingView" },
     { href: "#cost", label: "Total cost" },
     { href: "#faq", label: "FAQ" },
+    { href: "#sources", label: "Sources" },
+  ],
+  [US_NOV20_SELL_OFF_SLUG]: [
+    { href: "#facts", label: "What happened" },
+    { href: "#drivers", label: "Four explanations" },
+    { href: "#duration", label: "Equity duration" },
+    { href: "#vol", label: "Volatility feedback" },
+    { href: "#defensives", label: "Defensives" },
+    { href: "#models", label: "Model ideas" },
+    { href: "#watch", label: "What to watch" },
     { href: "#sources", label: "Sources" },
   ],
 };
@@ -125,6 +138,7 @@ export const Route = createFileRoute("/finance_/us/$slug")({
 function ArticleBody({ slug }: { slug: string }) {
   if (slug === US_ANTHROPIC_IPO_SLUG) return <AnthropicIpoAntValuation />;
   if (slug === US_BUY_STOCKS_KE_SLUG) return <BuyUsStocksFromKenya />;
+  if (slug === US_NOV20_SELL_OFF_SLUG) return <Nov20SellOffAnalysis />;
   return null;
 }
 

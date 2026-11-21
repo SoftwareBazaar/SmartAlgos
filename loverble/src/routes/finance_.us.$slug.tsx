@@ -19,7 +19,7 @@ import {
 const OG_BY_SLUG: Record<string, string> = {
   [US_ANTHROPIC_IPO_SLUG]: "https://www.smartalgosts.com/og/anthropic-ipo-ant-nasdaq.jpg",
   [US_BUY_STOCKS_KE_SLUG]: "https://www.smartalgosts.com/og/buy-us-stocks-from-kenya.jpg",
-  [US_NOV20_SELL_OFF_SLUG]: "https://www.smartalgosts.com/og/nov-20-sell-off.jpg",
+  [US_NOV20_SELL_OFF_SLUG]: "https://www.smartalgosts.com/og/nov-20-sell-off-desk.jpg",
 };
 
 const TOC_BY_SLUG: Record<string, Array<{ href: string; label: string }>> = {

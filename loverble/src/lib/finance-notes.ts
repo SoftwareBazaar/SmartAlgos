@@ -688,7 +688,7 @@ export const financeNotes: FinanceNote[] = [
           description:
             "Verified Nov 20, 2026 closing data, evidence for and against each explanation, and corrected equity-duration and volatility-targeting math.",
           inLanguage: "en",
-          image: `${SITE}/og/nov-20-sell-off.jpg`,
+          image: `${SITE}/og/nov-20-sell-off-desk.jpg`,
           ...orgGraphExtras(`${SITE}/finance/us/${US_NOV20_SELL_OFF_SLUG}`, "2026-11-21"),
         },
       ],

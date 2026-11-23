@@ -66,6 +66,7 @@ export const KE_SACCO_MMF_SLUG = "sacco-vs-money-market-fund-kenya-yield-leverag
 export const US_ANTHROPIC_IPO_SLUG = "anthropic-ipo-ant-valuation-and-scenario-math";
 export const US_BUY_STOCKS_KE_SLUG = "buy-us-stocks-from-kenya-hisa-interactive-brokers";
 export const US_NOV20_SELL_OFF_SLUG = "nov-20-2026-sell-off-duration-volatility-analysis";
+export const US_AI_VS_DOTCOM_SLUG = "ai-bubble-vs-dot-com-bubble-capex-real-difference";
 
 function orgGraphExtras(url: string, datePublished: string) {
   return {
@@ -690,6 +691,45 @@ export const financeNotes: FinanceNote[] = [
           inLanguage: "en",
           image: `${SITE}/og/nov-20-sell-off-desk.jpg`,
           ...orgGraphExtras(`${SITE}/finance/us/${US_NOV20_SELL_OFF_SLUG}`, "2026-11-21"),
+        },
+      ],
+    },
+  },
+  {
+    slug: US_AI_VS_DOTCOM_SLUG,
+    day: 15,
+    category: "Markets",
+    region: "us",
+    title: "Is AI the same bubble with better balance sheets?",
+    seoTitle: "AI Bubble vs Dot-Com: Is It the Same Crash?",
+    shortTitle: "AI boom vs dot-com — what’s different",
+    cardBlurb:
+      "Cisco was profitable in 2000 too. Valuations, hyperscaler capex vs cash flow, concentration and failure points — scored.",
+    description:
+      "Cisco was profitable in 2000 and the Nasdaq still fell hard. Verified numbers on how the AI boom differs, where it rhymes and what could break.",
+    date: "23 Nov 2026",
+    dateISO: "2026-11-23",
+    readingMinutes: 11,
+    stats: [
+      { label: "Hyperscaler capex", value: "~$730B" },
+      { label: "Q3 capex / OCF", value: "~115%" },
+      { label: "Top-10 weight", value: "39.2%" },
+    ],
+    headlineFigure: "Capex > cash flow · not 2000",
+    coverImage: noteCoverPath(US_AI_VS_DOTCOM_SLUG),
+    hasCalculator: false,
+    published: true,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Article",
+          headline: "AI Bubble vs Dot-Com: Is It the Same Crash?",
+          description:
+            "How the AI boom differs from the dot-com bubble and where it rhymes, with verified figures and scenario math.",
+          inLanguage: "en",
+          image: `${SITE}/og/ai-vs-dot-com.jpg`,
+          ...orgGraphExtras(`${SITE}/finance/us/${US_AI_VS_DOTCOM_SLUG}`, "2026-11-23"),
         },
       ],
     },
